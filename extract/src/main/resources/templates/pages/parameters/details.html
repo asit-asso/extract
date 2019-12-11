@@ -1,0 +1,407 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/master">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]&nbsp;&ndash; [[#{parameters.page.title}]]
+        </title>
+        <th:block layout:fragment="customStyleIncludes">
+            <link rel="stylesheet" type="text/css" href="../../../static/lib/timepicker/jquery.timepicker.min.css"
+                  th:href="@{/lib/timepicker/jquery.timepicker.min.css} + '?v=@@timepickerLibVersion@@'"/>
+        </th:block>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <form id="parametersForm" method="POST" action="#" th:object='${parameters}' class="form"
+                      th:action="@{/parameters}">
+                    <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                                data-toggle="tooltip" th:attr="aria-label=#{message.close}" th:title="#{message.close}"
+                                title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                        <ul>
+                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="pull-right">
+                            <button id="parametersCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
+                                    type="button">
+                                {Cancel}
+                            </button>
+                            <button id="parametersSaveButton" class="btn btn-extract-filled" th:text="#{buttons.save}"
+                                    type="button">
+                                {Save}
+                            </button>
+                        </div>
+                        <h1 class="page-header" th:text="#{parameters.body.title}">{Configuration de l'application}</h1>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <!-- Panel containing orchestration parameters -->
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <span th:text="#{parameters.panels.orchestration.title}">{Orchestration}</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('basePath')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.basepath.label}"
+                                                       class="control-label">
+                                                    {Chemin de stockage}
+                                                </label>
+                                                <span class="mandatory" th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{basePath}"
+                                                       data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('basePath')} ? ${#fields.errors('basePath')[0]}"
+                                                       value="{basePath}" maxlength="255" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('schedulerFrequency')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.orchestrationfrequency.label}"
+                                                       class="control-label">
+                                                    {Fréquence de mise à jour de l'orchestrateur en secondes}
+                                                </label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="number" class="form-control" data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('schedulerFrequency')} ? ${#fields.errors('schedulerFrequency')[0]}"
+                                                       th:field="*{schedulerFrequency}" value="3600" step="1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('dashboardFrequency')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.dashboardfrequency.label}"
+                                                       class="control-label">
+                                                    {Dashboard update frequency}
+                                                </label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="number" class="form-control" data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('dashboardFrequency')}
+                                                       ? ${#fields.errors('dashboardFrequency')[0]}"
+                                                       th:field="*{dashboardFrequency}" value="20" step="1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <span th:text="#{parameters.panels.hours.title}">{Working hours}</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <label th:text="#{parameters.fields.orchestratorMode.label}">
+                                                {EXTRACT working mode}
+                                            </label>
+                                            <div class="btn-group" data-toggle="buttons">
+                                                <label th:each="schedulerModeItem : ${T(org.easysdi.extract.orchestrator.OrchestratorSettings.SchedulerMode).values()}"
+                                                       class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                       th:classappend="*{schedulerMode} == ${schedulerModeItem} ? 'active' : ''">
+                                                    <input type="radio" th:field="*{schedulerMode}"
+                                                           th:value="${schedulerModeItem}" />&nbsp;
+                                                    <span th:text="${#messages.msg('schedulerMode.' + schedulerModeItem)}">
+                                                        {None}
+                                                    </span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="table-responsive">
+                                            <table id="orchestratorRangesTable"
+                                                   class="inline-fields-table">
+                                                <tbody>
+                                                    <tr th:each="range, rangeStats : *{schedulerRanges}"
+                                                        th:object="${parameters.schedulerRanges[__${rangeStats.index}__]}"
+                                                        th:with="rangeIndex = ${rangeStats.index}" class="table-row">
+                                                        <td class="form-group"
+                                                            th:classappend="${#fields.hasErrors('startDayIndex')} ? 'has-error'">
+                                                            <label th:text="#{parameters.field.orchestratorRange.startDay.label}">
+                                                                {from}
+                                                            </label>
+                                                            <select class="form-control" th:field="*{startDayIndex}"
+                                                                    data-toggle="tooltip"
+                                                                    th:title="${#fields.hasErrors('startDayIndex')}
+                                                                    ? ${#fields.errors('startDayIndex')[0]}">
+                                                                <option th:each="weekDay, weekDayStats : ${T(org.easysdi.extract.utils.DateTimeUtils.DaysOfWeek).values()}"
+                                                                        th:value="${weekDayStats.index + 1}"
+                                                                        th:text="${#messages.msg('weekDay.' + weekDay)}">
+                                                                    {Monday}
+                                                                </option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="form-group"
+                                                            th:classappend="${#fields.hasErrors('endDayIndex')} ? 'has-error'">
+                                                            <label th:text="#{parameters.field.orchestratorRange.endDay.label}">
+                                                                {to}
+                                                            </label>
+                                                            <select class="form-control" th:field="*{endDayIndex}"
+                                                                    data-toggle="tooltip"
+                                                                    th:title="${#fields.hasErrors('endDayIndex')}
+                                                                    ? ${#fields.errors('endDayIndex')[0]}">
+                                                                <option th:each="weekDay, weekDayStats : ${T(org.easysdi.extract.utils.DateTimeUtils.DaysOfWeek).values()}"
+                                                                        th:value="${weekDayStats.index + 1}"
+                                                                        th:text="${#messages.msg('weekDay.' + weekDay)}">
+                                                                    {Monday}
+                                                                </option>
+                                                            </select>
+                                                        </td>
+                                                        <td class="form-group"
+                                                            th:classappend="${#fields.hasErrors('startTime')} ? 'has-error'">
+                                                            <label th:text="#{parameters.field.orchestratorRange.startTime.label}">
+                                                                {from}
+                                                            </label>
+                                                            <input th:field="*{startTime}" class="timepicker"
+                                                                   th:title="${#fields.hasErrors('startTime')}
+                                                                   ? ${#fields.errors('startTime')[0]}" />
+                                                        </td>
+                                                        <td class="form-group"
+                                                            th:classappend="${#fields.hasErrors('endTime')} ? 'has-error'">
+                                                            <label th:text="#{parameters.field.orchestratorRange.endTime.label}">
+                                                                {to}
+                                                            </label>
+                                                            <input th:field="*{endTime}" class="timepicker"
+                                                                   th:title="${#fields.hasErrors('endTime')}
+                                                                   ? ${#fields.errors('endTime')[0]}" />
+                                                        </td>
+                                                        <td class="center-cell button-cell">
+                                                            <div th:id="'deleteButton-' + ${rangeIndex}"
+                                                                 class="btn btn-danger btn-xs delete-range-button"
+                                                                 th:href="@{'/parameters/deleteOrchestratorTimeRange/' + ${rangeIndex}}">
+                                                                <span class="fa fa-remove fa-fw"></span>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <p class="text-center">
+                                            <span id="addRangeButton" class="btn btn-extract-filled"
+                                                  th:href="@{'/parameters/addOrchestratorTimeRange'}" >
+                                                <i class="fa fa-plus fa-fw"></i>
+                                                <span th:text="#{parameters.orchestratorRanges.add.button}" >
+                                                    {Add new rule}
+                                                </span>
+                                            </span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <span th:text="#{parameters.panels.about.title}">{About EXTRACT}</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <p>
+                                                <span th:text="#{parameters.about.text.beforeLink}"></span>
+                                                <span> </span>
+                                                <a href="http://easysdi.org/" target="_blank">easySDI</a>
+                                                <span> </span>
+                                                <span th:text="#{parameters.about.text.afterLink}"></span>
+                                            </p>
+                                            <p>
+                                                <span th:text="#{parameters.about.version}">{Installed version:}</span>
+                                                &nbsp;
+                                                <span>@@extractVersion@@</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Panel containing smtp parameters -->
+                        <div class="col-lg-6">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <span th:text="#{parameters.panels.serveursmtp.title}">{Serveur SMTP}</span>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label th:text="#{parameters.fields.mailEnabled.label}"
+                                                           class="control-label">
+                                                        {Enable e-mail notifications}
+                                                    </label>
+                                                </div>
+                                                <div class="btn-group" data-toggle="buttons">
+                                                    <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                           th:classappend="*{mailEnabled} ? '' : 'active'">
+                                                        <input type="radio" th:field="*{mailEnabled}" value="0" />
+                                                        &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                    </label>
+                                                    <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                           th:classappend="*{mailEnabled} ? 'active' : ''">
+                                                        <input type="radio" th:field="*{mailEnabled}" value="1" />
+                                                        &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('smtpServer')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.smtpserveur.label}"
+                                                       class="control-label">
+                                                    {Serveur SMTP}
+                                                </label>
+                                                <span class="mandatory" th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{smtpServer}"
+                                                       th:title="${#fields.hasErrors('smtpServer')} ? ${#fields.errors('smtpServer')[0]}"
+                                                       value="{smtpServer}" maxlength="255" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label th:text="#{parameters.fields.smtpssl.label}"
+                                                           class="control-label">{SSL}</label>
+                                                </div>
+                                                <div class="btn-group" data-toggle="buttons">
+                                                    <label th:each="sslTypeItem : ${T(org.easysdi.extract.email.EmailSettings.SslType).values()}"
+                                                           class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                           th:classappend="*{sslType} == ${sslTypeItem} ? 'active' : ''">
+                                                        <input type="radio" th:field="*{sslType}"
+                                                               th:value="${sslTypeItem}" />&nbsp;
+                                                        <span th:text="${#messages.msg('sslType.' + sslTypeItem)}">
+                                                            {None}
+                                                        </span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('smtpPort')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.smtpport.label}"
+                                                       class="control-label">
+                                                    {Port SMTP}
+                                                </label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{smtpPort}"
+                                                       th:title="${#fields.hasErrors('smtpPort')} ? ${#fields.errors('smtpPort')[0]}"
+                                                       value="{smtpPort}" maxlength="255" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('smtpUser')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.smtpuser.label}"
+                                                       class="control-label">
+                                                    {Utilisateur SMTP}
+                                                </label>
+                                                <input type="text" class="form-control" th:field="*{smtpUser}"
+                                                       th:title="${#fields.hasErrors('smtpUser')}
+                                                       ? ${#fields.errors('smtpUser')[0]}" autocomplete="off"
+                                                       th:value="*{smtpUser}" maxlength="255" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('smtpPassword')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.smtppassword.label}"
+                                                       class="control-label">
+                                                    {Mot de passe SMTP}
+                                                </label>
+                                                <input type="password" id="smtpPassword" name="smtpPassword"
+                                                       class="form-control" th:value="*{smtpPassword}"
+                                                       th:title="${#fields.hasErrors('smtpPassword')}
+                                                       ? ${#fields.errors('smtpPassword')[0]}" autocomplete="off"
+                                                       maxlength="255" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('smtpFromName')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.mailfromname.label}"
+                                                       class="control-label">
+                                                    {Nom de l'émetteur}
+                                                </label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{smtpFromName}"
+                                                       th:title="${#fields.hasErrors('smtpFromName')} ? ${#fields.errors('smtpFromName')[0]}"
+                                                       value="{smtpFromName}" maxlength="255" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('smtpFromMail')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.mail.label}"
+                                                       class="control-label">
+                                                    {Email de l'émetteur}
+                                                </label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{smtpFromMail}"
+                                                       th:title="${#fields.hasErrors('smtpFromMail')} ? ${#fields.errors('smtpFromMail')[0]}"
+                                                       value="{smtpFromMail}" maxlength="255" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" src="../../static/lib/timepicker/jquery.timepicker.min.js"
+            th:src="@{/lib/timepicker/jquery.timepicker.min.js} + '?v=@@timepickerLibVersion@@'"></script>
+            <script type="text/javascript" src="../../static/js/parameters.js"
+            th:src="@{/js/parameters.js} + '?v=@@extractVersion@@'"></script>
+            <script type="text/javascript" th:inline="javascript">
+                /*<![CDATA[*/
+                $(function() {
+                    $('#parametersCancelButton').on('click', function() {
+                        var pageUrl = /*[[@{'/parameters'}]]*/ "../parameters";
+                        location.replace(pageUrl);
+                    });
+                    $('#parametersSaveButton').on('click', submitParametersData);
+                    $('#addRangeButton').on('click', addOrchestratorTimeRange);
+                    $('.delete-range-button').on('click', removeOrchestratorTimeRange);
+
+                    loadTimePickers();
+                });
+                /*]]>*/</script>
+        </th:block>
+    </body>
+</html>

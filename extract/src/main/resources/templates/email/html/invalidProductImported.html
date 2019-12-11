@@ -1,0 +1,47 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<!--
+Copyright (C) 2017 arx iT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="html/layout/master">
+    <head>
+        <title th:text="#{email.invalidProductImported.subject}">{Extract}</title>
+    </head>
+
+    <body>
+        <div layout:fragment="content">
+            <p th:text="${#messages.msg('email.invalidProductImported.import.failed', productLabel, connectorName)}">
+                {The request export failed.}
+            </p>
+            <table>
+                <tr>
+                    <th th:text="#{email.invalidProductImported.errorMessage.label}">{Error message}</th>
+                    <td th:text="${errorMessage}">{404 Not found}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.invalidProductImported.failureTime.label}">{Time of failure}</th>
+                    <td th:text="${failureTimeString}">{2017-04-10 11:43:58}</td>
+                </tr>
+            </table>
+            <p>
+                <span th:text="#{email.invalidProductImported.action}">{Please go the dashboard.}</span>
+                <a href="#" class="code" th:href="${dashboardItemUrl}" th:text="${dashboardItemUrl}"></a>
+            </p>
+        </div>
+    </body>
+</html>

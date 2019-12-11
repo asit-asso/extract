@@ -1,0 +1,223 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/master">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]&nbsp;&ndash; [[${user.beingCreated}
+            ? #{userDetails.page.title.new}
+            : ${#messages.msg('userDetails.page.title.edit', user.name)}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <form id="userForm" method="POST" action="#" th:object='${user}' class="form"
+                      th:action="${user.beingCreated} ? @{/users/add} : @{'/users/' + ${user.id}}">
+                    <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                                data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                        <ul>
+                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="pull-right">
+                            <button id="userCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
+                                    type="button">
+                                {Cancel}
+                            </button>
+                            <button id="userSaveButton" class="btn btn-extract-filled" th:text="#{buttons.save}"
+                                    type="button">
+                                {Save}
+                            </button>
+                        </div>
+                        <h1 class="page-header" th:text="${user.beingCreated} ? #{userDetails.body.title.new} : ${#messages.msg('userDetails.body.title.edit', user.name)}">
+                            {User}
+                        </h1>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                                        <label th:text="#{userDetails.fields.fullName.label}" class="control-label">
+                                            {Full name}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <input type="text" class="form-control" th:field="*{name}" maxlength="50"
+                                               data-toggle="tooltip"
+                                               th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}" />
+                                        <input type="hidden" th:field="*{id}" />
+                                        <input type="hidden" th:field="*{beingCreated}" />
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label">
+                                        <div>
+                                            <label th:text="#{userDetails.fields.profile.label}">{Role}</label>
+                                        </div>
+                                        <div th:unless="${isOwnAccount}" class="btn-group" data-toggle="buttons">
+                                            <label class="btn btn-xs btn-toggle btn-toggle-info"
+                                                   th:classappend="!*{admin} ? 'active'">
+                                                <input type="radio" th:field="*{profile}"
+                                                       th:value="${T(org.easysdi.extract.domain.User.Profile).OPERATOR}"
+                                                       />
+                                                &nbsp;<span th:text="#{user.profile.OPERATOR}">{Operator}</span>
+                                            </label>
+                                            <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                   th:classappend="*{admin} ? 'active'">
+                                                <input type="radio" th:field="*{profile}"
+                                                       th:value="${T(org.easysdi.extract.domain.User.Profile).ADMIN}" />
+                                                &nbsp;<span th:text="#{user.profile.ADMIN}">{Administrator}</span>
+                                            </label>
+                                        </div>
+                                        <div th:if="${isOwnAccount}">
+                                            <span th:text="${#messages.msg('user.profile.' + user.profile)}"
+                                                  data-toggle="tooltip" class="form-control-static"
+                                                  th:title="#{userDetails.fields.profile.inactive.tooltip}"></span>
+                                            <input type="hidden" th:field="*{profile}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('login')} ? 'has-error'">
+                                        <label th:text="#{userDetails.fields.login.label}" class="control-label">
+                                            {Login}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <input type="text" class="form-control" th:field="*{login}" value="{Login}"
+                                               th:title="${#fields.hasErrors('login')} ? ${#fields.errors('login')[0]}"
+                                               maxlength="50" data-toggle="tooltip" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:with="canEditActive = ${isOwnAccount} or ${isAssociatedToProcesses}">
+                                        <div>
+                                            <label th:text="#{userDetails.fields.active.label}">{Active}</label>
+                                        </div>
+                                        <div th:unless="${canEditActive}"
+                                             class="btn-group" data-toggle="buttons">
+                                            <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                   th:classappend="*{active} ? '' : 'active'">
+                                                <input type="radio" th:field="*{active}" value="0" />
+                                                &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                            </label>
+                                            <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                   th:classappend="*{active} ? 'active' : ''">
+                                                <input type="radio" th:field="*{active}" value="1" />
+                                                &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                            </label>
+                                        </div>
+                                        <div th:if="${canEditActive}">
+                                            <span th:text="${#messages.msg('toggle.' + (user.active ? 'yes' : 'no'))}"
+                                                  th:title="#{userDetails.fields.active.inactive.tooltip}"
+                                                  data-toggle="tooltip" class="form-control-static"></span>
+                                            <input type="hidden" th:field="*{active}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
+                                        <label th:text="#{userDetails.fields.email.label}" class="control-label">
+                                            {E-mail address}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <input type="email" class="form-control" th:field="*{email}" value="{E-mail}"
+                                               th:title="${#fields.hasErrors('email')} ? ${#fields.errors('email')[0]}"
+                                               maxlength="50" data-toggle="tooltip" autocomplete="off" />
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label">
+                                        <div>
+                                            <label th:text="#{userDetails.fields.mailActive.label}">{Active notifications}</label>
+                                        </div>
+                                        <div class="btn-group" data-toggle="buttons">
+                                            <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                   th:classappend="*{mailActive} ? '' : 'active'">
+                                                <input type="radio" th:field="*{mailActive}" value="0" />
+                                                &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                            </label>
+                                            <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                   th:classappend="*{mailActive} ? 'active' : ''">
+                                                <input type="radio" th:field="*{mailActive}" value="1" />
+                                                &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
+                                        <label th:text="#{userDetails.fields.password.label}" class="control-label">
+                                            {Password}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <input type="password" name="password" id="password" class="form-control"
+                                               th:title="${#fields.hasErrors('password')} ? ${#fields.errors('password')[0]}"
+                                               th:value="*{password}" data-toggle="tooltip" autocomplete="off" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('passwordConfirmation')} ? 'has-error'">
+                                        <label th:text="#{userDetails.fields.passwordConfirmation.label}"
+                                               class="control-label">
+                                            {Password}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <input type="password" name="passwordConfirmation" id="passwordConfirmation"
+                                               class="form-control" th:value="*{passwordConfirmation}"
+                                               data-toggle="tooltip" autocomplete="off"
+                                               th:title="${#fields.hasErrors('passwordConfirmation')}
+                                               ? ${#fields.errors('passwordConfirmation')[0]}" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" src="../../static/js/userDetails.js"
+            th:src="@{/js/userDetails.js} + '?v=@@extractVersion@@'"></script>
+            <script type="text/javascript" th:inline="javascript">
+                /*<![CDATA[*/
+                $(function() {
+
+                    $('#userCancelButton').on('click', function() {
+                        var listUrl = /*[[@{'/users'}]]*/ "../users";
+                        location.replace(listUrl);
+                    });
+
+                    $('#userSaveButton').on('click', submitUserData);
+                });
+                /*]]>*/</script>
+        </th:block>
+    </body>
+</html>

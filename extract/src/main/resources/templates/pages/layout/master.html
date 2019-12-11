@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <title>{Extract}</title>
+        <link rel="shortcut icon" href="../../static/favicon.ico" th:href="@{/favicon.ico}" />
+        <link href="../../static/lib/bootstrap/dist/css/bootstrap.min.css"
+              th:href="@{/lib/bootstrap/dist/css/bootstrap.min.css} + '?v=@@bootstrapLibVersion@@'"
+              rel="stylesheet" type="text/css" />
+        <link href="../../static/lib/select2/dist/css/select2.min.css"
+              th:href="@{/lib/select2/dist/css/select2.min.css} + '?v=@@select2LibVersion@@'"
+              rel="stylesheet" type="text/css" />
+        <link href="../../static/lib/font-awesome/css/font-awesome.min.css"
+              th:href="@{/lib/font-awesome/css/font-awesome.min.css} + '?v=@@fontawesomeLibVersion@@'"
+              rel="stylesheet" type="text/css" />
+        <th:block layout:fragment="customStyleIncludes" th:remove="all">
+        </th:block>
+        <link href="../../static/css/extract.css" th:href="@{/css/extract.css} + '?v=@@extractVersion@@'"
+              rel="stylesheet" type="text/css" />
+        <th:block layout:fragment="customStyleSheet">
+        </th:block>
+    </head>
+    <body>
+        <div id="wrapper">
+            <nav class="navbar navbar-default navbar-fixed-top" role="navigation" style="/*margin-bottom: 0*/"
+                 th:fragment="navigation">
+                <div id="nav-wrapper">
+                    <div class="navbar-header">
+                        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                            <span class="sr-only">Toggle navigation</span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                            <span class="icon-bar"></span>
+                        </button>
+                        <a class="navbar-brand" th:href="@{/}" href="login.html"><!--
+                            --><img th:src="@{/images/extract_logo.png}"
+                                    th:alt="#{logo.alt}"
+                                    src="images/extract_logo.png" alt="Logo easySDI EXTRACT" /><!--
+                            --></a>
+                    </div>
+                    <!-- /.navbar-header -->
+
+                    <nav sec:authorize="isAuthenticated()" class="collapse navbar-collapse" id="bs-navbar">
+                        <div class="sidebar-collapse">
+                            <ul class="nav navbar-nav">
+                                <li sec:authorize="hasAnyAuthority('ADMIN', 'OPERATOR')"
+                                    th:classappend="${currentSection} == 'home' ? 'active' : ''">
+                                    <a href="" th:href="@{/}">
+                                        <i class="fa fa-home fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.home}">{Home}</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAuthority('ADMIN')"
+                                    th:classappend="${currentSection} == 'processes' ? 'active' : ''">
+                                    <a href="processes" th:href="@{/processes}">
+                                        <i class="fa fa-cogs fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.processes}">{Traitements}</span>
+                                    </a>
+                                </li>
+                                <!--//
+                                <li>
+                                    <a href="requests" th:href="@{/requests}">
+                                        <i class="fa fa-history fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.history}">{Historique}</span>
+                                    </a>
+                                </li> //-->
+                                <li sec:authorize="hasAuthority('ADMIN')"
+                                    th:classappend="${currentSection} == 'connectors' ? 'active' : ''">
+                                    <a href="connectors" th:href="@{/connectors}">
+                                        <i class="fa fa-plug fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.connectors}">{Connecteurs}</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAuthority('ADMIN')"
+                                    th:classappend="${currentSection} == 'users' ? 'active' : ''">
+                                    <a href="users" th:href="@{/users}">
+                                        <i class="fa fa-users fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.users}">{Utilisateurs et droits}</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAuthority('ADMIN')"
+                                    th:classappend="${currentSection} == 'parameters' ? 'active' : ''">
+                                    <a href="parameters" th:href="@{/parameters}">
+                                        <i class="fa fa-wrench fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.settings}">{Paramètres}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <ul class="nav navbar-nav navbar-right">
+                                <li>
+                                    <a href="#" id="logoutLink">
+                                        <i class="fa fa-sign-out fa-fw"></i>
+                                        <span th:text="#{menu.user.logout}">{Logout}</span>
+                                        (<span sec:authentication="name">{Name}</span>)
+                                    </a>
+                                </li>
+                            </ul>
+                            <form id="logoutForm" action="#" th:action="@{/login/disconnect}" method="POST">
+                            </form>
+                        </div>
+                    </nav>
+                </div>
+                <!-- /.navbar-top-links -->
+            </nav>
+            <th:block th:replace="fragments/message :: dismissibleMessage"></th:block>
+            <div id="page-wrapper" layout:fragment="content">
+            </div>
+        </div>
+        <th:block layout:fragment="customComponents"></th:block>
+        <script th:src="@{/lib/jquery/dist/jquery.min.js} + '?v=@@jqueryLibVersion@@'"
+                src="../../static/lib/jquery/dist/jquery.min.js"
+        type="text/javascript"></script>
+        <script th:src="@{/lib/jquery-ui/jquery-ui.min.js} + '?v=@@jqueryuiLibVersion@@'"
+                src="../../static/lib/jquery-ui/jquery-ui.min.js"
+        type="text/javascript"></script>
+        <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js" type="text/javascript"></script>
+        <script th:src="@{/lib/bootstrap/dist/js/bootstrap.min.js} + '?v=@@bootstrapLibVersion@@'"
+                src="../../static/lib/bootstrap/dist/js/bootstrap.min.js"
+        type="text/javascript"></script>
+        <script th:src="@{/lib/select2/dist/js/select2.min.js} + '?v=@@select2LibVersion@@'"
+                src="../../static/lib/select2/dist/js/select2.min.js"
+        type="text/javascript"></script>
+        <th:block layout:fragment="customScriptIncludes">
+        </th:block>
+        <script th:if="${jsMessagesPath}" th:src="@{'/' + ${jsMessagesPath} + '.js'} + '?v=@@extractVersion@@'"
+        src="../../static/lang/en/messages.js" type="text/javascript"></script>
+        <script th:src="@{/js/extract.js} + '?v=@@extractVersion@@'" src="../../static/js/extract.js"
+                type="text/javascript">
+        </script>
+        <th:block layout:fragment="customScripts"></th:block>
+        <script type="text/javascript">
+            $(function() {
+                $('#logoutLink').on('click', function() {
+                    $('#logoutForm').submit();
+                });
+            });
+        </script>
+    </body>
+</html>

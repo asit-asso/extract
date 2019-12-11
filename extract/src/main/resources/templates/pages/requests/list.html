@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/masterWithTable">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]&nbsp;&ndash; [[#{requestsList.page.title}]]
+        </title>
+        <th:block th:unless="${baseFolderError}" layout:fragment="additionalStyleIncludes">
+            <link href="../../static/lib/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css"
+                  th:href="@{/lib/bootstrap-datepicker/dist/css/bootstrap-datepicker3.min.css} + '?v=@@datepickerLibVersion@@'"
+                  rel="stylesheet" type="text/css" />
+        </th:block>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content"
+                 th:with="isAdmin = ${#authentication.principal.hasAuthority('ADMIN')}">
+                <th:block th:if="${baseFolderError}">
+                    <h3 th:text="#{requestsList.errors.baseFolder.notFound.title}">{Base folder not found}</h3>
+                    <p th:if="${isAdmin}" th:text="#{requestsList.errors.baseFolder.notFound.adminText}">
+                        {The folder that hosts the input and output data for the current orders does not exist. Please
+                        make sure that it exists and that the Tomcat user can access it.}
+                    </p>
+                    <p th:unless="${isAdmin}" th:text="#{requestsList.errors.baseFolder.notFound.operatorText}">
+                        {The folder that hosts the input and output data for the current orders does not exist. Please
+                        contact your administrator to solve this problem.}
+                    </p>
+                    <p th:text="#{requestsList.errors.baseFolder.notFound.requestsWarning}">
+                        {The parts of this web site that deal with orders may not work until this is fixed.}
+                    </p>
+                    <p th:if="${isAdmin}">
+                        <a href="../../parameters" th:href="@{/parameters}"
+                           th:text="#{requestsList.errors.baseFolder.notFound.link}">{Edit the parameters}</a>
+                    </p>
+                </th:block>
+                <th:block th:unless="${baseFolderError}">
+                    <div id="connectorsStateContainer" class="pull-right">
+                    </div>
+                    <h1 class="page-header" th:text="#{requestsList.body.title}">{Home}</h1>
+                    <div id="scheduledStopMessage" class="alert alert-dismissible alert-warning" style="display: none">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
+                        <th:block th:text="#{orchestrator.status.scheduledStop}"></th:block>
+                    </div>
+                    <div id="stoppedMessage" class="alert alert-dismissible alert-warning" style="display: none">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
+                        <th:block th:text="#{orchestrator.status.fullStop}"></th:block>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h3 th:text="#{requestsList.panels.currentRequests.title}">{Current requests}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <table id="currentRequestsTable"
+                                       class="table table-hover dataTables dataTable requests-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th></th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.step}">
+                                                {Step}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.request}">
+                                                {Request}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.customer}">
+                                                {Customer}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.process}">
+                                                {Process}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.received}">
+                                                {Received}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <form class="form-inline pull-right" role="form" style='margin-top: -7px;'>
+
+                                <div class="form-group" style="margin-right: 10px;">
+
+                                </div>
+
+                                <div class="form-group" style="margin-right: 10px">
+                                    <label for="textFilter" th:text="#{requestsList.filters.text.label}">{Filter:}</label>
+                                    <input type="text" class="form-control request-filter-control" id="textFilter"
+                                           placeholder="{Keyword, order code}"
+                                           th:placeholder="#{requestsList.filters.text.placeholder}" />
+                                </div>
+                                <div class="form-group" style="margin-right: 10px">
+                                    <select id="processFilter" class="select2 form-control request-filter-control"
+                                            style="height: 34px; padding: 6px 12px"
+                                            th:attr="data-placeholder = #{requestsList.filters.process.placeholder}">
+                                        <option value=""></option>
+                                        <option th:each="process : ${processes}" th:object="${process}"
+                                                value="{1}" th:value="*{id}" th:text="*{name}">{My process}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group" style="width:200px; margin-right: 10px">
+                                    <label class="sr-only" for="startDateFromFilter"
+                                           th:text="#{requestsList.filters.startDate.from.label}">{Sent date - From}</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control datepicker request-filter-control"
+                                               id="startDateFromFilter"
+                                               th:placeholder="#{requestsList.filters.startDate.from.placeholder}" />
+                                        <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                    </div>
+                                </div>
+                                <div class="form-group" style="width:200px; margin-right: 10px">
+                                    <label class="sr-only" for="startDateToFilter"
+                                           th:text="#{requestsList.filters.startDate.to.label}">{Sent date - To}</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control datepicker request-filter-control"
+                                               id="startDateToFilter"
+                                               th:placeholder="#{requestsList.filters.startDate.to.placeholder}" />
+                                        <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <a id="filterButton" class="btn btn-extract-filled" href="#">
+                                        <i class="fa fa-search"></i>
+                                    </a>
+                                </div>
+                            </form>
+                            <h3 th:text="#{requestsList.panels.finishedRequests.title}">{Finished requests}</h3>
+                        </div>
+                        <div class="panel-body">
+                            <div class="row">
+                                <table id="finishedRequestsTable"
+                                       class="table table-hover dataTables dataTable requests-table">
+                                    <thead>
+                                        <tr>
+                                            <th></th>
+                                            <th></th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.step}">
+                                                {Step}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.request}">
+                                                {Request}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.customer}">
+                                                {Customer}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.process}">
+                                                {Process}
+                                            </th>
+                                            <th th:text="#{requestsList.tables.currentRequests.headers.received}">
+                                                {Received}
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </th:block>
+            </div>
+        </div>
+        <th:block th:unless="${baseFolderError}" layout:fragment="additionalScriptIncludes">
+            <script src="../../static/lib/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js"
+                    th:src="@{/lib/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js} + '?v=@@datepickerLibVersion@@'"
+                    type="text/javascript">
+            </script>
+            <script src="../../static/lib/bootstrap-datepicker/dist/locales/bootstrap-datepicker.en.min.js"
+                    th:src="@{'/lib/bootstrap-datepicker/dist/locales/bootstrap-datepicker.' + ${language} + '.min.js?v=@@datepickerLibVersion@@'}"
+                    type="text/javascript">
+            </script>
+        </th:block>
+        <th:block th:unless="${baseFolderError}" layout:fragment="additionalScripts">
+            <script src="../../static/js/polyfills.js" th:src="@{/js/polyfills.js} + '?v=@@extractVersion@@'"
+            type="text/javascript"></script>
+            <script src="../../static/js/requestsList.js" th:src="@{/js/requestsList.js} + '?v=@@extractVersion@@'"
+            type="text/javascript"></script>
+            <script type="text/javascript" th:inline="javascript">
+                        var refreshInterval = /*[[${refreshInterval}]]*/ 20;
+                        var currentRequestsUrl = /*[[@{/getCurrentRequests}]]*/ "getCurrentRequests";
+                        var finishedRequestsUrl = /*[[@{/getFinishedRequests}]]*/ "getFinishedRequests";
+                        var connectorsRefreshUrl = /*[[@{/getActiveConnectors}]]*/ "getActiveConnectors";
+                        var workingStateRefreshUrl = /*[[@{/getWorkingState}]]*/ "getWorkingState";
+                        var tablePageSize = /*[[${tablePageSize}]]*/ 10;
+                        var applicationLanguage = /*[[${language}]]*/ "en";
+
+                        loadRequestsTable("currentRequestsTable", currentRequestsUrl, refreshInterval, false, false,
+                                false);
+                        var finishedRequestsTable = loadRequestsTable("finishedRequestsTable", finishedRequestsUrl,
+                                refreshInterval, true, true, true, tablePageSize, addSortAndSearchInfo);
+                        $(".dataTables_filter").css("display", "none");
+
+                        $('.requests-table').on('draw.dt', function() {
+                            defineRowClick();
+                        });
+
+
+                        $("#filterButton").on("click", function() {
+                            updateFilterValues();
+                            finishedRequestsTable.draw();
+                        });
+
+                        $(".request-filter-control").on("keydown", function(event) {
+
+                            if (event.which === 13) {
+                                updateFilterValues();
+                                finishedRequestsTable.draw();
+                            }
+                        });
+
+                        loadDatepickers(applicationLanguage);
+
+                        loadConnectors("connectorsStateContainer", connectorsRefreshUrl, refreshInterval);
+                        loadWorkingState("scheduledStopMessage", "stoppedMessage", workingStateRefreshUrl,
+                                refreshInterval);
+            </script>
+        </th:block>
+    </body>
+</html>

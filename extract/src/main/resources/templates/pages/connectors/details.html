@@ -1,0 +1,332 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/master">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]&nbsp;&ndash; [[${isNew}
+            ? #{connectorDetails.page.title.new}
+            : ${#messages.msg('connectorDetails.page.title.edit', connector.name)}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <form id="connectorForm" method="POST" action="#" th:object='${connector}' class="form"
+                      th:action="${isNew} ? @{/connectors/add} : @{'/connectors/' + ${connector.id}}">
+                    <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                                th:attr="aria-label=#{message.close}" data-toggle="tooltip" th:title="#{message.close}"
+                                title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                        <ul>
+                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="pull-right">
+                            <button id="connectorCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
+                                    type="button">
+                                {Cancel}
+                            </button>
+                            <button id="connectorSaveButton" class="btn btn-extract-filled" th:text="#{buttons.save}"
+                                    type="button">
+                                {Save}
+                            </button>
+                        </div>
+                        <h1 class="page-header" th:text="${isNew} ? #{connectorDetails.body.title.new} : ${#messages.msg('connectorDetails.body.title.edit', connector.name)}">
+                            {Configuration du connecteur}
+                        </h1>
+                    </div>
+                    <div class="alert alert-danger" th:unless="${#strings.isEmpty(connector.lastImportMessage)}">
+                        <div>
+                            <strong th:text="#{connectorDetails.importError.title}">{Import error}</strong>
+                            <span th:text="#{connectorDetails.importError.onDate}">{on}</span>
+                            <span th:text="${#calendars.format(connector.lastImportDate, 'd MMMM yyyy')}">
+                                {5 April 2017}
+                            </span>
+                            <span th:text="#{connectorDetails.importError.atTime}">{at}</span>
+                            <span th:text="${#calendars.format(connector.lastImportDate, 'HH:mm')}">
+                                {11:45}
+                            </span>
+                        </div>
+                        <div>
+                            <span th:text="#{connectorDetails.importError.message}">{Message}</span>
+                            <span th:text="${connector.lastImportMessage}">{404 Not Found}</span>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12">
+                            <div class="panel panel-default">
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                                                <label for="connectorName" th:text="#{connectorDetails.fields.name.label}"
+                                                       class="control-label">
+                                                    {Name}
+                                                </label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{name}" value="{Nom}"
+                                                       data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('importFrequency')} ? 'has-error'">
+                                                <label for="importFrequency" class="control-label"
+                                                       th:text="#{connectorDetails.fields.frequency.label}">{Frequency}</label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="number" class="form-control" th:field="*{importFrequency}"
+                                                       th:title="${#fields.hasErrors('importFrequency')} ? ${#fields.errors('importFrequency')[0]}"
+                                                       value="3600" step="1" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label th:text="#{connectorDetails.fields.active.label}"
+                                                           class="control-label">
+                                                        {Active}
+                                                    </label>
+                                                </div>
+                                                <div class="btn-group" data-toggle="buttons">
+                                                    <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                           th:classappend="*{active} ? '' : 'active'">
+                                                        <input type="radio" th:field="*{active}" value="0" />
+                                                        &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                    </label>
+                                                    <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                           th:classappend="*{active} ? 'active' : ''">
+                                                        <input type="radio" th:field="*{active}" value="1" />
+                                                        &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-lg-6">
+                                            <div class="form-group form-group-with-label">
+                                                <label th:text="#{connectorDetails.fields.type.label}" class="control-label">
+                                                    {Type}
+                                                </label>
+                                                <div id="connectorType" class="form-control-static" th:text="*{typeLabel}">
+                                                    {Type}
+                                                </div>
+                                                <input type="hidden" th:field="*{id}" />
+                                                <input type="hidden" th:field="*{typeCode}" />
+                                                <input type="hidden" th:field="*{typeLabel}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row" th:each="dynamicParameter, paramStats : *{parameters}"
+                                         th:object="${connector.parameters[__${paramStats.index}__]}">
+                                        <div class="col-lg-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('value')} ? 'has-error'">
+                                                <label th:text="*{label}" class="control-label">{Label}</label>
+                                                <span th:if="*{required}" class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="hidden" th:field="*{name}" />
+                                                <input type="hidden" th:field="*{type}" />
+                                                <input type="hidden" th:field="*{label}" />
+                                                <input type="hidden" th:field="*{required}" />
+                                                <input type="hidden" th:field="*{maxLength}" />
+                                                <input type="hidden" th:if="*{maxValue} != null" th:field="*{maxValue}" />
+                                                <input type="hidden" th:if="*{minValue} != null" th:field="*{minValue}" />
+                                                <input type="hidden" th:if="*{step} != null" th:field="*{step}" />
+                                                <input type="text" th:if="*{type} == 'text'" th:required="*{required}"
+                                                       data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
+                                                       th:maxlength="*{maxLength}" class="form-control" th:field="*{value}" />
+                                                <input type="password" th:if="*{type} == 'pass'" th:required="*{required}"
+                                                       th:maxlength="*{maxLength}" class="form-control" autocomplete="off"
+                                                       th:value="${isNew} ? '' : '*****'" data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
+                                                       th:name="${'parameters[' + paramStats.index + '].value'}"
+                                                       th:id="${'parameters' + paramStats.index + '.value'}" />
+                                                <textarea class="form-control" style="resize:vertical"
+                                                          th:required="*{required}" th:if="*{type} == 'multitext'"
+                                                          th:field="*{value}" data-toggle="tooltip"
+                                                          th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
+                                                <div class="btn-group" data-toggle="buttons"
+                                                     th:required="*{required}" th:if="*{type} == 'boolean'" >
+                                                    <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                           th:classappend="*{value}=='true' ? '' : 'active'">
+                                                        <input type="radio" th:field="*{value}" value="false" />
+                                                        &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                    </label>
+                                                    <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                           th:classappend="*{value}=='true' ? 'active' : ''">
+                                                        <input type="radio" th:field="*{value}" value="true" />
+                                                        &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                    </label>
+                                                </div>
+                                                <input type="number" th:if="*{type} == 'numeric'" th:required="*{required}"
+                                                       th:min="*{minValue}" th:max="*{maxValue}" th:step="*{step}"
+                                                       class="form-control" autocomplete="off"
+                                                       th:value="*{value} != null ? *{value} : ''" data-toggle="tooltip"
+                                                       th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
+                                                       th:name="${'parameters[' + paramStats.index + '].value'}"
+                                                       th:id="${'parameters' + paramStats.index + '.value'}" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rules -->
+                    <h3>
+                        <span th:text="#{rulesList.table.title}" th:unless="${isNew}">{Rules}</span>
+                        <span th:text="#{rulesList.table.empty.title}" th:if="${isNew}">{Rules}</span>
+                    </h3>
+                    <div class="panel panel-default" th:unless="${isNew}">
+
+                        <div class="panel-body" >
+                            <div class="row">
+                                <div class="table-responsive">
+                                    <table id="rulesTable"
+                                           class="table table-striped table-hover dataTables dataTable">
+                                        <thead>
+                                            <tr>
+                                                <th >
+                                                    <span class="fa fa-exchange fa-lg fa-rotate-90" ></span>
+                                                </th>
+                                                <th>
+                                                    <label th:text="#{rulesList.table.headers.rule}"></label>
+                                                    <span class="label label-default helplink" style="cursor:pointer"
+                                                          th:text="#{rulesList.table.headers.help}"
+                                                          data-popover-content="#popup-over-rulehelp">{Help}</span>
+                                                </th>
+                                                <th ><label th:text="#{rulesList.table.headers.process}">{Process}</label></th>
+                                                <th ><label th:text="#{rulesList.table.headers.active}">{Active}</label></th>
+                                                <th class="center-cell">
+                                                    <label th:text="#{rulesList.table.headers.delete}">{Delete}</label>
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr th:each="rule, ruleStats : *{rules}"
+                                                th:object="${connector.rules[__${ruleStats.index}__]}"
+                                                th:style="*{tag} =='DELETED' ? 'display:none' : 'table-row'" >
+                                                <td width="40" class="ruleReorder">
+                                                    <span class="fa fa-align-justify fa-fw" style="cursor:move" ></span>
+                                                    <input type="hidden" class="ruleId" th:field="*{id}" />
+                                                    <input type="hidden" class="rulePosition" th:field="*{position}" />
+                                                    <input type="hidden" class="ruleTag" th:field="*{tag}" />
+                                                    <input type="hidden" th:field="*{connectorId}" />
+                                                </td>
+                                                <td class="ruleCondition"
+                                                    th:classappend="${#fields.hasErrors('rule')} ? 'has-error'">
+                                                    <textarea class="form-control" style="resize:vertical"
+                                                              th:field="*{rule}" data-toggle="tooltip"
+                                                              th:title="${#fields.hasErrors('rule')}
+                                                              ? ${#fields.errors('rule')[0]}"></textarea>
+                                                </td>
+                                                <td width="300" class="ruleProcess"
+                                                    th:classappend="${#fields.hasErrors('processId')} ? 'has-error'">
+                                                    <input type="hidden" class="form-control" th:field="*{processId}" />
+                                                    <select class="form-control" th:field="*{processId}"
+                                                            data-toggle="tooltip"
+                                                            th:title="${#fields.hasErrors('processId')} ? ${#fields.errors('processId')[0]}">
+                                                        <option disabled="true" th:value="0" th:text="#{common.select.prompt}">
+                                                            {---}
+                                                        </option>
+                                                        <option th:each="process, processStats : ${processes}"
+                                                                th:value="${processes[__${processStats.index}__].id}"
+                                                                th:text="${processes[__${processStats.index}__].name}" >
+                                                            {Option}
+                                                        </option>
+                                                    </select>
+                                                </td>
+                                                <td width="110">
+                                                    <div class="btn-group" data-toggle="buttons">
+                                                        <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                               th:classappend="*{active} ? '' : 'active'">
+                                                            <input type="radio" th:field="*{active}" value="0"
+                                                                   th:name="${'rules[' + ruleStats.index + '].active'+'No'}" />
+                                                            &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                        </label>
+                                                        <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                               th:classappend="*{active} ? 'active' : ''">
+                                                            <input type="radio" th:field="*{active}" value="1"
+                                                                   th:name="${'rules[' + ruleStats.index + '].active'+'Yes'}" />
+                                                            &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                        </label>
+                                                    </div>
+                                                </td>
+                                                <td width="80" class="center-cell">
+                                                    <div th:id="'deleteButton-' + *{id}"
+                                                         class="btn btn-danger btn-xs delete-button"
+                                                         th:href="@{'/connectors/' + *{connectorId} + '/deleteRule/' + *{id}}">
+                                                        <span class="fa fa-remove fa-fw"></span>
+                                                        <input type="hidden" id="connector_id" th:value="*{connectorId}" />
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <p class="text-center">
+                                        <span id="ruleAddButton" class="btn btn-success" th:href="@{'/connectors/' + ${connector.id} + '/addRule'}" >
+                                            <i class="fa fa-plus fa-fw"></i>
+                                            <span th:text="#{rulesList.add.button}" >{Add new rule}</span>
+                                        </span>
+                                    </p>
+                                    <p class="text-center">
+                                        <span style="font-size: 15px" class="label label-warning">
+                                            <i class="fa fa-exclamation-triangle "></i> <span th:text="#{rulesList.help.warning}"></span>
+                                        </span>
+                                    </p>
+                                </div><!-- end of table-responsive-->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Content for Popover for advanced button -->
+                    <div  id="popup-over-rulehelp" class="popup-over-content">
+                        <div class="popover-heading">
+                            <div class='popup-header'><span th:text="#{rulesList.help.title}" ></span><span class="fa fa-times fa-2x img-close" ></span></div>
+                        </div>
+
+                        <div class="popover-body" th:href="@{'/lang/'+ ${language} + '/rulesHelp.html'}">
+
+                        </div>
+                    </div>
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" src="../../static/js/connectorDetails.js"
+                    th:src="@{/js/connectorDetails.js} + '?v=@@extractVersion@@'">
+            </script>
+            <script type="text/javascript" th:inline="javascript">
+                /*<![CDATA[*/
+                $(function() {
+                    $('#connectorCancelButton').on('click', function() {
+                        var listUrl = /*[[@{'/connectors'}]]*/ "../connectors";
+                        location.replace(listUrl);
+                    });
+                    $('#connectorSaveButton').on('click', submitConnectorData);
+
+                    $('#ruleAddButton').on('click', addRule);
+
+                    //$('.delete-button .fa-remove').on('click', deleteRule);
+
+                });
+                /*]]>*/
+            </script>
+        </th:block>
+    </body>
+</html>

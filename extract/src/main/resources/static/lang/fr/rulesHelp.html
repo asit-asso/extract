@@ -1,0 +1,631 @@
+<p class="Titre4" style="margin-bottom:6.0pt"><span>La solution met en
+        &oelig;uvre un langage syntaxique visant &agrave; interpr&eacute;ter les commandes entrantes pour
+        les associer &agrave; des traitements sp&eacute;cifiques. L'utilisateur peut ainsi d&eacute;finir
+        des r&egrave;gles compos&eacute;es d'un ou plusieurs crit&egrave;res, s&eacute;par&eacute; par un op&eacute;rateur
+        bool&eacute;en&nbsp;:</span></p>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><i><span>crit&egrave;re1 <b>and/or</b>
+            crit&egrave;re2 <b>and/or</b> critere3 <b>and/or</b> &hellip; <b>and/or</b> crit&egrave;reN</span></i></p>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><span>Chaque crit&egrave;re
+        suit la syntaxe suivante&nbsp;:</span></p>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><i><span>&lt;propri&eacute;t&eacute;&gt;
+            &lt;op&eacute;rateur&gt; &lt;valeur&gt;</span></i></p>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><span>Par exemple&nbsp;:
+        <i>productguid == "708e932b-81c3-2ce4-b907-ed07e61ac5f9"</i></span></p>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><i><span>&nbsp;</span></i></p>
+
+<h3><span style="font:0.0pt 'Times New Roman'">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </span>Propri&eacute;t&eacute;s</h3>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><span>Les propri&eacute;t&eacute;s
+        utilisables sont list&eacute;es dans le tableau ci-dessous. Pour chacune d'elle, il
+        est indiqu&eacute; le type d'op&eacute;rateur possible (attributaire / g&eacute;ographique) et le
+        type de valeur &agrave; renseigner (texte / num&eacute;rique / g&eacute;om&eacute;trie).</span></p>
+
+<table class="MsoTableClassic4" border="1" cellspacing="0" cellpadding="0" width="567" style="width:15.0cm;border-collapse:collapse;border:none">
+    <tbody><tr>
+            <td width="102" style="width:76.7pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:0cm"><b>Propri&eacute;t&eacute;</b></p>
+            </td>
+
+            <td width="167" style="width:124.9pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Description / Remarque</b></p>
+            </td>
+            <td width="91" style="width:68.5pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Type op&eacute;rateur</b></p>
+            </td>
+            <td width="98" style="width:73.4pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Type valeur</b></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">orderlabel</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">orderlabel de
+                        l'&eacute;l&eacute;ment de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">orderguid</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">orderguid de
+                        l'&eacute;l&eacute;ment de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">productguid</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">productguid de
+                        l'&eacute;l&eacute;ment de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">productlabel</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">productlabel de
+                        l'&eacute;l&eacute;ment de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">client</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">client de
+                        l'&eacute;l&eacute;ment de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">tiers</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">tiers de l'&eacute;l&eacute;ment
+                        de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">surface</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">surface de l'&eacute;l&eacute;ment
+                        de requ&ecirc;te en m&sup2;</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Num&eacute;rique</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">organism</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">organisme de l'&eacute;l&eacute;ment
+                        de requ&ecirc;te</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Texte</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">perimeter</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">perimeter de
+                        l'&eacute;l&eacute;ment de requ&ecirc;te, c'est-&agrave;-dire le polygone d'export au format WKT.
+                        Les coordonn&eacute;es sont en WGS84.</span>
+                </p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">G&eacute;ographique</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">G&eacute;om&eacute;trie</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="102" valign="top" style="width:76.7pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">parameters.xxx</span></b></p>
+            </td>
+
+            <td width="167" valign="top" style="width:124.9pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Propri&eacute;t&eacute; dynamique
+                        de l'&eacute;l&eacute;ment de requ&ecirc;te. Le xxx est &agrave; remplacer par la propri&eacute;t&eacute; voulue (p.&nbsp;ex.
+                        <i>format</i>, <i>projection</i>, &hellip;) selon le connecteur d'import</span></p>
+            </td>
+            <td width="91" style="width:68.5pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">Attributaire</span></p>
+            </td>
+            <td width="98" style="width:73.4pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">
+                        Selon le type de la propri&eacute;t&eacute; dynamique&nbsp;: texte ou num&eacute;rique</span></p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><span>&nbsp;</span></p>
+
+<h3><span style="font:0.0pt 'Times New Roman'">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </span>Op&eacute;rateurs</h3>
+
+<p class="Normal60"><span>Deux types d'op&eacute;rateurs sont
+        possibles&nbsp;: attributaire et g&eacute;ographique, selon la propri&eacute;t&eacute; utilis&eacute;e.</span></p>
+
+<p class="Normal60"><span>Le tableau ci-dessous contient la liste des
+        op&eacute;rateurs attributaires utilisables.</span></p>
+
+<table class="MsoTableClassic4" border="1" cellspacing="0" cellpadding="0" width="567" style="width:15.0cm;border-collapse:collapse;border:none">
+    <tbody><tr>
+            <td width="123" style="width:92.15pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Op&eacute;rateurs att.</b></p>
+            </td>
+            <td width="444" style="width:333.1pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Description / Remarque</b></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">==</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        &eacute;gale &agrave; la valeur </span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">!=<sup> </sup></span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        diff&eacute;rente de la valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">&gt;&nbsp;</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        sup&eacute;rieure &agrave; la valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">&lt;&nbsp;</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        inf&eacute;rieure &agrave; la valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">&gt;=</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        sup&eacute;rieure ou &eacute;gale &agrave; la valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">&lt;=</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        inf&eacute;rieure ou &eacute;gale &agrave; la valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">
+                            IN
+                        </span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; est
+                        incluse dans une liste de valeurs</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">
+                            NOT IN
+                        </span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La propri&eacute;t&eacute; n'est pas
+                        incluse dans une liste de valeurs</span></p>
+            </td>
+        </tr>
+    </tbody></table>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><span>&nbsp;</span></p>
+
+<p class="Normal60"><span>Le tableau ci-dessous contient la liste des
+        op&eacute;rateurs g&eacute;om&eacute;triques utilisables.</span></p>
+
+<table class="MsoTableClassic4" border="1" cellspacing="0" cellpadding="0" width="567" style="width:15.0cm;border-collapse:collapse;border:none">
+    <tbody><tr>
+            <td width="123" style="width:92.15pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Op&eacute;rateurs g&eacute;o.</b></p>
+            </td>
+            <td width="444" style="width:333.1pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Description / Remarque</b></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">intersects</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La g&eacute;om&eacute;trie
+                        contenue dans la propri&eacute;t&eacute; intersecte la g&eacute;om&eacute;trie pass&eacute;e en valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">contains</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La g&eacute;om&eacute;trie
+                        contient la g&eacute;om&eacute;trie pass&eacute;e en valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">disjoint</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La g&eacute;om&eacute;trie est
+                        totalement disjointe de la g&eacute;om&eacute;trie pass&eacute;e en valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">equals</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La g&eacute;om&eacute;trie est
+                        &eacute;gale &agrave; la g&eacute;om&eacute;trie pass&eacute;e en valeur</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">within</span></b></p>
+            </td>
+            <td width="444" valign="top" style="width:333.1pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">La g&eacute;om&eacute;trie est
+                        incluse dans la g&eacute;om&eacute;trie pass&eacute;e en valeur</span></p>
+            </td>
+        </tr>
+    </tbody></table>
+
+<p class="Titre4" style="margin-bottom:6.0pt">&nbsp;</p>
+
+<h3><span style="font:0.0pt ';Times New Roman'">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </span>Valeurs</h3>
+
+<p class="Normal60"><span>Selon la propri&eacute;t&eacute; et l'op&eacute;rateur, les
+        valeurs peuvent &ecirc;tre de trois types.</span></p>
+
+<table class="MsoTableClassic4" border="1" cellspacing="0" cellpadding="0" width="567" style="width:15.0cm;border-collapse:collapse;border:none">
+    <tbody><tr>
+            <td width="123" style="width:92.15pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Type valeur</b></p>
+            </td>
+            <td width="208" style="width:155.95pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Description </b></p>
+            </td>
+            <td width="236" style="width:177.15pt;border-top:solid black 1.5pt;border-left:
+                none;border-bottom:solid black 1.5pt;border-right:none;background:#E5E5E5;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b>Exemple</b></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">Texte</span></b></p>
+            </td>
+            <td width="208" valign="top" style="width:155.95pt;border:none;border-bottom:
+                solid gray 1.0pt;padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">Texte &agrave; indiquer entre guillemets</span></p>
+            </td>
+            <td width="236" style="width:177.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">"PDF"</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">Num&eacute;rique</span></b></p>
+            </td>
+            <td width="208" valign="top" style="width:155.95pt;border:none;border-bottom:
+                solid gray 1.0pt;padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">Nombre (entier ou d&eacute;cimal)</span></p>
+            </td>
+            <td width="236" style="width:177.15pt;border:none;border-bottom:solid gray 1.0pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><span style="font-size:10.0pt">1234</span></p>
+            </td>
+        </tr>
+        <tr>
+            <td width="123" valign="top" style="width:92.15pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" style="margin-top:3.0pt;margin-right:2.85pt;margin-bottom:
+                   3.0pt;margin-left:2.85pt"><b><span style="font-size:10.0pt">G&eacute;om&eacute;trie</span></b></p>
+            </td>
+            <td width="208" valign="top" style="width:155.95pt;border:none;border-bottom:
+                solid black 1.5pt;padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">
+                        G&eacute;om&eacute;trie pass&eacute;e au format WKT non entour&eacute;s de guillemets. Les coordonn&eacute;es doivent
+                        &ecirc;tre en WGS84.</span></p>
+            </td>
+            <td width="236" style="width:177.15pt;border:none;border-bottom:solid black 1.5pt;
+                padding:0cm 5.4pt 0cm 5.4pt">
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">POLYGON((6.82 46.39,6.92 46.39,6.92 46.19,6.92
+                        46.19,6.82 46.39))</span></p>
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">LINESTRING(6.82 46.39, 6.92 46.39, 6.92 46.19)</span></p>
+                <p class="MsoNormal" align="left" style="margin-top:3.0pt;margin-right:2.85pt;
+                   margin-bottom:3.0pt;margin-left:2.85pt;text-align:left"><span style="font-size:10.0pt">POINT(6.82 46.39)</span></p>
+            </td>
+        </tr>
+    </tbody></table>
+
+<p class="Titre4">&nbsp;</p>
+
+<h3><span style="font:0.0pt 'Times New Roman'">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    </span>Exemples</h3>
+
+<p class="Titre4" style="margin-bottom:6.0pt"><span>Quelques exemples
+        types de r&egrave;gles&nbsp;:</span></p>
+
+<p class="Bullet1"><span style="font-family:Wingdings;color:#87D300">&sect;<span style="font:7.0pt 'Times New Roman'">&nbsp; </span></span><b><span>orderlabel</span></b><span> <i>==</i> "92445" <i>AND</i> <b>perimeter</b> <i>intersects</i> POLYGON((6.82
+        46.39,6.92 46.39,6.92 46.19,6.92 46.19,6.82 46.39))</span></p>
+
+<p class="Bullet1"><span style="font-family:Wingdings;color:#87D300">&sect;<span style="font:7.0pt 'Times New Roman'">&nbsp; </span></span><b><span>orderlabel</span></b><span> <i>==</i> "92445" <i>AND</i> <b>parameters.format </b><i>==</i> "PDF"</span></p>
+
+<p class="Bullet1"><span style="font-family:Wingdings;color:#87D300">&sect;<span style="font:7.0pt 'Times New Roman'">&nbsp; </span></span><b><span>productguid</span></b><span> <i>IN</i> ("a049fecb-30d9-9124-ed41-068b566a0855", "e0a491cc-a8f3-3e64-0590-c534ce6b0144") <i>AND</i> <b>surface</b> <i><</i> 10000</span></p>
+
+<p class="Bullet1"><span style="font-family:Wingdings;color:#87D300">&sect;<span style="font:7.0pt 'Times New Roman'">&nbsp; </span></span><b><span>parameters.format</span></b><span> <i>NOT IN</i> ("DWG", "DXF", "PDF")</span></p>

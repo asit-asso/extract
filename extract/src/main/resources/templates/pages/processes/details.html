@@ -1,0 +1,328 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<!--
+Copyright (C) 2017 arx iT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/master">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]&nbsp;&ndash; [[${isNew}
+            ? #{processDetails.page.title.new}
+            : ${#messages.msg('processDetails.page.title.' + (process.readOnly ? 'view' : 'edit'), process.name)}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+
+                <form id="processForm" method="POST" action="#" th:object="${process}" class="form"
+                      th:action="${isNew} ? @{/processes/add} : @{'/processes/' + *{id}}"
+                      th:with="readOnly = ${process.readOnly}">
+                    <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                                data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                        <ul>
+                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="pull-right">
+                            <button id="processCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
+                                    type="button">
+                                {Cancel}
+                            </button>
+                            <button id="processSaveButton" th:text="#{buttons.save}" class="btn btn-extract-filled"
+                                    th:classappend="${process.readOnly} ? 'disabled' : ''" data-toggle="tooltip"
+                                    th:title="${process.readOnly} ? #{processDetails.readonly.info} : ''"
+                                    type="button">
+                                {Save}
+                            </button>
+                        </div>
+                        <h1 class="page-header" th:text="${isNew} ? #{processDetails.body.title.new} : ${#messages.msg('processDetails.body.title.edit', process.name)}">
+                            {Process}
+                        </h1>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                                        <label th:text="#{processDetails.fields.name.label}"
+                                               class="control-label">{Name}</label>
+                                        <span class="mandatory" th:unless="${readOnly}"></span>
+                                        <input type="text" class="form-control" th:field="*{name}"
+                                               th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}"
+                                               th:unless="${readOnly}" data-toggle="tooltip" />
+                                        <div th:text="*{name}" th:if="${readOnly}" class="form-control-static">
+                                            {Name}
+                                        </div>
+                                        <input type="hidden" th:field="*{name}" th:if="${readOnly}" />
+                                        <input type="hidden" th:field="*{id}" />
+                                        <input id="readonly" type="hidden" th:field="*{readOnly}" />
+                                        <input type="hidden" th:field="*{htmlScrollY}" />
+                                    </div>
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('users')} ? 'has-error'" >
+                                        <label th:text="#{processDetails.fields.operators.label}"
+                                               class="control-label">{Operators}</label>
+                                        <span class="mandatory" th:unless="${readOnly}"></span>
+                                        <input id="usersIds" type="hidden" th:field="*{usersIds}" />
+                                        <select class="select2-container select2-container-multi form-control select2"
+                                                multiple="multiple" data-toggle="tooltip"
+                                                th:id="users"
+                                                th:unless="${readOnly}"
+                                                th:title="${#fields.hasErrors('users')} ? ${#fields.errors('users')[0]}" >
+                                            <option th:each="user, userStats : ${allactiveusers}"
+                                                    th:value="${user.id}"
+                                                    th:text="${user.name}" >
+                                                {Option}
+                                            </option>
+                                        </select>
+                                        <div th:if="${readOnly}" class="form-control-static">
+                                            <th:block th:each="user, usersStats : *{users}"
+                                                      th:object="${process.users[__${usersStats.index}__]}"
+                                                      >
+                                                <span th:if="${usersStats.index} > 0">&nbsp; - </span>
+                                                <span th:text="*{name}">{User}</span>
+                                            </th:block>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row extract-proc-tasks">
+                        <!-- Tâches du traitement -->
+                        <div class="col-lg-8">
+                            <div class="panel panel-default">
+                                <div class="panel-heading panel-heading-large"
+                                     th:text="#{processDetails.panels.tasks.title}">{Tasks}</div>
+                                <div class="panel-body">
+                                    <div class="row">
+                                        <div class="col-lg-12 process-empty-placeholder" th:if="${process.tasks.length==0}" >
+                                            <div th:style="'min-height: 500px;background-position: center; background-repeat: no-repeat; background-image:url(' + @{/images/process_empty_placeholder.png} + ');'"></div>
+                                        </div>
+                                        <div class="col-lg-12 taskpanel"
+                                             th:each="task, taskStats : *{tasks}"
+                                             th:object="${process.tasks[__${taskStats.index}__]}" >
+
+                                            <p class="text-center task-arrow-down" th:style="${taskStats.index>0} ? 'display:block' : 'display:none'" ><i class="fa fa-arrow-down text-success" aria-hidden="true"></i></p>
+
+                                            <div class="panel panel-success chosed-task" >
+                                                <div class="panel-heading">
+                                                    <div class="btn btn-success btn-circle">
+                                                        <i class="fa" th:classappend="*{pluginPictoClass}"></i>
+                                                    </div>
+                                                    <span class="strong" th:text="*{pluginLabel}">{Task label}</span>
+                                                    <span class="label label-default helplink" style="cursor:pointer"
+                                                          th:href="'#popup-over-task-' + *{id}"
+                                                          th:if="${process.tasks[__${taskStats.index}__].pluginHelpMessage != null and process.tasks[__${taskStats.index}__].pluginHelpMessage != ''}"
+                                                          th:text="#{processDetails.panels.tasks.helplink}" >{help}</span>
+                                                    <div th:id="'popup-over-task-' + *{id}" id="popup-over-task" class="popup-over-content">
+                                                        <div class="popover-heading">
+                                                            <div class='popup-header'><span th:text="#{processDetails.task.help.title}" ></span><span class="fa fa-times fa-2x img-close" ></span></div>
+                                                        </div>
+                                                        <div class="popover-body" th:utext="*{pluginHelpMessage}"></div>
+                                                    </div>
+                                                    <div th:id="'deleteTaskButton-' + *{id}" th:href="@{'/processes/' + ${process.id} + '/deleteTask/' + *{id}}"
+                                                         class="btn btn-xs btn-danger pull-right deletetask-button"
+                                                         th:classappend="${process.readOnly} ? 'disabled' : ''" >
+                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                    </div>
+                                                    <input type="hidden" th:field="*{id}" />
+                                                    <input type="hidden" th:field="*{pluginCode}" />
+                                                    <input type="hidden" th:field="*{pluginLabel}" />
+                                                    <input type="hidden" th:field="*{pluginPictoClass}" />
+                                                    <input type="hidden" th:field="*{pluginHelpMessage}" />
+                                                    <input type="hidden" th:field="*{tag}" />
+                                                    <input type="hidden" class="taskPosition" th:field="*{position}" />
+                                                </div>
+                                                <div class="panel-body">
+                                                    <div class="row"
+                                                         th:each="dynamicParameter, paramStats : *{parameters}"
+                                                         th:object="${process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__]}">
+                                                        <div class="col-lg-12">
+                                                            <div class="form-group form-group-with-label"
+                                                                 th:classappend="${#fields.hasErrors('value')} ? 'has-error'">
+                                                                <label th:text="*{label}" class="control-label">
+                                                                    {Label}
+                                                                </label>
+                                                                <span th:if="*{required}" class="mandatory"
+                                                                      th:title="#{field.mandatory.tooltip}"
+                                                                      th:unless="${readOnly}" data-toggle="tooltip">
+                                                                </span><br/>
+                                                                <input type="hidden" th:field="*{name}" />
+                                                                <input type="hidden" th:field="*{type}" />
+                                                                <input type="hidden" th:field="*{label}" />
+                                                                <input type="hidden" th:field="*{required}" />
+                                                                <input type="hidden" th:field="*{maxLength}" />
+                                                                <input type="hidden" th:if="*{maxValue} != null"
+                                                                       th:field="*{maxValue}" />
+                                                                <input type="hidden" th:if="*{minValue} != null"
+                                                                       th:field="*{minValue}" />
+                                                                <input type="hidden" th:if="*{step} != null"
+                                                                       th:field="*{step}" />
+                                                                <input type="text" th:required="*{required}"
+                                                                       th:if="(*{type} == 'text' or *{type} == 'email') and !${readOnly}"
+                                                                       th:maxlength="*{maxLength}" data-toggle="tooltip"
+                                                                       class="form-control" th:field="*{value}"
+                                                                       th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" />
+                                                                <input type="password" th:required="*{required}"
+                                                                       data-toggle="tooltip" autocomplete="off"
+                                                                       th:if="*{type} == 'pass' and !${readOnly}"
+                                                                       th:id="${'tasks' + taskStats.index + '.parameters' + paramStats.index + '.value'}"
+                                                                       class="form-control" th:maxlength="*{maxLength}"
+                                                                       th:name="${'tasks[' + taskStats.index + '].parameters[' + paramStats.index + '].value'}"
+                                                                       th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
+                                                                       th:value="${isNew or process.tasks[__${taskStats.index}__].tag=='ADDED' or #strings.isEmpty(process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__].value)}? '' : '*****'" />
+                                                                <textarea class="form-control" style="resize:vertical"
+                                                                          th:required="*{required}" th:if="*{type} == 'multitext' and !${readOnly}"
+                                                                          th:field="*{value}" data-toggle="tooltip"
+                                                                          th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
+                                                                <div class="btn-group" data-toggle="buttons"
+                                                                     th:required="*{required}" th:if="*{type} == 'boolean' and !${readOnly}" >
+                                                                    <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                                           th:classappend="*{value}=='true' ? '' : 'active'">
+                                                                        <input type="radio" th:field="*{value}" value="false" />
+                                                                        &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                                    </label>
+                                                                    <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                                           th:classappend="*{value}=='true' ? 'active' : ''">
+                                                                        <input type="radio" th:field="*{value}" value="true" />
+                                                                        &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                                    </label>
+                                                                </div>
+                                                                <input type="number" th:if="*{type} == 'numeric' and !${readOnly}"
+                                                                       th:required="*{required}" th:min="*{minValue}"
+                                                                       th:max="*{maxValue}" th:step="*{step}"
+                                                                       class="form-control" autocomplete="off"
+                                                                       th:value="*{value} != null ? *{value} : ''"
+                                                                       data-toggle="tooltip"
+                                                                       th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
+                                                                       th:name="${'parameters[' + paramStats.index + '].value'}"
+                                                                       th:id="${'parameters' + paramStats.index + '.value'}" />
+
+                                                                <div th:if="${readOnly} and *{type} != 'boolean'"
+                                                                     th:text="*{type} == 'pass' ? '*****' : *{value}"
+                                                                     class="form-control-static">
+                                                                    {Value}
+                                                                </div>
+                                                                <div th:if="${readonly} and *{type} == 'boolean'"
+                                                                     class="form-control-static"
+                                                                     th:text="*{value} == 'false' ? #{toggle.no} : #{toggle.yes}">
+                                                                    {Value}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Tâches disponibles -->
+                        <div class="col-lg-4">
+                            <div class="panel panel-default">
+                                <div class="panel-heading panel-heading-large" th:text="#{processDetails.panels.availableTasks.title}">{tasks available}</div>
+
+                                <div class="panel-body">
+                                    <div class="row">
+
+                                        <div class="col-lg-12">
+                                            <p>
+                                                <i class="fa fa-arrow-circle-left pull-left" style="font-size:40px" aria-hidden="true"></i>
+                                                <span th:text="#{processDetails.panels.availableTasks.description}">{Tasks description}</span><br/>
+                                            </p>
+                                            <div class="panel panel-default available-task"
+                                                 th:href="@{'/processes/' + ${process.id} + '/addTask/' + *{code}}"
+                                                 th:each="availabletask, taskStats : ${alltasks}"
+                                                 th:object="${alltasks[__${taskStats.index}__]}" >
+                                                <div class="panel-heading" >
+                                                    <button class="btn btn-warning btn-circle" type="button" >
+                                                        <i class="fa" th:classappend="*{pictoClass}" ></i>
+                                                    </button>
+                                                    <span th:text="*{label}">{Task label}</span>
+                                                </div>
+                                                <div class="panel-body">
+                                                    <div class="row">
+                                                        <div class="col-lg-12" th:text="*{description}">
+                                                            {Task description}
+                                                        </div>
+                                                    </div>
+                                                    <span style="display:none" class="taskcode" th:text="*{code}"></span>
+                                                </div>
+                                            </div>
+                                            <!--<div class="panel panel-default available-task">
+                                                <div class="panel-heading">
+                                                    <button class="btn btn-warning btn-circle" type="button">
+                                                        <i class="fa fa-folder-open-o"></i>
+                                                    </button>
+                                                    Archivage fichiers
+                                                </div>
+                                                <div class="panel-body">
+                                                    <div class="row">
+                                                        <div class="col-lg-12">
+                                                            Copie des fichiers dans un répertoire local ou réseau.
+                                                        </div>
+
+                                                    </div>
+                                                </div>
+                                            </div>-->
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" src="../../static/js/processDetails.js"
+                    th:src="@{/js/processDetails.js} + '?v=@@extractVersion@@'">
+            </script>
+            <script type="text/javascript" th:inline="javascript">
+                $(function() {
+                    $('#processCancelButton').on('click', function() {
+                        var listUrl = /*[[@{/processes}]]*/ '../processes';
+                        location.replace(listUrl);
+                    });
+
+                    var readOnly = /*[[${process.readOnly}]]*/ false;
+
+                    if (!readOnly) {
+                        $('#processSaveButton').on('click', submitProcessData);
+                    }
+                });
+            </script>
+        </th:block>
+    </body>
+</html>

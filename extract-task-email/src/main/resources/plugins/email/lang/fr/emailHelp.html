@@ -1,0 +1,31 @@
+<div>
+    <p>Le plugin de notification e-mail permet d'envoyer un message &agrave; un ou plusieurs destinataires.</p>
+
+    <p>Les e-mails des destinataires doivent &ecirc;tre s&eacute;par&eacute;s par des points-virgules.</p>
+
+    <p>
+        L'objet et le contenu du message peuvent contenir des variables qui seront remplac&eacute;es par les
+        propri&eacute;t&eacute;s de la requ&ecirc;te. Les propri&eacute;t&eacute;s dynamiques autoris&eacute;es
+        sont les suivantes&nbsp;:
+    </p>
+
+    <ul>
+        <li>orderLabel</li>
+        <li>orderGuid</li>
+        <li>productGuid</li>
+        <li>productLabel</li>
+        <li>startDate</li>
+        <li>organism</li>
+        <li>client</li>
+    </ul>
+
+    <p><i>Exemple d'objet&nbsp;:</i> "Nouvelle demande pour le produit {productLabel}, client {client}"</p>
+
+    <p><i>Exemple de contenu&nbsp;:</i></p>
+    <p>
+        "Le client {client} ({organism}) a command&eacute; le produit {productLabel}<br />
+        N° de commande : {orderLabel}<br />
+        Date de traitement : {startDate}<br />
+        Les donn&eacute;es livr&eacute;es ont &eacute;t&eacute; archiv&eacute;es vers : /home/data/extract/archive/{orderLabel}/{productLabel}"
+    </p>
+</div>

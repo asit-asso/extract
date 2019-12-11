@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/master">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]
+        </title>
+        <th:block layout:fragment="customStyleIncludes">
+            <link href="../../static/lib/datatables.net-bs/css/dataTables.bootstrap.min.css"
+                  th:href="@{/lib/datatables.net-bs/css/dataTables.bootstrap.min.css} + '?v=@@datatablesLibVersion@@'"
+                  rel="stylesheet" type="text/css" />
+            <th:block layout:fragment="additionalStyleIncludes" th:remove="all"></th:block>
+        </th:block>
+    </head>
+    <body>
+        <div id="wrapper">
+        </div>
+        <th:block layout:fragment="customScriptIncludes">
+            <script th:src="@{/lib/datatables.net/js/jquery.dataTables.min.js} + '?v=@@datatablesLibVersion@@'"
+                    src="../../static/lib/datatables.net/js/jquery.dataTables.min.js"
+            type="text/javascript"></script>
+            <script th:src="@{/lib/datatables.net-bs/js/dataTables.bootstrap.min.js} + '?v=@@datatablesLibVersion@@'"
+                    src="../../static/lib/datatables.net-bs/js/dataTables.bootstrap.min.js"
+            type="text/javascript"></script>
+            <th:block layout:fragment="additionalScriptIncludes"></th:block>
+        </th:block>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" th:inline="javascript">
+                function getDataTableBaseProperties() {
+                    return {
+                        "language" : {
+                            "sProcessing" : /*[[#{table.processing}]]*/ "{Processing}",
+                            "sSearch" : /*[[#{table.searchBox.label}]]*/ "{Search:}",
+                            "sLengthMenu" : /*[[${#messages.msg('table.paging.control.text', '_MENU_')}]]*/ "{Show _MENU_ items}",
+                            "sInfo" : /*[[${#messages.msg('table.paging.info', '_START_', '_END_', '_TOTAL_')}]]*/ "{Showing items _START_ to _END_ from _TOTAL_}",
+                            "sInfoEmpty" : /*[[#{table.paging.info.empty}]]*/ "{No item shown}",
+                            "sInfoFiltered" : /*[[${#messages.msg('table.filter.info', '_MAX_')}]]*/ "{(filtered from _MAX_ total items)}",
+                            "sInfoPostFix" : "",
+                            "sLoadingRecords" : /*[[#{table.loading}]]*/ "{Loading}",
+                            "sZeroRecords" : /*[[#{table.empty}]]*/ "{No item to display}",
+                            "sEmptyTable" : /*[[#{table.empty}]]*/ "{No item to display}",
+                            "oPaginate" : {
+                                "sFirst" : /*[[#{table.paging.first}]]*/ "{First}",
+                                "sPrevious" : /*[[#{table.paging.previous}]]*/ "{Previous}",
+                                "sNext" : /*[[#{table.paging.next}]]*/ "{Next}",
+                                "sLast" : /*[[#{table.paging.last}]]*/ "{Last}"
+                            },
+                            "oAria" : {
+                                "sSortAscending" : /*[[#{table.sorting.ascending.alt}]]*/ "{: activate to sort the column in ascending order}",
+                                "sSortDescending" : /*[[#{table.sorting.descending.alt}]]*/ "{: activate to sort the column in descending order}"
+                            }
+                        },
+                        "pagingType" : "simple_numbers",
+                        "info" : false,
+                        "lengthChange" : false
+                    };
+                }
+            </script>
+            <th:block layout:fragment="additionalScripts"></th:block>
+        </th:block>
+    </body>
+</html>

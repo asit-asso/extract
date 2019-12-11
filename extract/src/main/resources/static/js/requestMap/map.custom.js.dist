@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2018 arx iT
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+function initializeMap() {
+    return new Promise(function(resolve, reject) {
+        proj4.defs('EPSG:2056', '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346,0,0,0,0 +units=m +no_defs ');
+        ol.proj.setProj4(proj4);
+
+        var swissProjection = ol.proj.get('EPSG:2056');
+
+        fetch('https://ows.asitvd.ch/wmts/GetCapabilities').then(function(response) {
+            return response.text();
+
+        }).then(function(capabilitiesText) {
+            var parser = new ol.format.WMTSCapabilities();
+            var result = parser.read(capabilitiesText);
+            var options = ol.source.WMTS.optionsFromCapabilities(result, {
+                layer: 'asitvd.fond_couleur',
+                matrixSet: '2056'
+            });
+            options.attributions = 'géodonnées © Etat de Vaud & © contributeurs OpenStreetMap';
+
+            resolve(new ol.Map({
+                layers : [
+                    new ol.layer.Tile({
+                        source: new ol.source.WMTS(options),
+                        title: 'Fond ASIT VD - couleur',
+                        type: 'base'
+                    }),
+                    new ol.layer.Image({
+                        source: new ol.source.ImageWMS({
+                            attributions: 'géodonnées © Etat de Vaud - Informations dépourvues de foi publique',
+                            params: {
+                                'LAYERS': 'vd.commune'
+                            },
+                            url: 'http://wms.vd.ch/public/services/wmsVD/Mapserver/Wmsserver'
+                        }),
+                        title: 'Communes',
+                    })
+                ],
+                target: 'orderMap',
+                view : new ol.View({
+                    projection: swissProjection
+                })
+            }));
+
+        }).catch(function(error) {
+            console.error("An error occurred when the map layers were created: " + error);
+            resolve(new ol.Map({
+                target: 'orderMap'
+            }));
+        });
+    });
+}

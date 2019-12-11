@@ -1,0 +1,19 @@
+{
+    "dependencies": {
+        "bootstrap": "twbs/bootstrap#3.3.7",
+        "bootstrap-datepicker": "1.8.0",
+        "datatables.net": "DataTables/Dist-DataTables#1.10.19",
+        "datatables.net-bs": "DataTables/Dist-DataTables-Bootstrap#1.10.19",
+        "font-awesome": "FortAwesome/Font-Awesome#4.7.0",
+        "jquery": "jquery/jquery-dist#3.3.1",
+        "jquery-ui": "components/jqueryui#1.12.1",
+        "ol-layerswitcher": "2.0.0",
+        "openlayers": "4.6.5",
+        "proj4": "^2.5.0",
+        "select2": "ivaynberg/select2#4.0.5",
+        "timepicker": "^1.11.15"
+    },
+    "engines": {
+        "yarn": ">= 1.0.0"
+    }
+}

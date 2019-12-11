@@ -1,0 +1,110 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<!--
+Copyright (C) 2017 arx iT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorator="layout/masterWithTable">
+    <head>
+        <title th:inline="text">
+            [[#{application.name}]]&nbsp;&ndash; [[#{processesList.page.title}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <div class="btn-group pull-right">
+                    <a class="btn btn-extract-filled dropdown-toggle btn-sm" href="/add"
+                       th:href="@{/processes/add}">
+                        <i class="fa fa-plus fa-fw"></i>
+                        <span th:text="#{processesList.new.button}">{Add new process}</span>
+                    </a>
+                </div>
+                <h1 class="page-header" th:text="#{processesList.body.title}">{Processes}</h1>
+                <div class="panel panel-default">
+                    <div class="panel-body">
+                        <table class="table table-striped table-hover dataTables dataTable">
+                            <thead>
+                                <tr>
+                                    <th th:text="#{processesList.table.headers.name}">{Name}</th>
+                                    <th th:text="#{processesList.table.headers.tasks}">{Tasks}</th>
+                                    <th th:text="#{processesList.table.headers.delete}" class="center-cell">
+                                        {Delete}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="process : ${processes}" th:object="${process}">
+                                    <td class="nameCell">
+                                        <a href="1" th:href="@{'/processes/' + *{id}}" th:text="*{name}">{Name}</a>
+                                    </td>
+                                    <td>
+                                        <th:block th:each="task, taskStats : *{tasks}"
+                                                  th:object="${process.tasks[__${taskStats.index}__]}" >
+                                            <span th:if="${taskStats.index} > 0">&nbsp;&gt; </span>
+                                            <span th:text="*{pluginLabel}">
+                                                {Label}
+                                            </span>
+                                        </th:block>
+                                    </td>
+                                    <td class="center-cell">
+                                        <button id="deleteButton-1" th:id="'deleteButton-' + *{id}"
+                                                class="btn btn-xs" data-toggle="tooltip"
+                                                th:classappend="*{deletable} ? 'btn-danger delete-button'
+                                                : 'disabled delete-button-inactive'"
+                                                th:title="${#messages.msg('processesList.buttons.delete.'
+                                                + (process.deletable ? 'active' : 'inactive') + '.tooltip')}">
+                                            <span class="fa fa-remove fa-fw"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <form id="processForm" method="POST" action="#" th:action="@{/processes/delete}">
+                    <input type="hidden" id="processId" name="id" value="" />
+                    <input type="hidden" id="processName" name="name" value="" />
+                    <input type="hidden" id="_csrf" th:value="${_csrf.token}" />
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="additionalScripts">
+            <script src="../../static/js/processesList.js" th:src="@{/js/processesList.js} + '?v=@@extractVersion@@'"
+                    type="text/javascript">
+            </script>
+            <script type="text/javascript">
+                var dataTablesProperties = getDataTableBaseProperties();
+                dataTablesProperties.paging = false;
+                dataTablesProperties.searching = false;
+                dataTablesProperties.columnDefs = [
+                    {
+                        targets : 0,
+                        width : "250px"
+                    },
+                    {
+                        targets : 2,
+                        orderable : false,
+                        width : "30px"
+                    }
+                ];
+                $('.dataTables').dataTable(dataTablesProperties);
+            </script>
+        </th:block>
+    </body>
+</html>

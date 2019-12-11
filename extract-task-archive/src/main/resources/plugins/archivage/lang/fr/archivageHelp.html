@@ -1,0 +1,49 @@
+<div>
+    <p>
+        Le plugin d'archivage permet de sauver les r&eacute;sultats de traitement d'un &eacute;l&eacute;ment de
+        requ&ecirc;te dans un r&eacute;pertoire. Sp&eacute;cifier un chemin (local ou r&eacute;seau) vers lequel
+        seront archiv&eacute;s les fichiers.</p>
+
+    <p>Le r&eacute;pertoire d'archivage peut &ecirc;tre local ou sur le r&eacute;seau de l'entreprise.
+        Exemples de chemin :
+    </p>
+    <ul>
+        <li>R&eacute;pertoire local Windows : D:\extract_data\...</li>
+        <li>R&eacute;pertoire local Linux : /var/extract_data\...</li>
+        <li>R&eacute;pertoire r&eacute;seau Windows Windows (UNC) : \\server\share\folder...</li>
+    </ul>
+    <p>
+        Le chemin d'archivage peut contenir des variables qui seront remplac&eacute;es par les
+        propri&eacute;t&eacute;s de la requ&ecirc;te. Les propri&eacute;t&eacute;s dynamiques autoris&eacute;es
+        sont les suivantes :
+    </p>
+    <ul>
+        <li>orderLabel</li>
+        <li>orderGuid</li>
+        <li>productGuid</li>
+        <li>productLabel</li>
+        <li>startDate</li>
+        <li>organism</li>
+        <li>client</li>
+    </ul>
+    <p><i>Exemple de chemin d'archivage :</i> /var/extraction/{orderLabel}-{orderGuid}/{productGuid}/</p>
+    <p><b>Important :</b></p>
+    <ul>
+        <li>
+            Si le r&eacute;pertoire cible existe et contient des fichiers portant le m&ecirc;me
+            nom que ceux &agrave; archiver, ils seront &eacute;cras&eacute;s.
+        </li>
+        <li>
+            Si l'application Extract est d&eacute;ploy&eacute;e sur un environnement Linux, l'archivage vers un
+            r&eacute;pertoire r&eacute;seaux Windows ne sera pas possible.
+        </li>
+        <li>
+            Si vous souhaitez archiver vers un r&eacute;pertoire partag&eacute; Linux, merci de vous assurer que le
+            montage Samba a &eacute;t&eacute; fait au pr&eacute;alable.
+        </li>
+        <li>
+            L'utilisateur de Tomcat doit avoir les privil&egrave;ge suffisants pour &eacute;crire dans le
+            r&eacute;pertoire r&eacute;seau sp&eacute;cifi&eacute;
+        </li>
+    </ul>
+</div>

@@ -1,0 +1,28 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+    <head>
+        <title>{Extract}</title>
+    </head>
+    <body>
+        <div id="alertModal" class="modal" tabindex="-1" role="dialog" aria-labelledby="alertTitle"
+             th:fragment="alertModal">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 id="alertTitle" class="modal-title">{Alert title}</h4>
+                    </div>
+                    <div id="alertBody" class="modal-body">
+                        {Alert message}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" id="alertCancelButton" class="btn btn-extract-white"
+                                th:text="#{buttons.cancel}">{Cancel}</button>
+                        <button type="button" id="alertOkButton" class="btn btn-extract-filled"
+                                th:text="#{buttons.ok}">{OK}</button>
+                    </div>
+                </div><!-- /.modal-content -->
+            </div><!-- /.modal-dialog -->
+        </div><!-- /.modal -->
+    </body>
+</html>
