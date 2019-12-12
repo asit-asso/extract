@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.easysdi</groupId>
     <artifactId>extract-task-fmedesktop</artifactId>
-    <version>1.2-RELEASE</version>
+    <version>1.2.1-BETA</version>
     <packaging>jar</packaging>
     <dependencies>
         <dependency>
@@ -15,7 +15,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>extract-plugin-interface</artifactId>
-            <version>1.2-RELEASE</version>
+            <version>1.2.1-BETA</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
@@ -51,4 +51,16 @@
         <maven.compiler.target>1.7</maven.compiler.target>
     </properties>
     <name>extract-task-fmedesktop</name>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <outputDirectory>../extract/src/main/resources/task_processors</outputDirectory>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
