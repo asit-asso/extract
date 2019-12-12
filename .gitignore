@@ -8,3 +8,5 @@ extract-task-fmeserver/target/
 extract-task-reject/target/
 extract-task-remark/target/
 extract-task-validation/target/
+.idea/
+*.iml
