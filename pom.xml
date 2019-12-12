@@ -2,10 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.easysdi</groupId>
-    <artifactId>extract</artifactId>
-    <version>1.2</version>
+    <artifactId>extract-base</artifactId>
+    <version>1.2.1</version>
     <packaging>pom</packaging>
-    <name>extract</name>
+    <name>extract-base</name>
     
     <scm>
         <connection>scm:git:https://github.com/asitvd/extract.git</connection>
@@ -52,6 +52,22 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <artifactId>maven-clean-plugin</artifactId>
+                <version>3.1.0</version>
+                <configuration>
+                    <filesets>
+                        <fileset>
+                            <directory>extract\src\main\resources\connectors</directory>
+                            <directory>extract\src\main\resources\task_processors</directory>
+                            <includes>
+                                <include>**/*.jar</include>
+                            </includes>
+                            <followSymlinks>false</followSymlinks>
+                        </fileset>
+                    </filesets>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
     
@@ -59,10 +75,10 @@
         <module>extract-interface</module>
         <module>extract-connector-easysdiv4</module>
         <module>extract-task-archive</module>
-		<module>extract-task-email</module>
+        <module>extract-task-email</module>
         <module>extract-task-fmedesktop</module>
         <module>extract-task-fmeserver</module>
-		<module>extract-task-reject</module>
+        <module>extract-task-reject</module>
         <module>extract-task-remark</module>
         <module>extract-task-validation</module>
         <module>extract</module>
