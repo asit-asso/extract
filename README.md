@@ -1,7 +1,7 @@
 EXTRACT
 ======
 
-EXTRACT makes it easy to extract and delivery of your geodata
+EXTRACT makes it easy to extract and deliver of your geodata
 
 EXTRACT imports the geodata orders placed on an easySDI portal, 
 then executes a series of pre-configured tasks to extract the requested data,
