@@ -1,0 +1,40 @@
+version: '3'
+
+volumes:
+    extract_db_data:
+
+services:
+    pgsql:
+        image: postgres:12-alpine
+        volumes:
+            - extract_db_data:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB=extract
+            - POSTGRES_USER=extractuser
+            - POSTGRES_PASSYORD=demopassword
+        ports:
+            - "5432:5432"
+
+    tomcat:
+        build: ./docker/tomcat
+        container_name: tomcat
+        depends_on:
+            - pgsql
+        volumes:
+            - ./extract/target/:/usr/local/tomcat/webapps/
+        environment:
+            - JAVA_OPTS=-Xms1G -Xmx1G -Duser.language=fr -Duser.region=CH
+        ports:
+            - "8080:8080"
+
+    update_db_on_start:
+        build: ./docker/update-db
+        depends_on:
+            - tomcat
+        volumes:
+            - ./sql/update_db.sql:/update_db.sql
+        environment:
+            - PGHOST=pgsql
+            - PGDB=extract
+            - PGUSER=extractuser
+            - PGPASSWORD=demopassword

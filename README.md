@@ -18,6 +18,19 @@ By automating the process of extracting and delivering your geodata, you:
 * Tomcat 7 to 9
 * PostgreSQL >= 9.4
 
+#### Try it (with docker):
+```bash
+mvn clean install
+docker-compose up
+```
+
+Open `http://localhost:8080/extract/login` in your browser,\
+default user is `admin` with password `motdepasse21`.
+
+Now read the doc 😊
+
+#### Doc:
+
 About page (FR) : https://www.asitvd.ch/partager/automatiser-la-diffusion-des-geodonnees-avec-extract.html
 
 Help & doc page (FR) : https://projets.asitvd.ch/projects/extracteur/wiki
