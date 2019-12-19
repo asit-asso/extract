@@ -1,33 +1,37 @@
 EXTRACT
 ======
 
-EXTRACT makes it easy to extract and deliver of your geodata
+Extract est une application qui facilite l’extraction et la livraison de vos géodonnées
 
-EXTRACT imports the geodata orders placed on an easySDI portal, 
-then executes a series of pre-configured tasks to extract the requested data,
-and returns the result to the customer: with or without human intervention, you define it!
+L'application EXTRACT importe les commandes de données déposées sur une plateforme easySDI (comme le portail ASIT VD), puis exécute une série de tâches préconfigurées afin d'extraire la donnée demandée , puis renvoie le résultat vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
 
-By automating the process of extracting and delivering your geodata, you:
-* reduce order processing times,
-* increase the quality of the data delivered,
-* increase customer satisfaction. 
+En automatisant le processus d'extraction et de livraison de vos géodonnées, vous :
 
-#### Prerequisites:
+* diminuez les temps de traitement des commandes,
+* augmentez la qualité des données livrées,
+* augmentez la satisfaction client. 
+
+#### Prérequis:
 * Windows or Linux
 * Java 7 OR Java 8 (Java 9+ not supported), Oracle OR OpenJDK
 * Tomcat 7 to 9
 * PostgreSQL >= 9.4
 
-#### Try it (with docker):
+#### Pour installer
+
+Suivez les guicdes d'installation et d'exploitation ici : https://projets.asitvd.ch/projects/extracteur/wiki
+
+#### Juste pour essayer (avec docker et maven):
+
+Lancez les commandes suivantes 
 ```bash
 mvn clean install
 docker-compose up
 ```
+Puis ouvrez `http://localhost:8080/extract/login` dans votre navigateur,\
+Utilisateur par défaut : `admin`, mot de passe : `motdepasse21`.
 
-Open `http://localhost:8080/extract/login` in your browser,\
-default user is `admin` with password `motdepasse21`.
-
-Now read the doc 😊
+Il ne reste qu'à lire la documentation 😊
 
 #### Doc:
 
