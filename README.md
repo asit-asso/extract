@@ -59,11 +59,13 @@ Utilisateur par défaut : `admin`, mot de passe : `motdepasse21`.
 
 Il ne reste qu'à lire la documentation 😊
 
-## Doc:
+## Documentation et liens:
 
 Aide et documentation : https://github.com/asit-asso/extract/wiki
 
 Présentations sur le projet aux Rencontres ASIT : https://asit-asso.ch/toutes-les-rencontres#2018
+
+L'ASIT, Association pour le Système d'Information du Territoire, à l'origine du projet : https://asit-asso.ch
 
 Forked from easySDI (www.easysdi.org) : https://svn.easysdi.org/svn/easysdi/branches/4.5.x/java
 
