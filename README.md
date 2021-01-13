@@ -1,27 +1,53 @@
 EXTRACT
 ======
 
-Extract est une application qui facilite l’extraction et la livraison de vos géodonnées
+## Extract est une application qui facilite l’extraction et la livraison de vos géodonnées
 
-L'application EXTRACT importe les commandes de données déposées sur une plateforme easySDI (comme le portail ASIT VD), puis exécute une série de tâches préconfigurées afin d'extraire la donnée demandée , puis renvoie le résultat vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
+L'application EXTRACT **importe les commandes** de données déposées sur une plateforme ou magasin de donnée (comme le portail ASIT VD, avec easySDI), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
 
 En automatisant le processus d'extraction et de livraison de vos géodonnées, vous :
 
-* diminuez les temps de traitement des commandes,
-* augmentez la qualité des données livrées,
-* augmentez la satisfaction client. 
+* diminuez les **temps de traitement** des commandes,
+* augmentez la **qualité des données** livrées,
+* augmentez la **satisfaction client**. 
 
-#### Prérequis:
-* Windows or Linux
-* Java 7 OR Java 8 (Java 9+ not supported), Oracle OR OpenJDK
-* Tomcat 7 to 9
+![EXTRACT Robot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/extract_robot.png)
+
+## Extract est une application open source, qui s'installe chez vous 
+
+![EXTRACT Robot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/shema_global_transparent2.png)
+
+Extract est modulable et extensible, à installer dans l’environnement informatique de chaque fournisseur de données, et accessible via un navigateur.
+
+## Groupe utilisateurs
+
+L'ASIT, des administrations et gestionnaires de réseaux forment un groupe utilisateur qui pilote et finance le projet
+
+![Membres du groupe utilisateur](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/extract_sponsors.png)
+
+## En production 
+
+Actuellement, 33 fournisseurs diffusent tout ou partie de leurs géodonnées avec EXTRACT grâce aux 7 instances installées chez :
+
+* Ville de Nyon & TRN SA
+* Ville de Pully
+* Romande Energie
+* Ville de Lausanne
+* Bureau Jaquier Pointet SA qui gère la diffusion de 17 communes en délégation
+* Cartoriviera qui gère la diffusion de 10 communes et associations intercommunales (SIGE)
+* Ville de Morges
+
+## Pour installer
+
+Suivez les guides d'installation et d'exploitation ici : https://github.com/asit-asso/extract/wiki
+
+### Prérequis:
+* Windows or Linux, 64bit
+* Java 7 ou Java 8 (Java 9+ non supporté), Oracle ou OpenJDK, en 64bit
+* Tomcat 7 to 9, 64bit
 * PostgreSQL >= 9.4
 
-#### Pour installer
-
-Suivez les guicdes d'installation et d'exploitation ici : https://projets.asitvd.ch/projects/extracteur/wiki
-
-#### Juste pour essayer (avec docker et maven):
+### Juste pour essayer (avec docker et maven):
 
 Lancez les commandes suivantes 
 ```bash
@@ -33,10 +59,10 @@ Utilisateur par défaut : `admin`, mot de passe : `motdepasse21`.
 
 Il ne reste qu'à lire la documentation 😊
 
-#### Doc:
+## Doc:
 
-About page (FR) : https://www.asitvd.ch/partager/automatiser-la-diffusion-des-geodonnees-avec-extract.html
+Aide et documentation : https://github.com/asit-asso/extract/wiki
 
-Help & doc page (FR) : https://projets.asitvd.ch/projects/extracteur/wiki
+Présentations sur le projet aux Rencontres ASIT : https://asit-asso.ch/toutes-les-rencontres#2018
 
 Forked from easySDI (www.easysdi.org) : https://svn.easysdi.org/svn/easysdi/branches/4.5.x/java
