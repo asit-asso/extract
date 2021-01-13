@@ -3,7 +3,7 @@ EXTRACT
 
 ## Extract est une application qui facilite l’extraction et la livraison de vos géodonnées
 
-L'application EXTRACT **importe les commandes** de données déposées sur une plateforme ou magasin de donnée (comme le portail ASIT VD, avec easySDI), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
+L'application EXTRACT **importe les commandes** de données déposées sur une plateforme ou magasin de données (comme le portail ASIT VD, avec easySDI), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
 
 En automatisant le processus d'extraction et de livraison de vos géodonnées, vous :
 
@@ -66,3 +66,7 @@ Aide et documentation : https://github.com/asit-asso/extract/wiki
 Présentations sur le projet aux Rencontres ASIT : https://asit-asso.ch/toutes-les-rencontres#2018
 
 Forked from easySDI (www.easysdi.org) : https://svn.easysdi.org/svn/easysdi/branches/4.5.x/java
+
+## Screenshots:
+
+![easysdi EXTRACT Home screenshot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/screenshots/extract_home_logo2_2x.png)
