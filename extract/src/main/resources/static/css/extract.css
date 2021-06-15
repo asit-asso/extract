@@ -161,7 +161,7 @@ a.btn-extract-filled:visited {
 }
 
 .current-step-action {
-    height: 230px;
+    min-height: 230px;
     padding-right: 20px;
     padding-left: 15px;
 }
@@ -175,6 +175,9 @@ a.btn-extract-filled:visited {
 .current-step-action textarea {
     height: 100px;
     width: 100%;
+    resize: vertical;
+    margin-bottom: 46px;
+    max-width: 100%;
 }
 
 .current-step-action textarea.task-error-reject-remark {
@@ -196,6 +199,15 @@ a.btn-extract-filled:visited {
 
 .current-step-title {
     margin-bottom: 40px;
+}
+
+.connector-name {
+    color: gray;
+    font-style: italic;
+}
+
+#connectorsStateContainer .dropdown {
+    display: inline-block;
 }
 
 a.connector-state {
@@ -232,6 +244,10 @@ a.connector-state:hover {
 
 .dataTables_info {
     margin-left: 10px;
+}
+
+.datepicker-form-group {
+    width: 135px;
 }
 
 .datepicker-dropdown {
@@ -378,7 +394,7 @@ table.list-table.files-list-table {
     display: inline-block;
     font-size: 18px;
     font-weight: 300;
-    padding-bottom: 2px;
+    padding-bottom: 6px;
     padding-left: 20px;
     vertical-align: bottom;
 }
@@ -462,6 +478,14 @@ table.list-table.files-list-table {
 
 .panel-heading .btn-sm {
     margin-top: -5px;
+}
+
+.filter-form-inline {
+    margin-top: -7px;
+}
+
+.filter-form-inline .form-group:not(:last-of-type) {
+    margin-right: 10px;
 }
 
 .progress.splitted .progress-bar{
@@ -599,6 +623,15 @@ a.request-link {
 .request-row {
     cursor: pointer;
     cursor: hand;
+}
+
+.request-filter-control.select2 {
+    height: 34px;
+    padding: 6px 12px
+}
+
+.request-filter-control.select2 + .select2.select2-container {
+    max-width: 200px;
 }
 
 .select2-container--default .select2-selection--single {

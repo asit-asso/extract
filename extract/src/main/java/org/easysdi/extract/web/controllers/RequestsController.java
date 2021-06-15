@@ -216,7 +216,6 @@ public class RequestsController extends BaseController {
     @GetMapping
     public final String viewList(final ModelMap model, final RedirectAttributes redirectAttributes) {
         this.logger.debug("Received a web request to display the list of requests.");
-        //TODO Implement
         Message statusMessage = (Message) model.get("statusMessage");
 
         if (statusMessage != null) {
@@ -669,7 +668,7 @@ public class RequestsController extends BaseController {
             return RequestsController.REDIRECT_TO_LIST;
         }
 
-        if (!this.canCurrentUserExportRequest()) {
+        if (!this.canCurrentUserExportRequest(request)) {
             this.logger.warn("The user {} tried to export request {} but is not allowed to do so.",
                     this.getCurrentUserLogin(), requestId);
             this.addStatusMessage(redirectAttributes, "requestDetails.error.request.notAllowed", MessageType.ERROR);
@@ -895,10 +894,11 @@ public class RequestsController extends BaseController {
      * Checks if the user that is currently identified (if any) is allowed to send the result of an order
      * to its originating server.
      *
+     * @param request the request to export
      * @return <code>true</code> if the current user can export the request
      */
-    private boolean canCurrentUserExportRequest() {
-        return this.isCurrentUserAdmin();
+    private boolean canCurrentUserExportRequest(final Request request) {
+        return this.canCurrentUserViewRequestDetails(request);
     }
 
 

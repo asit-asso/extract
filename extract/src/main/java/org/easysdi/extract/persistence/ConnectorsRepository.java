@@ -29,6 +29,15 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface ConnectorsRepository extends PagingAndSortingRepository<Connector, Integer> {
 
     /**
+     * Fetches all the connectors that are currently active and sort them by their name.
+     *
+     * @return a list that contain the connector data objects
+     */
+    Iterable<Connector> findAllByOrderByName();
+
+
+
+    /**
      * Fetches all the connectors that are currently active.
      *
      * @return a list that contain the connector data objects

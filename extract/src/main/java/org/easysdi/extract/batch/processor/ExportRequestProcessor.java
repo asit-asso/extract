@@ -18,8 +18,11 @@ package org.easysdi.extract.batch.processor;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.easysdi.extract.connectors.ConnectorDiscovererWrapper;
 import org.easysdi.extract.connectors.RequestResult;
@@ -311,7 +314,7 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
 
 
     /**
-     * Notifies the administrator by e-mail that the export failed.
+     * Notifies the operators by e-mail that the export failed.
      *
      * @param request       the request that could not be exported
      * @param resultMessage the string that explain why the export failed
@@ -324,15 +327,28 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
 
         this.logger.debug("Sending an e-mail notification to the administrators.");
         final RequestExportFailedEmail message = new RequestExportFailedEmail(this.emailSettings);
+        final int processId = request.getProcess().getId();
+        final String[] operatorsAddresses
+                = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(processId);
+        final List<String> recipientsAddresses
+                = new ArrayList<>(Arrays.asList(operatorsAddresses));
 
-        if (!message.initialize(request, resultMessage, errorDate,
-                this.repositories.getUsersRepository().getActiveAdministratorsAddresses())) {
+        for (String adminAddress : this.repositories.getUsersRepository().getActiveAdministratorsAddresses()) {
+
+            if (adminAddress == null || recipientsAddresses.contains(adminAddress)) {
+                continue;
+            }
+
+            recipientsAddresses.add(adminAddress);
+        }
+
+        if (!message.initialize(request, resultMessage, errorDate, recipientsAddresses.toArray(new String[]{}))) {
             this.logger.error("Could not create the request export failure message.");
             return;
         }
 
         if (message.send()) {
-            this.logger.info("The request export failure notification was successfully sent to the administrators.");
+            this.logger.info("The request export failure notification was successfully sent to the operators.");
 
         } else {
             this.logger.warn("The request export failure notification was not sent.");

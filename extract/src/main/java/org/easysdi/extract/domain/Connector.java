@@ -112,6 +112,18 @@ public class Connector implements Serializable {
     private String lastImportMessage;
 
     /**
+     * The number of times imports must be attempted before the connector is switched to the error state.
+     */
+    @Column(name = "max_retries")
+    private Integer maximumRetries;
+
+    /**
+     * The number of consecutive times imports have failed.
+     */
+    @Column(name = "error_count")
+    private Integer errorCount;
+
+    /**
      * The number that uniquely identifies this connector instance.
      */
     @Id
@@ -343,6 +355,62 @@ public class Connector implements Serializable {
      */
     public void setLastImportMessage(final String message) {
         this.lastImportMessage = message;
+    }
+
+
+
+    /**
+     * Obtains the number of times imports must be attempted before the connector is switched to the error
+     * state.
+     *
+     * @return the number of tries to attempt
+     */
+    public Integer getMaximumRetries() {
+
+        if (this.maximumRetries == null) {
+            return 0;
+        }
+
+        return this.maximumRetries;
+    }
+
+
+
+    /**
+     * Defines the number of times imports must be attempted before the connector is switched to the error
+     * state.
+     *
+     * @param number the number of tries to attempt
+     */
+    public void setMaximumRetries(final int number) {
+        this.maximumRetries = number;
+    }
+
+
+
+    /**
+     * Obtains the number of consecutive times that the import has failed.
+     *
+     * @return the number of consecutive failures
+     */
+    public int getErrorCount() {
+
+        if (this.errorCount == null) {
+            return 0;
+        }
+
+        return this.errorCount;
+    }
+
+
+
+    /**
+     * Defines the number of consecutive times that the import has failed.
+     *
+     * @param count the number of consecutive failures
+     */
+    public void setErrorCount(final int count) {
+        this.errorCount = count;
     }
 
 

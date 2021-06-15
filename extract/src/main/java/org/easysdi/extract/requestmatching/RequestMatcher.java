@@ -139,6 +139,7 @@ public class RequestMatcher {
         Class<Request> requestClass = Request.class;
         try {
             for (Field requestField : requestClass.getDeclaredFields()) {
+                this.logger.debug("Processing field {}", requestField.getName());
                 if (!java.lang.reflect.Modifier.isStatic(requestField.getModifiers())) {
                     requestField.setAccessible(true);
                     Object fieldValue = requestField.get(this.request);
@@ -147,38 +148,39 @@ public class RequestMatcher {
                     String assignement;
 
                     if (fieldValue instanceof String) {
+                        String stringValue = String.valueOf(fieldValue).trim();
 
-                        if (this.isJSONValid(String.valueOf(fieldValue))) {
+                        if (this.isJSONValid(stringValue)) {
                             //la valeur du champ est un json : il faut donc faire les assignations pour tous les
                             // paramètres du json
                             Gson gson = new Gson();
                             engine.eval(requestField.getName().toUpperCase() + " = {}");
-                            JsonObject jsonObject = gson.fromJson(String.valueOf(fieldValue), JsonObject.class);
+                            JsonObject jsonObject = gson.fromJson(stringValue, JsonObject.class);
                             //set assignements for json keys
                             for (Map.Entry<String, JsonElement> jsonItem : jsonObject.entrySet()) {
                                 assignement = String.format("%s.%s = %s", requestField.getName(), jsonItem.getKey(),
                                         jsonItem.getValue());
                                 engine.eval(assignement.toUpperCase());
-                                System.out.println("set assignement : " + assignement.toUpperCase());
+                                this.logger.debug("set assignement : " + assignement.toUpperCase());
                             }
 
                         } else {
                             assignement = String.format("%s = \"%s\"", requestField.getName(),
-                                    String.valueOf(fieldValue).replaceAll(STRING_NEWLINE, " "));
+                                    stringValue.replaceAll(STRING_NEWLINE, " "));
                             engine.eval(assignement.toUpperCase());
-                            System.out.println("set assignement : " + assignement.toUpperCase());
+                            this.logger.debug("set assignement : " + assignement.toUpperCase());
                         }
 
                     } else if (fieldValue instanceof Integer || fieldValue instanceof Double) {
                         assignement = String.format("%s = %s", requestField.getName(), String.valueOf(fieldValue));
                         engine.eval(assignement.toUpperCase());
-                        System.out.println("set assignement : " + assignement.toUpperCase());
+                        this.logger.debug("set assignement : " + assignement.toUpperCase());
 
                     } else if (fieldValue instanceof Boolean) {
                         assignement = String.format("%s = %s", requestField.getName().toUpperCase(),
                                 String.valueOf(fieldValue));
                         engine.eval(assignement);
-                        System.out.println("set assignement : " + assignement.toUpperCase());
+                        this.logger.debug("set assignement : " + assignement.toUpperCase());
                     }
 
                 }
@@ -425,9 +427,16 @@ public class RequestMatcher {
 
         for (Rule rule : rules) {
 
-            if (StringUtils.isEmpty(rule.getRule()) || !rule.isActive()) {
+            if (StringUtils.isEmpty(rule.getRule())) {
+                this.logger.debug("Rule at position {} is empty.", rule.getPosition());
                 continue;
             }
+
+            if (!rule.isActive()) {
+                this.logger.debug("Rule at position {} is inactive.", rule.getPosition());
+                continue;
+            }
+
             //String condition = this.reformatRule(rule.getRule());
             this.logger.info("Check matching with rule at position {}.", rule.getPosition());
 

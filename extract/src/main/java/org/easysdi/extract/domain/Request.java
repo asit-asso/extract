@@ -211,6 +211,13 @@ public class Request implements Serializable {
     private boolean rejected;
 
     /**
+     * The address that provides an access to the details of this order.
+     */
+    @Size(max = 255)
+    @Column(name = "p_external_url")
+    private String externalUrl;
+
+    /**
      * The set of tasks attached to this data item order to produce the requested data.
      */
     @JoinColumn(name = "id_process", referencedColumnName = "id_process",
@@ -879,6 +886,28 @@ public class Request implements Serializable {
      */
     public void setRejected(final boolean isRejected) {
         this.rejected = isRejected;
+    }
+
+
+
+    /**
+     * Obtains the address that provides an access to the details of this order on the originating server.
+     *
+     * @return the URL of the order on the source server, or <code>null</code> if there is no such URL
+     */
+    public String getExternalUrl() {
+        return this.externalUrl;
+    }
+
+
+
+    /**
+     * Defines the address that provides an access to the details of this order on the originating server.
+     *
+     * @param url the address of the order on the source server, or <code>null</code> if there is no such URL
+     */
+    public void setExternalUrl(final String url) {
+        this.externalUrl = url;
     }
 
 

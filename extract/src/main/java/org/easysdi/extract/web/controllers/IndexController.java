@@ -170,7 +170,8 @@ public class IndexController extends BaseController {
             model.addAttribute("baseFolderError", true);
 
         } else {
-            model.addAttribute("processes", this.processesRepository.findAll());
+            model.addAttribute("processes", this.processesRepository.findAllByOrderByName());
+            model.addAttribute("connectors", this.connectorsRepository.findAllByOrderByName());
             model.addAttribute("language", this.getApplicationLanguage());
             model.addAttribute("refreshInterval",
                     Integer.valueOf(this.parametersRepository.getDashboardRefreshInterval()));
@@ -279,21 +280,26 @@ public class IndexController extends BaseController {
     /**
      * Processes a request to get the description of the orders whose processing is complete.
      *
-     * @param draw                  the number that identifies the query submitted
-     * @param pageStart             the index of the item that start the page to display
-     * @param sortFields            a string that contains the fields that the data must be sorted by, separated by a
-     *                              comma
-     * @param sortDirection         <code>asc</code> to sort in ascending order or
-     *                              <code>desc</code> to sort in descending order
-     * @param filterText            a string that contains the text to use to filter the requests to display, or an
-     *                              empty string if the textual filter must not be applied
-     * @param filterProcessIdString a string that contains the number that identifies the process whose requests
-     *                              must be displayed, or an empty string if the requests must not be filter by process
-     * @param filterDateFrom        a string that contains the timestamp of the date from which requests to display have
-     *                              been received, or an empty string if the reception date must not have a lower limit
-     * @param filterDateTo          a string that contains the timestamp of the date until which requests to display
-     *                              have been received, or an empty string if the reception date must not have
-     *                              an upper limit
+     * @param draw                    the number that identifies the query submitted
+     * @param pageStart               the index of the item that start the page to display
+     * @param sortFields              a string that contains the fields that the data must be sorted by, separated by
+     *                                a comma
+     * @param sortDirection           <code>asc</code> to sort in ascending order or
+     *                                <code>desc</code> to sort in descending order
+     * @param filterText              a string that contains the text to use to filter the requests to display, or an
+     *                                empty string if the textual filter must not be applied
+     * @param filterConnectorIdString a string that contains the number that identifies the connectors whose requests
+     *                                must be displayed, or an empty string if the requests must not be filter by
+     *                                connector
+     * @param filterProcessIdString   a string that contains the number that identifies the process whose requests
+     *                                must be displayed, or an empty string if the requests must not be filter by
+     *                                process
+     * @param filterDateFrom          a string that contains the timestamp of the date from which requests to display
+     *                                have been received, or an empty string if the reception date must not have
+     *                                a lower limit
+     * @param filterDateTo            a string that contains the timestamp of the date until which requests
+     *                                to display have been received, or an empty string if the reception date must
+     *                                not have an upper limit
      * @return a JSON object that describes the finished orders that match the given criteria
      */
     @JsonView(PublicField.class)
@@ -302,6 +308,7 @@ public class IndexController extends BaseController {
     public final DataTableResponse handleGetFinishedRequests(@RequestParam final int draw,
             @RequestParam("start") final int pageStart, @RequestParam final String sortFields,
             @RequestParam final String sortDirection, @RequestParam final String filterText,
+            @RequestParam("filterConnector") final String filterConnectorIdString,
             @RequestParam("filterProcess") final String filterProcessIdString,
             @RequestParam final String filterDateFrom, @RequestParam final String filterDateTo) {
 
@@ -323,12 +330,13 @@ public class IndexController extends BaseController {
 
         try {
 
+            final org.easysdi.extract.domain.Connector connector = this.getConnectorForFilter(filterConnectorIdString);
             final org.easysdi.extract.domain.Process process = this.getProcessForFilter(filterProcessIdString);
             final Calendar startDateFrom = this.getDateForFilter(filterDateFrom, false);
             final Calendar startDateTo = this.getDateForFilter(filterDateTo, true);
 
             final Page<Request> pagedResult = this.getFinishedRequests(pageStart, sortFields, sortDirection, filterText,
-                    process, startDateFrom, startDateTo);
+                    connector, process, startDateFrom, startDateTo);
             RequestModel[] requestModelArray = RequestModel.fromDomainRequestsPage(pagedResult,
                     this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource);
             RequestJsonModel[] requestsData
@@ -347,6 +355,28 @@ public class IndexController extends BaseController {
 
             return new DataTableResponse(draw, exception.getMessage());
         }
+    }
+
+
+
+    /**
+     * Obtains the process whose requests should be displayed.
+     *
+     * @param connectorIdString a string that contains the number that identifies the process to filter,
+     *                          or an empty string
+     * @return the process, or <code>null</code> if the requests of all processes (and of no process) should be
+     *         displayed
+     */
+    private org.easysdi.extract.domain.Connector getConnectorForFilter(final String connectorIdString) {
+        assert connectorIdString != null : "The string containing the connector identifier to filter cannot be null.";
+
+        if (connectorIdString.isEmpty()) {
+            return null;
+        }
+
+        int connectorId = Integer.parseInt(connectorIdString);
+
+        return this.connectorsRepository.findOne(connectorId);
     }
 
 
@@ -407,23 +437,26 @@ public class IndexController extends BaseController {
     /**
      * Gets models for all the requests that are done and that the current user is allowed to view.
      *
-     * @param pageStart      the index of the item that start the page to display
-     * @param sortFields     a string that contains the fields that the data must be sorted by, separated by a
-     *                       comma
-     * @param sortDirection  <code>asc</code> to sort in ascending order or
-     *                       <code>desc</code> to sort in descending order
-     * @param filterText     a string that contains the text to use to filter the requests to display, or an
-     *                       empty string if the textual filter must not be applied
-     * @param filterProcess  the process whose requests must be displayed, or <code>null</code> if the requests
-     *                       must not be filter by process
-     * @param filterDateFrom the date from which requests to display have been received, or <code>null</code> if
-     *                       the reception date must not have a lower limit
-     * @param filterDateTo   the date until which requests to display have been received, or <code>null</code> if
-     *                       the reception date must not have an upper limit
+     * @param pageStart       the index of the item that start the page to display
+     * @param sortFields      a string that contains the fields that the data must be sorted by, separated by a
+     *                        comma
+     * @param sortDirection   <code>asc</code> to sort in ascending order or
+     *                        <code>desc</code> to sort in descending order
+     * @param filterText      a string that contains the text to use to filter the requests to display, or an
+     *                        empty string if the textual filter must not be applied
+     * @param filterConnector the connector whose requests must be displayed, or <code>null</code> if the requests
+     *                        must not be filter by connector
+     * @param filterProcess   the process whose requests must be displayed, or <code>null</code> if the requests
+     *                        must not be filter by process
+     * @param filterDateFrom  the date from which requests to display have been received, or <code>null</code> if
+     *                        the reception date must not have a lower limit
+     * @param filterDateTo    the date until which requests to display have been received, or <code>null</code> if
+     *                        the reception date must not have an upper limit
      * @return an array that contains the finished requests models that match the given criteria
      */
     private Page<Request> getFinishedRequests(final int pageStart, final String sortFields,
             final String sortDirection, final String filterText,
+            final org.easysdi.extract.domain.Connector filterConnector,
             final org.easysdi.extract.domain.Process filterProcess,
             final Calendar filterDateFrom, final Calendar filterDateTo) {
         assert this.isCurrentUserApplicationUser() : "The user must be authenticated.";
@@ -434,7 +467,8 @@ public class IndexController extends BaseController {
         final PageRequest paging = new PageRequest(pageStart / this.tablePageSize, this.tablePageSize,
                 RequestSort.getSort(sortFields.split(","), sortDirection));
         final Specification<Request> filterCriteria
-                = RequestSpecification.getFilterSpecification(filterText, filterProcess, filterDateFrom, filterDateTo);
+                = RequestSpecification.getFilterSpecification(filterText, filterConnector, filterProcess,
+                        filterDateFrom, filterDateTo);
         final Specification<Request> searchCriteria
                 = where(RequestSpecification.isFinished()).and(filterCriteria);
 

@@ -16,7 +16,12 @@
  */
 package org.easysdi.extract.connectors.easysdiv4;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import org.easysdi.extract.connectors.common.IProduct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
@@ -26,6 +31,11 @@ import org.easysdi.extract.connectors.common.IProduct;
  * @author Yves Grasset
  */
 public class Product implements IProduct {
+
+    /**
+     * The writer to the application logs.
+     */
+    private final Logger logger = LoggerFactory.getLogger(ExportRequest.class);
 
     /**
      * The description of the order that this request is part of.
@@ -97,6 +107,11 @@ public class Product implements IProduct {
      * Additional settings for the processing of this request.
      */
     private String othersParameters;
+
+    /**
+     * The address that provides an access to the details of this order on the originating server.
+     */
+    private String externalUrl;
 
 
 
@@ -200,10 +215,10 @@ public class Product implements IProduct {
     /**
      * Defines the organization that requested this product.
      *
-     * @param organismName the name of the organization
+     * @param guid the string that uniquely identifies the organization
      */
-    public final void setOrganismGuid(final String organismGuid) {
-        this.organismGuid = organismGuid;
+    public final void setOrganismGuid(final String guid) {
+        this.organismGuid = guid;
     }
 
 
@@ -236,7 +251,7 @@ public class Product implements IProduct {
     /**
      * Defines the person who requested this data item.
      *
-     * @param name the customer's name
+     * @param guid the string that uniquely identifies the customer
      */
     public final void setClientGuid(final String guid) {
         this.clientGuid = guid;
@@ -351,6 +366,43 @@ public class Product implements IProduct {
      */
     public final void setOthersParameters(final String parametersJson) {
         this.othersParameters = parametersJson;
+    }
+
+
+
+    @Override
+    public final String getExternalUrl() {
+        return this.externalUrl;
+    }
+
+
+
+    /**
+     * Defines the address that provides an access to the details of this order on the originating server.
+     *
+     * @param url the address of the order on the source server, or <code>null</code> if there is no such URL
+     */
+    public final void setExternalUrl(final String url) {
+
+        if (url == null) {
+            this.externalUrl = null;
+            return;
+        }
+
+        try {
+            URL inputAsUrl = new URL(url);
+
+            if (!inputAsUrl.toURI().isAbsolute()) {
+                this.logger.error("The external address for the order details must be absolute.");
+                this.externalUrl = null;
+            }
+
+            this.externalUrl = inputAsUrl.toString();
+
+        } catch (MalformedURLException | URISyntaxException exception) {
+            this.logger.error("The given external address is not a valid URL.", exception);
+            this.externalUrl = null;
+        }
     }
 
 }

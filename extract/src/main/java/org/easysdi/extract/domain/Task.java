@@ -270,6 +270,26 @@ public class Task implements Serializable {
 
 
 
+    public final Task createCopy() {
+        Task copy = new Task();
+        copy.setCode(this.getCode());
+        copy.setLabel(this.getLabel());
+
+        Map<String, String> parameters = this.getParametersValues();
+
+        if (parameters != null) {
+            HashMap<String, String> copyParameters = new HashMap<>();
+            copyParameters.putAll(parameters);
+            copy.setParametersValues(copyParameters);
+        }
+
+        copy.setPosition(this.getPosition());
+
+        return copy;
+    }
+
+
+
     @Override
     public final int hashCode() {
         int hash = 0;

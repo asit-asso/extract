@@ -40,7 +40,7 @@ public class ExtractApplication extends WebMvcConfigurerAdapter {
      * @param arguments the parameters for this web application
      */
     public static void main(final String[] arguments) {
-        ExtractApplication.LOGGER.info("Starting easySDI EXTRACT application.");
+        ExtractApplication.LOGGER.info("Starting Extract application.");
         SpringApplication.run(ExtractApplication.class, arguments);
     }
 

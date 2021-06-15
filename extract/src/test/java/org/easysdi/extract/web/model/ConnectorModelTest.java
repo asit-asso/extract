@@ -83,6 +83,7 @@ public class ConnectorModelTest {
         this.dummyConnectorInstance.setLastImportDate(ConnectorModelTest.DEFAULT_UPDATE_DATE);
         this.dummyConnectorInstance.setLastImportMessage(ConnectorModelTest.DEFAULT_IMPORT_MESSAGE);
         this.dummyConnectorInstance.setName("Test connector model");
+        this.dummyConnectorInstance.setMaximumRetries(3);
         this.dummyConnectorInstance.setRequestsCollection(ListUtils.EMPTY_LIST);
 
         HashMap<String, String> parametersValues = new HashMap<>();
@@ -153,6 +154,7 @@ public class ConnectorModelTest {
         instance.setLastImportDate(this.dummyConnectorInstance.getLastImportDate());
         instance.setLastImportMessage(this.dummyConnectorInstance.getLastImportMessage());
         instance.setName(this.dummyConnectorInstance.getName());
+        instance.setMaximumRetries(this.dummyConnectorInstance.getMaximumRetries());
         Connector createdInstance = instance.createDomainConnector();
 
         Assert.assertEquals(this.dummyConnectorInstance.isActive(), createdInstance.isActive());
@@ -160,6 +162,7 @@ public class ConnectorModelTest {
         Assert.assertEquals(this.dummyConnectorPlugin.getLabel(), createdInstance.getConnectorLabel());
         Assert.assertNull(createdInstance.getId());
         Assert.assertEquals(this.dummyConnectorInstance.getImportFrequency(), createdInstance.getImportFrequency());
+        Assert.assertEquals(this.dummyConnectorInstance.getMaximumRetries(), createdInstance.getMaximumRetries());
         Assert.assertNull(createdInstance.getLastImportDate());
         Assert.assertNull(createdInstance.getLastImportMessage());
         Assert.assertEquals(this.dummyConnectorInstance.getName(), createdInstance.getName());
@@ -178,6 +181,7 @@ public class ConnectorModelTest {
         instance.setActive(false);
         instance.setId(8);
         instance.setImportFrequency(360);
+        instance.setMaximumRetries(2);
         instance.setLastImportDate(newImportDate);
         instance.setLastImportMessage("OK");
         instance.setName("New test connector");

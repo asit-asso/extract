@@ -17,6 +17,7 @@
 package org.easysdi.extract.web.model.json;
 
 import com.fasterxml.jackson.annotation.JsonView;
+import org.easysdi.extract.domain.Connector;
 
 
 
@@ -26,6 +27,12 @@ import com.fasterxml.jackson.annotation.JsonView;
  * @author Yves Grasset
  */
 public class OrderInfo {
+
+    /**
+     * The name of the connector instance that was used to import this order.
+     */
+    @JsonView(PublicField.class)
+    private String connectorName;
 
     /**
      * The description of the data order.
@@ -38,6 +45,17 @@ public class OrderInfo {
      */
     @JsonView(PublicField.class)
     private final String productLabel;
+
+
+
+    /**
+     * Obtains the name of the connector instance that was used to import this order.
+     *
+     * @return the name of the connector instance
+     */
+    public final String getConnectorName() {
+        return this.connectorName;
+    }
 
 
 
@@ -66,10 +84,17 @@ public class OrderInfo {
     /**
      * Create a new JSON order information instance.
      *
-     * @param order   the string that describes the placed order
-     * @param product the string that describes the ordered data item
+     * @param order     the string that describes the placed order
+     * @param product   the string that describes the ordered data item
+     * @param connector the connector instance used to import this order
      */
-    public OrderInfo(final String order, final String product) {
+    public OrderInfo(final String order, final String product, final Connector connector) {
+
+        if (connector == null) {
+            throw new IllegalArgumentException("The connector cannot be null.");
+        }
+
+        this.connectorName = connector.getName();
         this.orderLabel = order;
         this.productLabel = product;
     }

@@ -17,8 +17,10 @@
 package org.easysdi.extract.domain;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -457,6 +459,45 @@ public class Process implements Serializable {
     @Override
     public final String toString() {
         return String.format("org.easysdi.extract.Process[ idProcess=%d ]", this.id);
+    }
+
+
+
+    public Process createCopy() {
+        Process copy = new Process();
+        copy.setName(this.getCopyName());
+
+        Collection<User> users = this.getUsersCollection();
+
+        if (users != null) {
+            Collection<User> copyUsers = new ArrayList<>();
+            copyUsers.addAll(users);
+            copy.setUsersCollection(copyUsers);
+        }
+
+        copy.setTasksCollection(this.createTasksCopy());
+
+        return copy;
+    }
+
+
+
+    private Collection<Task> createTasksCopy() {
+        List<Task> tasksList = new ArrayList<>();
+
+        for (Task task : this.getTasksCollection()) {
+            Task taskCopy = task.createCopy();
+            taskCopy.setProcess(this);
+            tasksList.add(taskCopy);
+        }
+
+        return tasksList;
+    }
+
+
+
+    private String getCopyName() {
+        return String.format("%s - Copie", this.getName());
     }
 
 }

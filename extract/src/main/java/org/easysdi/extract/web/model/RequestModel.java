@@ -288,6 +288,17 @@ public class RequestModel {
 
 
     /**
+     * Obtains the address that provides an access to the details of this order on the originating server.
+     *
+     * @return the URL of the order on the source server, or <code>null</code> if there is no such URL
+     */
+    public final String getExternalUrl() {
+        return this.request.getExternalUrl();
+    }
+
+
+
+    /**
      * Obtains all the records tracing the tasks executed to process this order, including reruns.
      *
      * @return an array that contains all the history records for this order

@@ -23,7 +23,10 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.easysdi.extract.domain.Task;
 import org.easysdi.extract.domain.User;
+import org.easysdi.extract.persistence.ProcessesRepository;
 import org.easysdi.extract.persistence.RequestsRepository;
+import org.easysdi.extract.persistence.TasksRepository;
+import org.easysdi.extract.persistence.UsersRepository;
 import org.easysdi.extract.plugins.TaskProcessorDiscovererWrapper;
 import org.easysdi.extract.plugins.common.ITaskProcessor;
 import org.slf4j.Logger;
@@ -212,16 +215,14 @@ public class ProcessModel {
      * @return a list of task data objects
      */
     private List<Task> getDomainTasks(final org.easysdi.extract.domain.Process domainProcess) {
-        List<Task> tasksMap = new ArrayList<>();
+        List<Task> tasksList = new ArrayList<>();
 
         for (TaskModel taskModel : this.tasksList) {
-            if (!taskModel.getTag().equals(TaskModel.TAG_ADDED)) {
-                Task domainTask = taskModel.createDomainTask(domainProcess);
-                tasksMap.add(domainTask);
-            }
+            Task domainTask = taskModel.createDomainTask(domainProcess);
+            tasksList.add(domainTask);
         }
 
-        return tasksMap;
+        return tasksList;
     }
 
 
@@ -418,16 +419,63 @@ public class ProcessModel {
 
 
 
+    public final org.easysdi.extract.domain.Process createInDataSource(ProcessesRepository processRepository,
+            TasksRepository taskRepository, UsersRepository userRepository) {
+        org.easysdi.extract.domain.Process domainProcess = this.createDomainObject(userRepository);
+
+        return this.saveInDataSource(processRepository, taskRepository, userRepository, domainProcess);
+    }
+
+
+
+    private final org.easysdi.extract.domain.Process saveInDataSource(ProcessesRepository processRepository,
+            TasksRepository taskRepository, UsersRepository userRepository,
+            org.easysdi.extract.domain.Process domainProcess) {
+        domainProcess = processRepository.save(domainProcess);
+        this.setId(domainProcess.getId());
+        this.updateTasksInDataSource(taskRepository, domainProcess);
+
+        return domainProcess;
+    }
+
+
+
+    public final org.easysdi.extract.domain.Process updateInDataSource(ProcessesRepository processRepository,
+            TasksRepository taskRepository, UsersRepository userRepository,
+            org.easysdi.extract.domain.Process domainProcess) {
+        domainProcess = this.updateDomainObject(domainProcess, userRepository);
+
+        return this.saveInDataSource(processRepository, taskRepository, userRepository, domainProcess);
+    }
+
+
+
+    public final void updateTasksInDataSource(TasksRepository taskRepository,
+            org.easysdi.extract.domain.Process domainProcess) {
+
+        for (TaskModel taskModel : this.getTasks()) {
+            this.logger.debug("Updating task in position {} with plugin {}.", taskModel.getPosition(), taskModel.getPluginCode());
+            taskModel.saveInDataSource(taskRepository, domainProcess);
+        }
+
+        for (Task taskToDelete : this.getDeletedDomainTasks(domainProcess)) {
+            this.logger.info("The task with identifier {} has been deleted.", taskToDelete.getId());
+            taskRepository.delete(taskToDelete);
+        }
+    }
+
+
+
     /**
      * Make a new process data object based on the current values in this model.
      *
      * @return the new process data object
      */
-    public final org.easysdi.extract.domain.Process createDomainObject() {
+    public final org.easysdi.extract.domain.Process createDomainObject(UsersRepository userRepository) {
         final org.easysdi.extract.domain.Process domainProcess = new org.easysdi.extract.domain.Process();
         domainProcess.setId(this.getId());
 
-        return this.updateDomainObject(domainProcess);
+        return this.updateDomainObject(domainProcess, userRepository);
     }
 
 
@@ -439,14 +487,14 @@ public class ProcessModel {
      * @return the updated data object
      */
     public final org.easysdi.extract.domain.Process updateDomainObject(
-            final org.easysdi.extract.domain.Process domainProcess) {
+            final org.easysdi.extract.domain.Process domainProcess, UsersRepository userRepository) {
 
         if (domainProcess == null) {
             throw new IllegalArgumentException("The process data object cannot be null.");
         }
 
         domainProcess.setName(this.getName());
-        domainProcess.setTasksCollection(this.getDomainTasks(domainProcess));
+        this.copyUsers(domainProcess, userRepository);
 
         return domainProcess;
     }
@@ -470,11 +518,16 @@ public class ProcessModel {
         }
 
         List<Task> deletedTasks = new ArrayList<>();
+        Collection<Task> tasksInDataSource = domainProcess.getTasksCollection();
 
-        for (Task domainTask : domainProcess.getTasksCollection()) {
-            TaskModel taskToDelete = this.getTask(domainTask.getId());
-            if (taskToDelete == null) {
-                deletedTasks.add(domainTask);
+        if (tasksInDataSource != null) {
+
+            for (Task domainTask : tasksInDataSource) {
+                TaskModel taskToDelete = this.getTask(domainTask.getId());
+
+                if (taskToDelete == null) {
+                    deletedTasks.add(domainTask);
+                }
             }
         }
 
@@ -588,6 +641,22 @@ public class ProcessModel {
         }
 
         return modelsList;
+    }
+
+
+
+    private void copyUsers(org.easysdi.extract.domain.Process domainProcess, UsersRepository userRepository) {
+        final Collection<User> collUsers = new ArrayList<>();
+        final String userIds = this.getUsersIds();
+
+        if (!StringUtils.isEmpty(userIds)) {
+
+            for (String userId : userIds.split(",")) {
+                collUsers.add(userRepository.findById(Integer.parseInt(userId)));
+            }
+        }
+
+        domainProcess.setUsersCollection(collUsers);
     }
 
 }

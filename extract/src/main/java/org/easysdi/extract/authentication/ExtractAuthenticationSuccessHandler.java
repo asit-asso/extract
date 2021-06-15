@@ -30,7 +30,7 @@ import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 
 
 /**
- * Interceptor that carries actions after a successful authentication to the EXTRACT application.
+ * Interceptor that carries actions after a successful authentication to the Extract application.
  *
  * @author Yves Grasset
  */

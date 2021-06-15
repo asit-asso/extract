@@ -30,6 +30,10 @@ import org.springframework.data.repository.query.Param;
  */
 public interface ProcessesRepository extends PagingAndSortingRepository<Process, Integer> {
 
+    Iterable<Process> findAllByOrderByName();
+
+
+
     /**
      * Obtains the e-mail addresses of the operators associated to a given process.
      *

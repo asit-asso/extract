@@ -62,6 +62,8 @@ public final class RequestSpecification {
      *
      * @param searchText a string that contains the text must be contained in one of the textual fields, or an empty
      *                   string if no textual filter must be applied
+     * @param connector  the connector whose requests must be returned, or <code>null</code> to ignore the connector
+     *                   requests are associated with
      * @param process    the process whose requests must be returned, or <code>null</code> to ignore the process
      *                   requests are associated with
      * @param startDate  the date from which the request can have been received, or <code>null</code> if there must
@@ -71,10 +73,12 @@ public final class RequestSpecification {
      * @return the set of criteria to apply the desired filters
      */
     public static Specification<Request> getFilterSpecification(final String searchText,
-            final org.easysdi.extract.domain.Process process, final Calendar startDate, final Calendar endDate) {
+            final org.easysdi.extract.domain.Connector connector, final org.easysdi.extract.domain.Process process,
+            final Calendar startDate, final Calendar endDate) {
 
         return where(RequestSpecification.containsText(searchText)).and(RequestSpecification.isBoundToProcess(process))
-                .and(RequestSpecification.startsFrom(startDate)).and(RequestSpecification.endsUntil(endDate));
+                .and(RequestSpecification.isBoundToConnector(connector)).and(RequestSpecification.startsFrom(startDate))
+                .and(RequestSpecification.endsUntil(endDate));
     }
 
 
@@ -145,6 +149,35 @@ public final class RequestSpecification {
 
         };
 
+    }
+
+
+
+    /**
+     * Obtains the criteria to filter the request based on the connector it is associated with.
+     *
+     * @param connector the connector that the request must be associated with
+     * @return the set of criteria to apply the connector filter
+     */
+    public static Specification<Request> isBoundToConnector(final org.easysdi.extract.domain.Connector connector) {
+
+        return new Specification<Request>() {
+
+            @Override
+            public Predicate toPredicate(final Root<Request> root, final CriteriaQuery<?> query,
+                    final CriteriaBuilder builder) {
+
+                if (connector == null) {
+                    RequestSpecification.LOGGER.debug("No connector specified for filtering.");
+                    return builder.conjunction();
+                }
+
+                RequestSpecification.LOGGER.debug("Only the requests associated with the connector \"{}\" will be"
+                        + " returned.", connector.getName());
+                return builder.equal(root.get(Request_.connector), connector);
+            }
+
+        };
     }
 
 
