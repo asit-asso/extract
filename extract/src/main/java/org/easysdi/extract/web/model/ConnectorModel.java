@@ -46,6 +46,12 @@ public class ConnectorModel extends PluginItemModel {
     private static final int DEFAULT_IMPORT_FREQUENCY = 60;
 
     /**
+     * The number of seconds to wait before looking again for orders on the server if no other delay has
+     * been set.
+     */
+    private static final int DEFAULT_MAXIMUM_RETRIES = 3;
+
+    /**
      * Whether this connector should attempt to retrieve commands.
      */
     private boolean active = false;
@@ -76,6 +82,12 @@ public class ConnectorModel extends PluginItemModel {
      * fetch orders.
      */
     private String lastImportMessage;
+
+    /**
+     * The number of times imports must be attempted before the connector is switched to the error state.
+     */
+    @Max(value = Integer.MAX_VALUE, message = "{connectorDetails.errors.maxRetries.tooLarge}")
+    private Integer maximumRetries = ConnectorModel.DEFAULT_MAXIMUM_RETRIES;
 
     /**
      * The writer to the application logs.
@@ -235,6 +247,30 @@ public class ConnectorModel extends PluginItemModel {
      */
     public final void setName(final String connectorName) {
         this.name = connectorName;
+    }
+
+
+
+    /**
+     * Obtains the number of times imports must be attempted before the connector is switched to the error
+     * state.
+     *
+     * @return the number of tries to attempt
+     */
+    public Integer getMaximumRetries() {
+        return this.maximumRetries;
+    }
+
+
+
+    /**
+     * Defines the number of times imports must be attempted before the connector is switched to the error
+     * state.
+     *
+     * @param number the number of tries to attempt
+     */
+    public void setMaximumRetries(final Integer number) {
+        this.maximumRetries = number;
     }
 
 
@@ -434,6 +470,7 @@ public class ConnectorModel extends PluginItemModel {
         this.setLastImportDate(domainConnector.getLastImportDate());
         this.setLastImportMessage(domainConnector.getLastImportMessage());
         this.setName(domainConnector.getName());
+        this.setMaximumRetries(domainConnector.getMaximumRetries());
         this.setParametersValuesFromMap(domainConnector.getConnectorParametersValues());
         this.setRulesFromRulesDomain(domainConnector.getRulesCollection());
         this.hasActiveRequests = (requestsRepository != null) ? domainConnector.hasActiveRequests(requestsRepository)
@@ -509,6 +546,7 @@ public class ConnectorModel extends PluginItemModel {
         domainConnector.setActive(this.isActive());
         domainConnector.setImportFrequency(this.getImportFrequency());
         domainConnector.setName(this.getName());
+        domainConnector.setMaximumRetries(this.getMaximumRetries());
         domainConnector.setConnectorParametersValues(this.getParametersValues());
 
     }

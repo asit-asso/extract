@@ -78,6 +78,7 @@ import org.apache.http.util.EntityUtils;
 import org.easysdi.extract.connectors.common.IConnector;
 import org.easysdi.extract.connectors.common.IConnectorImportResult;
 import org.easysdi.extract.connectors.common.IExportRequest;
+import org.easysdi.extract.connectors.easysdiv4.utils.RequestUtils;
 import org.easysdi.extract.connectors.easysdiv4.utils.ZipUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -289,6 +290,13 @@ public class Easysdiv4 implements IConnector {
         uploadSizeNode.put("req", false);
         uploadSizeNode.put("min", 1);
         uploadSizeNode.put("step", 1);
+
+        ObjectNode externalUrlPatternNode = parametersNode.addObject();
+        externalUrlPatternNode.put("code", this.config.getProperty("code.detailsUrlPattern"));
+        externalUrlPatternNode.put("label", this.messages.getString("label.detailsUrlPattern"));
+        externalUrlPatternNode.put("type", "text");
+        externalUrlPatternNode.put("req", false);
+        externalUrlPatternNode.put("maxlength", 255);
 
         try {
             return mapper.writeValueAsString(parametersNode);
@@ -1125,6 +1133,7 @@ public class Easysdiv4 implements IConnector {
     private ConnectorImportResult addImportedProductsToResult(final String responseString,
             final ConnectorImportResult result) throws SAXException, IOException, ParserConfigurationException {
 
+        final String detailsUrlPattern = this.inputs.get(this.config.getProperty("code.detailsUrlPattern"));
         this.logger.debug("Building document");
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
         DocumentBuilder builder = factory.newDocumentBuilder();
@@ -1174,6 +1183,7 @@ public class Easysdiv4 implements IConnector {
             }
 
             this.logger.debug("Parsing products.");
+            String detailsUrl;
 
             for (int productIndex = 0; productIndex < productList.getLength(); productIndex++) {
                 this.logger.debug("Processing product index {}.", productIndex);
@@ -1206,6 +1216,20 @@ public class Easysdiv4 implements IConnector {
                 this.logger.debug("Parsing product properties.");
                 product.setOthersParameters(this.parseOtherParameters(propertiesNodeList));
                 this.logger.debug("Product parameters JSON is {}.", product.getOthersParameters());
+
+                this.logger.debug("Creating order details URL.");
+                detailsUrl = null;
+
+                if (detailsUrlPattern != null && detailsUrlPattern.length() > 0) {
+                    this.logger.debug("Order details URL pattern is {}", detailsUrlPattern);
+                    detailsUrl = RequestUtils.interpolateVariables(detailsUrlPattern, product, this.config);
+
+                } else {
+                    this.logger.debug("No order details URL pattern defined.");
+                }
+
+                product.setExternalUrl(detailsUrl);
+                this.logger.debug("Details URL set to {}", detailsUrl);
 
                 this.logger.debug("Adding product {} to result.", productGuid);
                 result.addProduct(product);

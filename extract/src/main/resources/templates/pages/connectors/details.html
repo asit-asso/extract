@@ -63,7 +63,7 @@
                             <div class="panel panel-default">
                                 <div class="panel-body">
                                     <div class="row">
-                                        <div class="col-lg-6">
+                                        <div class="col-lg-4">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
                                                 <label for="connectorName" th:text="#{connectorDetails.fields.name.label}"
@@ -86,10 +86,22 @@
                                                       th:title="#{field.mandatory.tooltip}"></span>
                                                 <input type="number" class="form-control" th:field="*{importFrequency}"
                                                        th:title="${#fields.hasErrors('importFrequency')} ? ${#fields.errors('importFrequency')[0]}"
-                                                       value="3600" step="1" data-toggle="tooltip" />
+                                                       value="3600" step="1" min="1" data-toggle="tooltip" />
                                             </div>
                                         </div>
                                         <div class="col-lg-3">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('maximumRetries')} ? 'has-error'">
+                                                <label for="maxRetries" class="control-label"
+                                                       th:text="#{connectorDetails.fields.maxRetries.label}">{Max retries}</label>
+                                                <span class="mandatory" data-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="number" class="form-control" th:field="*{maximumRetries}"
+                                                       th:title="${#fields.hasErrors('maximumRetries')} ? ${#fields.errors('maximumRetries')[0]}"
+                                                       value="3" step="1" min="0" data-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-2">
                                             <div class="form-group form-group-with-label">
                                                 <div>
                                                     <label th:text="#{connectorDetails.fields.active.label}"

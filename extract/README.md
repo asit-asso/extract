@@ -1,30 +1,31 @@
-# easySDI EXTRACT Core
+# Extract Core
 
 ## Introduction
 
-Ce projet représente le c&oelig;ur du module EXTRACT permettant l'extraction de données à partir de commandes. Il
-contient à la fois l'application web d'administration et le moteur d'execution des extractions en arrière-plan,
+Ce projet reprï¿½sente le c&oelig;ur du module Extract permettant l'extraction de donnï¿½es ï¿½ partir de commandes. Il
+contient ï¿½ la fois l'application web d'administration et le moteur d'execution des extractions en arriï¿½re-plan,
 
-## Pré-requis pour l'utilisation
+## Prï¿½-requis pour l'utilisation
+* OS 64 bits
 * Java 7
 * Tomcat 7
 
-## Pré-requis pour le développement et la compilation
+## Prï¿½-requis pour le dï¿½veloppement et la compilation
 * Java 7
 * [Yarn][Yarn_Site]
-* Projet extract-interface (Interface commune pour l'utilisation des plugins connecteurs et tâches)
+* Projet extract-interface (Interface commune pour l'utilisation des plugins connecteurs et tï¿½ches)
 
 ## Installation des librairies JavaScript
 
-Les librairies JavaScript utilisées par l'application Web et leurs dépendances sont gérées au moyen du gestionnaire de
-packages [Yarn][Yarn_Site]. Si vous récupérez le code depuis le repository, il faudra installer ces packages avant de pouvoir
-exécuter l'application.
+Les librairies JavaScript utilisï¿½es par l'application Web et leurs dï¿½pendances sont gï¿½rï¿½es au moyen du gestionnaire de
+packages [Yarn][Yarn_Site]. Si vous rï¿½cupï¿½rez le code depuis le repository, il faudra installer ces packages avant de pouvoir
+exï¿½cuter l'application.
 
-Pour ce faire, ouvrez une ligne de commande dans le répertoire racine du projet et exécutez la commande suivante&nbsp;:
+Pour ce faire, ouvrez une ligne de commande dans le rï¿½pertoire racine du projet et exï¿½cutez la commande suivante&nbsp;:
 ```
 yarn install
 ```
 
-Les librairies JavaScript nécessaires devraient maintenant se trouver dans le répertoire `src/main/resources/static/lib`.
+Les librairies JavaScript nï¿½cessaires devraient maintenant se trouver dans le rï¿½pertoire `src/main/resources/static/lib`.
 
 [Yarn_Site]: https://yarnpkg.com/ "Site du gestionnaire de package Yarn"

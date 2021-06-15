@@ -211,8 +211,8 @@
                 $(function() {
 
                     $('#userCancelButton').on('click', function() {
-                        var listUrl = /*[[@{'/users'}]]*/ "../users";
-                        location.replace(listUrl);
+                        var targetUrl = /*[[${#authentication.principal.hasAuthority('ADMIN')} ? @{'/users'} : @{'/'}]]*/ "../users";
+                        location.replace(targetUrl);
                     });
 
                     $('#userSaveButton').on('click', submitUserData);

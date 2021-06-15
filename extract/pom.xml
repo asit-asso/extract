@@ -5,11 +5,11 @@
 
     <groupId>org.easysdi</groupId>
     <artifactId>extract</artifactId>
-    <version>1.2.1-BETA</version>
+    <version>1.3-RELEASE</version>
     <packaging>war</packaging>
 
     <name>extract</name>
-    <description>easySDI EXTRACT</description>
+    <description>Extract</description>
 
     <repositories>
         <repository>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>extract-plugin-interface</artifactId>
-            <version>1.2.1-BETA</version>
+            <version>1.3-RELEASE</version>
         </dependency>
     </dependencies>
 

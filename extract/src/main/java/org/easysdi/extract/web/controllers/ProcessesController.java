@@ -20,9 +20,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import javax.validation.Valid;
-import org.apache.commons.lang3.StringUtils;
-import org.easysdi.extract.domain.Task;
-import org.easysdi.extract.domain.User;
 import org.easysdi.extract.persistence.ProcessesRepository;
 import org.easysdi.extract.persistence.RequestsRepository;
 import org.easysdi.extract.persistence.TasksRepository;
@@ -163,15 +160,7 @@ public class ProcessesController extends BaseController {
             return this.prepareModelForDetailsView(model, true);
         }
 
-        org.easysdi.extract.domain.Process domainProcess = processModel.createDomainObject();
-        this.defineProcessUsersFromModel(domainProcess, processModel);
-        domainProcess = this.processesRepository.save(domainProcess);
-
-        for (TaskModel taskModel : processModel.getTasks()) {
-            Task domainTask = taskModel.createDomainTask(domainProcess);
-            domainTask.setProcess(domainProcess);
-            this.tasksRepository.save(domainTask);
-        }
+        processModel.createInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository);
 
         this.addStatusMessage(redirectAttributes, "connectorsList.connector.added", MessageType.SUCCESS);
         return ProcessesController.REDIRECT_TO_LIST;
@@ -179,6 +168,25 @@ public class ProcessesController extends BaseController {
 
 
 
+    /*
+    private void createProcessInDataSource(final ProcessModel processModel) {
+        org.easysdi.extract.domain.Process domainProcess = processModel.createDomainObject();
+        domainProcess = this.processesRepository.save(domainProcess);
+
+        createProcessTasksInDataSource(processModel.getTasks(), domainProcess);
+    }
+
+
+
+    private void createProcessTasksInDataSource(final TaskModel[] processTaskModels, Process domainProcess) {
+
+        for (TaskModel taskModel : processTaskModels) {
+            Task domainTask = taskModel.createDomainTask(domainProcess);
+            domainTask.setProcess(domainProcess);
+            this.tasksRepository.save(domainTask);
+        }
+    }
+     */
     /**
      * Inserts a new task in the current process.
      *
@@ -280,6 +288,61 @@ public class ProcessesController extends BaseController {
 
         return ProcessesController.REDIRECT_TO_LIST;
 
+    }
+
+
+
+    /**
+     * Creates a copy of a process in the data source.
+     *
+     * @param id                 the number that identifies the process to duplicate
+     * @param name               the name of the process to duplicate
+     * @param redirectAttributes the data to pass to the view that the user will be redirected to
+     * @return the string that identifies the view to display next
+     */
+    @PostMapping("clone")
+    public final String cloneItem(@RequestParam final int id, @RequestParam final String name,
+            final RedirectAttributes redirectAttributes) {
+
+        if (!this.isCurrentUserAdmin()) {
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        org.easysdi.extract.domain.Process domainProcess = this.processesRepository.findOne(id);
+
+        if (domainProcess == null || !domainProcess.getName().equals(name)) {
+            this.logger.warn("The process {} (ID: {}) could not be found. Nothing to clone.", name, id);
+            this.addStatusMessage(redirectAttributes, "processesList.errors.process.notFound", MessageType.WARNING);
+
+            return ProcessesController.REDIRECT_TO_LIST;
+        }
+
+        boolean success = false;
+
+        try {
+            org.easysdi.extract.domain.Process clonedProcess = domainProcess.createCopy();
+            clonedProcess = this.processesRepository.save(clonedProcess);
+
+            for (org.easysdi.extract.domain.Task clonedTask : clonedProcess.getTasksCollection()) {
+                clonedTask.setProcess(clonedProcess);
+                this.tasksRepository.save(clonedTask);
+            }
+
+            success = true;
+
+        } catch (Exception exception) {
+            this.logger.error("Process {} could not be cloned.", name, exception);
+        }
+
+        if (success) {
+            this.addStatusMessage(redirectAttributes, "processesList.process.cloned", MessageType.SUCCESS);
+
+        } else {
+            this.addStatusMessage(redirectAttributes, "processesList.errors.process.clone.generic",
+                    MessageType.ERROR);
+        }
+
+        return ProcessesController.REDIRECT_TO_LIST;
     }
 
 
@@ -453,23 +516,23 @@ public class ProcessesController extends BaseController {
 
         return this.prepareModelForDetailsView(model, false, processModel);
     }
-
-
-
-    /**
-     * Removes from the data source the tasks that have been deleted from a process.
-     *
-     * @param processModel  the model representing the process
-     * @param domainProcess the process data object
-     */
-    private void deleteProcessDeletedTasks(final ProcessModel processModel,
-            final org.easysdi.extract.domain.Process domainProcess) {
-
-        for (Task deletedTask : processModel.getDeletedDomainTasks(domainProcess)) {
-            this.logger.info("The task with identifier {} has been deleted.", deletedTask.getId());
-            this.tasksRepository.delete(deletedTask);
-        }
-    }
+//
+//
+//
+//    /**
+//     * Removes from the data source the tasks that have been deleted from a process.
+//     *
+//     * @param processModel  the model representing the process
+//     * @param domainProcess the process data object
+//     */
+//    private void deleteProcessDeletedTasks(final ProcessModel processModel,
+//            final org.easysdi.extract.domain.Process domainProcess) {
+//
+//        for (Task deletedTask : processModel.getDeletedDomainTasks(domainProcess)) {
+//            this.logger.info("The task with identifier {} has been deleted.", deletedTask.getId());
+//            this.tasksRepository.delete(deletedTask);
+//        }
+//    }
 
 
 
@@ -547,72 +610,73 @@ public class ProcessesController extends BaseController {
      */
     private void saveProcessModifications(final ProcessModel processModel,
             final org.easysdi.extract.domain.Process domainProcess) {
-        this.deleteProcessDeletedTasks(processModel, domainProcess);
-        processModel.updateDomainObject(domainProcess);
-        //set user for process
-        this.defineProcessUsersFromModel(domainProcess, processModel);
-        final org.easysdi.extract.domain.Process updatedDomainProcess = this.processesRepository.save(domainProcess);
-        this.updateProcessTasks(processModel, updatedDomainProcess);
+//        this.deleteProcessDeletedTasks(processModel, domainProcess);
+//        processModel.updateDomainObject(domainProcess, this.usersRepository);
+//        //set user for process
+//        final org.easysdi.extract.domain.Process updatedDomainProcess = this.processesRepository.save(domainProcess);
+//        this.updateProcessTasks(processModel, updatedDomainProcess);
+        processModel.updateInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository,
+                domainProcess);
     }
 
 
 
-    /**
-     * Updates the operators of the current process data object based on the current modifications.
-     *
-     * @param domainProcess the data object for the current process
-     * @param model         the model that contains the modifications to the current process
-     */
-    private void defineProcessUsersFromModel(final org.easysdi.extract.domain.Process domainProcess,
-            final ProcessModel model) {
-        final Collection<User> collUsers = new ArrayList<>();
-
-        if (!StringUtils.isEmpty(model.getUsersIds())) {
-
-            for (String userId : model.getUsersIds().split(",")) {
-                collUsers.add(usersRepository.findById(Integer.parseInt(userId)));
-            }
-        }
-
-        domainProcess.setUsersCollection(collUsers);
-    }
-
-
-
-    /**
-     * Reports the modifications to the tasks of a process in the data source.
-     *
-     * @param processModel  the model representing the process
-     * @param domainProcess the process data object
-     */
-    private void updateProcessTasks(final ProcessModel processModel,
-            final org.easysdi.extract.domain.Process domainProcess) {
-
-        final List<Task> tasksToDelete = new ArrayList<>(domainProcess.getTasksCollection());
-
-        for (TaskModel taskModel : processModel.getTasks()) {
-            Task domainTask;
-
-            if (TaskModel.TAG_ADDED.equals(taskModel.getTag())) {
-                domainTask = taskModel.createDomainTask(domainProcess);
-                domainTask.setPosition(taskModel.getPosition());
-            } else {
-                domainTask = this.tasksRepository.findOne(taskModel.getId());
-                tasksToDelete.remove(domainTask);
-                taskModel.updateDomainTask(domainTask);
-                domainTask.setPosition(taskModel.getPosition());
-            }
-
-            this.tasksRepository.save(domainTask);
-        }
-
-        domainProcess.getTasksCollection().removeAll(tasksToDelete);
-        this.tasksRepository.delete(tasksToDelete);
-
-    }
-
-
-
+//    /**
+//     * Updates the operators of the current process data object based on the current modifications.
+//     *
+//     * @param domainProcess the data object for the current process
+//     * @param processModel  the model that contains the modifications to the current process
+//     */
+//    private void defineProcessUsersFromModel(final org.easysdi.extract.domain.Process domainProcess,
+//            final ProcessModel processModel) {
+//        final Collection<User> collUsers = new ArrayList<>();
+//
+//        if (!StringUtils.isEmpty(processModel.getUsersIds())) {
+//
+//            for (String userId : processModel.getUsersIds().split(",")) {
+//                collUsers.add(usersRepository.findById(Integer.parseInt(userId)));
+//            }
+//        }
+//
+//        domainProcess.setUsersCollection(collUsers);
+//    }
+//
+//
+//
+//    /**
+//     * Reports the modifications to the tasks of a process in the data source.
+//     *
+//     * @param processModel  the model representing the process
+//     * @param domainProcess the process data object
+//     */
+//    private void updateProcessTasks(final ProcessModel processModel,
+//            final org.easysdi.extract.domain.Process domainProcess) {
+//
+//        final List<Task> tasksToDelete = new ArrayList<>(domainProcess.getTasksCollection());
+//
+//        for (TaskModel taskModel : processModel.getTasks()) {
+//            Task domainTask;
+//
+//            if (TaskModel.TAG_ADDED.equals(taskModel.getTag())) {
+//                domainTask = taskModel.createDomainTask(domainProcess);
+//                domainTask.setPosition(taskModel.getPosition());
+//            } else {
+//                domainTask = this.tasksRepository.findOne(taskModel.getId());
+//                tasksToDelete.remove(domainTask);
+//                taskModel.updateDomainTask(domainTask);
+//                domainTask.setPosition(taskModel.getPosition());
+//            }
+//
+//            this.tasksRepository.save(domainTask);
+//        }
+//
+//        domainProcess.getTasksCollection().removeAll(tasksToDelete);
+//        this.tasksRepository.delete(tasksToDelete);
+//
+//    }
+//
+//
+//
     /**
      * Fetches a list of connectors from the repository and returns a collection of business connector
      * objects that use a plugin that is still available.

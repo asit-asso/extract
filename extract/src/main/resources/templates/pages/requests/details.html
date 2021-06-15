@@ -35,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content"
                  th:with="isAdmin = ${#authentication.principal.hasAuthority('ADMIN')},
-                 showErrorBlock = ${request.taskInError or (request.inError and isAdmin)},
+                 showErrorBlock = ${request.taskInError or request.exportInError or (request.inError and isAdmin)},
                  showActionBlock = ${request.inStandby or showErrorBlock},
                  hasProcess = ${not #strings.isEmpty(request.processName)}">
                 <div>
@@ -45,11 +45,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             {Cancel}
                         </button>
                     </div>
-                    <h1 class="page-header" style="margin-left: 0">
-                        <span th:text="${#messages.msg('requestDetails.body.title', request.label)}">
+                    <div class="page-header" style="margin-left: 0">
+                        <h1 th:text="${#messages.msg('requestDetails.body.title', request.label)}">
                             {Request #12345}
-                        </span>
-                    </h1>
+                        </h1>
+                        <div th:object="${request.connector}">
+                            <span th:text="#{requestDetails.connector.label}">{Connector:}</span>&nbsp;
+                            <a href="connectors/id" th:if="${isAdmin}" th:text="*{name}" th:href="@{'/connectors/' + *{id}}">
+                                {My connector}
+                            </a>
+                            <span th:unless="${isAdmin}" th:text="*{name}"></span>
+                        </div>
+                    </div>
                 </div>
                 <div id="scheduledStopMessage" class="alert alert-dismissible alert-warning"
                      th:if="${orchestratorState} == 'SCHEDULED_STOP'">
@@ -292,7 +299,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </table>
                             </div>
                             <div class="col-lg-6">
-                                <table class="list-table files-list-table">
+                                <table class="list-table files-list-table" th:unless="${request.finished}">
                                     <tr>
                                         <td><b th:text="#{requestDetails.files.title}">{Files:}</b>&nbsp;</td>
                                         <td>
@@ -341,6 +348,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <div class="panel panel-default">
                     <div class="panel-heading">
+                        <span class="pull-right" th:unless="${request.externalUrl == null}">
+                            <a href="#" th:href="${request.externalUrl}" target="_blank"
+                               th:text="#{requestDetails.orderDetails.link.text}">{View details}</a>
+                        </span>
                         <b th:text="#{requestDetails.panels.orderDetails.title}">{Customer request}</b>
                     </div>
                     <div class="panel-body">

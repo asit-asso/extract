@@ -52,6 +52,11 @@ import org.thymeleaf.util.StringUtils;
 public class RequestTaskRunner implements Runnable {
 
     /**
+     * The number of characters that the remark field can contain.
+     */
+    private final static int MAXIMUM_REMARK_LENGTH = 4000;
+
+    /**
      * An ensemble of objects that link the data objects to the database.
      */
     private final ApplicationRepositories applicationRepositories;
@@ -249,11 +254,14 @@ public class RequestTaskRunner implements Runnable {
             final ITaskProcessor taskPlugin = this.taskPluginsDiscoverer.getTaskProcessor(pluginCode);
 
             if (taskPlugin == null) {
-                this.taskHistoryRecord.setToError(String.format("Plugin %s not found.", pluginCode));
+                final String errorMessage = String.format("Plugin %s not found.", pluginCode);
+                this.logger.error(String.format("The plugin %s could not be found.", pluginCode));
+                this.taskHistoryRecord.setToError(errorMessage);
                 this.taskHistoryRecord
                         = this.applicationRepositories.getRequestHistoryRepository().save(this.taskHistoryRecord);
                 this.request.setStatus(Status.ERROR);
                 this.request = this.applicationRepositories.getRequestsRepository().save(this.request);
+                this.sendErrorEmailToOperators(task, errorMessage, new GregorianCalendar());
 
                 return;
             }
@@ -269,7 +277,13 @@ public class RequestTaskRunner implements Runnable {
         } catch (Exception exception) {
             this.logger.error("An error occurred when executing task {} (ID: {}) for request {}.", task.getId(),
                     taskNumber, this.request.getId(), exception);
-            this.processTaskError(task, exception.getMessage(), new GregorianCalendar());
+            String errorMessage = exception.getMessage();
+
+            if (errorMessage == null) {
+                errorMessage = "(Null)";
+            }
+
+            this.processTaskError(task, errorMessage, new GregorianCalendar());
         }
     }
 
@@ -360,6 +374,52 @@ public class RequestTaskRunner implements Runnable {
             this.processTaskError(task, "(Null)", taskEndDate);
             return;
         }
+
+        if (!this.processTaskResultRemark(task, pluginResult, taskEndDate)) {
+            return;
+        }
+
+        this.processTaskResultStatus(task, pluginResult, taskEndDate);
+    }
+
+
+
+    /**
+     * Carries the appropriate actions if the remark returned by the task plugin is invalid.
+     *
+     * @param task         the task that was executed
+     * @param pluginResult the object returned by the plugin that executed the task
+     * @param taskEndDate  when the task returned from execution
+     * @return <code>true</code> if the remark is valid
+     */
+    private boolean processTaskResultRemark(final Task task, final ITaskProcessorResult pluginResult,
+            final Calendar taskEndDate) {
+        assert task != null : "The current task cannot be null.";
+        assert pluginResult != null : "The plugin result object cannot be null.";
+        assert pluginResult.getRequestData() != null : "The plugin result object must contain the request data.";
+
+        final String remark = pluginResult.getRequestData().getRemark();
+
+        if (remark != null && remark.length() > RequestTaskRunner.MAXIMUM_REMARK_LENGTH) {
+            this.processTaskError(task, this.emailSettings.getMessageString("requestDetails.error.remark.tooLong",
+                    new Object[]{RequestTaskRunner.MAXIMUM_REMARK_LENGTH}), taskEndDate);
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+    /**
+     * Carries the appropriate actions based on the status returned by the task.
+     *
+     * @param task         the task that was executed
+     * @param pluginResult the object returned by the plugin that executed the task
+     * @param taskEndDate  when the task returned from execution
+     */
+    private void processTaskResultStatus(final Task task, final ITaskProcessorResult pluginResult,
+            final Calendar taskEndDate) {
 
         switch (pluginResult.getStatus()) {
 
@@ -503,7 +563,7 @@ public class RequestTaskRunner implements Runnable {
         final TaskFailedEmail message = new TaskFailedEmail(this.emailSettings);
 
         if (!message.initializeContent(task, this.request, errorMessage, failureTime)) {
-            this.logger.error("Could not crate the message.");
+            this.logger.error("Could not create the message.");
             return;
         }
 

@@ -92,6 +92,12 @@ public class ConnectorValidator extends PluginItemValidator {
             errors.rejectValue("importFrequency", "connectorDetails.errors.importFrequency.negative");
         }
 
+        if (connector.getMaximumRetries() == null) {
+            errors.rejectValue("maximumRetries", "connectorDetails.errors.maxRetries.required");
+        } else if (connector.getMaximumRetries() < 0) {
+            errors.rejectValue("maximumRetries", "connectorDetails.errors.maxRetries.negative");
+        }
+
         this.validateParameters(connector, errors);
 
         int ruleIndex = 0;

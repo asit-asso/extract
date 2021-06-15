@@ -164,7 +164,7 @@ public class RequestJsonModel implements JsonModel {
 
         this.index = positionIndex;
         this.customerName = model.getCustomerName();
-        this.orderInfo = new OrderInfo(model.getOrderLabel(), model.getProductLabel());
+        this.orderInfo = new OrderInfo(model.getOrderLabel(), model.getProductLabel(), model.getConnector());
         this.processInfo = new ProcessInfo(model.getProcessId(), this.getProcessNameFromModel(model, messageSource));
 
         final String startDateText = messageSource.getMessage(RequestJsonModel.TIME_POINT_STRING_KEY,

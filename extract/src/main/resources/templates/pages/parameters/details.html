@@ -108,7 +108,7 @@
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <label th:text="#{parameters.fields.orchestratorMode.label}">
-                                                {EXTRACT working mode}
+                                                {Extract working mode}
                                             </label>
                                             <div class="btn-group" data-toggle="buttons">
                                                 <label th:each="schedulerModeItem : ${T(org.easysdi.extract.orchestrator.OrchestratorSettings.SchedulerMode).values()}"
@@ -206,17 +206,20 @@
                             </div>
                             <div class="panel panel-default">
                                 <div class="panel-heading">
-                                    <span th:text="#{parameters.panels.about.title}">{About EXTRACT}</span>
+                                    <span th:text="#{parameters.panels.about.title}">{About Extract}</span>
                                 </div>
                                 <div class="panel-body">
                                     <div class="row">
                                         <div class="col-lg-12">
                                             <p>
-                                                <span th:text="#{parameters.about.text.beforeLink}"></span>
+                                                <span th:text="#{parameters.about.text.project}"></span>
+                                                <br />
+                                                <span th:text="#{parameters.about.text.more}">{More details:}</span>
                                                 <span> </span>
-                                                <a href="http://easysdi.org/" target="_blank">easySDI</a>
-                                                <span> </span>
-                                                <span th:text="#{parameters.about.text.afterLink}"></span>
+                                                <a href="https://github.com/asit-asso/extract/" target="_blank"
+                                                   th:text="#{parameters.about.link.text}">
+                                                    {Documentation and code}
+                                                </a>
                                             </p>
                                             <p>
                                                 <span th:text="#{parameters.about.version}">{Installed version:}</span>

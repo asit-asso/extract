@@ -87,6 +87,7 @@ public class ProductsProcessor implements ItemProcessor<IProduct, Request> {
             request.setTiersDetails(product.getTiersDetails());
             request.setSurface(product.getSurface());
             request.setStartDate(new GregorianCalendar());
+            request.setExternalUrl(product.getExternalUrl());
             Request.Status importStatus = Request.Status.IMPORTED;
 
             if (StringUtils.isBlank(product.getPerimeter())) {

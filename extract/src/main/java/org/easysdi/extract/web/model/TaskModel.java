@@ -17,6 +17,7 @@
 package org.easysdi.extract.web.model;
 
 import org.easysdi.extract.domain.Task;
+import org.easysdi.extract.persistence.TasksRepository;
 import org.easysdi.extract.plugins.common.ITaskProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -275,6 +276,7 @@ public class TaskModel extends PluginItemModel {
         domainTask.setId(this.getId());
         domainTask.setCode(this.getPluginCode());
         domainTask.setLabel(this.getPluginLabel());
+
         if (process != null) {
             domainTask.setProcess(process);
         }
@@ -300,6 +302,43 @@ public class TaskModel extends PluginItemModel {
         domainTask.setParametersValues(this.getParametersValues());
 
         return domainTask;
+    }
+
+
+
+    public final Task saveInDataSource(final TasksRepository taskRepository,
+            final org.easysdi.extract.domain.Process domainProcess) {
+        Task domainTask = this.createDomainTask(domainProcess);
+
+        domainTask = this.saveInDataSource(taskRepository, domainProcess, domainTask);
+
+        if (domainTask != null) {
+            this.setId(domainTask.getId());
+        }
+
+        return domainTask;
+    }
+
+
+
+    private final Task saveInDataSource(final TasksRepository taskRepository,
+            final org.easysdi.extract.domain.Process domainProcess, final Task domainTask) {
+
+        if (taskRepository == null) {
+            throw new IllegalArgumentException("The task repository cannot be null.");
+        }
+
+        if (domainProcess == null) {
+            throw new IllegalArgumentException("The process domain object cannot be null.");
+        }
+
+        if (domainTask == null) {
+            throw new IllegalArgumentException("The task domain object cannot be null.");
+        }
+
+        this.updateDomainTask(domainTask);
+
+        return taskRepository.save(domainTask);
     }
 
 

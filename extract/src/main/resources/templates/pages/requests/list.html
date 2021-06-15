@@ -92,28 +92,30 @@
                     </div>
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <form class="form-inline pull-right" role="form" style='margin-top: -7px;'>
-
-                                <div class="form-group" style="margin-right: 10px;">
-
-                                </div>
-
-                                <div class="form-group" style="margin-right: 10px">
+                            <form class="form-inline filter-form-inline pull-right" role="form">
+                                <div class="form-group">
                                     <label for="textFilter" th:text="#{requestsList.filters.text.label}">{Filter:}</label>
                                     <input type="text" class="form-control request-filter-control" id="textFilter"
                                            placeholder="{Keyword, order code}"
                                            th:placeholder="#{requestsList.filters.text.placeholder}" />
                                 </div>
-                                <div class="form-group" style="margin-right: 10px">
+                                <div class="form-group">
+                                    <select id="connectorFilter" class="select2 form-control request-filter-control"
+                                            th:attr="data-placeholder = #{requestsList.filters.connector.placeholder}">
+                                        <option value=""></option>
+                                        <option th:each="connector : ${connectors}" th:object="${connector}"
+                                                value="{1}" th:value="*{id}" th:text="*{name}">{My connector}</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
                                     <select id="processFilter" class="select2 form-control request-filter-control"
-                                            style="height: 34px; padding: 6px 12px"
                                             th:attr="data-placeholder = #{requestsList.filters.process.placeholder}">
                                         <option value=""></option>
                                         <option th:each="process : ${processes}" th:object="${process}"
                                                 value="{1}" th:value="*{id}" th:text="*{name}">{My process}</option>
                                     </select>
                                 </div>
-                                <div class="form-group" style="width:200px; margin-right: 10px">
+                                <div class="form-group datepicker-form-group">
                                     <label class="sr-only" for="startDateFromFilter"
                                            th:text="#{requestsList.filters.startDate.from.label}">{Sent date - From}</label>
                                     <div class="input-group">
@@ -123,7 +125,7 @@
                                         <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
                                     </div>
                                 </div>
-                                <div class="form-group" style="width:200px; margin-right: 10px">
+                                <div class="form-group datepicker-form-group">
                                     <label class="sr-only" for="startDateToFilter"
                                            th:text="#{requestsList.filters.startDate.to.label}">{Sent date - To}</label>
                                     <div class="input-group">

@@ -82,7 +82,7 @@ class ApplicationParametersInitializer {
      * The default value for the parameter that defines the name of the sender for the messages sent by the
      * application.
      */
-    private static final String DEFAULT_SMTP_FROM_NAME = "EXTRACT";
+    private static final String DEFAULT_SMTP_FROM_NAME = "Extract";
 
     /**
      * The default value for the parameter that defines the password of the SMTP server.

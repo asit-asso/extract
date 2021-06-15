@@ -397,7 +397,7 @@ public class UserModel {
 
         User domainUser = new User();
 
-        return this.updateDomainObject(domainUser, passwordEncoder);
+        return this.updateDomainObject(domainUser, passwordEncoder, false);
     }
 
 
@@ -407,9 +407,11 @@ public class UserModel {
      *
      * @param domainUser      the data object for this user
      * @param passwordEncoder the encoder to use to hash the user's password
+     * @param isCurrentUser   <code>true</code> if the user being edited is the currently logged user
      * @return the updated user data object
      */
-    public final User updateDomainObject(final User domainUser, final PasswordEncoder passwordEncoder) {
+    public final User updateDomainObject(final User domainUser, final PasswordEncoder passwordEncoder,
+            boolean isCurrentUser) {
 
         if (domainUser == null) {
             throw new IllegalArgumentException("The user domain object to update cannot be null.");
@@ -419,7 +421,6 @@ public class UserModel {
             throw new IllegalArgumentException("The password encoder cannot be null.");
         }
 
-        domainUser.setActive(this.isActive());
         domainUser.setMailActive(this.isMailActive());
         domainUser.setEmail(this.getEmail());
         domainUser.setLogin(this.getLogin());
@@ -429,7 +430,10 @@ public class UserModel {
             domainUser.setPassword(passwordEncoder.encode(this.getPassword()));
         }
 
-        domainUser.setProfile(this.getProfile());
+        if (!isCurrentUser) {
+            domainUser.setActive(this.isActive());
+            domainUser.setProfile(this.getProfile());
+        }
 
         return domainUser;
     }

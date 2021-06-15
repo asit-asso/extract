@@ -222,12 +222,25 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
             connector = this.connectorsRepository.findOne(this.connectorId);
             final Calendar importTime = new GregorianCalendar();
 
-            if (!success && (!connector.isInError() || !Objects.equals(message, connector.getLastImportMessage()))) {
-                this.sendNotificationEmail(connector, message, importTime);
+            if (!success) {
+                int errorCount = connector.getErrorCount() + 1;
+
+                if (errorCount > connector.getMaximumRetries()) {
+
+                    if (!connector.isInError() || !Objects.equals(message, connector.getLastImportMessage())) {
+                        this.sendNotificationEmail(connector, message, importTime);
+                        connector.setLastImportMessage(message);
+                    }
+                } else {
+                    connector.setErrorCount(errorCount);
+                }
+
+            } else {
+                connector.setErrorCount(0);
+                connector.setLastImportMessage(message);
             }
 
             connector.setLastImportDate(importTime);
-            connector.setLastImportMessage(message);
 
             connector = this.connectorsRepository.save(connector);
 

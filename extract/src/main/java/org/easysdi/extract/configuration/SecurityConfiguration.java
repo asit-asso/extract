@@ -58,7 +58,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/lib/**",
                         "/js/extract.js",
                         "/lang/**",
-                        "/passwordReset/request"
+                        "/passwordReset/request",
+                        "/favicon.ico",
+                        "/extract_favicon*.png"
                 ).permitAll()
                 .antMatchers("/error").permitAll()
                 .antMatchers(HttpMethod.POST, "/passwordReset/request").permitAll()
@@ -72,7 +74,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 ).hasAnyAuthority(Profile.OPERATOR.name(), Profile.ADMIN.name())
                 .mvcMatchers("").hasAnyAuthority(Profile.OPERATOR.name(), Profile.ADMIN.name())
                 .antMatchers(
-                        "/requests/**"
+                        "/requests/**",
+                        "/users/**"
                 ).hasAnyAuthority(Profile.OPERATOR.name(), Profile.ADMIN.name())
                 .antMatchers(
                         "/**"

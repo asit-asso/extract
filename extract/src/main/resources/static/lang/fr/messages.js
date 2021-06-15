@@ -16,6 +16,10 @@ var LANG_MESSAGES = {
         }
     },
     "processesList" : {
+        "cloneConfirm" : {
+            "title" : "Duplication d'un traitement",
+            "message" : "Êtes-vous sûr de vouloir dupliquer le traitement \"{0}\" ?"
+        },
         "deleteConfirm" : {
             "title" : "Suppression d'un traitement",
             "message" : "Êtes-vous sûr de vouloir supprimer le traitement \"{0}\" ?"

@@ -42,6 +42,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <tr>
                                     <th th:text="#{processesList.table.headers.name}">{Name}</th>
                                     <th th:text="#{processesList.table.headers.tasks}">{Tasks}</th>
+                                    <th th:text="#{processesList.table.headers.clone}" class="center-cell">
+                                        {Clone}
+                                    </th>
                                     <th th:text="#{processesList.table.headers.delete}" class="center-cell">
                                         {Delete}
                                     </th>
@@ -62,8 +65,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         </th:block>
                                     </td>
                                     <td class="center-cell">
+                                        <button id="cloneButton-1" th:id="'cloneButton-' + *{id}"
+                                                class="btn btn-xs btn-extract-filled clone-button " data-toggle="tooltip"
+                                                th:attr="data-action=@{/processes/clone}"
+                                                th:title="${#messages.msg('processesList.buttons.clone.tooltip')}">
+                                            <span class="fa fa-copy fa-fw"></span>
+                                        </button>
+                                    </td>
+                                    <td class="center-cell">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}"
                                                 class="btn btn-xs" data-toggle="tooltip"
+                                                th:attr="data-action=@{/processes/delete}"
                                                 th:classappend="*{deletable} ? 'btn-danger delete-button'
                                                 : 'disabled delete-button-inactive'"
                                                 th:title="${#messages.msg('processesList.buttons.delete.'
@@ -76,10 +88,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </table>
                     </div>
                 </div>
-                <form id="processForm" method="POST" action="#" th:action="@{/processes/delete}">
-                    <input type="hidden" id="processId" name="id" value="" />
+                <form id="processForm" method="POST" action="#">
                     <input type="hidden" id="processName" name="name" value="" />
-                    <input type="hidden" id="_csrf" th:value="${_csrf.token}" />
+                    <input type="hidden" id="processId" name="id" value="" />
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                 </form>
                 <div th:replace="fragments/alert :: alertModal"></div>
             </div>
@@ -99,6 +111,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     },
                     {
                         targets : 2,
+                        orderable : false,
+                        width : "30px"
+                    },
+                    {
+                        targets : 3,
                         orderable : false,
                         width : "30px"
                     }

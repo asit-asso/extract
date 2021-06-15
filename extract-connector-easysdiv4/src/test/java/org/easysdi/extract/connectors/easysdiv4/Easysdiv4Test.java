@@ -47,6 +47,7 @@ public class Easysdiv4Test {
     private static final String DESCRIPTION_STRING_IDENTIFIER = "plugin.description";
     private static final String EXPECTED_ICON_CLASS = "";
     private static final String EXPECTED_PLUGIN_CODE = "easysdiv4";
+    private static final String DETAILS_URL_PARAMETER_NAME_PROPERTY = "code.detailsUrlPattern";
     private static final String HELP_STRING_IDENTIFIER = "plugin.help";
     private static final String INSTANCE_LANGUAGE = "fr";
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
@@ -64,6 +65,7 @@ public class Easysdiv4Test {
     private static final String TEST_PASSWORD = "";
     private static final String TEST_UPLOAD_SIZE = "1024";
     private static final String TEST_URL = "";
+    private static final String TEST_DETAILS_URL = null;
     private static final String UPLOAD_SIZE_PARAMETER_NAME_PROPERTY = "code.uploadSize";
     private static final String URL_PARAMETER_NAME_PROPERTY = "code.serviceUrl";
     private static final String[] VALID_PARAMETER_TYPES = new String[]{"email", "pass", "multitext", "text", "numeric"};
@@ -108,14 +110,17 @@ public class Easysdiv4Test {
         final String passwordCode = this.configuration.getProperty(Easysdiv4Test.PASSWORD_PARAMETER_NAME_PROPERTY);
         final String urlCode = this.configuration.getProperty(Easysdiv4Test.URL_PARAMETER_NAME_PROPERTY);
         final String uploadSizeCode = this.configuration.getProperty(Easysdiv4Test.UPLOAD_SIZE_PARAMETER_NAME_PROPERTY);
+        final String detailsUrlPattern
+                = this.configuration.getProperty(Easysdiv4Test.DETAILS_URL_PARAMETER_NAME_PROPERTY);
 
-        this.requiredParametersCodes = new String[]{loginCode, passwordCode, urlCode, uploadSizeCode};
+        this.requiredParametersCodes = new String[]{loginCode, passwordCode, urlCode, uploadSizeCode, detailsUrlPattern};
 
         this.testParameters = new HashMap<>();
         this.testParameters.put(loginCode, Easysdiv4Test.TEST_LOGIN);
         this.testParameters.put(passwordCode, Easysdiv4Test.TEST_PASSWORD);
         this.testParameters.put(urlCode, Easysdiv4Test.TEST_URL);
         this.testParameters.put(uploadSizeCode, Easysdiv4Test.TEST_UPLOAD_SIZE);
+        this.testParameters.put(detailsUrlPattern, Easysdiv4Test.TEST_DETAILS_URL);
 
         this.parameterMapper = new ObjectMapper();
     }

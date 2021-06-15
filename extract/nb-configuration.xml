@@ -9,6 +9,7 @@
     <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
         <word>plugin</word>
     </spellchecker-wordlist>
+    <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1"/>
     <properties xmlns="http://www.netbeans.org/ns/maven-properties-data/1">
         <!--
         Properties that influence various parts of the IDE, especially code formatting and the like.
@@ -44,6 +45,6 @@
             false
         </org-netbeans-modules-maven-j2ee.netbeans_2e_deploy_2e_on_2e_save>
         <netbeans.hint.license>gpl30</netbeans.hint.license>
+        <netbeans.compile.on.save>none</netbeans.compile.on.save>
     </properties>
-    <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1"/>
 </project-shared-configuration>

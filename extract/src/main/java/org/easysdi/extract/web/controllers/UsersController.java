@@ -59,6 +59,11 @@ public class UsersController extends BaseController {
     private static final String CURRENT_SECTION_IDENTIFIER = "users";
 
     /**
+     * The string that identifies the part of the web site that this controller manages.
+     */
+    private static final String CURRENT_USER_SECTION_IDENTIFIER = "currentUser";
+
+    /**
      * The string that identifies the view to display the information about one user.
      */
     private static final String DETAILS_VIEW = "users/details";
@@ -253,17 +258,19 @@ public class UsersController extends BaseController {
             final RedirectAttributes redirectAttributes) {
         this.logger.debug("Processing the data to update a user.");
 
-        if (!this.isCurrentUserAdmin()) {
+        if (!this.canEditUser(id)) {
             return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         final String currentUser = this.getCurrentUserLogin();
+        final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
+                : UsersController.REDIRECT_TO_HOME;
 
         if (id == this.usersRepository.getSystemUserId()) {
             this.logger.warn("The user {} tried to edit the details of the system user.", currentUser);
             this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
 
-            return UsersController.REDIRECT_TO_LIST;
+            return redirectTarget;
         }
 
         if (id != userModel.getId()) {
@@ -272,7 +279,7 @@ public class UsersController extends BaseController {
                     currentUser, id, userModel.getId());
             this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
 
-            return UsersController.REDIRECT_TO_LIST;
+            return redirectTarget;
         }
 
         if (userModel.isBeingCreated()) {
@@ -280,7 +287,7 @@ public class UsersController extends BaseController {
                     + " The data may have been tampered with, so the operation is denied.", currentUser, id);
             this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
 
-            return UsersController.REDIRECT_TO_LIST;
+            return redirectTarget;
         }
 
         if (bindingResult.hasErrors()) {
@@ -296,10 +303,10 @@ public class UsersController extends BaseController {
             this.logger.error("No user found in database with id {}.", id);
             this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
 
-            return UsersController.REDIRECT_TO_LIST;
+            return redirectTarget;
         }
 
-        userModel.updateDomainObject(domainUser, this.passwordEncoder);
+        userModel.updateDomainObject(domainUser, this.passwordEncoder, (userModel.getId() == this.getCurrentUserId()));
         boolean success;
 
         try {
@@ -319,7 +326,7 @@ public class UsersController extends BaseController {
 
         this.addStatusMessage(redirectAttributes, "usersList.user.updated", MessageType.SUCCESS);
 
-        return UsersController.REDIRECT_TO_LIST;
+        return redirectTarget;
     }
 
 
@@ -354,7 +361,7 @@ public class UsersController extends BaseController {
     public final String viewItem(final ModelMap model, @PathVariable final int id,
             final RedirectAttributes redirectAttributes) {
 
-        if (!this.isCurrentUserAdmin()) {
+        if (!this.canEditUser(id)) {
             return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
@@ -390,6 +397,20 @@ public class UsersController extends BaseController {
 
 
     /**
+     * Checks if the current user can edit the data of a given user.
+     *
+     * @param userId the number that uniquely identifies the user to edit
+     * @return <code>true</code> if the user data can be edited
+     */
+    private boolean canEditUser(final int userId) {
+
+        return (this.isCurrentUserAdmin() || userId == this.getCurrentUserId());
+
+    }
+
+
+
+    /**
      * Carries the actions to display a user in the details view.
      *
      * @param model              the data to display in the model view
@@ -407,6 +428,8 @@ public class UsersController extends BaseController {
             final RedirectAttributes redirectAttributes) {
         assert redirectAttributes != null || id == null :
                 "The redirect attributes must be set if the user to display is not a new one.";
+
+        String currentSection = UsersController.CURRENT_SECTION_IDENTIFIER;
 
         if (id == null) {
 
@@ -430,11 +453,16 @@ public class UsersController extends BaseController {
                 model.addAttribute("user", new UserModel(domainUser));
             }
 
-            model.addAttribute("isOwnAccount", (id == this.getCurrentUserId()));
+            final boolean isCurrentUser = (id == this.getCurrentUserId());
+            model.addAttribute("isOwnAccount", isCurrentUser);
             model.addAttribute("isAssociatedToProcesses", domainUser.isAssociatedToProcesses());
+
+            if (isCurrentUser) {
+                currentSection = UsersController.CURRENT_USER_SECTION_IDENTIFIER;
+            }
         }
 
-        this.addCurrentSectionToModel(UsersController.CURRENT_SECTION_IDENTIFIER, model);
+        this.addCurrentSectionToModel(currentSection, model);
 
         return UsersController.DETAILS_VIEW;
 

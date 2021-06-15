@@ -22,7 +22,7 @@ import org.springframework.context.MessageSource;
 
 
 /**
- * A string converter for time spans to display in the EXTRACT application.
+ * A string converter for time spans to display in the Extract application.
  *
  * @author Yves Grasset
  */
@@ -53,7 +53,7 @@ public class ExtractSimpleTemporalSpanFormatter implements SimpleTemporalSpanFor
     /**
      * Creates a new instance of this formatter.
      *
-     * @param localizedStringsSource the access to the localized EXTRACT strings
+     * @param localizedStringsSource the access to the localized Extract strings
      */
     public ExtractSimpleTemporalSpanFormatter(final MessageSource localizedStringsSource) {
 

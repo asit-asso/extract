@@ -112,6 +112,6 @@ ALTER TABLE tasks
       
 -- USERS Table
 
-UPDATE users
- SET mailactive = CASE WHEN login = 'system' THEN false ELSE true END;
+UPDATE users SET mailactive = FALSE WHERE login = 'system';
+UPDATE users SET mailactive = true WHERE mailactive IS NULL;
 

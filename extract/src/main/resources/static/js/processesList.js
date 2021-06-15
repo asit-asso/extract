@@ -17,48 +17,100 @@
 
 
 /**
+ * Duplicates a process.
+ *
+ * @param {Object}  button  The button that was clicked to trigger this method
+ * @param {int}     id      The identifier of the process to duplicate
+ * @param {string}  name    The name of the process to duplicate (only for display purposes)
+ */
+function cloneProcess(button, id, name) {
+    console.log($(button).attr('data-action'));
+    _executeAction(button, id, name, LANG_MESSAGES.processesList.cloneConfirm)
+}
+
+
+
+/**
  * Deletes a process.
  *
+ * @param {Object}  button  The button that was clicked to trigger this method
  * @param {int}     id      The identifier of the process to delete
  * @param {string}  name    The name of the process to delete (only for display purposes)
  */
-function deleteProcess(id, name) {
+function deleteProcess(button, id, name) {
+    _executeAction(button, id, name, LANG_MESSAGES.processesList.deleteConfirm)
+}
+
+
+
+/**
+ * Carries an action triggered by a button click after asking for a confirmation by the user.
+ *
+ * @param {Object}  button         the button that was clicked to trigger the action
+ * @param {int}     id             the identifier of the process that the action must carried on
+ * @param {string}  name           the name of the process that the action must be carried on
+ * @param {Object}  confirmTexts   the object that contains the texts to display in the confirmation box in the current
+ *                                  interface language
+ */
+function _executeAction(button, id, name, confirmTexts) {
 
     if (!id || isNaN(id) || id <= 0 || !name) {
         return;
     }
 
-    var deleteConfirmTexts = LANG_MESSAGES.processesList.deleteConfirm;
     var alertButtonsTexts = LANG_MESSAGES.generic.alertButtons;
-    var message = deleteConfirmTexts.message.replace('\{0\}', name);
+    var message = confirmTexts.message.replace('\{0\}', name);
     var confirmedCallback = function() {
+        $('#processForm').attr('action', $(button).attr('data-action'));
         $('#processId').val(id);
         $('#processName').val(name);
         $('#processForm').submit();
     };
 
-    showConfirm(deleteConfirmTexts.title, message, confirmedCallback, null, alertButtonsTexts.yes,
+    showConfirm(confirmTexts.title, message, confirmedCallback, null, alertButtonsTexts.yes,
             alertButtonsTexts.no);
+}
+
+
+
+/**
+ * Carries the appropriate actions after a button was clicked.
+ * 
+ * @param {Object}      button          The button that was clicked
+ * @param {Function}    action          The action to execute
+ */
+function _handleButtonClick(button, action) {
+    var $button = $(button);
+    var nameMatch = /^[a-z]+\-(\d+)$/i.exec($button.attr('id'));
+    
+    if (nameMatch === null || nameMatch.length < 2) {
+        return;
+    }
+
+    var id = parseInt(nameMatch[1]);
+
+    if (isNaN(id)) {
+        return;
+    }
+
+    var name = $button.closest('tr').find('td.nameCell > a').text();
+
+    if (!name) {
+        return;
+    }
+
+    action(button, id, name);
 }
 
 
 /********************* EVENT HANDLERS *********************/
 
 $(function() {
+    $('.clone-button').on('click', function() {
+        _handleButtonClick(this, cloneProcess);
+    });
+
     $('.delete-button').on('click', function() {
-        var $button = $(this);
-        var id = parseInt($button.attr('id').replace('deleteButton-', ''));
-
-        if (isNaN(id)) {
-            return;
-        }
-
-        var name = $button.closest('tr').find('td.nameCell > a').text();
-
-        if (!name) {
-            return;
-        }
-
-        deleteProcess(id, name);
+        _handleButtonClick(this, deleteProcess);
     });
 });
