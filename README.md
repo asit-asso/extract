@@ -1,9 +1,9 @@
-EXTRACT
+Extract
 ======
 
 ## Extract est une application qui facilite l’extraction et la livraison de vos géodonnées
 
-L'application EXTRACT **importe les commandes** de données déposées sur une plateforme ou magasin de données (comme le portail ASIT VD, avec easySDI), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
+L'application Extract **importe les commandes** de données déposées sur une plateforme ou magasin de données (comme le portail ASIT VD, avec easySDI), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
 
 En automatisant le processus d'extraction et de livraison de vos géodonnées, vous :
 
@@ -11,11 +11,11 @@ En automatisant le processus d'extraction et de livraison de vos géodonnées, v
 * augmentez la **qualité des données** livrées,
 * augmentez la **satisfaction client**. 
 
-![EXTRACT Robot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/extract_robot.png)
+![Extract Robot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/extract_robot.png)
 
 ## Extract est une application open source, qui s'installe chez vous 
 
-![EXTRACT Robot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/shema_global_transparent2.png)
+![Extract Robot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/shema_global_transparent2.png)
 
 Extract est modulable et extensible, à installer dans l’environnement informatique de chaque fournisseur de données, et accessible via un navigateur.
 
@@ -27,7 +27,7 @@ L'ASIT, des administrations et gestionnaires de réseaux forment un groupe utili
 
 ## En production 
 
-Actuellement, 33 fournisseurs diffusent tout ou partie de leurs géodonnées avec EXTRACT grâce aux 7 instances installées chez :
+Actuellement, 33 fournisseurs diffusent tout ou partie de leurs géodonnées avec Extract grâce aux 7 instances installées chez :
 
 * Ville de Nyon & TRN SA
 * Ville de Pully
@@ -71,4 +71,4 @@ Forked from easySDI (www.easysdi.org) : https://svn.easysdi.org/svn/easysdi/bran
 
 ## Screenshots:
 
-![easysdi EXTRACT Home screenshot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/screenshots/extract_home_logo2_2x.png)
+![easysdi Extract Home screenshot](https://raw.githubusercontent.com/wiki/asit-asso/extract/images/screenshots/extract_home_logo2_2x.png)
