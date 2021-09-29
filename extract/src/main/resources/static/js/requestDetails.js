@@ -309,7 +309,27 @@ app.ExportToKmlControl = function(opt_options) {
         var format = new ol.format.KML({
             extractStyles : true
         });
-        var data = format.writeFeatures(orderGeometryLayer.getSource().getFeatures(), {
+		var sourceFeatures = orderGeometryLayer.getSource().getFeatures();
+		var featuresToWrite = [];
+		var kmlStyle = new ol.style.Style({
+			fill : new ol.style.Fill({
+				color : 'rgba(255,0,0,0.4)'
+			}),
+			stroke : new ol.style.Stroke({
+				color : '#ff0000',
+				width : 1.25
+			})
+		});
+
+		sourceFeatures.forEach(
+			function(f) {
+				fclone = f.clone();
+				fclone.setStyle(kmlStyle);
+				featuresToWrite.push(fclone);
+			}
+		);
+
+        var data = format.writeFeatures(featuresToWrite, {
             featureProjection : _self.getMap().getView().getProjection(),
             dataProjection : new ol.proj.Projection({
                 code : "EPSG:4326"
