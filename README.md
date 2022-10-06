@@ -3,7 +3,7 @@ Extract
 
 ## Extract est une application qui facilite l’extraction et la livraison de vos géodonnées
 
-L'application Extract **importe les commandes** de données déposées sur une plateforme ou magasin de données (comme le portail ASIT VD, avec easySDI), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
+L'application Extract **importe les commandes** de données déposées sur une plateforme ou magasin de données (comme les portails ASIT viageo.ch et plans-reseaux.ch), puis exécute une série de tâches préconfigurées afin d'**extraire la donnée demandée** , puis **renvoie le résultat** vers le client : avec ou sans intervention humaine, c'est vous qui le définissez !
 
 En automatisant le processus d'extraction et de livraison de vos géodonnées, vous :
 
