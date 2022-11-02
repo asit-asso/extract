@@ -399,11 +399,13 @@ public class Easysdiv4 implements IConnector {
             final NodeList nodeList = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
 
             if (nodeList != null && nodeList.getLength() > 0) {
-                final Element tierceAddressNode = (Element) nodeList.item(0);
-                final NodeList address1Node = tierceAddressNode.getElementsByTagName("sdi:addressstreet1");
-                final NodeList address2Node = tierceAddressNode.getElementsByTagName("sdi:addressstreet2");
-                final NodeList zipCodeNode = tierceAddressNode.getElementsByTagName("sdi:zip");
-                final NodeList localityNode = tierceAddressNode.getElementsByTagName("sdi:locality");
+                final Element addressNode = (Element) nodeList.item(0);
+                final NodeList address1Node = addressNode.getElementsByTagName("sdi:addressstreet1");
+                final NodeList address2Node = addressNode.getElementsByTagName("sdi:addressstreet2");
+                final NodeList zipCodeNode = addressNode.getElementsByTagName("sdi:zip");
+                final NodeList localityNode = addressNode.getElementsByTagName("sdi:locality");
+                final NodeList emailNode = addressNode.getElementsByTagName("sdi:email");
+                final NodeList phoneNode = addressNode.getElementsByTagName("sdi:phone");
 
                 if (address1Node != null && address1Node.getLength() > 0) {
                     final String address1Text = address1Node.item(0).getTextContent();
@@ -445,12 +447,30 @@ public class Easysdiv4 implements IConnector {
                     details.add(String.format("%s %s", zipCodeText, localityText));
                 }
 
+                if (phoneNode != null && phoneNode.getLength() > 0) {
+                    final String phoneText = phoneNode.item(0).getTextContent();
+                    this.logger.debug("Phone node content is {}", phoneText);
+
+                    if (StringUtils.isNotEmpty(phoneText)) {
+                        details.add(phoneText);
+                    }
+                }
+
+                if (emailNode != null && emailNode.getLength() > 0) {
+                    final String emailText = emailNode.item(0).getTextContent();
+                    this.logger.debug("E-mail node content is {}", emailText);
+
+                    if (StringUtils.isNotEmpty(emailText)) {
+                        details.add(emailText);
+                    }
+                }
             }
 
         } catch (XPathExpressionException exc) {
-            this.logger.error("The tiers details could not be retrieved", exc);
+            this.logger.error("The address details could not be retrieved", exc);
         }
 
+        this.logger.debug("Address details are:\n{}", StringUtils.join(details, "\r\n"));
         return StringUtils.join(details, "\r\n");
     }
 
@@ -1167,6 +1187,7 @@ public class Easysdiv4 implements IConnector {
                     config.getProperty("getOrders.xpath.clientGuid").replace("<guid>", guid));
             final String clientDetails = this.buildAddressDetailsFromXpath(document,
                     config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
+            this.logger.debug("Client details are : {}", clientDetails);
             final String tiers = this.getXMLNodeLabelFromXpath(document,
                     config.getProperty("getOrders.xpath.tiers").replace("<guid>", guid));
             final String tiersDetails = this.buildAddressDetailsFromXpath(document,
