@@ -16,21 +16,12 @@
  */
 package ch.asit_asso.extract.requestmatching;
 
+import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.domain.Rule;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.script.ScriptEngine;
-import javax.script.ScriptEngineFactory;
-import javax.script.ScriptEngineManager;
-import javax.script.ScriptException;
 import org.apache.commons.lang3.ArrayUtils;
-import ch.asit_asso.extract.domain.Request;
-import ch.asit_asso.extract.domain.Rule;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.io.ParseException;
@@ -39,6 +30,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.util.StringUtils;
 
+import javax.script.ScriptEngine;
+import javax.script.ScriptEngineFactory;
+import javax.script.ScriptEngineManager;
+import javax.script.ScriptException;
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 
 /**
  * A matcher that associates a request with a process through the rules of the connector that imported it.
@@ -46,6 +48,11 @@ import org.thymeleaf.util.StringUtils;
  * @author Florent Krin
  */
 public class RequestMatcher {
+
+    private static final List<String> ALLOWED_REQUEST_PROPERTIES = List.of(
+            "client", "clientguid", "orderlabel", "orderguid", "organism", "organismguid", "parameters",
+            "perimeter", "productguid", "productlabel", "surface", "tiers", "tiersguid"
+    );
 
     /**
      * The string that indicates a line return.
@@ -110,9 +117,6 @@ public class RequestMatcher {
      */
     private final Logger logger = LoggerFactory.getLogger(RequestMatcher.class);
 
-    /**
-     * The data item request to match with a process.
-     */
     private final Request request;
 
 
@@ -124,6 +128,7 @@ public class RequestMatcher {
      */
     public RequestMatcher(final Request importedRequest) {
         this.request = importedRequest;
+        this.initAssignements();
     }
 
 
@@ -144,11 +149,15 @@ public class RequestMatcher {
 
         Class<Request> requestClass = Request.class;
         try {
-            for (Field requestField : requestClass.getDeclaredFields()) {
+            Field[] allowedMatchingFields = Arrays.stream(requestClass.getDeclaredFields()).filter(
+                    (field) -> ALLOWED_REQUEST_PROPERTIES.contains(field.getName().toLowerCase()
+            )).toArray(Field[]::new);
+
+            for (Field requestField : allowedMatchingFields) {
                 this.logger.debug("Processing field {}", requestField.getName());
                 if (!java.lang.reflect.Modifier.isStatic(requestField.getModifiers())) {
                     requestField.setAccessible(true);
-                    Object fieldValue = requestField.get(this.request);
+                    Object fieldValue = requestField.get(this.getRequest());
                     requestField.setAccessible(false);
 
                     String assignement;
@@ -429,25 +438,9 @@ public class RequestMatcher {
 
         this.logger.info("check request matching with rules");
 
-        this.initAssignements();
-
         for (Rule rule : rules) {
 
-            if (StringUtils.isEmpty(rule.getRule())) {
-                this.logger.debug("Rule at position {} is empty.", rule.getPosition());
-                continue;
-            }
-
-            if (!rule.isActive()) {
-                this.logger.debug("Rule at position {} is inactive.", rule.getPosition());
-                continue;
-            }
-
-            //String condition = this.reformatRule(rule.getRule());
-            this.logger.info("Check matching with rule at position {}.", rule.getPosition());
-
-            if (this.evaluateRule(rule.getRule())) {
-                this.logger.info("Request match with rule {}.", rule.getRule());
+            if (this.isRuleMatching(rule)) {
                 return rule;
             }
         }
@@ -455,4 +448,40 @@ public class RequestMatcher {
         return null;
     }
 
+
+    /**
+     * Determines if the current request matches with a given rule.
+     *
+     * @param rule the attributive and/or criteria to match with the current request
+     * @return <code>true</code> if the criteria match with the request
+     */
+    public final boolean isRuleMatching(final Rule rule) {
+
+        if (StringUtils.isEmpty(rule.getRule())) {
+            this.logger.debug("Rule at position {} is empty.", rule.getPosition());
+            return false;
+        }
+
+        if (!rule.isActive()) {
+            this.logger.debug("Rule at position {} is inactive.", rule.getPosition());
+            return false;
+        }
+
+        //String condition = this.reformatRule(rule.getRule());
+        this.logger.info("Check matching with rule at position {}.", rule.getPosition());
+
+        if (!this.evaluateRule(rule.getRule())) {
+            return false;
+        }
+
+        this.logger.info("Request match with rule {}.", rule.getRule());
+        return true;
+    }
+
+    /**
+     * The data item request to match with a process.
+     */
+    public Request getRequest() {
+        return request;
+    }
 }
