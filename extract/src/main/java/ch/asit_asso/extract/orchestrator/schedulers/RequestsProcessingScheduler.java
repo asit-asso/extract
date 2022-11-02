@@ -16,30 +16,30 @@
  */
 package ch.asit_asso.extract.orchestrator.schedulers;
 
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.runners.ExportRequestsJobRunner;
-import ch.asit_asso.extract.orchestrator.runners.TaskCompleteListener;
-import ch.asit_asso.extract.persistence.ApplicationRepositories;
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.orchestrator.runners.RequestMatcherJobRunner;
 import ch.asit_asso.extract.orchestrator.runners.RequestTaskRunner;
+import ch.asit_asso.extract.orchestrator.runners.TaskCompleteListener;
+import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.config.FixedDelayTask;
 import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 
 
@@ -168,6 +168,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.applicationLangague = applicationLanguage;
         this.taskExecutorService = Executors.newCachedThreadPool();
         this.orchestratorSettings = orchestratorSettings;
+        this.setSchedulingStep(this.orchestratorSettings.getFrequency());
     }
 
 
@@ -441,7 +442,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
 
             case ONGOING:
                 this.logger.warn("The processing of request {} has been interrupted. The status has thus been set to "
-                        + "ERROR.");
+                        + "ERROR.", request.getId());
                 lastRecord.setToError(this.emailSettings.getMessageString("errors.task.interrupted"));
                 historyRepository.save(lastRecord);
 

@@ -5,19 +5,13 @@
  */
 package ch.asit_asso.extract.orchestrator.schedulers;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ScheduledFuture;
-
-import ch.asit_asso.extract.persistence.ApplicationRepositories;
-import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.connectors.common.IConnector;
+import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.runners.CommandImportJobRunner;
+import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +19,12 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.config.FixedDelayTask;
 import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ScheduledFuture;
 
 
 
@@ -115,6 +115,7 @@ public class ImportJobsScheduler extends JobScheduler {
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
         this.orchestratorSettings = orchestratorSettings;
+        this.setSchedulingStep(this.orchestratorSettings.getFrequency());
     }
 
 

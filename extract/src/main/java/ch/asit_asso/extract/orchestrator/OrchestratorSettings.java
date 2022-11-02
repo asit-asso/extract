@@ -16,12 +16,13 @@
  */
 package ch.asit_asso.extract.orchestrator;
 
-import java.util.List;
-import java.util.Objects;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Objects;
 
 
 /**
@@ -62,6 +63,7 @@ public class OrchestratorSettings {
             throw new IllegalArgumentException("The orchestrator frequency must strictly positive.");
         }
 
+        this.logger.info("Orchestrator frequency set to {} seconds.", newFrequency);
         this.frequency = newFrequency;
     }
 
