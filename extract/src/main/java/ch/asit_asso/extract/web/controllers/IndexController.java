@@ -16,6 +16,11 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.io.File;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Locale;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
@@ -23,7 +28,12 @@ import ch.asit_asso.extract.domain.Request.Status;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.exceptions.BaseFolderNotFoundException;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
-import ch.asit_asso.extract.persistence.*;
+import ch.asit_asso.extract.persistence.ConnectorsRepository;
+import ch.asit_asso.extract.persistence.ProcessesRepository;
+import ch.asit_asso.extract.persistence.RequestHistoryRepository;
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.persistence.sorts.RequestSort;
 import ch.asit_asso.extract.persistence.specifications.RequestSpecification;
 import ch.asit_asso.extract.web.Message.MessageType;
@@ -45,15 +55,12 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.servlet.http.HttpSession;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Locale;
 
 
 
@@ -143,14 +150,11 @@ public class IndexController extends BaseController {
     /**
      * Process a request to display the home page.
      *
-     * @param session            the current HTTP session
-     * @param redirectAttributes the data to pass to a redirecting page or passed by a page that redirects to this one.
      * @param model              the data to display in the next view
      * @return the name of the next view
      */
     @GetMapping
-    public final String index(final HttpSession session, final RedirectAttributes redirectAttributes,
-            final ModelMap model) {
+    public final String index(final ModelMap model) {
         this.logger.debug("Processing the index page.");
 
         if (!this.isCurrentUserApplicationUser()) {
@@ -333,6 +337,8 @@ public class IndexController extends BaseController {
 
             final Page<Request> pagedResult = this.getFinishedRequests(pageStart, sortFields, sortDirection, filterText,
                     connector, process, startDateFrom, startDateTo);
+            this.logger.debug("Number of total requests: {}. Number of pages: {}.", pagedResult.getTotalElements(),
+                              pagedResult.getTotalPages());
             RequestModel[] requestModelArray = RequestModel.fromDomainRequestsPage(pagedResult,
                     this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource);
             RequestJsonModel[] requestsData
@@ -460,6 +466,8 @@ public class IndexController extends BaseController {
         assert sortFields != null : "The sort fields string cannot be null";
         assert sortDirection != null : "The sort direction cannot be null";
 
+        this.logger.debug("Start index is {}. Page size is {}. Displayed page is {}.", pageStart, this.tablePageSize,
+                          pageStart / this.tablePageSize);
         final PageRequest paging = PageRequest.of(pageStart / this.tablePageSize, this.tablePageSize,
                 RequestSort.getSort(sortFields.split(","), sortDirection));
         final Specification<Request> filterCriteria
@@ -474,8 +482,13 @@ public class IndexController extends BaseController {
 
         final User currentUser = this.usersRepository.findById(this.getCurrentUserId())
                 .orElseThrow(() -> new UnsupportedOperationException("User does not exist."));
+        final Collection<Process> userProcesses = currentUser.getDistinctProcesses();
+        this.logger.debug("Number of user processes: {}. Ids of user processes: {}.", userProcesses.size(),
+                          String.join(", ",
+                                      userProcesses.stream().map((process) ->
+                                                                 process.getId().toString()).toArray(String[]::new)));
         final Specification<Request> userCriteria
-                = RequestSpecification.isProcessInList(currentUser.getProcessesCollection());
+                = RequestSpecification.isProcessInList(userProcesses);
 
         return this.requestsRepository.findAll(Specification.where(userCriteria).and(searchCriteria), paging);
     }
