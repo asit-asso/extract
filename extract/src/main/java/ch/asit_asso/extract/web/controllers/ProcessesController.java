@@ -16,9 +16,21 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import ch.asit_asso.extract.domain.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import javax.validation.Valid;
 import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.persistence.*;
+import ch.asit_asso.extract.domain.Remark;
+import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.UserGroup;
+import ch.asit_asso.extract.persistence.ProcessesRepository;
+import ch.asit_asso.extract.persistence.RemarkRepository;
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import ch.asit_asso.extract.persistence.TasksRepository;
+import ch.asit_asso.extract.persistence.UserGroupsRepository;
+import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.web.Message.MessageType;
@@ -37,13 +49,14 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 
 
 
@@ -326,32 +339,32 @@ public class ProcessesController extends BaseController {
             return ProcessesController.REDIRECT_TO_LIST;
         }
 
-        boolean success = false;
-
         try {
-            Process clonedProcess = domainProcess.createCopy();
-            clonedProcess = this.processesRepository.save(clonedProcess);
-
-            for (Task clonedTask : clonedProcess.getTasksCollection()) {
-                clonedTask.setProcess(clonedProcess);
-                this.tasksRepository.save(clonedTask);
-            }
-
-            success = true;
+            this.cloneProcess(domainProcess);
+            this.addStatusMessage(redirectAttributes, "processesList.process.cloned", MessageType.SUCCESS);
 
         } catch (Exception exception) {
             this.logger.error("Process {} could not be cloned.", name, exception);
-        }
-
-        if (success) {
-            this.addStatusMessage(redirectAttributes, "processesList.process.cloned", MessageType.SUCCESS);
-
-        } else {
             this.addStatusMessage(redirectAttributes, "processesList.errors.process.clone.generic",
-                    MessageType.ERROR);
+                                  MessageType.ERROR);
         }
 
         return ProcessesController.REDIRECT_TO_LIST;
+    }
+
+
+
+    public void cloneProcess(Process processToClone) {
+        Process clonedProcess = processToClone.createCopy();
+        this.logger.debug("Saving process clone \"{}\" without tasks.", clonedProcess.getName());
+        clonedProcess = this.processesRepository.save(clonedProcess);
+        clonedProcess.setTasksCollection(processToClone.createTasksCopy(clonedProcess));
+
+        for (Task clonedTask : clonedProcess.getTasksCollection()) {
+            this.logger.debug("Saving cloned task \"{}\" at position {}.",
+                              clonedTask.getLabel(), clonedTask.getPosition());
+            this.tasksRepository.save(clonedTask);
+        }
     }
 
 
@@ -455,7 +468,6 @@ public class ProcessesController extends BaseController {
                 return REDIRECT_TO_ACCESS_DENIED;
             }
 
-            //model.addAttribute("isNew", true);
             final ProcessModel newProcessModel = new ProcessModel();
 
             return this.prepareModelForDetailsView(model, true, newProcessModel);
@@ -481,8 +493,6 @@ public class ProcessesController extends BaseController {
             return REDIRECT_TO_ACCESS_DENIED;
         }
 
-//        model.addAttribute("processes", this.processesRepository.findAll());
-//        this.addJavascriptMessagesAttribute(model);
         return this.prepareModelForListView(model);
     }
 
@@ -516,32 +526,12 @@ public class ProcessesController extends BaseController {
         ProcessModel processModel = new ProcessModel(domainProcess, this.taskPluginsDiscoverer,
                 this.requestsRepository);
 
-//        model.addAttribute("isNew", false);
-//        model.addAttribute("process", processModel);
-//        this.addJavascriptMessagesAttribute(model);
         if (processModel.isReadOnly()) {
             this.addStatusMessage(model, "processDetails.readonly.info", MessageType.WARNING);
         }
 
         return this.prepareModelForDetailsView(model, false, processModel);
     }
-//
-//
-//
-//    /**
-//     * Removes from the data source the tasks that have been deleted from a process.
-//     *
-//     * @param processModel  the model representing the process
-//     * @param domainProcess the process data object
-//     */
-//    private void deleteProcessDeletedTasks(final ProcessModel processModel,
-//            final ch.asit_asso.extract.domain.Process domainProcess) {
-//
-//        for (Task deletedTask : processModel.getDeletedDomainTasks(domainProcess)) {
-//            this.logger.info("The task with identifier {} has been deleted.", deletedTask.getId());
-//            this.tasksRepository.delete(deletedTask);
-//        }
-//    }
 
 
 

@@ -16,20 +16,33 @@
  */
 package ch.asit_asso.extract.domain;
 
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlTransient;
-import org.hibernate.annotations.SortNatural;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OrderBy;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
+import org.hibernate.annotations.SortNatural;
 
 
 
@@ -409,7 +422,6 @@ public class Process implements Serializable {
      * a lot of finished requests. In this case, it is advised to use the
      * {@link #canBeDeleted(RequestsRepository)} method.</i>
      *
-     *
      * @return <code>true</code> if this process can be deleted
      */
     public final boolean canBeDeleted() {
@@ -505,11 +517,10 @@ public class Process implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof Process)) {
+        if (!(object instanceof Process other)) {
             return false;
         }
 
-        final Process other = (Process) object;
         return this.id.equals(other.id);
     }
 
@@ -521,7 +532,13 @@ public class Process implements Serializable {
     }
 
 
-
+    /**
+     * Creates a shallow copy of this process. The tasks are not copied to avoid issues when saving the cloned process.
+     * Once the cloned process has been saved, you can get a copy of the tasks attached to this product with the method
+     * {@link #createTasksCopy(Process)}.
+     *
+     * @return a copy of the current process
+     */
     public Process createCopy() {
         Process copy = new Process();
         copy.setName(this.getCopyName());
@@ -529,24 +546,26 @@ public class Process implements Serializable {
         Collection<User> users = this.getUsersCollection();
 
         if (users != null) {
-            Collection<User> copyUsers = new ArrayList<>();
-            copyUsers.addAll(users);
-            copy.setUsersCollection(copyUsers);
+            copy.setUsersCollection(new ArrayList<>(users));
         }
 
-        copy.setTasksCollection(this.createTasksCopy());
+        Collection<UserGroup> userGroups = this.getUserGroupsCollection();
+
+        if (userGroups != null) {
+            copy.setUserGroupsCollection(new ArrayList<>(userGroups));
+        }
 
         return copy;
     }
 
 
 
-    private Collection<Task> createTasksCopy() {
+    public Collection<Task> createTasksCopy(@NotNull Process taskCopiesProcess) {
         List<Task> tasksList = new ArrayList<>();
 
         for (Task task : this.getTasksCollection()) {
             Task taskCopy = task.createCopy();
-            taskCopy.setProcess(this);
+            taskCopy.setProcess(taskCopiesProcess);
             tasksList.add(taskCopy);
         }
 

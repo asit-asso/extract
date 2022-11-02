@@ -16,20 +16,30 @@
  */
 package ch.asit_asso.extract.domain;
 
-import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.ForeignKey;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Index;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -312,9 +322,7 @@ public class Task implements Serializable {
         Map<String, String> parameters = this.getParametersValues();
 
         if (parameters != null) {
-            HashMap<String, String> copyParameters = new HashMap<>();
-            copyParameters.putAll(parameters);
-            copy.setParametersValues(copyParameters);
+            copy.setParametersValues(new HashMap<>(parameters));
         }
 
         copy.setPosition(this.getPosition());
@@ -326,10 +334,11 @@ public class Task implements Serializable {
 
     @Override
     public final int hashCode() {
-        int hash = 0;
-        hash += this.id.hashCode();
-
-        return hash;
+        int result = (position != null) ? position : 0;
+        result = 31 * result + ((code != null) ? code.hashCode() : 0);
+        result = 31 * result + ((label != null) ?label.hashCode() : 0);
+        result = 31 * result + ((process != null) ? process.hashCode() : 0);
+        return result;
     }
 
 
@@ -337,12 +346,12 @@ public class Task implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof Task)) {
+        if (!(object instanceof Task other)) {
             return false;
         }
-        Task other = (Task) object;
 
-        return this.id.equals(other.id);
+        return Objects.equals(this.position, other.position) && Objects.equals(this.code, other.code)
+                && Objects.equals(this.label, other.label) && Objects.equals(this.process, other.process);
     }
 
 
