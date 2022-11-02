@@ -97,7 +97,8 @@
                             </ul>
                             <ul class="nav navbar-nav">
                                 <li class="nav-item" th:classappend="${currentSection} == 'currentUser' ? 'active' : ''">
-                                    <a href="#" id="userEditLink" title="Edit your data" th:title="#{menu.user.editInfo}"
+                                    <a href="#" th:href="@{'users/' + ${#authentication.principal.userId}}"
+                                       id="userEditLink" title="Edit your data" th:title="#{menu.user.editInfo}"
                                        class="nav-link">
                                         <i class="fa fa-user fa-fw"></i>
                                         <span sec:authentication="name">{Name}</span>
@@ -148,11 +149,6 @@
             $(function() {
                 $('#logoutLink').on('click', function() {
                     $('#logoutForm').submit();
-                });
-
-                $('#userEditLink').on('click', function() {
-                    var targetUrl = /*[[@{'/users/' + ${#authentication.principal.userId}}]]*/ "../users/0";
-                    location.replace(targetUrl);
                 });
             });
         </script>
