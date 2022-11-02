@@ -151,6 +151,7 @@ function loadOrderGeometryMap(orderWktGeometry, geometryArea) {
 
     initializeMap().then(function(map) {
         _addOrderGeometryToMap(orderWktGeometry, map);
+        _initializeFullScreenControl(map);
         _initializeLayerSwitcher(map);
         _initializeExportButtons(map);
     });
@@ -264,6 +265,15 @@ function _initializeLayerSwitcher(map) {
     });
 
     map.addControl(layerSwitcher);
+}
+
+
+function _initializeFullScreenControl(map) {
+    var fullScreenControl = new ol.control.FullScreen({
+        tipLabel : LANG_MESSAGES.requestDetails.fullScreenControl.tooltip
+    });
+
+    map.addControl(fullScreenControl);
 }
 
 

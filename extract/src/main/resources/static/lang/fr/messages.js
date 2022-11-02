@@ -76,6 +76,9 @@ var LANG_MESSAGES = {
             "label": "KML",
             "tooltip": "Télécharger le polygone d'emprise de la commande au format KML"
         },
+        "fullScreenControl" : {
+          "tooltip": "Afficher la carte en plein écran"
+        },
         "layerSwitcher" : {
             "tooltip": "Gestion des couches"
         },
