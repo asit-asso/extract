@@ -373,9 +373,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <div class="col-xl-4">
                                 <h4 th:text="#{requestDetails.orderDetails.parameters.title}">{Parameters}</h4>
                                 <div th:text="#{requestDetails.orderDetails.parameters.none}"
-                                     th:if="${request.parameters} == null or ${#maps.isEmpty(request.parameters)}">{(None)}</div>
-                                <div th:each="parameter : ${request.parameters}" th:object="${parameter}"
-                                     th:unless="${request.parameters} == null or ${#maps.isEmpty(request.parameters)}">
+                                     th:if="${request.displayParameters} == null or ${#maps.isEmpty(request.displayParameters)}">{(None)}</div>
+                                <div th:each="parameter : ${request.displayParameters}" th:object="${parameter}"
+                                     th:unless="${request.displayParameters} == null or ${#maps.isEmpty(request.displayParameters)}">
                                     <span th:text="*{key}">{Parameter name}</span>:
                                     <b class="preserve-whitespace" th:text="*{value}">{Parameter value}</b>
                                 </div>

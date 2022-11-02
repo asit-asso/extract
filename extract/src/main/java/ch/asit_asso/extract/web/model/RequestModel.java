@@ -18,14 +18,7 @@ package ch.asit_asso.extract.web.model;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
@@ -120,6 +113,11 @@ public class RequestModel {
      * The order that this model represents.
      */
     private final Request request;
+
+    /**
+     * The non-standard configuration data for the order, formatted and filtered for display in the request details.
+     */
+    private Map<String, String> requestDisplayParameters = null;
 
     /**
      * The non-standard configuration data for the order.
@@ -394,6 +392,54 @@ public class RequestModel {
         }
 
         return this.requestParameters;
+    }
+
+
+    public final Map<String, String> getDisplayParameters() {
+
+        if (this.requestDisplayParameters == null) {
+            this.requestDisplayParameters = new HashMap<>();
+
+            final Map<String, String> requestParameters = this.getParameters();
+            final Map<String, String> labelParameters = new HashMap<>();
+            final List<String> parametersToSkip = new ArrayList<>();
+
+            for (Map.Entry<String, String> parameterEntry : requestParameters.entrySet()) {
+                String parameterKey = parameterEntry.getKey();
+
+                if (parametersToSkip.contains(parameterKey)) {
+                    continue;
+                }
+
+                if (parameterKey.endsWith("_LABEL")) {
+                    labelParameters.put(parameterKey, parameterEntry.getValue());
+                    continue;
+                }
+
+                final String labelKey = StringUtils.appendIfMissing(parameterKey, "_LABEL");
+                String parameterValue;
+
+                if (labelParameters.containsKey(labelKey)) {
+                    parameterValue = labelParameters.get(labelKey);
+                    labelParameters.remove(labelKey);
+
+                } else if (requestParameters.containsKey(labelKey)) {
+                    parameterValue = requestParameters.get(labelKey);
+                    parametersToSkip.add(labelKey);
+
+                } else {
+                    parameterValue = parameterEntry.getValue();
+                }
+
+                this.requestDisplayParameters.put(parameterKey, parameterValue);
+            }
+
+            for (String remainingLabelKey : labelParameters.keySet()) {
+                this.requestDisplayParameters.put(remainingLabelKey, labelParameters.get(remainingLabelKey));
+            }
+        }
+
+        return this.requestDisplayParameters;
     }
 
 
