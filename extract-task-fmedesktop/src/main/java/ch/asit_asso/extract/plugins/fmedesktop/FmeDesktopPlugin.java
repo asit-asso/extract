@@ -5,6 +5,17 @@
  */
 package ch.asit_asso.extract.plugins.fmedesktop;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
@@ -19,13 +30,6 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -75,7 +79,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     /**
      * The stings that the plugin can send to the user in the language of the user interface.
      */
-    private LocalizedMessages messages;
+    private final LocalizedMessages messages;
 
     /**
      * The settings for the execution of this particular task.
@@ -85,7 +89,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     /**
      * The access to the general settings of the plugin.
      */
-    private PluginConfiguration config;
+    private final PluginConfiguration config;
 
 
     /**
@@ -300,7 +304,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
     private String readInputStream(InputStream inputStream) throws IOException {
-        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
         String line;
         List<String> messageLines = new ArrayList<>();
 
