@@ -25,7 +25,7 @@
  */
 function cloneProcess(button, id, name) {
     console.log($(button).attr('data-action'));
-    _executeAction(button, id, name, LANG_MESSAGES.processesList.cloneConfirm)
+    _executeAction(button, id, name, LANG_MESSAGES.processesList.cloneConfirm);
 }
 
 

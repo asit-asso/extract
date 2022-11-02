@@ -7,35 +7,31 @@
     <body>
         <th:block th:if="${statusMessage} != null" th:switch="${statusMessage.messageType}"
                   th:fragment="dismissibleMessage">
-            <div th:case="${T(org.easysdi.extract.web.Message.MessageType).ERROR}"
+            <div th:case="${T(ch.asit_asso.extract.web.Message.MessageType).ERROR}"
                  class="alert alert-dismissible alert-danger">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                         th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                    <span aria-hidden="true">&times;</span>
                 </button>
                 <th:block th:text="${#messages.msg(statusMessage.messageKey)}"></th:block>
             </div>
-            <div th:case="${T(org.easysdi.extract.web.Message.MessageType).SUCCESS}"
+            <div th:case="${T(ch.asit_asso.extract.web.Message.MessageType).SUCCESS}"
                  class="alert alert-dismissible alert-success">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                         th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                    <span aria-hidden="true">&times;</span>
                 </button>
                 <th:block th:text="${#messages.msg(statusMessage.messageKey)}"></th:block>
             </div>
-            <div th:case="${T(org.easysdi.extract.web.Message.MessageType).WARNING}"
+            <div th:case="${T(ch.asit_asso.extract.web.Message.MessageType).WARNING}"
                  class="alert alert-dismissible alert-warning">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                         th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                    <span aria-hidden="true">&times;</span>
                 </button>
                 <th:block th:text="${#messages.msg(statusMessage.messageKey)}"></th:block>
             </div>
             <div th:case="*"
                  class="alert alert-dismissible alert-info">
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                         th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                    <span aria-hidden="true">&times;</span>
                 </button>
                 <th:block th:text="${#messages.msg(statusMessage.messageKey)}"></th:block>
             </div>

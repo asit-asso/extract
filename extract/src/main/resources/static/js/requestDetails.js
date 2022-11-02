@@ -151,6 +151,7 @@ function loadOrderGeometryMap(orderWktGeometry, geometryArea) {
 
     initializeMap().then(function(map) {
         _addOrderGeometryToMap(orderWktGeometry, map);
+        _initializeFullScreenControl(map);
         _initializeLayerSwitcher(map);
         _initializeExportButtons(map);
     });
@@ -267,6 +268,15 @@ function _initializeLayerSwitcher(map) {
 }
 
 
+function _initializeFullScreenControl(map) {
+    var fullScreenControl = new ol.control.FullScreen({
+        tipLabel : LANG_MESSAGES.requestDetails.fullScreenControl.tooltip
+    });
+
+    map.addControl(fullScreenControl);
+}
+
+
 
 function _sendTextAsDownload(text, mimeType, fileName) {
     var data = new Blob([text], {
@@ -309,14 +319,33 @@ app.ExportToKmlControl = function(opt_options) {
         var format = new ol.format.KML({
             extractStyles : true
         });
-        var data = format.writeFeatures(orderGeometryLayer.getSource().getFeatures(), {
-            featureProjection : _self.getMap().getView().getProjection(),
-            dataProjection : new ol.proj.Projection({
-                code : "EPSG:4326"
+
+        var sourceFeatures = orderGeometryLayer.getSource().getFeatures();
+        var featuresToWrite = [];
+        var kmlStyle = new ol.style.Style({
+            fill : new ol.style.Fill({
+                color : 'rgba(255,0,0,0.4)'
+            }),
+            stroke : new ol.style.Stroke({
+                color : '#ff0000',
+                width : 1.25
             })
         });
 
-        _sendTextAsDownload(data, mimeType, $("#requestId").val() + ".kml");
+        sourceFeatures.forEach(
+            function(f) {
+                var featureClone = f.clone();
+                featureClone.setStyle(kmlStyle);
+                featuresToWrite.push(featureClone);
+            }
+        );
+
+        var data = format.writeFeatures(featuresToWrite, {
+            featureProjection : _self.getMap().getView().getProjection(),
+            dataProjection : new ol.proj.Projection({ code : 'EPSG:4326' })
+        });
+
+        _sendTextAsDownload(data, mimeType, $('#requestId').val() + '.kml');
     };
 
     button.addEventListener('click', handleExportToKml, false);
@@ -1814,6 +1843,37 @@ function _handleButtonClick(button, actionFunction, remarkFieldId) {
 
 
 
+
+function getRemarkText(remarkId, remarkType, targetControlId){
+    $.ajax({
+        url: getRemarkTextUrl,
+        method: 'GET',
+        data: { id: remarkId, requestId, remarkType }
+    }).done(function (data) {
+
+        if (!data) {
+            console.warn("Returned remark text was empty.");
+            return;
+        }
+
+        var targetControl = document.getElementById(targetControlId);
+
+        if (!targetControl) {
+            console.warn(`The target text area ${targetControlId} could not be found.`);
+            return;
+        }
+
+        $(targetControl).val(data);
+
+    }).fail(function (data, textStatus) {
+        console.error('Fetching remark text failed: ' + textStatus);
+        return null;
+    });
+}
+
+
+
+
 /********************* EVENT HANDLERS *********************/
 
 $(function() {
@@ -1876,5 +1936,15 @@ $(function() {
         $('#actionForm').attr('enctype', 'multipart/form-data');
         $('#actionForm').attr('action', $('#file-upload-button').attr('data-action'));
         $('#actionForm').submit();
+    });
+
+    $('#validationMessagesList').on('change', function() {
+        var remarkId = parseInt(this.options[this.selectedIndex].value);
+        var remarkText = getRemarkText(remarkId, 'validation', 'standbyValidateRemark');
+    });
+
+    $('#rejectionMessagesList').on('change', function() {
+        var remarkId = parseInt(this.options[this.selectedIndex].value);
+        var remarkText = getRemarkText(remarkId, 'rejection', 'standbyCancelRemark');
     });
 });

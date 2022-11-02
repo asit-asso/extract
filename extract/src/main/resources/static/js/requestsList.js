@@ -142,7 +142,7 @@ function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSe
  *
  *
  */
-function loadWorkingState(scheduledStopDivId, stoppedDivId, ajaxUrl, refreshInterval) {
+function loadWorkingState(scheduledStopDivId, stoppedDivId, scheduleConfigErrorDivId, ajaxUrl, refreshInterval) {
 
     if (!ajaxUrl) {
         return;
@@ -169,8 +169,16 @@ function loadWorkingState(scheduledStopDivId, stoppedDivId, ajaxUrl, refreshInte
     if (!$stoppedDiv) {
         return;
     }
+
+    var $scheduleConfigErrorDiv = $("#" + scheduleConfigErrorDivId);
+
+    if (!$scheduleConfigErrorDiv) {
+        return;
+    }
+
     _scheduledStopDiv = $scheduledStopDiv;
     _stoppedDiv = $stoppedDiv;
+    _scheduleConfigErrorDiv = $scheduleConfigErrorDiv;
     _workingStateUrl = ajaxUrl;
 
     _refreshWorkingState();
@@ -270,6 +278,8 @@ var _scheduledStopDiv;
 
 var _stoppedDiv;
 
+var _scheduleConfigErrorDiv;
+
 var _workingStateUrl;
 
 function _addSearchInfo(data) {
@@ -340,7 +350,7 @@ function _createConnectorsDropDown(connectorsInfo, state) {
     var isError = (state === REQUESTS_LIST_CONNECTOR_STATUS_ERROR);
     var connectorDropDown = $('<div class="dropdown"></div>');
     var itemId = ((isError) ? "failed" : "ok") + "ConnectorsDropDown";
-    var connectorLink = $('<a id="' + itemId + '" class="connector-state dropdown-toggle" data-toggle="dropdown"></a>');
+    var connectorLink = $('<a id="' + itemId + '" class="connector-state dropdown-toggle" data-bs-toggle="dropdown"></a>');
     connectorLink.addClass((isError) ? 'connector-state-error' : 'connector-state-success');
 
     if (isError) {
@@ -358,7 +368,7 @@ function _createConnectorsDropDown(connectorsInfo, state) {
 
     for (var itemIndex = 0; itemIndex < connectorsInfo.length; itemIndex++) {
         var itemData = connectorsInfo[itemIndex];
-        var connectorItem = $('<li role="presentation"></li>');
+        var connectorItem = $('<li class="dropdown-item" role="presentation"></li>');
         var itemLink = $('<a role="menuitem"></a>');
         itemLink.attr('title', itemData.stateMessage);
         itemLink.attr('href', (itemData.url) ? itemData.url : '#');
@@ -621,7 +631,7 @@ function _refreshConnectorsState() {
  */
 function _refreshWorkingState() {
 
-    if (!_workingStateUrl || !_scheduledStopDiv || !_stoppedDiv) {
+    if (!_workingStateUrl || !_scheduledStopDiv || !_stoppedDiv || !_scheduleConfigErrorDiv) {
         return;
     }
 
@@ -638,6 +648,7 @@ function _refreshWorkingState() {
 
             _scheduledStopDiv.toggle(data === "SCHEDULED_STOP");
             _stoppedDiv.toggle(data === "STOPPED");
+            _scheduleConfigErrorDiv.toggle(data === "SCHEDULE_CONFIG_ERROR");
         }
     });
 }

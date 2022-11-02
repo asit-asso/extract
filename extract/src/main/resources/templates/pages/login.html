@@ -2,44 +2,44 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/masterNoNavigation">
+      layout:decorate="~{layout/masterNoNavigation}">
     <head>
-        <title th:inline="text">[[#{application.name}]]</title>
+        <title>[[#{application.name}]]</title>
     </head>
     <body>
         <div class="container-fluid">
             <th:block layout:fragment="content">
-                <div class="row">
-                    <div class="col-md-6 col-md-offset-3">
-                        <div class="login-panel panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
+                        <div class="login-card card">
+                            <div class="card-header">
+                                <h3 class="card-title">
                                     <img src="../static/images/extract_logo.png" th:src="@{/images/extract_logo.png}" />
-                                    <span class="login-panel-title" th:text="#{login.body.title}">{Login}</span>
+                                    <span class="login-card-title" th:text="#{login.body.title}">{Login}</span>
                                 </h3>
                             </div>
-                            <div class="panel-body">
+                            <div class="card-body">
                                 <form role="form" method="POST" action="#" th:action="@{/login}">
                                     <div class="alert alert-danger" th:if="${error}" th:text="${#messages.msg(error)}">
                                     </div>
-                                    <fieldset>
-                                        <div class="form-group">
+                                    <fieldset class="row gy-3">
+                                        <div class="col-12">
                                             <input class="form-control" placeholder="{Login}"
                                                    th:placeholder="#{login.fields.username.placeholder}"
                                                    name="username" type="text" th:value="${submittedName} ?: ''"
                                                    autofocus="autofocus" />
                                         </div>
-                                        <div class="form-group">
+                                        <div class="col-12">
                                             <input class="form-control" placeholder="{Password}"
                                                    th:placeholder="#{login.fields.password.placeholder}"
                                                    name="password" type="password" value="" />
                                         </div>
-
-                                        <!-- Change this to a button or input when using this as a form -->
-                                        <button id="loginButton" class="btn btn-lg btn-extract-filled btn-block"
-                                                th:text="#{login.actions.submit}">
-                                            {Log in}
-                                        </button>
+                                        <div class="col-12">
+                                            <button id="loginButton" class="btn btn-xl btn-extract-filled w-100"
+                                                    th:text="#{login.actions.submit}">
+                                                {Log in}
+                                            </button>
+                                        </div>
                                     </fieldset>
                                 </form>
                                 <div style="margin-top: 15px">

@@ -2,14 +2,14 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/master">
+      layout:decorate="~{layout/master}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]
         </title>
         <th:block layout:fragment="customStyleIncludes">
-            <link href="../../static/lib/datatables.net-bs/css/dataTables.bootstrap.min.css"
-                  th:href="@{/lib/datatables.net-bs/css/dataTables.bootstrap.min.css} + '?v=@@datatablesLibVersion@@'"
+            <link href="../../static/lib/datatables.net-bs5/css/dataTables.bootstrap5.min.css"
+                  th:href="@{/lib/datatables.net-bs5/css/dataTables.bootstrap5.min.css} + '?v=@@datatablesLibVersion@@'"
                   rel="stylesheet" type="text/css" />
             <th:block layout:fragment="additionalStyleIncludes" th:remove="all"></th:block>
         </th:block>
@@ -21,8 +21,8 @@
             <script th:src="@{/lib/datatables.net/js/jquery.dataTables.min.js} + '?v=@@datatablesLibVersion@@'"
                     src="../../static/lib/datatables.net/js/jquery.dataTables.min.js"
             type="text/javascript"></script>
-            <script th:src="@{/lib/datatables.net-bs/js/dataTables.bootstrap.min.js} + '?v=@@datatablesLibVersion@@'"
-                    src="../../static/lib/datatables.net-bs/js/dataTables.bootstrap.min.js"
+            <script th:src="@{/lib/datatables.net-bs5/js/dataTables.bootstrap5.min.js} + '?v=@@datatablesLibVersion@@'"
+                    src="../../static/lib/datatables.net-bs5/js/dataTables.bootstrap5.min.js"
             type="text/javascript"></script>
             <th:block layout:fragment="additionalScriptIncludes"></th:block>
         </th:block>

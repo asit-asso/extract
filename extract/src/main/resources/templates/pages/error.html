@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/master">
+      layout:decorate="~{layout/master}">
     <head>
-        <title th:inline="text">[[#{application.name}]]&nbsp;&ndash; [[#{errorPage.title}]]</title>
+        <title>[[#{application.name}]]&nbsp;&ndash; [[#{errorPage.title}]]</title>
     </head>
     <body>
         <div id="wrapper">
@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <span th:text="#{errorPage.body.title}">{Error}</span>
                 </h1>
                 <p th:text="#{errorPage.text}">{An error occurred during the last operation}</p>
-                <div th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#ctx.httpServletResponse.status)}"
+                <div th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#response.status)}"
                      class="code">
                     <p th:text="|${httpStatus} - ${httpStatus.reasonPhrase}|">{404}</p>
                     <p th:text="${message}">{Error java.lang.NullPointerException}</p>

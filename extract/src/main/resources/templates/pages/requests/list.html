@@ -2,9 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/masterWithTable">
+      layout:decorate="~{layout/masterWithTable}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]&nbsp;&ndash; [[#{requestsList.page.title}]]
         </title>
         <th:block th:unless="${baseFolderError}" layout:fragment="additionalStyleIncludes">
@@ -36,70 +36,80 @@
                     </p>
                 </th:block>
                 <th:block th:unless="${baseFolderError}">
-                    <div id="connectorsStateContainer" class="pull-right">
+                    <div id="connectorsStateContainer" class="float-end">
                     </div>
                     <h1 class="page-header" th:text="#{requestsList.body.title}">{Home}</h1>
                     <div id="scheduledStopMessage" class="alert alert-dismissible alert-warning" style="display: none">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                         <th:block th:text="#{orchestrator.status.scheduledStop}"></th:block>
                     </div>
                     <div id="stoppedMessage" class="alert alert-dismissible alert-warning" style="display: none">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                         <th:block th:text="#{orchestrator.status.fullStop}"></th:block>
                     </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <h3 th:text="#{requestsList.panels.currentRequests.title}">{Current requests}</h3>
-                        </div>
-                        <div class="panel-body">
-                            <div class="row">
-                                <table id="currentRequestsTable"
-                                       class="table table-hover dataTables dataTable requests-table">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th></th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.step}">
-                                                {Step}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.request}">
-                                                {Request}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.customer}">
-                                                {Customer}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.process}">
-                                                {Process}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.received}">
-                                                {Received}
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
+                    <div id="scheduleConfigErrorMessage" class="alert alert-dismissible alert-danger" style="display: none">
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                        </button>
+                        <div><strong th:text="#{orchestrator.status.scheduleConfigError}"></strong></div>
+                        <th:block th:text="#{orchestrator.status.noScheduleSpan}"></th:block>
+                        <div th:if="${isAdmin}">
+                            <a href="../../parameters" th:href="@{/parameters}" class="text-danger"
+                               th:text="#{requestsList.errors.baseFolder.notFound.link}">{Edit the parameters}</a>
                         </div>
                     </div>
-                    <div class="panel panel-default">
-                        <div class="panel-heading">
-                            <form class="form-inline filter-form-inline pull-right" role="form">
-                                <div class="form-group">
-                                    <label for="textFilter" th:text="#{requestsList.filters.text.label}">{Filter:}</label>
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <h3 th:text="#{requestsList.panels.currentRequests.title}">{Current requests}</h3>
+                        </div>
+                        <div class="card-body">
+                            <table id="currentRequestsTable"
+                                   class="table table-hover dataTables dataTable requests-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.step}">
+                                            {Step}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.request}">
+                                            {Request}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.customer}">
+                                            {Customer}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.process}">
+                                            {Process}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.received}">
+                                            {Received}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card card-default">
+                        <div class="card-header">
+                            <form class="filter-form-inline float-end" role="form">
+                                <div class="col">
+                                    <label for="textFilter" class="form-label"
+                                           th:text="#{requestsList.filters.text.label}">{Filter:}</label>
+                                </div>
+                                <div class="col">
                                     <input type="text" class="form-control request-filter-control" id="textFilter"
                                            placeholder="{Keyword, order code}"
                                            th:placeholder="#{requestsList.filters.text.placeholder}" />
                                 </div>
-                                <div class="form-group">
+                                <div class="col">
                                     <select id="connectorFilter" class="select2 form-control request-filter-control"
                                             th:attr="data-placeholder = #{requestsList.filters.connector.placeholder}">
                                         <option value=""></option>
@@ -107,7 +117,7 @@
                                                 value="{1}" th:value="*{id}" th:text="*{name}">{My connector}</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
+                                <div class="col">
                                     <select id="processFilter" class="select2 form-control request-filter-control"
                                             th:attr="data-placeholder = #{requestsList.filters.process.placeholder}">
                                         <option value=""></option>
@@ -115,27 +125,31 @@
                                                 value="{1}" th:value="*{id}" th:text="*{name}">{My process}</option>
                                     </select>
                                 </div>
-                                <div class="form-group datepicker-form-group">
-                                    <label class="sr-only" for="startDateFromFilter"
+                                <div class="col datepicker-form-group">
+                                    <label class="form-label visually-hidden" for="startDateFromFilter"
                                            th:text="#{requestsList.filters.startDate.from.label}">{Sent date - From}</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control datepicker request-filter-control"
                                                id="startDateFromFilter"
                                                th:placeholder="#{requestsList.filters.startDate.from.placeholder}" />
-                                        <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                        <div class="input-group-text">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="form-group datepicker-form-group">
-                                    <label class="sr-only" for="startDateToFilter"
+                                <div class="col datepicker-form-group">
+                                    <label class="form-label visually-hidden" for="startDateToFilter"
                                            th:text="#{requestsList.filters.startDate.to.label}">{Sent date - To}</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control datepicker request-filter-control"
                                                id="startDateToFilter"
                                                th:placeholder="#{requestsList.filters.startDate.to.placeholder}" />
-                                        <div class="input-group-addon"><i class="fa fa-calendar"></i></div>
+                                        <div class="input-group-text">
+                                            <i class="fa fa-calendar"></i>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="col">
                                     <a id="filterButton" class="btn btn-extract-filled" href="#">
                                         <i class="fa fa-search"></i>
                                     </a>
@@ -143,35 +157,33 @@
                             </form>
                             <h3 th:text="#{requestsList.panels.finishedRequests.title}">{Finished requests}</h3>
                         </div>
-                        <div class="panel-body">
-                            <div class="row">
-                                <table id="finishedRequestsTable"
-                                       class="table table-hover dataTables dataTable requests-table">
-                                    <thead>
-                                        <tr>
-                                            <th></th>
-                                            <th></th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.step}">
-                                                {Step}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.request}">
-                                                {Request}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.customer}">
-                                                {Customer}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.process}">
-                                                {Process}
-                                            </th>
-                                            <th th:text="#{requestsList.tables.currentRequests.headers.received}">
-                                                {Received}
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    </tbody>
-                                </table>
-                            </div>
+                        <div class="card-body">
+                            <table id="finishedRequestsTable"
+                                   class="table table-hover dataTables dataTable requests-table">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th></th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.step}">
+                                            {Step}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.request}">
+                                            {Request}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.customer}">
+                                            {Customer}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.process}">
+                                            {Process}
+                                        </th>
+                                        <th th:text="#{requestsList.tables.currentRequests.headers.received}">
+                                            {Received}
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </th:block>
@@ -228,8 +240,8 @@
                         loadDatepickers(applicationLanguage);
 
                         loadConnectors("connectorsStateContainer", connectorsRefreshUrl, refreshInterval);
-                        loadWorkingState("scheduledStopMessage", "stoppedMessage", workingStateRefreshUrl,
-                                refreshInterval);
+                        loadWorkingState("scheduledStopMessage", "stoppedMessage", "scheduleConfigErrorMessage",
+                                workingStateRefreshUrl, refreshInterval);
             </script>
         </th:block>
     </body>

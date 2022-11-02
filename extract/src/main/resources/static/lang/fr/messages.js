@@ -76,6 +76,9 @@ var LANG_MESSAGES = {
             "label": "KML",
             "tooltip": "Télécharger le polygone d'emprise de la commande au format KML"
         },
+        "fullScreenControl" : {
+          "tooltip": "Afficher la carte en plein écran"
+        },
         "layerSwitcher" : {
             "tooltip": "Gestion des couches"
         },
@@ -83,6 +86,12 @@ var LANG_MESSAGES = {
             "polygon" : {
                 "title": "Polygone d'emprise"
             }
+        }
+    },
+    "remarksList" : {
+        "deleteConfirm" : {
+            "title" : "Suppression d'un message",
+            "message" : "Êtes-vous sûr de vouloir supprimer le message \"{0}\" ?"
         }
     },
     "rulesList" : {
@@ -95,6 +104,12 @@ var LANG_MESSAGES = {
         "deleteConfirm" : {
             "title" : "Suppression d'un utilisateur",
             "message" : "Êtes-vous sûr de vouloir supprimer l'utilisateur \"{0}\" ?"
+        }
+    },
+    "userGroupsList" : {
+        "deleteConfirm" : {
+            "title" : "Suppression d'un groupe d'utilisateurs",
+            "message" : "Êtes-vous sûr de vouloir supprimer le groupe d'utilisateurs \"{0}\" ?"
         }
     },
     "generic" : {
