@@ -569,8 +569,6 @@ table.list-table.files-list-table {
 
 .progress.split .progress-bar + i.separator::before{
     content: "\f0da";
-    color: #5cb85c;
-    color: red;
     font-size: 58px;
     line-height: 32px;
     margin-left: -1px;
@@ -585,8 +583,8 @@ table.list-table.files-list-table {
     color: #3ab872;
 }
 
-.progress.split .progress-bar-danger + i.separator::before{
-    color: #d9534f;
+.progress.split .progress-bar.bg-danger + i.separator::before{
+    color: #dc3545;
 }
 
 .progress.split .progress-bar-done + i.separator::before{
