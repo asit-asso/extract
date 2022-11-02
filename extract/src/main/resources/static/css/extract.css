@@ -632,6 +632,98 @@ table.list-table.files-list-table {
     overflow:auto;
 }
 
+.popover .popover-table {
+    width:100%;
+    border-collapse:collapse;
+    margin-bottom: 20px;
+}
+
+.popover .popover-table .popover-table-header {
+    vertical-align:top;
+    border-top:solid black 1.5pt;
+    border-left: none;
+    border-bottom:solid black 1.5pt;
+    border-right:none;
+    background:#E5E5E5;
+    padding:0cm 5.4pt 0cm 5.4pt;
+}
+
+.popover .popover-table .popover-table-header > p {
+    margin: 3.0pt 2.85pt 3.0pt 0cm;
+    font-weight: bold;
+}
+
+.popover .parameter-table .popover-table-header:nth-of-type(1),
+.popover .parameter-table .popover-table-header:nth-of-type(3) {
+    width:15%;
+}
+
+.popover .parameter-table .popover-table-header:nth-of-type(2),
+.popover .parameter-table .popover-table-header:nth-of-type(4) {
+    width:35%;
+}
+
+.popover .property-table .popover-table-header:nth-of-type(1) {
+    width: 22%;
+}
+
+.popover .property-table .popover-table-header:nth-of-type(3) {
+    width: 37%;
+}
+
+.popover .property-table .popover-table-header:nth-of-type(2) {
+    width: 20%;
+}
+.popover .property-table .popover-table-header:nth-of-type(4) {
+    width: 21%;
+}
+
+.popover .operator-table .popover-table-header:nth-of-type(1),
+.popover .value-table .popover-table-header:nth-of-type(1)
+{
+    width: 22%;
+}
+
+.popover .operator-table .popover-table-header:nth-of-type(2) {
+    width: 78%;
+}
+
+.popover .value-table .popover-table-header:nth-of-type(2) {
+    width: 37%;
+}
+
+.popover .value-table .popover-table-header:nth-of-type(3) {
+    width: 41%;
+}
+
+.popover .popover-table .popover-table-data {
+    vertical-align:top;
+    border:none;
+    border-bottom:solid gray 1.0pt;
+    padding:0 5.4pt 0 5.4pt;
+}
+
+.popover .popover-table .popover-table-data > p {
+    font-size: 10pt;
+    margin: 3.0pt 2.85pt;
+}
+
+.popover .popover-table tr > .popover-table-data:first-child {
+    font-weight: bold;
+}
+
+.popover .popover-table tr:last-of-type .popover-table-data {
+    border-bottom: solid black 1.5pt;
+}
+
+.popover .rule-paragraph {
+    margin-bottom: 6.0pt;
+}
+
+.popover .rule-title {
+    margin-left: 15px;
+}
+
 a.request-link {
     color: black;
 }
