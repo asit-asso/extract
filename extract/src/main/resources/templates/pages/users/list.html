@@ -29,6 +29,7 @@
                                     <th th:text="#{usersList.table.headers.email}">{E-mail}</th>
                                     <th th:text="#{usersList.table.headers.role}">{Role}</th>
                                     <th th:text="#{usersList.table.headers.state}">{State}</th>
+                                    <th th:text="#{usersList.table.headers.notifications}">{Notifications}</th>
                                     <th th:text="#{usersList.table.headers.delete}" class="center-cell">{Delete}</th>
                                 </tr>
                             </thead>
@@ -54,6 +55,12 @@
                                              th:if="*{active}">{Active}</div>
                                         <div class="badge badge-danger" th:text="#{usersList.table.item.inactive}"
                                              th:unless="*{active}">{Inactive}</div>
+                                    </td>
+                                    <td>
+                                        <div class="badge badge-success" th:text="#{usersList.table.item.mailActive}"
+                                             th:if="*{mailActive}">{Active}</div>
+                                        <div class="badge badge-danger" th:text="#{usersList.table.item.mailInactive}"
+                                             th:unless="*{mailActive}">{Inactive}</div>
                                     </td>
                                     <td class="center-cell" th:with="canBeDeleted = not *{isAssociatedToProcesses()} and *{id} != ${currentUserId}">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
