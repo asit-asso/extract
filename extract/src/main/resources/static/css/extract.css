@@ -324,6 +324,10 @@ input[type="file"].hidden-file-upload-control {
     margin-bottom: 14px;
 }
 
+.card-header.ui-sortable-handle {
+    cursor: grab;
+}
+
 .card.border-success .card-header {
     background-color: #DFF0D8;
 }
