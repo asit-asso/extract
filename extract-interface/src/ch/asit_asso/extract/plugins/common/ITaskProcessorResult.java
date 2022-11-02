@@ -35,6 +35,10 @@ public interface ITaskProcessorResult {
          */
         ERROR,
         /**
+         * The task has not been able to run.
+         */
+        NOT_RUN,
+        /**
          * The task requires an intervention by an operator.
          */
         STANDBY,

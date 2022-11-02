@@ -19,22 +19,14 @@ package ch.asit_asso.extract.plugins.fmedesktop;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
+import java.util.*;
 
 
 
@@ -49,18 +41,20 @@ public class FmeDesktopPluginTest {
     private static final String EXPECTED_PLUGIN_CODE = "FME2017";
     private static final String FME_PATH_PARAMETER_NAME_PROPERTY = "paramPathFME";
     private static final String HELP_FILE_NAME = "fmeDesktopHelp.html";
+    private static final String INSTANCES_PARAMETER_NAME_PROPERTY = "paramInstances";
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
     private static final String PARAMETER_CODE_NAME = "code";
     private static final String PARAMETER_LABEL_NAME = "label";
     private static final String PARAMETER_MAX_LENGTH_NAME = "maxlength";
     private static final String PARAMETER_REQUIRED_NAME = "req";
     private static final String PARAMETER_TYPE_NAME = "type";
-    private static final int PARAMETERS_NUMBER = 2;
+    private static final int PARAMETERS_NUMBER = 3;
     private static final String SCRIPT_PATH_PARAMETER_NAME_PROPERTY = "paramPath";
     private static final String TEST_FME_PATH = "";
     private static final String TEST_INSTANCE_LANGUAGE = "fr";
+    private static final String TEST_INSTANCES = "3";
     private static final String TEST_SCRIPT_PATH = "";
-    private static final String[] VALID_PARAMETER_TYPES = new String[]{"email", "pass", "multitext", "text"};
+    private static final String[] VALID_PARAMETER_TYPES = new String[]{"email", "pass", "multitext", "text", "numeric"};
 
     /**
      * The writer to the application logs.
@@ -102,12 +96,15 @@ public class FmeDesktopPluginTest {
                 = this.configuration.getProperty(FmeDesktopPluginTest.FME_PATH_PARAMETER_NAME_PROPERTY);
         final String scriptPathCode
                 = this.configuration.getProperty(FmeDesktopPluginTest.SCRIPT_PATH_PARAMETER_NAME_PROPERTY);
+        final String instancesCode
+                = this.configuration.getProperty(FmeDesktopPluginTest.INSTANCES_PARAMETER_NAME_PROPERTY);
 
-        this.requiredParametersCodes = new String[]{fmePathCode, scriptPathCode};
+        this.requiredParametersCodes = new String[]{fmePathCode, scriptPathCode, instancesCode};
 
         this.testParameters = new HashMap<>();
         this.testParameters.put(fmePathCode, FmeDesktopPluginTest.TEST_FME_PATH);
         this.testParameters.put(scriptPathCode, FmeDesktopPluginTest.TEST_SCRIPT_PATH);
+        this.testParameters.put(instancesCode, FmeDesktopPluginTest.TEST_INSTANCES);
     }
 
 
@@ -264,16 +261,6 @@ public class FmeDesktopPluginTest {
                     parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_REQUIRED_NAME));
             Assert.assertTrue(String.format("The required field for the parameter %s is not a boolean", parameterCode),
                     parameterData.get(FmeDesktopPluginTest.PARAMETER_REQUIRED_NAME).isBoolean());
-
-            Assert.assertTrue(String.format("The parameter %s does not have a maximum length property", parameterCode),
-                    parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_MAX_LENGTH_NAME));
-            Assert.assertTrue(String.format("The maximum length for parameter %s is not an integer", parameterCode),
-                    parameterData.get(FmeDesktopPluginTest.PARAMETER_MAX_LENGTH_NAME).isInt());
-            int maxLength = parameterData.get(FmeDesktopPluginTest.PARAMETER_MAX_LENGTH_NAME).intValue();
-            Assert.assertTrue(
-                    String.format("The maximum length of parameter %s is not strictly positive", parameterCode),
-                    maxLength > 0
-            );
         }
 
         Assert.assertTrue(

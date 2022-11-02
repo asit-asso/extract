@@ -418,22 +418,22 @@ public class RequestTaskRunner implements Runnable {
             final Calendar taskEndDate) {
 
         switch (pluginResult.getStatus()) {
+            case ERROR -> this.processTaskError(task, pluginResult, taskEndDate);
 
-            case ERROR:
-                this.processTaskError(task, pluginResult, taskEndDate);
-                break;
+            case NOT_RUN -> {
+                this.logger.info("The task {} (ID: {}) could not be run at the moment by the plugin {}. Execution will be attempted again at the next orchestrator step.",
+                        task.getLabel(), task.getId(), task.getCode());
+                this.applicationRepositories.getRequestHistoryRepository().delete(this.taskHistoryRecord);
+                this.taskHistoryRecord = null;
+            }
 
-            case STANDBY:
-                this.processTaskStandby(task, pluginResult, taskEndDate);
-                break;
+            case STANDBY -> this.processTaskStandby(task, pluginResult, taskEndDate);
 
-            case SUCCESS:
-                this.processTaskSuccess(pluginResult, taskEndDate);
-                break;
+            case SUCCESS -> this.processTaskSuccess(pluginResult, taskEndDate);
 
-            default:
-                this.logger.error("The plugin result status ({}) for task {} is invalid.", pluginResult.getStatus(),
-                        task.getLabel());
+            default ->
+                    this.logger.error("The plugin result status ({}) for task {} is invalid.", pluginResult.getStatus(),
+                                      task.getLabel());
         }
 
     }
@@ -525,21 +525,28 @@ public class RequestTaskRunner implements Runnable {
         assert task.getProcess() != null : "The task process cannot be null.";
         assert this.request != null : "The request that failed cannot be null.";
 
-        final String[] recipients = new HashSet<>(Arrays.asList(this.getProcessOperatorsAddresses(task.getProcess()))).toArray(String[]::new);
+        try {
+            final String[] recipients = new HashSet<>(Arrays.asList(this.getProcessOperatorsAddresses(task.getProcess()))).toArray(String[]::new);
+            this.logger.debug("Sending e-mail notification to the following addresses : {}", StringUtils.join(recipients, ","));
 
-        if (recipients == null || recipients.length == 0) {
-            this.logger.error("Could not fetch the addresses of the operators for this process.");
-            this.logger.debug("Task id is {}. Process id is {}. Process operators e-mails are {}.",
-                    task.getId(), task.getProcess().getId());
+            if (recipients == null || recipients.length == 0) {
+                this.logger.error("Could not fetch the addresses of the operators for this process.");
+                this.logger.debug("Task id is {}. Process id is {}. Process operators e-mails are {}.",
+                                  task.getId(), task.getProcess().getId(), StringUtils.join(recipients, ", "));
+                return false;
+            }
+
+            if (!messageToSend.addRecipients(recipients)) {
+                this.logger.error("Unable to add any recipient to the message.");
+                return false;
+            }
+
+            return messageToSend.send();
+
+        } catch (Exception exception) {
+            this.logger.error("An error prevented notifying the operators by e-mail.", exception);
             return false;
         }
-
-        if (!messageToSend.addRecipients(recipients)) {
-            this.logger.error("Unable to add any recipient to the message.");
-            return false;
-        }
-
-        return messageToSend.send();
     }
 
 
@@ -614,28 +621,19 @@ public class RequestTaskRunner implements Runnable {
             final ITaskProcessorRequest modifiedRequestData) {
 
         switch (taskResultStatus) {
+            case ERROR -> this.request.setStatus(Request.Status.ERROR);
 
-            case ERROR:
-                this.request.setStatus(Request.Status.ERROR);
-                break;
-
-            case FINISHED:
+            case FINISHED -> {
                 this.request.setTasknum(this.request.getTasknum() + 1);
 
                 if (modifiedRequestData != null) {
                     this.updateRequestFromPlugin(modifiedRequestData);
                 }
+            }
+            case STANDBY -> this.request.setStatus(Request.Status.STANDBY);
 
-                break;
-
-            case STANDBY:
-                this.request.setStatus(Request.Status.STANDBY);
-                break;
-
-            default:
-                this.logger.error("The result status ({}) for task \"{}\" is invalid.", taskResultStatus,
-                        this.taskHistoryRecord.getTaskLabel());
-                break;
+            default -> this.logger.error("The result status ({}) for task \"{}\" is invalid.", taskResultStatus,
+                                         this.taskHistoryRecord.getTaskLabel());
         }
 
     }

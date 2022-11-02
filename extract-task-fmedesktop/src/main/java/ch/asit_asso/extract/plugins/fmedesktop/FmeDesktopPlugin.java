@@ -13,19 +13,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 /**
@@ -45,6 +45,12 @@ public class FmeDesktopPlugin implements ITaskProcessor {
      * the user interface.
      */
     private static final String HELP_FILE_NAME = "fmeDesktopHelp.html";
+
+    /**
+     * Object that ensures that the test of available FME Desktop instances and the (possible) start of the extraction
+     * process are atomic.
+     */
+    private static final Lock LOCK = new ReentrantLock(true);
 
     /**
      * The writer to the application logs.
@@ -82,7 +88,6 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     private PluginConfiguration config;
 
 
-
     /**
      * Creates a new FME Desktop plugin instance with default settings and using the default language.
      */
@@ -90,7 +95,6 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         this.config = new PluginConfiguration(FmeDesktopPlugin.CONFIG_FILE_PATH);
         this.messages = new LocalizedMessages();
     }
-
 
 
     /**
@@ -104,7 +108,6 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
 
-
     /**
      * Creates a new FME Desktop plugin instance using the default language.
      *
@@ -114,7 +117,6 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         this();
         this.inputs = taskSettings;
     }
-
 
 
     /**
@@ -129,12 +131,10 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
 
-
     @Override
     public final FmeDesktopPlugin newInstance(final String language) {
         return new FmeDesktopPlugin(language);
     }
-
 
 
     @Override
@@ -143,12 +143,10 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
 
-
     @Override
     public final String getLabel() {
         return this.messages.getString("plugin.label");
     }
-
 
 
     @Override
@@ -157,12 +155,10 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
 
-
     @Override
     public final String getDescription() {
         return this.messages.getString("plugin.description");
     }
-
 
 
     @Override
@@ -176,12 +172,10 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
 
-
     @Override
     public final String getPictoClass() {
         return this.pictoClass;
     }
-
 
 
     @Override
@@ -203,15 +197,24 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         fmePathNode.put("req", true);
         fmePathNode.put("maxlength", 255);
 
+        ObjectNode fmeInstances = parametersNode.addObject();
+        fmeInstances.put("code", this.config.getProperty("paramInstances"));
+        fmeInstances.put("label", this.messages.getString("paramInstances.label")
+                .replace("{maxInstances}", this.getMaxFmeInstances().toString()));
+        fmeInstances.put("type", "numeric");
+        fmeInstances.put("req", true);
+        fmeInstances.put("min", 1);
+        fmeInstances.put("step", 1);
+        fmeInstances.put("max", this.getMaxFmeInstances());
+
         try {
             return mapper.writeValueAsString(parametersNode);
 
         } catch (JsonProcessingException exception) {
-            logger.error("An error occured when the parameters were converted to JSON.", exception);
+            logger.error("An error occurred when the parameters were converted to JSON.", exception);
             return null;
         }
     }
-
 
 
     @Override
@@ -223,8 +226,6 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         String resultErrorCode = "-1";
 
         try {
-
-            this.logger.debug("Start FME extraction");
 
             final String fmeScriptPath = this.getFmeScriptPath();
 
@@ -248,46 +249,29 @@ public class FmeDesktopPlugin implements ITaskProcessor {
                 return result;
             }
 
-            final String command = this.getFmeCommandForRequest(request, fmeScriptPath, fmeExecutablePath);
-            this.logger.debug("Executed command line is:\n{}", command);
-            final File dirWorkspace = new File(FilenameUtils.getFullPathNoEndSeparator(fmeScriptPath));
-            final Process fmeTaskProcess = Runtime.getRuntime().exec(command, null, dirWorkspace);
+            final Process fmeTaskProcess = this.launchFmeTaskProcess(request, fmeScriptPath, fmeExecutablePath);
+
+            if (fmeTaskProcess == null) {
+                this.logger.warn("There wasn't enough licences to run the FME extraction. Task execution will be retried later.");
+                result.setStatus(FmeDesktopResult.Status.NOT_RUN);
+                result.setRequestData(request);
+                return result;
+            }
+
             fmeTaskProcess.waitFor();
 
             int retValue = fmeTaskProcess.exitValue();
 
             if (retValue != 0) {
-                resultStatus = FmeDesktopResult.Status.ERROR;
-                resultErrorCode = "-1";
-                final InputStream error = fmeTaskProcess.getErrorStream();
-                final BufferedReader reader = new BufferedReader(new InputStreamReader(error));
-                //final StringBuilder messageBuilder = new StringBuilder();
-                String line;
-                List<String> messageLines = new ArrayList<String>();
-
-                while ((line = reader.readLine()) != null) {
-                    //messageBuilder.append(line);
-                    //messageBuilder.append("\r\n");
-                    messageLines.add(line);
-                }
-
-                //resultMessage = messageBuilder.toString();
-                resultMessage = StringUtils.join(messageLines, System.lineSeparator());
+                resultMessage = this.readInputStream(fmeTaskProcess.getErrorStream());
 
             } else {
                 final File dirFolderOut = new File(request.getFolderOut());
-                final FilenameFilter resultFilter = new FilenameFilter() {
+                final File[] resultFiles = dirFolderOut.listFiles((dir, name) -> (name != null));
+                final int resultFilesNumber = (resultFiles != null) ? resultFiles.length : 0;
+                this.logger.debug("folder out {} contains {} file(s)", dirFolderOut.getPath(), resultFilesNumber);
 
-                    @Override
-                    public boolean accept(final File dir, final String name) {
-                        return (name != null);
-                    }
-
-                };
-                final File[] resultFiles = dirFolderOut.listFiles(resultFilter);
-                this.logger.debug("folder out {} contains {} file(s)", dirFolderOut.getPath(), resultFiles.length);
-
-                if (resultFiles.length > 0) {
+                if (resultFilesNumber > 0) {
                     this.logger.debug("FME task succeeded");
                     resultStatus = FmeDesktopResult.Status.SUCCESS;
                     resultErrorCode = "";
@@ -315,50 +299,48 @@ public class FmeDesktopPlugin implements ITaskProcessor {
 
     }
 
+    private String readInputStream(InputStream inputStream) throws IOException {
+        final BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+        String line;
+        List<String> messageLines = new ArrayList<>();
 
-
-    /**
-     * Ensures that the quotes in a JSON parameters string are correctly formatted to be passed as a
-     * parameter to FME Desktop.
-     *
-     * @param json the JSON parameter string
-     * @return a properly quoted JSON string
-     */
-    private String formatJsonParametersQuotes(final String json) {
-
-        if (StringUtils.isEmpty(json)) {
-            return json;
+        while ((line = reader.readLine()) != null) {
+            messageLines.add(line);
         }
 
-        return String.format("\"%s\"", json.replaceAll("\\\\\"", "\\\\u0022").replaceAll("\"", "\"\""));
+        return StringUtils.join(messageLines, System.lineSeparator());
     }
 
 
 
-    /**
-     * Obtains the command line that will launch the processing of the current request by FNE Desktop.
-     *
-     * @param request           the request to process
-     * @param fmeScriptPath     the location of the FME script that will process the request
-     * @param fmeExecutablePath the location of the FME Desktop executable file (fme.exe)
-     * @return the FME command line
-     */
-    private String getFmeCommandForRequest(final ITaskProcessorRequest request, final String fmeScriptPath,
-            final String fmeExecutablePath) {
+    private Integer getMaxFmeInstances() {
+        return NumberUtils.toInt(this.config.getProperty("maxFmeInstances"));
+    }
+
+
+
+    private String[] getFmeCommandForRequestAsArray(final ITaskProcessorRequest request, final String fmeScriptPath,
+                                                    final String fmeExecutablePath) {
         final String productId = request.getProductGuid();
         final String perimeter = request.getPerimeter();
         final String parameters = request.getParameters();
 
-        return String.format(
-                "\"%s\" \"%s\" --%s \"%s\" --%s \"%s\" --%s \"%s\" --%s %s --%s \"%s\" --%s %s --%s \"%s\" --%s \"%s\"",
-                fmeExecutablePath, fmeScriptPath, this.config.getProperty("paramRequestPerimeter"), perimeter,
-                this.config.getProperty("paramRequestProduct"), productId,
-                this.config.getProperty("paramRequestFolderOut"), request.getFolderOut(),
-                this.config.getProperty("paramRequestParameters"), this.formatJsonParametersQuotes(parameters),
-                this.config.getProperty("paramRequestOrderLabel"), request.getOrderLabel(),
-                this.config.getProperty("paramRequestInternalId"), request.getId(),
-                this.config.getProperty("paramRequestClientGuid"), request.getClientGuid(),
-                this.config.getProperty("paramRequestOrganismGuid"), request.getOrganismGuid());
+        return new String[]{
+            fmeExecutablePath, fmeScriptPath,
+            this.formatParameterName("paramRequestPerimeter"), perimeter,
+            this.formatParameterName("paramRequestProduct"), productId,
+            this.formatParameterName("paramRequestFolderOut"), request.getFolderOut(),
+            this.formatParameterName("paramRequestParameters"), parameters,
+            this.formatParameterName("paramRequestOrderLabel"), request.getOrderLabel(),
+            this.formatParameterName("paramRequestInternalId"), Integer.toString(request.getId()),
+            this.formatParameterName("paramRequestClientGuid"), request.getClientGuid(),
+            this.formatParameterName("paramRequestOrganismGuid"), request.getOrganismGuid()
+        };
+    }
+
+
+    private String formatParameterName(String parameterNamePropertyKey) {
+        return String.format("--%s", this.config.getProperty(parameterNamePropertyKey));
     }
 
 
@@ -372,13 +354,16 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         final String fmeExecutablePath = this.inputs.get(this.config.getProperty("paramPathFME"));
         final File fmeExecutable = new File(fmeExecutablePath);
 
+        this.logger.debug("The FME executable path is {}. It {}, {} readable and {} a file.",
+                fmeExecutablePath, (fmeExecutable.exists()) ? "exists" : "does not exist",
+                (fmeExecutable.canRead()) ? "is" : "is not", (fmeExecutable.isFile()) ? "is" : "is not");
+
         if (!fmeExecutable.exists() || !fmeExecutable.canRead() || !fmeExecutable.isFile()) {
             return null;
         }
 
         return fmeExecutablePath;
     }
-
 
 
     /**
@@ -391,11 +376,104 @@ public class FmeDesktopPlugin implements ITaskProcessor {
 
         final File fmwScript = new File(fmwPath);
 
+        this.logger.debug("The FME script path is {}. It {}, {} readable and {} a file.",
+                fmwPath, (fmwScript.exists()) ? "exists" : "does not exist",
+                (fmwScript.canRead()) ? "is" : "is not", (fmwScript.isFile()) ? "is" : "is not");
+
         if (!fmwScript.exists() || !fmwScript.canRead() || !fmwScript.isFile()) {
             return null;
         }
 
         return fmwPath;
+    }
+
+
+    private Process launchFmeTaskProcess(final ITaskProcessorRequest request, final String fmeScriptPath,
+                                                      final String fmeExecutablePath) throws IOException {
+
+        try {
+            FmeDesktopPlugin.LOCK.lock();
+            this.logger.debug("Checking license availability…");
+
+            if (!this.hasEnoughInstances()) {
+                return null;
+            }
+
+            this.logger.debug("Start FME extraction");
+            final String[] commandArray = this.getFmeCommandForRequestAsArray(request, fmeScriptPath, fmeExecutablePath);
+            this.logger.debug("Executed command line tokens are : {}", StringUtils.join(commandArray, " "));
+            this.logger.debug("Current user is {}", System.getProperty("user.name"));
+            final File dirWorkspace = new File(FilenameUtils.getFullPathNoEndSeparator(fmeScriptPath));
+            this.logger.debug("Current working directory is {}", dirWorkspace);
+            final Process fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
+
+            try {
+                Thread.currentThread().wait(500);
+
+            } catch (InterruptedException interruptedException) {
+                this.logger.warn("The wait timeout to let the FME extraction start has been interrupted.",
+                        interruptedException);
+            }
+
+            return fmeTaskProcess;
+
+        } finally {
+            FmeDesktopPlugin.LOCK.unlock();
+        }
+    }
+
+
+    private boolean hasEnoughInstances() {
+        int requiredInstances = NumberUtils.toInt(this.inputs.get(this.config.getProperty("paramInstances")));
+        int currentInstances = this.getCurrentFmeInstances();
+        int maximumInstances = this.getMaxFmeInstances();
+
+        this.logger.debug("Task requires {} instances, {} instances are already running from a maximum of {}",
+                requiredInstances, currentInstances, maximumInstances);
+        return (maximumInstances - currentInstances) >= requiredInstances;
+    }
+
+
+    private int getCurrentFmeInstances() {
+        Process process;
+        Runtime runtime = Runtime.getRuntime();
+
+        try {
+            this.logger.debug("Current process user is {}.", System.getProperty("user.name"));
+
+            if (SystemUtils.IS_OS_WINDOWS) {
+                process = runtime.exec(System.getenv("windir") + "\\system32\\tasklist.exe /fo csv /nh /FI \"IMAGENAME eq fme.exe\"");
+
+            } else if (SystemUtils.IS_OS_LINUX) {
+                process = runtime.exec("pgrep -l ^fme$");
+
+            } else {
+                this.logger.error("This operating system is not supported by Extract.");
+                throw new UnsupportedOperationException("Unsupported operating system.");
+            }
+
+            BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            String processItem;
+            int instances = 0;
+            this.logger.debug("Fetching current FME processes:");
+            while ((processItem = input.readLine()) != null) {
+                this.logger.debug(processItem);
+
+                if (processItem.startsWith("INFO:")) {
+                    continue;
+                }
+
+                instances++;
+            }
+            input.close();
+
+            return instances;
+
+        } catch (IOException ioException) {
+            this.logger.error("Unable to get the running FME processes.", ioException);
+            throw new RuntimeException("Could not get FME instances.", ioException);
+        }
+
     }
 
 }

@@ -16,11 +16,12 @@
  */
 package ch.asit_asso.extract.plugins.fmedesktop;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 
@@ -60,7 +61,7 @@ public class PluginConfiguration {
      * @param path a string with the path to the properties file that holds the plugin settings
      */
     private void initializeConfiguration(final String path) {
-        this.logger.debug("Initializing config from path {0}.", path);
+        this.logger.debug("Initializing config from path {}.", path);
 
         try {
             InputStream propertiesIs = this.getClass().getClassLoader().getResourceAsStream(path);
