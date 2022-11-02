@@ -16,39 +16,15 @@
  */
 package ch.asit_asso.extract.connectors.easysdiv4;
 
+import ch.asit_asso.extract.connectors.common.IConnector;
+import ch.asit_asso.extract.connectors.common.IConnectorImportResult;
+import ch.asit_asso.extract.connectors.common.IExportRequest;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.RequestUtils;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.ZipUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringReader;
-import java.io.StringWriter;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpression;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.FileUtils;
@@ -77,18 +53,31 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import ch.asit_asso.extract.connectors.common.IConnector;
-import ch.asit_asso.extract.connectors.common.IConnectorImportResult;
-import ch.asit_asso.extract.connectors.common.IExportRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.w3c.dom.CDATASection;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import javax.xml.xpath.*;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 
 
@@ -647,13 +636,13 @@ public class Easysdiv4 implements IConnector {
             return this.sendExportRequest(targetServer, targetUri, login, password, xmlString,
                     resultFile);
 
-        } catch (Exception exc) {
+        } catch (Exception exception) {
             ExportResult exportResult = new ExportResult();
             exportResult.setSuccess(false);
             exportResult.setResultCode("-1");
             exportResult.setResultMessage(this.messages.getString("exportresult.executing.failed"));
-            exportResult.setErrorDetails(exc.getMessage());
-            this.logger.debug("The export orders has failed");
+            exportResult.setErrorDetails(exception.getMessage());
+            this.logger.warn("The order export has failed.", exception);
 
             return exportResult;
         }
