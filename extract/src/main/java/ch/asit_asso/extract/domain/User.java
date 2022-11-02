@@ -16,30 +16,16 @@
  */
 package ch.asit_asso.extract.domain;
 
-import java.io.Serializable;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.GregorianCalendar;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.Table;
-import javax.persistence.Temporal;
-import javax.persistence.TemporalType;
-import javax.persistence.UniqueConstraint;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.*;
 
 
 /**
@@ -67,15 +53,19 @@ import org.apache.commons.lang3.StringUtils;
     @NamedQuery(name = "User.findAllActiveApplicationUsers",
             query = "SELECT u FROM User u WHERE u.login != " + "'" + User.SYSTEM_USER_LOGIN + "' and u.active = true"),
     @NamedQuery(name = "User.getUserAssociatedRequestsByStatusOrderByEndDate",
-            query = "SELECT r FROM User u JOIN u.processesCollection p JOIN p.requestsCollection r WHERE u.id = :userId"
-            + " AND r.status = :status ORDER BY r.endDate DESC"),
+            query = "SELECT r FROM Request r WHERE (r.process IN (SELECT p FROM User u JOIN u.processesCollection p WHERE u.id = :userId)"
+                    + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId))"
+                    + " AND r.status = :status ORDER BY r.endDate DESC"),
     @NamedQuery(name = "User.getUserAssociatedRequestsByStatusNot",
-            query = "SELECT r FROM User u JOIN u.processesCollection p JOIN p.requestsCollection r WHERE u.id = :userId"
-            + " AND r.status != :status")
+                query = "SELECT r FROM Request r WHERE (r.process IN (SELECT p FROM User u JOIN u.processesCollection p WHERE u.id = :userId)"
+                        + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId))"
+                        + " AND r.status != :status")
+
 
 })
 public class User implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -165,6 +155,12 @@ public class User implements Serializable {
     @ManyToMany(mappedBy = "usersCollection")
     private Collection<Process> processesCollection;
 
+
+    /**
+     * The groups that this user is a member of.
+     */
+    @ManyToMany(mappedBy = "usersCollection")
+    private Collection<UserGroup> userGroupsCollection;
 
 
     /**
@@ -491,7 +487,10 @@ public class User implements Serializable {
 
 
     /**
-     * Obtains the request processes that this user can operate on.
+     * Obtains the request processes that this user can operate on. This only includes the processes that are directly
+     * attached to this user, and doesn't include those attached to a user group that this user is a member of.
+     * To obtain all the processes that this user can operate on independently of how they've been set, please use
+     * the method {@link #getDistinctProcesses()}.
      *
      * @return the collection of processes
      */
@@ -512,15 +511,102 @@ public class User implements Serializable {
     }
 
 
+    /**
+     * Obtains the groups that this user is a member of
+     *
+     * @return a collection that contains the groups that this user is a member of
+     */
+    public Collection<UserGroup> getUserGroupsCollection() {
+        return userGroupsCollection;
+    }
+
+
+    /**
+     * Defines the groups that this user is a member of
+     *
+     * @param userGroupsCollection a collection that contains the groups that this user is a member of
+     */
+    public void setUserGroupsCollection(Collection<UserGroup> userGroupsCollection) {
+        this.userGroupsCollection = userGroupsCollection;
+    }
+
+
 
     /**
      * Obtains whether processes are explicitly associated to this user. Note that there might be processes that
-     * this user can operate on implicity, for instance if she is an administrator.
+     * this user can operate on implicity, for instance if she is an administrator or a member of a user group
+     * associated to a process.
      *
      * @return <code>true</code> if at least one process is associated to this user
      */
     public final boolean isAssociatedToProcesses() {
         return this.processesCollection != null && this.processesCollection.size() > 0;
+    }
+
+
+    /**
+     * Obtains all the processes that this user can manage, including those defined through a group of users that this
+     * user is a member of.
+     *
+     * @return a collection that contains all the processes that this user can manage, without duplicates
+     */
+    public final Collection<Process> getDistinctProcesses() {
+        List<Process> processes = new ArrayList<>(this.getProcessesCollection());
+
+        for (UserGroup userGroup : this.getUserGroupsCollection()) {
+
+            for (Process groupProcess : userGroup.getProcessesCollection()) {
+
+                if (processes.contains(groupProcess)) {
+                    continue;
+                }
+
+                processes.add(groupProcess);
+            }
+        }
+
+        return processes;
+    }
+
+
+    /**
+     * Checks whether this user is the last remaining active user in a user group that manages a process.
+     *
+     * @return <code>true</code> if this user is the last active member of group attached to a process
+     */
+    public final boolean isLastActiveMemberOfProcessGroup() {
+
+        if (this.getUserGroupsCollection().size() == 0) {
+            return false;
+        }
+
+        boolean hasOtherActiveMember = false;
+
+        for (UserGroup group : this.getUserGroupsCollection()) {
+
+            if (!group.isAssociatedToProcesses()) {
+                continue;
+            }
+
+            if (group.getUsersCollection().size() == 1) {
+                return true;
+            }
+
+            for (User groupUser : group.getUsersCollection()) {
+
+                if (groupUser.getId() == this.getId() || !groupUser.isActive()) {
+                    continue;
+                }
+
+                hasOtherActiveMember = true;
+            }
+
+            if (!hasOtherActiveMember) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 

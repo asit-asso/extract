@@ -31,7 +31,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <div id="page-wrapper" layout:fragment="content">
 
                 <form id="processForm" method="POST" action="#" th:object="${process}" class="form"
-                      th:action="${isNew} ? @{/processes/add} : @{'/processes/' + *{id}}"
+                      th:action="${isNew} ? @{/processes/add} : @{|/processes/*{id}|}"
                       th:with="readOnly = ${process.readOnly}">
                     <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
                         <button type="button" class="close" data-dismiss="alert" aria-label="Close"
@@ -89,24 +89,45 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                class="col-form-label">{Operators}</label>
                                         <span class="mandatory" th:unless="${readOnly}"></span>
                                         <input id="usersIds" type="hidden" th:field="*{usersIds}" />
-                                        <select class="select2-container select2-container-multi form-control select2"
+                                        <input id="userGroupsIds" type="hidden" th:field="*{userGroupsIds}" />
+                                        <select class="select2-container select2-container-multi form-control select2 user-select"
                                                 multiple="multiple" data-toggle="tooltip"
                                                 th:id="users"
                                                 th:unless="${readOnly}"
                                                 th:title="${#fields.hasErrors('users')} ? ${#fields.errors('users')[0]}" >
-                                            <option th:each="user, userStats : ${allactiveusers}"
-                                                    th:value="${user.id}"
-                                                    th:text="${user.name}" >
-                                                {Option}
-                                            </option>
+                                            <optgroup th:unless="${#arrays.isEmpty(allusergroups)}" label="{Groups}"
+                                                      th:label="#{processDetails.fields.operators.groups.label}">
+                                                <option th:each="userGroup, userGroupStats : ${allusergroups}"
+                                                        th:value="|group-${userGroup.id}|">
+                                                    <span th:text="${userGroup.name}">{Group #1}</span>
+                                                </option>
+                                            </optgroup>
+                                            <optgroup th:unless="${#arrays.isEmpty(allactiveusers)}" label="{Users}"
+                                                      th:label="#{processDetails.fields.operators.users.label}">
+                                                <option th:each="user, userStats : ${allactiveusers}"
+                                                        th:value="|user-${user.id}|">
+                                                    <span th:text="${user.name}">{User #1}</span>
+                                                </option>
+                                            </optgroup>
                                         </select>
                                         <div th:if="${readOnly}" class="form-control-plaintext">
-                                            <th:block th:each="user, usersStats : *{users}"
-                                                      th:object="${process.users[__${usersStats.index}__]}"
-                                                      >
-                                                <span th:if="${usersStats.index} > 0">&nbsp; - </span>
-                                                <span th:text="*{name}">{User}</span>
-                                            </th:block>
+                                            <div th:unless="*{#arrays.isEmpty(userGroups)}">
+                                                <th:block th:each="userGroup, userGroupsStats : *{userGroups}"
+                                                          th:object="${process.userGroups[__${userGroupsStats.index}__]}">
+                                                    <span th:if="${userGroupsStats.index} > 0">&nbsp; - </span>
+                                                    <i class="fa fa-users"></i>&nbsp;
+                                                    <span th:text="*{name}">{User group}</span>
+                                                </th:block>
+                                            </div>
+                                            <div th:unless="*{#arrays.isEmpty(users)}">
+                                                <th:block th:each="user, usersStats : *{users}"
+                                                          th:object="${process.users[__${usersStats.index}__]}"
+                                                          >
+                                                    <span th:if="${usersStats.index} > 0">&nbsp; - </span>
+                                                    <i class="fa fa-user"></i>&nbsp;
+                                                    <span th:text="*{name}">{User}</span>
+                                                </th:block>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -123,7 +144,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-xl-12 process-empty-placeholder" th:if="${process.tasks.length==0}" >
-                                            <div th:style="'min-height: 500px;background-position: center; background-repeat: no-repeat; background-image:url(' + @{/images/process_empty_placeholder.png} + ');'"></div>
+                                            <div th:style="|min-height: 500px;background-position: center;
+                                                            background-repeat: no-repeat;
+                                                            background-image:url(@{/images/process_empty_placeholder.png});|">
+                                            </div>
                                         </div>
                                         <div class="col-xl-12 taskcard"
                                              th:each="task, taskStats : *{tasks}"
@@ -138,16 +162,21 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     </div>
                                                     <span class="strong" th:text="*{pluginLabel}">{Task label}</span>
                                                     <span class="badge badge-light helplink" style="cursor:pointer"
-                                                          th:href="'#popup-over-task-' + *{id}"
+                                                          th:href="|#popup-over-task-*{id}|"
                                                           th:if="${process.tasks[__${taskStats.index}__].pluginHelpMessage != null and process.tasks[__${taskStats.index}__].pluginHelpMessage != ''}"
                                                           th:text="#{processDetails.panels.tasks.helplink}" >{help}</span>
-                                                    <div th:id="'popup-over-task-' + *{id}" id="popup-over-task" class="popup-over-content">
+                                                    <div th:id="|popup-over-task-*{id}|" id="popup-over-task"
+                                                         class="popup-over-content">
                                                         <div class="popover-heading">
-                                                            <div class='popup-header'><span th:text="#{processDetails.task.help.title}" ></span><span class="fa fa-times fa-2x img-close" ></span></div>
+                                                            <div class='popup-header'>
+                                                                <span th:text="#{processDetails.task.help.title}" ></span>
+                                                                <span class="fa fa-times fa-2x img-close" ></span>
+                                                            </div>
                                                         </div>
                                                         <div class="popover-body" th:utext="*{pluginHelpMessage}"></div>
                                                     </div>
-                                                    <div th:id="'deleteTaskButton-' + *{id}" th:href="@{'/processes/' + ${process.id} + '/deleteTask/' + *{id}}"
+                                                    <div th:id="|deleteTaskButton-*{id}|"
+                                                         th:href="|@{/processes/${process.id}/deleteTask/*{id}}|"
                                                          class="btn btn-sm btn-danger float-right deletetask-button"
                                                          th:classappend="${process.readOnly} ? 'disabled' : ''" >
                                                         <span class="fa fa-close"></span>
@@ -193,9 +222,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                 <input type="password" th:required="*{required}"
                                                                        data-toggle="tooltip" autocomplete="off"
                                                                        th:if="*{type} == 'pass' and !${readOnly}"
-                                                                       th:id="${'tasks' + taskStats.index + '.parameters' + paramStats.index + '.value'}"
+                                                                       th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value|"
                                                                        class="form-control" th:maxlength="*{maxLength}"
-                                                                       th:name="${'tasks[' + taskStats.index + '].parameters[' + paramStats.index + '].value'}"
+                                                                       th:name="|tasks[${taskStats.index}].parameters[${paramStats.index}].value|"
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
                                                                        th:value="${isNew or process.tasks[__${taskStats.index}__].tag=='ADDED' or #strings.isEmpty(process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__].value)}? '' : '*****'" />
                                                                 <textarea class="form-control" style="resize:vertical"
@@ -205,7 +234,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                 <input type="hidden" th:field="*{value}" th:if="*{type} == 'list_msgs' and !${readOnly}"
                                                                        class="parameter-select-values" />
                                                                 <select class="select2-container select2-container-multi form-control select2 parameter-select"
-                                                                        multiple="multiple" data-toggle="tooltip" th:id="${'tasks' + taskStats.index + '.parameters' + paramStats.index + '.value-select'}"
+                                                                        multiple="multiple" data-toggle="tooltip"
+                                                                        th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value-select|"
                                                                         th:required="*{required}" th:if="*{type} == 'list_msgs' and !${readOnly}"
                                                                         th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" >
                                                                     <option th:each="remark, remarkStats : ${allremarks}"
@@ -235,8 +265,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:value="*{value} != null ? *{value} : ''"
                                                                        data-toggle="tooltip"
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
-                                                                       th:name="${'parameters[' + paramStats.index + '].value'}"
-                                                                       th:id="${'parameters' + paramStats.index + '.value'}" />
+                                                                       th:name="|parameters[${paramStats.index}].value|"
+                                                                       th:id="|parameters${paramStats.index}.value|" />
 
                                                                 <div th:if="${readOnly} and *{type} != 'boolean'"
                                                                      th:text="*{type} == 'pass' ? '*****' : *{value}"
@@ -272,7 +302,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <span th:text="#{processDetails.panels.availableTasks.description}">{Tasks description}</span><br/>
                                             </p>
                                             <div class="card card-default available-task"
-                                                 th:href="@{'/processes/' + ${process.id} + '/addTask/' + *{code}}"
+                                                 th:href="@{|/processes/${process.id}/addTask/*{code}|}"
                                                  th:each="availabletask, taskStats : ${alltasks}"
                                                  th:object="${alltasks[__${taskStats.index}__]}" >
                                                 <div class="card-header" >
@@ -320,7 +350,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         </div>
         <th:block layout:fragment="customScripts">
             <script type="text/javascript" src="../../static/js/processDetails.js"
-                    th:src="@{/js/processDetails.js} + '?v=@@extractVersion@@'">
+                    th:src="@{'/js/processDetails.js'} + '?v=@@extractVersion@@'">
             </script>
             <script type="text/javascript" th:inline="javascript">
                 $(function() {

@@ -16,14 +16,6 @@
  */
 package ch.asit_asso.extract.batch.processor;
 
-import java.io.File;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-
 import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.connectors.common.IExportRequest;
 import ch.asit_asso.extract.connectors.common.IExportResult;
@@ -35,13 +27,17 @@ import ch.asit_asso.extract.domain.RequestHistoryRecord;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.RequestExportFailedEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
+import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.TasksRepository;
 import ch.asit_asso.extract.utils.FileSystemUtils;
 import org.apache.commons.lang3.StringUtils;
-import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
+
+import java.io.File;
+import java.nio.file.Paths;
+import java.util.*;
 
 
 
@@ -328,11 +324,10 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
 
         this.logger.debug("Sending an e-mail notification to the administrators.");
         final RequestExportFailedEmail message = new RequestExportFailedEmail(this.emailSettings);
-        final int processId = request.getProcess().getId();
         final String[] operatorsAddresses
-                = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(processId);
-        final List<String> recipientsAddresses
-                = new ArrayList<>(Arrays.asList(operatorsAddresses));
+                = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(request.getProcess().getId());
+        final Set<String> recipientsAddresses
+                = new HashSet<>(Arrays.asList(operatorsAddresses));
 
         for (String adminAddress : this.repositories.getUsersRepository().getActiveAdministratorsAddresses()) {
 

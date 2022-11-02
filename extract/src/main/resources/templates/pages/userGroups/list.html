@@ -1,0 +1,86 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/masterWithTable}">
+    <head>
+        <title>
+            [[#{application.name}]]&nbsp;&ndash; [[#{userGroupsList.page.title}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <div class="btn-group float-right">
+                    <a class="btn btn-extract-filled btn-md" href="add"
+                       th:href="@{/userGroups/add}">
+                        <i class="fa fa-plus fa-fw"></i>
+                        <span th:text="#{userGroupsList.new.button}">{Add new user group}</span>
+                    </a>
+                </div>
+                <h1 class="page-header" th:text="#{userGroupsList.body.title}">{User groups}</h1>
+                <div class="card card-default">
+                    <div class="card-body">
+                        <table class="table table-striped table-hover dataTables dataTable">
+                            <thead>
+                                <tr>
+                                    <th th:text="#{userGroupsList.table.headers.name}">{Name}</th>
+                                    <th th:text="#{userGroupsList.table.headers.membersNumber}" class="right-cell">
+                                        {1}
+                                    </th>
+                                    <th th:text="#{userGroupsList.table.headers.delete}" class="center-cell">
+                                        {Delete}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="userGroup : ${userGroups}" th:object="${userGroup}">
+                                    <td class="nameCell">
+                                        <a href="1" th:href="@{|/userGroups/*{id}|}" th:text="*{name}">{toto}</a>
+                                    </td>
+                                    <td th:text="*{#lists.size(usersCollection)}">{1}</td>
+                                    <td class="center-cell" th:with="canBeDeleted = not *{associatedToProcesses}">
+                                        <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
+                                                data-toggle="tooltip"
+                                                th:classappend="${canBeDeleted} ? 'btn-danger delete-button' : 'disabled delete-button-inactive'"
+                                                th:title="${#messages.msg('userGroupsList.buttons.delete.' + (canBeDeleted ? 'active' : 'inactive') + '.tooltip')}">
+                                            <span class="fa fa-remove fa-fw"></span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <form id="userGroupForm" method="POST" action="#" th:action="@{/userGroups/delete}">
+                    <input type="hidden" id="userGroupId" name="id" value="" />
+                    <input type="hidden" id="userGroupName" name="name" value="" />
+                    <input type="hidden" id="${_csrf.fieldName}" th:value="${_csrf.token}" />
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="additionalScripts">
+            <script src="../../static/js/userGroupsList.js" th:src="@{/js/userGroupsList.js} + '?v=@@extractVersion@@'"
+                    type="text/javascript">
+            </script>
+            <script type="text/javascript">
+                var dataTablesProperties = getDataTableBaseProperties();
+                dataTablesProperties.paging = false;
+                dataTablesProperties.searching = false;
+                dataTablesProperties.columnDefs = [
+                    {
+                        targets : 1,
+                        width : "100px"
+                    },
+                    {
+                        targets : 2,
+                        orderable : false,
+                        width : "30px"
+                    }
+                ];
+                $('.dataTables').dataTable(dataTablesProperties);
+            </script>
+        </th:block>
+    </body>
+</html>

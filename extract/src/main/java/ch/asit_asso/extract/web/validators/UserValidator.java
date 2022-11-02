@@ -125,6 +125,10 @@ public class UserValidator extends BaseValidator {
             if (!validatingUser.isActive() && savedUser.isAssociatedToProcesses()) {
                 errors.rejectValue("active", "userDetails.errors.hasProcesses.inactive");
             }
+
+            if (!validatingUser.isActive() && savedUser.isLastActiveMemberOfProcessGroup()) {
+                errors.rejectValue("active", "userDetails.errors.lastActiveMember.inactive");
+            }
         }
 
         String loginErrorMessage = this.validateLogin(validatingUser.getLogin(), validatingUserId);

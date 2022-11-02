@@ -1,0 +1,103 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/master}">
+    <head>
+        <title>
+            [[#{application.name}]]&nbsp;&ndash; [[${userGroup.beingCreated}
+            ? #{userGroupDetails.page.title.new}
+            : ${#messages.msg('userGroupDetails.page.title.edit', userGroup.name)}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <form id="userGroupForm" method="POST" action="#" th:object='${userGroup}' class="form"
+                      th:action="${userGroup.beingCreated} ? @{/userGroups/add} : @{|/userGroups/${userGroup.id}|}">
+                    <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                                data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                        <ul>
+                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="float-right">
+                            <button id="userGroupCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
+                                    type="button">
+                                {Cancel}
+                            </button>
+                            <button id="userGroupSaveButton" class="btn btn-extract-filled" th:text="#{buttons.save}"
+                                    type="button">
+                                {Save}
+                            </button>
+                        </div>
+                        <h1 class="page-header" th:text="${userGroup.beingCreated} ? #{userGroupDetails.body.title.new}
+                                                         : ${#messages.msg('userGroupDetails.body.title.edit', userGroup.name)}">
+                            {User}
+                        </h1>
+                    </div>
+                    <div class="card card-default">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-12 form-group form-group-with-label"
+                                     th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                                    <label th:text="#{userGroupDetails.fields.name.label}" class="col-form-label">
+                                        {Full name}
+                                    </label>
+                                    <span class="mandatory" data-toggle="tooltip"
+                                          th:title="#{field.mandatory.tooltip}"></span>
+                                    <input type="text" class="form-control" th:field="*{name}" maxlength="50"
+                                           data-toggle="tooltip"
+                                           th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}" />
+                                    <input type="hidden" th:field="*{id}" />
+                                    <input type="hidden" th:field="*{beingCreated}" />
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12 form-group form-group-with-label"
+                                     th:classappend="${#fields.hasErrors('users')} ? 'has-error'">
+                                    <label th:text="#{userGroupDetails.fields.users.label}" class="col-form-label">
+                                        {Users}
+                                    </label>
+                                    <span class="mandatory" data-toggle="tooltip"
+                                          th:title="#{field.mandatory.tooltip}" th:if="*{associatedToProcesses}"></span>
+                                    <input id="usersIds" type="hidden" th:field="*{usersIds}" />
+                                    <select class="select2-container select2-container-multi form-control select2"
+                                            multiple="multiple" data-toggle="tooltip"
+                                            th:id="users"
+                                            th:title="${#fields.hasErrors('users')} ? ${#fields.errors('users')[0]}" >
+                                        <option th:each="user, userStats : ${allactiveusers}" th:value="${user.id}"
+                                                th:text="${user.name}">
+                                            {Option}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" src="../../static/js/userGroupDetails.js"
+            th:src="@{/js/userGroupDetails.js} + '?v=@@extractVersion@@'"></script>
+            <script type="text/javascript" th:inline="javascript">
+                /*<![CDATA[*/
+                $(function() {
+
+                    $('#userGroupCancelButton').on('click', function() {
+                        var targetUrl = /*[[@{'/userGroups'}]]*/ "../userGroups";
+                        location.replace(targetUrl);
+                    });
+                });
+                /*]]>*/</script>
+        </th:block>
+    </body>
+</html>

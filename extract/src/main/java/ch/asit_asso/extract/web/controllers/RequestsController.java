@@ -1143,8 +1143,8 @@ public class RequestsController extends BaseController {
             return false;
         }
 
-        return ArrayUtils.contains(this.processesRepository.getProcessOperatorsIds(process.getId()),
-                this.getCurrentUserId());
+        Integer[] operatorsIds = process.getDistinctOperators().stream().map(User::getId).toArray(Integer[]::new);
+        return ArrayUtils.contains(operatorsIds, this.getCurrentUserId());
     }
 
 

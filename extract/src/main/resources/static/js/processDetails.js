@@ -22,10 +22,15 @@
  */
 function submitProcessData() {
     //update usersIds in hidden input before saving process 
-    var usersIdsArray = $("#users").select2('val');
-    $("#usersIds").val(usersIdsArray.join(','));
+    var usersListIdsArray = $('#users').select2('val');
+    $('#usersIds').val(usersListIdsArray
+                            .filter((value) => value.startsWith('user-'))
+                            .map((value) => value.substring('user-'.length)).join(','));
+    $('#userGroupsIds').val(usersListIdsArray
+                                .filter((value) => value.startsWith('group-'))
+                                .map((value) => value.substring('group-'.length)).join(','));
 
-    $(".parameter-select").each(function (index, item) {
+    $('.parameter-select').each(function (index, item) {
         var idsArray = $(item).select2('val');
         var selectId = $(item).attr('id');
         var valuesFieldId = selectId.substring(0, selectId.length - '-select'.length);
@@ -72,14 +77,31 @@ $(function() {
         $(document).scrollTop(scrollY);
         $("#htmlScrollY").val(0);
     }
-    
-    $(".select2").select2({
+
+    function formatUserItem(item) {
+
+        if(!item.id) {
+            return item.text;
+        }
+
+        const icon = (item.id.startsWith('group-')) ? 'fa-users' : 'fa-user';
+        return $(`<span><i class="fa ${icon}"></i>&nbsp;${item.text}</span>`);
+    }
+
+    $(".parameter-select.select2").select2({
         multiple:true
     });
-    
+
+    $(".user-select.select2").select2({
+        templateSelection: formatUserItem,
+        templateResult: formatUserItem,
+        multiple:true
+    });
+
     //set users in the multiple select
-    var usersIdsArray = $("#usersIds").val().split(',');
-    $('#users').val(usersIdsArray);
+    var usersIdsArray = $("#usersIds").val().split(',').map((value) => `user-${value}`);
+    var userGroupsIdsArray = $("#userGroupsIds").val().split(',').map((value) => `group-${value}`);
+    $('#users').val([...usersIdsArray, ...userGroupsIdsArray]);
     $('#users').trigger('change');
 
     $(".parameter-select-values").each(function (index, item) {

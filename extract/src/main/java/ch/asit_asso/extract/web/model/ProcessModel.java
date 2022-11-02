@@ -16,24 +16,18 @@
  */
 package ch.asit_asso.extract.web.model;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-
 import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.persistence.ProcessesRepository;
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import ch.asit_asso.extract.persistence.TasksRepository;
-import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.UserGroup;
+import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import org.apache.commons.lang3.StringUtils;
-import ch.asit_asso.extract.domain.Task;
-import ch.asit_asso.extract.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.*;
 
 
 
@@ -73,6 +67,16 @@ public class ProcessModel {
      * The steps of this process.
      */
     private final List<TaskModel> tasksList;
+
+    /**
+     * The operators groups associated to this process.
+     */
+    private final List<UserGroup> userGroupsList;
+
+    /**
+     * An array that contains the identifiers of the operators groups associated with this process.
+     */
+    private String[] userGroupsIds;
 
     /**
      * The operators associated to this process.
@@ -194,6 +198,27 @@ public class ProcessModel {
      *
      * @return an array containing the users that make up this process
      */
+    public final UserGroup[] getUserGroups() {
+        return this.userGroupsList.toArray(new UserGroup[]{});
+    }
+
+
+    /**
+     * Obtains the identifiers of the operators groups associated to this process.
+     *
+     * @return a string with the identifiers separated by commas
+     */
+    public final String getUserGroupsIds() {
+        return StringUtils.join(this.userGroupsIds, ',');
+    }
+
+
+
+    /**
+     * Obtains the users of this process.
+     *
+     * @return an array containing the users that make up this process
+     */
     public final UserModel[] getUsers() {
         return this.usersList.toArray(new UserModel[]{});
     }
@@ -243,9 +268,39 @@ public class ProcessModel {
 
 
     /**
+     * Defines the users groups of this process.
+     *
+     * @param userGroups an array containing the user groups that operate on this process
+     */
+    public final void setUserGroups(final UserGroup[] userGroups) {
+        this.userGroupsList.clear();
+        this.userGroupsList.addAll(Arrays.asList(userGroups));
+
+        List<String> list = new ArrayList<>();
+
+        for (UserGroup userGroup : this.userGroupsList) {
+            list.add(userGroup.getId().toString());
+        }
+        this.usersIds = list.toArray(new String[]{});
+    }
+
+
+
+    /**
+     * Defines the identifiers of the operators groups associated with this process.
+     *
+     * @param joinedUserGroupsIds a string with the operator group identifiers separated by commas
+     */
+    public final void setUserGroupsIds(final String joinedUserGroupsIds) {
+        this.userGroupsIds = joinedUserGroupsIds.split(",");
+    }
+
+
+
+    /**
      * Defines the users of this process.
      *
-     * @param users an array containing the users that make up this process
+     * @param users an array containing the operators directly attached to this process
      */
     public final void setUsers(final UserModel[] users) {
         this.usersList.clear();
@@ -364,6 +419,7 @@ public class ProcessModel {
      */
     public ProcessModel() {
         this.tasksList = new ArrayList<>();
+        this.userGroupsList = new ArrayList<>();
         this.usersList = new ArrayList<>();
     }
 
@@ -417,14 +473,15 @@ public class ProcessModel {
         this.deletable = (requestsRepository != null) ? domainProcess.canBeDeleted(requestsRepository)
                 : domainProcess.canBeDeleted();
         this.setTasksFromDomainObject(domainProcess, taskPluginsDiscoverer);
+        this.setUserGroupsFromDomainObject(domainProcess);
         this.setUsersFromDomainObject(domainProcess);
     }
 
 
 
-    public final Process createInDataSource(ProcessesRepository processRepository,
-                                            TasksRepository taskRepository, UsersRepository userRepository) {
-        Process domainProcess = this.createDomainObject(userRepository);
+    public final Process createInDataSource(ProcessesRepository processRepository, TasksRepository taskRepository,
+                                            UsersRepository userRepository, UserGroupsRepository userGroupsRepository) {
+        Process domainProcess = this.createDomainObject(userRepository, userGroupsRepository);
 
         return this.saveInDataSource(processRepository, taskRepository, userRepository, domainProcess);
     }
@@ -445,8 +502,8 @@ public class ProcessModel {
 
     public final Process updateInDataSource(ProcessesRepository processRepository,
                                             TasksRepository taskRepository, UsersRepository userRepository,
-                                            Process domainProcess) {
-        domainProcess = this.updateDomainObject(domainProcess, userRepository);
+                                            UserGroupsRepository userGroupsRepository, Process domainProcess) {
+        domainProcess = this.updateDomainObject(domainProcess, userRepository, userGroupsRepository);
 
         return this.saveInDataSource(processRepository, taskRepository, userRepository, domainProcess);
     }
@@ -474,11 +531,11 @@ public class ProcessModel {
      *
      * @return the new process data object
      */
-    public final Process createDomainObject(UsersRepository userRepository) {
+    public final Process createDomainObject(UsersRepository userRepository, UserGroupsRepository userGroupsRepository) {
         final Process domainProcess = new Process();
         domainProcess.setId(this.getId());
 
-        return this.updateDomainObject(domainProcess, userRepository);
+        return this.updateDomainObject(domainProcess, userRepository, userGroupsRepository);
     }
 
 
@@ -489,14 +546,15 @@ public class ProcessModel {
      * @param domainProcess the represented process data object
      * @return the updated data object
      */
-    public final Process updateDomainObject(
-            final Process domainProcess, UsersRepository userRepository) {
+    public final Process updateDomainObject(final Process domainProcess, final UsersRepository userRepository,
+                                            final UserGroupsRepository userGroupsRepository) {
 
         if (domainProcess == null) {
             throw new IllegalArgumentException("The process data object cannot be null.");
         }
 
         domainProcess.setName(this.getName());
+        this.copyUserGroups(domainProcess, userGroupsRepository);
         this.copyUsers(domainProcess, userRepository);
 
         return domainProcess;
@@ -561,6 +619,26 @@ public class ProcessModel {
             this.addTask(new TaskModel(task, taskPlugin));
         }
 
+    }
+
+
+
+    /**
+     * Defines the process operators groups in this model based on what is in the data source.
+     *
+     * @param domainProcess the data object for this process
+     */
+    private void setUserGroupsFromDomainObject(final Process domainProcess) {
+        assert domainProcess != null : "The process data object must not be null.";
+
+        List<String> userGroupsIdsList = new ArrayList<>();
+
+        for (UserGroup userGroup : domainProcess.getUserGroupsCollection()) {
+            this.userGroupsList.add(userGroup);
+            userGroupsIdsList.add(userGroup.getId().toString());
+        }
+
+        this.userGroupsIds = userGroupsIdsList.toArray(String[]::new);
     }
 
 
@@ -644,6 +722,28 @@ public class ProcessModel {
         }
 
         return modelsList;
+    }
+
+
+
+    private void copyUserGroups(Process domainProcess, UserGroupsRepository userGroupsRepository) {
+        final Collection<UserGroup> userGroupsCollection = new ArrayList<>();
+        final String userGroupsIds = this.getUserGroupsIds();
+
+        if (!StringUtils.isEmpty(userGroupsIds)) {
+
+            for (String userGroupId : userGroupsIds.split(",")) {
+                Optional<UserGroup> userGroup = userGroupsRepository.findById(Integer.parseInt(userGroupId));
+
+                if (!userGroup.isPresent()) {
+                    this.logger.warn("Could not find a user group to copy with id {}", userGroupId);
+                }
+
+                userGroupsCollection.add(userGroup.get());
+            }
+        }
+
+        domainProcess.setUserGroupsCollection(userGroupsCollection);
     }
 
 

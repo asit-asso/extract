@@ -16,10 +16,8 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import ch.asit_asso.extract.domain.*;
 import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.domain.Remark;
-import ch.asit_asso.extract.domain.Task;
-import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
@@ -120,10 +118,17 @@ public class ProcessesController extends BaseController {
     private TasksRepository tasksRepository;
 
     /**
+     * The repository that links user groups data objects with the data source.
+     */
+    @Autowired
+    private UserGroupsRepository userGroupsRepository;
+
+    /**
      * The repository that links users data objects with the data source.
      */
     @Autowired
     private UsersRepository usersRepository;
+
 
 
 
@@ -163,7 +168,8 @@ public class ProcessesController extends BaseController {
             return this.prepareModelForDetailsView(model, true);
         }
 
-        processModel.createInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository);
+        processModel.createInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository,
+                                        this.userGroupsRepository);
 
         this.addStatusMessage(redirectAttributes, "connectorsList.connector.added", MessageType.SUCCESS);
         return ProcessesController.REDIRECT_TO_LIST;
@@ -576,6 +582,7 @@ public class ProcessesController extends BaseController {
         Collection<ITaskProcessor> alltasks = this.taskPluginsDiscoverer.getTaskProcessorsOrderedByLabel().values();
         model.addAttribute("alltasks", alltasks.toArray(new ITaskProcessor[]{}));
         model.addAttribute("allactiveusers", this.getAllActiveUsers());
+        model.addAttribute("allusergroups", this.getAllUserGroups());
         model.addAttribute("allremarks", this.getAllRemarks());
 
         if (processModel != null) {
@@ -615,7 +622,7 @@ public class ProcessesController extends BaseController {
     private void saveProcessModifications(final ProcessModel processModel,
             final Process domainProcess) {
         processModel.updateInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository,
-                domainProcess);
+                                        this.userGroupsRepository, domainProcess);
     }
 
     /**
@@ -633,6 +640,14 @@ public class ProcessesController extends BaseController {
 
         return usersList;
     }
+
+
+
+    private Collection<UserGroup> getAllUserGroups() {
+        return this.userGroupsRepository.findAllByOrderByName();
+    }
+
+
 
     /**
      * Fetches a list of predefined remarks from the repository and returns a collection of predefined remarks objects.

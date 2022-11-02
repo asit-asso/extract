@@ -106,6 +106,12 @@ var LANG_MESSAGES = {
             "message" : "Êtes-vous sûr de vouloir supprimer l'utilisateur \"{0}\" ?"
         }
     },
+    "userGroupsList" : {
+        "deleteConfirm" : {
+            "title" : "Suppression d'un groupe d'utilisateurs",
+            "message" : "Êtes-vous sûr de vouloir supprimer le groupe d'utilisateurs \"{0}\" ?"
+        }
+    },
     "generic" : {
         "alertButtons" : {
             "cancel" : "Annuler",

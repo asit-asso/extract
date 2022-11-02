@@ -135,6 +135,10 @@ a.btn-extract-filled:visited {
     text-align: center;
 }
 
+.right-cell {
+    text-align: right;
+}
+
 .code {
     font-family: monospace;
 }

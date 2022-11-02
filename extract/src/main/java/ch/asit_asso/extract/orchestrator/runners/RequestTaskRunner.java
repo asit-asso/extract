@@ -16,33 +16,27 @@
  */
 package ch.asit_asso.extract.orchestrator.runners;
 
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.stream.Collectors;
-
 import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.domain.Request;
-import ch.asit_asso.extract.domain.RequestHistoryRecord;
-import ch.asit_asso.extract.domain.Task;
-import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.*;
 import ch.asit_asso.extract.email.Email;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.TaskFailedEmail;
 import ch.asit_asso.extract.email.TaskStandbyEmail;
+import ch.asit_asso.extract.exceptions.SystemUserNotFoundException;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
+import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorRequest;
-import ch.asit_asso.extract.exceptions.SystemUserNotFoundException;
-import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
+
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 
 
@@ -325,14 +319,14 @@ public class RequestTaskRunner implements Runnable {
     /**
      * Obtains the e-mail addresses of the users who supervise a given process.
      *
-     * @param processId the integer that identifies the process
+     * @param process the process whose operators address must be fetched
      * @return an array containing the addresses of the operators
      */
     @Transactional(readOnly = true)
-    String[] getProcessOperatorsAddresses(final int processId) {
-        assert processId > 0 : "The process identifier must be greater than 0.";
+    String[] getProcessOperatorsAddresses(final Process process) {
+        assert process != null : "The process cannot be null.";
 
-        return this.applicationRepositories.getProcessesRepository().getProcessOperatorsAddresses(processId);
+        return this.applicationRepositories.getProcessesRepository().getProcessOperatorsAddresses(process.getId());
     }
 
 
@@ -531,7 +525,7 @@ public class RequestTaskRunner implements Runnable {
         assert task.getProcess() != null : "The task process cannot be null.";
         assert this.request != null : "The request that failed cannot be null.";
 
-        final String[] recipients = this.getProcessOperatorsAddresses(task.getProcess().getId());
+        final String[] recipients = new HashSet<>(Arrays.asList(this.getProcessOperatorsAddresses(task.getProcess()))).toArray(String[]::new);
 
         if (recipients == null || recipients.length == 0) {
             this.logger.error("Could not fetch the addresses of the operators for this process.");

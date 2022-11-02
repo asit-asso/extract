@@ -78,7 +78,7 @@ public class ProcessValidator extends BaseValidator {
 
         int taskIndex = 0;
 
-        if (StringUtils.isEmpty(process.getUsersIds())) {
+        if (StringUtils.isEmpty(process.getUsersIds()) && StringUtils.isEmpty(process.getUserGroupsIds())) {
             errors.rejectValue("users", "processDetails.errors.users.empty", "");
         }
 

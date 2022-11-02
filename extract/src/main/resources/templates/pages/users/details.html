@@ -178,6 +178,16 @@
                                                th:value="*{password}" data-toggle="tooltip" autocomplete="off" />
                                     </div>
                                 </div>
+                                <div class="col-xl-6">
+                                    <div class="form-group form-group-with-label">
+                                        <div>
+                                            <label th:text="#{userDetails.fields.groups.label}">{Groups}</label>
+                                        </div>
+                                        <div th:text="#{userDetails.fields.groups.none}"
+                                             th:if="${#strings.isEmpty(userGroups)}">{(None)}</div>
+                                        <div th:text="${userGroups}" th:unless="${#strings.isEmpty(userGroups)}"></div>
+                                    </div>
+                                </div>
                             </div>
                             <div class="row">
                                 <div class="col-xl-6">

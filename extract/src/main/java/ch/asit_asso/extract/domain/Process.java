@@ -16,33 +16,20 @@
  */
 package ch.asit_asso.extract.domain;
 
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
+import org.hibernate.annotations.SortNatural;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
-import javax.persistence.ManyToMany;
-import javax.persistence.NamedQueries;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.OrderBy;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import jakarta.xml.bind.annotation.XmlRootElement;
-import jakarta.xml.bind.annotation.XmlTransient;
-import org.hibernate.annotations.SortNatural;
 
 
 
@@ -55,13 +42,17 @@ import org.hibernate.annotations.SortNatural;
 @Table(name = "Processes")
 @NamedQueries({
     @NamedQuery(name = "Process.getProcessOperatorsAddresses",
-            query = "SELECT u.email FROM Process p JOIN p.usersCollection u WHERE p.id = :processId AND u.active = true AND u.mailActive = true"),
+            query = "SELECT u.email FROM User u WHERE (u.id IN (SELECT u.id FROM Process p JOIN p.usersCollection u WHERE p.id = :processId) "
+                    + " OR u.id IN (SELECT u.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection  WHERE p.id = :processId))"
+                    + "AND u.active = true AND u.mailActive = true"),
     @NamedQuery(name = "Process.getProcessOperatorsIds",
-            query = "SELECT u.id FROM Process p JOIN p.usersCollection u WHERE p.id = :processId ORDER BY u.id")
+            query = "SELECT u.id FROM User u WHERE u.id IN (SELECT u.id FROM Process p JOIN p.usersCollection u WHERE p.id = :processId) "
+                    + " OR u.id IN (SELECT u.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection  WHERE p.id = :processId)")
 })
 @XmlRootElement
 public class Process implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -98,6 +89,24 @@ public class Process implements Serializable {
     )
     @ManyToMany
     private Collection<User> usersCollection;
+
+
+    @JoinTable(name = "processes_user_groups",
+            joinColumns = {
+                    @JoinColumn(name = "id_process", referencedColumnName = "id_process",
+                            foreignKey = @ForeignKey(name = "FK_PROCESSES_USERGROUPS_PROCESS")
+                    )
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "id_usergroup", referencedColumnName = "id_usergroup",
+                            foreignKey = @ForeignKey(name = "FK_PROCESSES_USERGROUPS_USERGROUP")
+                    )
+            }
+    )
+    @ManyToMany
+    private Collection<UserGroup> userGroupsCollection;
+
+
 
     /**
      * The processing tasks that make up this process.
@@ -185,7 +194,9 @@ public class Process implements Serializable {
 
 
     /**
-     * Obtains the users that supervise this process.
+     * Obtains the users that supervise this process. This only contains the users defined directly, not those defined
+     * through a user group. To get all the operators independently of how they've been defined, please use the method
+     * {@link  #getDistinctOperators()}
      *
      * @return a collection that contains the operators
      */
@@ -203,6 +214,28 @@ public class Process implements Serializable {
      */
     public void setUsersCollection(final Collection<User> users) {
         this.usersCollection = users;
+    }
+
+
+    /**
+     * Obtains the user groups that supervise this process.
+     *
+     * @return a collection that contains the groups of operators
+     */
+    @XmlTransient
+    public Collection<UserGroup> getUserGroupsCollection() {
+        return userGroupsCollection;
+    }
+
+
+
+    /**
+     * Defines the user groups that supervise this process.
+     *
+     * @param userGroups a collection that contains the groups of operators for this process
+     */
+    public void setUserGroupsCollection(Collection<UserGroup> userGroups) {
+        this.userGroupsCollection = userGroups;
     }
 
 
@@ -433,6 +466,31 @@ public class Process implements Serializable {
     }
 
 
+    /**
+     * Obtains a list of all the users allowed to manage this process, including those defined through a user group,
+     * without duplicates.
+     *
+     * @return a collection that contains all the operators for this process
+     */
+    public final Collection<User> getDistinctOperators() {
+        List<User> operators = new ArrayList<>(this.getUsersCollection());
+
+        for (UserGroup operatorsGroup : this.getUserGroupsCollection()) {
+
+            for (User groupOperator : operatorsGroup.getUsersCollection()) {
+
+                if (operators.contains((groupOperator))) {
+                    continue;
+                }
+
+                operators.add(groupOperator);
+            }
+        }
+
+        return operators;
+    }
+
+
 
     @Override
     public final int hashCode() {
@@ -500,5 +558,4 @@ public class Process implements Serializable {
     private String getCopyName() {
         return String.format("%s - Copie", this.getName());
     }
-
 }

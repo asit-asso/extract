@@ -16,9 +16,8 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import java.util.Objects;
-import javax.validation.Valid;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.UserGroup;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.UserModel;
@@ -32,15 +31,12 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.validation.Valid;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 
 /**
@@ -213,7 +209,15 @@ public class UsersController extends BaseController {
         }
 
         if (domainUser.isAssociatedToProcesses()) {
-            this.addStatusMessage(redirectAttributes, "usersList.errors.user.delete.hasProcesses", MessageType.ERROR);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.delete.hasProcesses",
+                                  MessageType.ERROR);
+
+            return UsersController.REDIRECT_TO_LIST;
+        }
+
+        if (domainUser.isLastActiveMemberOfProcessGroup()) {
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.delete.lastActiveMember",
+                                  MessageType.ERROR);
 
             return UsersController.REDIRECT_TO_LIST;
         }
@@ -439,6 +443,7 @@ public class UsersController extends BaseController {
 
             model.addAttribute("isOwnAccount", false);
             model.addAttribute("isAssociatedToProcesses", false);
+            model.addAttribute("userGroups", "");
 
         } else {
             User domainUser = this.usersRepository.findById(id).orElse(null);
@@ -456,6 +461,11 @@ public class UsersController extends BaseController {
             final boolean isCurrentUser = (id == this.getCurrentUserId());
             model.addAttribute("isOwnAccount", isCurrentUser);
             model.addAttribute("isAssociatedToProcesses", domainUser.isAssociatedToProcesses());
+            model.addAttribute("userGroups", domainUser.getUserGroupsCollection()
+                                                        .stream()
+                                                        .map(UserGroup::getName)
+                                                        .sorted()
+                                                        .collect(Collectors.joining(", ")));
 
             if (isCurrentUser) {
                 currentSection = UsersController.CURRENT_USER_SECTION_IDENTIFIER;

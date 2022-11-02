@@ -11,7 +11,12 @@
     <body>
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content">
-                <div class="btn-group float-right">
+                <div class="float-right">
+                    <a class="btn btn-extract-white btn-md" href="../userGroups"
+                       th:href="@{/userGroups}">
+                        <i class="fa fa-users fa-fw"></i>
+                        <span th:text="#{usersList.userGroups.button}">{Groupes}</span>
+                    </a>
                     <a class="btn btn-extract-filled btn-md" href="add"
                        th:href="@{/users/add}">
                         <i class="fa fa-plus fa-fw"></i>
@@ -62,11 +67,16 @@
                                         <div class="badge badge-danger" th:text="#{usersList.table.item.mailInactive}"
                                              th:unless="*{mailActive}">{Inactive}</div>
                                     </td>
-                                    <td class="center-cell" th:with="canBeDeleted = not *{isAssociatedToProcesses()} and *{id} != ${currentUserId}">
+                                    <td class="center-cell" th:with="canBeDeleted = not *{associatedToProcesses} and *{id} != ${currentUserId} and not *{lastActiveMemberOfProcessGroup}">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
                                                 data-toggle="tooltip"
                                                 th:classappend="${canBeDeleted} ? 'btn-danger delete-button' : 'disabled delete-button-inactive'"
-                                                th:title="${#messages.msg('usersList.buttons.delete.' + (canBeDeleted ? 'active' : 'inactive') + '.tooltip')}">
+                                                th:title="${#messages.msg('usersList.buttons.delete.'
+                                                            + (canBeDeleted ? 'active'
+                                                            : 'inactive.' + ((user.id == currentUserId) ? 'currentUser'
+                                                                          : ((user.associatedToProcesses) ? 'hasProcesses'
+                                                                                                          : 'lastActiveMember')))
+                                                            + '.tooltip')}">
                                             <span class="fa fa-remove fa-fw"></span>
                                         </button>
                                     </td>
@@ -97,11 +107,11 @@
                         width : "100px"
                     },
                     {
-                        targets : 4,
+                        targets : [4, 5],
                         width : "75px"
                     },
                     {
-                        targets : 5,
+                        targets : 6,
                         orderable : false,
                         width : "30px"
                     }
