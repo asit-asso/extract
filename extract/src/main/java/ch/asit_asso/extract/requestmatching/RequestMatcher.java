@@ -257,24 +257,35 @@ public class RequestMatcher {
      * @return <code>true</code> if the request matches the rule
      */
     private boolean evaluateRule(final String rule) {
-
+        String finalRuleToEvaluate = rule.replaceAll("[\r]", "");
         Pattern patternBoolOperator = Pattern.compile(String.format("(?i)\\s+(?:%s)\\s+",
                 StringUtils.join(GEOMETRIC_OPERATORS, "|")));
         //split rule by logical operator
-        String[] splittedRule = rule.split(String.format("(?i)\\s+(?:%s)\\s+",
+        String[] splittedRule = finalRuleToEvaluate.split(String.format("(?i)\\s+(?:%s)\\s+",
                 StringUtils.join(LOGICAL_OPERATORS, "|")));
 
         try {
-            String finalRuleToEvaluate = rule;
             //Loop sub rule
             for (String subrule : splittedRule) {
 
                 if (patternBoolOperator.matcher(subrule.toUpperCase()).find()) { //is an geographic filter
                     Boolean geomRuleMatched = this.evaluateGeographicCondition(subrule.trim().toUpperCase());
+
+                    if (geomRuleMatched == null) {
+                        this.logger.warn("Error evaluating geographical condition \"{}\" in rule \"{}\".", subrule, finalRuleToEvaluate);
+                        return false;
+                    }
+
                     finalRuleToEvaluate = finalRuleToEvaluate.replace(subrule.trim(), geomRuleMatched.toString());
 
                 } else {
                     Boolean attrRuleMatched = this.evaluateLogicalCondition(subrule.trim().toUpperCase());
+
+                    if (attrRuleMatched == null) {
+                        this.logger.warn("Error evaluating attribute condition \"{}\" in rule \"{}\".", subrule, finalRuleToEvaluate);
+                        return false;
+                    }
+
                     finalRuleToEvaluate = finalRuleToEvaluate.replace(subrule.trim(), attrRuleMatched.toString());
                 }
             }

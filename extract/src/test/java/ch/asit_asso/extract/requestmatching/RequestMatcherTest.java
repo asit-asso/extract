@@ -449,4 +449,27 @@ public class RequestMatcherTest {
         orGeographicMatchRule.setPosition(4);
         assertTrue(this.testMatcher.isRuleMatching(orGeographicMatchRule));
     }
+
+    @Test
+    public void matchRequestWithRuleWithCarriageReturns() {
+        final Rule carriageReturnsInListRule = new Rule();
+        carriageReturnsInListRule.setRule("productguid IN (\r\n" +
+                "\"522917a2-526a-4857-bcf7-2a7ef07a3097\",\r\n" +
+                "\"71bf9e39-646d-4da6-a832-c4b3eafd4150\",\r\n" +
+                "\"5b5d2798-6154-42ea-8b25-4a8c0e9fe6e9\"\r\n" +
+                ")");
+        carriageReturnsInListRule.setActive(true);
+        carriageReturnsInListRule.setPosition(1);
+        assertTrue(this.testMatcher.isRuleMatching(carriageReturnsInListRule));
+
+        final Rule carriageReturnsNotInListRule = new Rule();
+        carriageReturnsNotInListRule.setRule("productguid NOT IN (\r\n" +
+                "\"522917a2-526a-4857-bcf7-2a7ef07a3097\",\r\n" +
+                "\"71bf9e39-646d-4da6-a832-c4b3eafd4150\",\r\n" +
+                "\"5b5d2798-6154-42ea-8b25-4a8c0e9fe6e9\"\r\n" +
+                ")");
+        carriageReturnsNotInListRule.setActive(true);
+        carriageReturnsNotInListRule.setPosition(2);
+        assertFalse(this.testMatcher.isRuleMatching(carriageReturnsNotInListRule));
+    }
 }
