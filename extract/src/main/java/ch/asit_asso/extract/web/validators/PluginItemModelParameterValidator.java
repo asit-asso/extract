@@ -75,7 +75,8 @@ public class PluginItemModelParameterValidator extends BaseValidator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "type", "parameter.errors.type.empty",
                 nameParams);
 
-        if (!parameterType.equals("boolean") && !parameterType.equals("numeric") && parameter.getMaxLength() < 1) {
+        if (!parameterType.equals("boolean") && !parameterType.equals("numeric") && !parameterType.equals("list_msgs")
+                && parameter.getMaxLength() < 1) {
             errors.rejectValue("maxLength", "parameter.errors.maxLength.negative", nameParams,
                     "parameter.errors.generic");
             return;
@@ -187,7 +188,7 @@ public class PluginItemModelParameterValidator extends BaseValidator {
 
         final int maxLength = parameter.getMaxLength();
 
-        if (stringValue.length() > maxLength) {
+        if (maxLength > 0 && stringValue.length() > maxLength) {
             errors.rejectValue("value", "parameter.errors.tooLong", new Object[]{
                 parameterLabel,
                 maxLength

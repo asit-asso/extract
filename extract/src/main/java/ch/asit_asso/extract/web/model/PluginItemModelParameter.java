@@ -345,6 +345,7 @@ public class PluginItemModelParameter {
             case "text":
             case "multitext":
             case "numeric":
+            case "list_msgs":
                 return (value != null);
 
             case "boolean":
@@ -385,6 +386,27 @@ public class PluginItemModelParameter {
             case "email":
                 return (updatedValue.length() <= this.getMaxLength()
                         && this.checkEmailString(updatedValue, this.isRequired()));
+
+            case "list_msgs":
+
+                if (!StringUtils.hasLength(updatedValue)) {
+                    return this.isRequired();
+                }
+
+                String[] values = updatedValue.split(",");
+
+                for (String idString : values) {
+
+                    try {
+                        Integer.parseInt(idString);
+
+                    } catch (NumberFormatException exception) {
+                        this.logger.error("Could not convert string {} to integer.", exception);
+                        return false;
+                    }
+                }
+
+                return true;
 
             case "boolean":
                 return true;
@@ -446,6 +468,7 @@ public class PluginItemModelParameter {
             case "boolean":
             case "email":
             case "numeric":
+            case "list_msgs":
                 this.setValue(updatedValue);
                 break;
 

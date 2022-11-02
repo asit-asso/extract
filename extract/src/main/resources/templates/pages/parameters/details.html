@@ -192,7 +192,8 @@
                                                 </tbody>
                                             </table>
                                         </div>
-                                        <p class="text-center">
+                                    </div>
+                                    <p class="text-center">
                                             <span id="addRangeButton" class="btn btn-extract-filled"
                                                   th:href="@{'/parameters/addOrchestratorTimeRange'}" >
                                                 <i class="fa fa-plus fa-fw"></i>
@@ -200,8 +201,7 @@
                                                     {Add new rule}
                                                 </span>
                                             </span>
-                                        </p>
-                                    </div>
+                                    </p>
                                 </div>
                             </div>
                             <div class="card card-default">
@@ -379,9 +379,29 @@
                                     </div>
                                 </div>
                             </div>
+                            <div class="card card-default">
+                                <div class="card-header">
+                                    <span th:text="#{parameters.panels.remarks.title}">{Validation messages}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-xl-12" th:text="#{parameters.remarks.manage.text}">
+                                            {Manage validation messages}
+                                        </div>
+                                    </div>
+                                    <p class="text-center">
+                                        <a id="manageMessagesButton" class="btn btn-extract-filled"
+                                           th:href="@{'/remarks'}" >
+                                            <i class="fa fa-pencil-square-o"></i>
+                                            <span th:text="#{parameters.remarks.manage.button}" >
+                                                {Manage messages}
+                                            </span>
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
                         </div>
                     </div>
-
                 </form>
 
             </div>

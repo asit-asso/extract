@@ -37,4 +37,8 @@ public interface TasksRepository extends PagingAndSortingRepository<Task, Intege
      */
     Task[] findByProcessOrderByPosition(Process process);
 
+    Task findByProcessIdAndPosition(int processId, int position);
+
+    Task[] findAllByCode(String code);
+
 }

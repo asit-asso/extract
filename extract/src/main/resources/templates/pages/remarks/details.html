@@ -1,0 +1,101 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/master}">
+    <head>
+        <title>
+            [[#{application.name}]]&nbsp;&ndash; [[${isNew}
+            ? #{remarkDetails.page.title.new}
+            : ${#messages.msg('remarkDetails.page.title.edit', remark.title)}]]
+        </title>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="page-wrapper" layout:fragment="content">
+                <form id="remarkForm" method="POST" action="#" th:object='${remark}' class="form"
+                      th:action="${isNew} ? @{/remarks/add} : @{'/remarks/' + ${remark.id}}">
+                    <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
+                                data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                        <ul>
+                            <li th:each="error : ${#fields.errors('*')}" th:text="${error}"></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <div class="float-right">
+                            <button id="remarkCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
+                                    type="button">
+                                {Cancel}
+                            </button>
+                            <button id="remarkSaveButton" class="btn btn-extract-filled" th:text="#{buttons.save}"
+                                    type="button">
+                                {Save}
+                            </button>
+                        </div>
+                        <h1 class="page-header" th:text="${isNew} ? #{remarkDetails.body.title.new} : ${#messages.msg('remarkDetails.body.title.edit', remark.title)}">
+                            {Remark}
+                        </h1>
+                    </div>
+                    <p th:text="#{remarkDetails.body.text.explain}">{Define here a message}</p>
+                    <p th:text="#{remarkDetails.body.text.variables}">{Use operatorName and operatorEmail}</p>
+                    <div class="card card-default">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-xl-12">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('title')} ? 'has-error'">
+                                        <label th:text="#{remarkDetails.fields.title.label}" class="col-form-label">
+                                            {Title}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <input type="text" class="form-control" th:field="*{title}" maxlength="255"
+                                               data-toggle="tooltip"
+                                               th:title="${#fields.hasErrors('title')} ? ${#fields.errors('title')[0]}" />
+                                        <input type="hidden" th:field="*{id}" />
+                                        <input type="hidden" th:field="${isNew}" />
+                                    </div>
+                                </div>
+                                <div class="col-xl-12">
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('content')} ? 'has-error'">
+                                        <label th:text="#{remarkDetails.fields.content.label}" class="col-form-label">
+                                            {Body}
+                                        </label>
+                                        <span class="mandatory" data-toggle="tooltip"
+                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <textarea class="form-control" style="resize:vertical"
+                                                  th:field="*{content}" data-toggle="tooltip"
+                                                  th:title="${#fields.hasErrors('content')} ? ${#fields.errors('content')[0]}"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+                <div th:replace="fragments/alert :: alertModal"></div>
+            </div>
+        </div>
+        <th:block layout:fragment="customScripts">
+            <script type="text/javascript" src="../../static/js/remarkDetails.js"
+            th:src="@{/js/remarkDetails.js} + '?v=@@extractVersion@@'"></script>
+            <script type="text/javascript" th:inline="javascript">
+                /*<![CDATA[*/
+                $(function() {
+
+                    $('#remarkCancelButton').on('click', function() {
+                        var targetUrl = /*[[@{'/remarks'}]]*/ "../remarks";
+                        location.replace(targetUrl);
+                    });
+
+                    $('#remarkSaveButton').on('click', submitRemarkData);
+                });
+                /*]]>*/</script>
+        </th:block>
+    </body>
+</html>

@@ -24,6 +24,15 @@ function submitProcessData() {
     //update usersIds in hidden input before saving process 
     var usersIdsArray = $("#users").select2('val');
     $("#usersIds").val(usersIdsArray.join(','));
+
+    $(".parameter-select").each(function (index, item) {
+        var idsArray = $(item).select2('val');
+        var selectId = $(item).attr('id');
+        var valuesFieldId = selectId.substring(0, selectId.length - '-select'.length);
+        var valuesField = document.getElementById(valuesFieldId);
+        $(valuesField).val(idsArray.join(','));
+    });
+
     //update tasks position
     $(".extract-proc-tasks .col-xl-8 .card-body .row .taskPosition").each(function(i) {
         $(this).val(i + 1);
@@ -64,7 +73,7 @@ $(function() {
         $("#htmlScrollY").val(0);
     }
     
-    $("#users").select2({
+    $(".select2").select2({
         multiple:true
     });
     
@@ -72,6 +81,16 @@ $(function() {
     var usersIdsArray = $("#usersIds").val().split(',');
     $('#users').val(usersIdsArray);
     $('#users').trigger('change');
+
+    $(".parameter-select-values").each(function (index, item) {
+        var idsArray = $(item).val().split(',');
+        console.log("Values:", idsArray);
+        var selectId = $(item).attr("id") + "-select";
+        var select2Item = $(document.getElementById(selectId));
+        $(select2Item).val(idsArray);
+        console.log("Select ID:", selectId, "Value:", $(select2Item).val());
+        $(select2Item).trigger('change');
+    });
 
     //initialisation de la tooltip "help"
     /*$('[data-toggle="popover"]').popover({

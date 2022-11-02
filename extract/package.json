@@ -15,5 +15,10 @@
     },
     "engines": {
         "yarn": ">= 1.0.0"
+    },
+    "eslintConfig": {
+        "env": {
+            "es6": true
+        }
     }
 }

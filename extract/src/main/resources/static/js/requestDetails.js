@@ -1843,6 +1843,37 @@ function _handleButtonClick(button, actionFunction, remarkFieldId) {
 
 
 
+
+function getRemarkText(remarkId, remarkType, targetControlId){
+    $.ajax({
+        url: getRemarkTextUrl,
+        method: 'GET',
+        data: { id: remarkId, requestId, remarkType }
+    }).done(function (data) {
+
+        if (!data) {
+            console.warn("Returned remark text was empty.");
+            return;
+        }
+
+        var targetControl = document.getElementById(targetControlId);
+
+        if (!targetControl) {
+            console.warn(`The target text area ${targetControlId} could not be found.`);
+            return;
+        }
+
+        $(targetControl).val(data);
+
+    }).fail(function (data, textStatus) {
+        console.error('Fetching remark text failed: ' + textStatus);
+        return null;
+    });
+}
+
+
+
+
 /********************* EVENT HANDLERS *********************/
 
 $(function() {
@@ -1905,5 +1936,15 @@ $(function() {
         $('#actionForm').attr('enctype', 'multipart/form-data');
         $('#actionForm').attr('action', $('#file-upload-button').attr('data-action'));
         $('#actionForm').submit();
+    });
+
+    $('#validationMessagesList').on('change', function() {
+        var remarkId = parseInt(this.options[this.selectedIndex].value);
+        var remarkText = getRemarkText(remarkId, 'validation', 'standbyValidateRemark');
+    });
+
+    $('#rejectionMessagesList').on('change', function() {
+        var remarkId = parseInt(this.options[this.selectedIndex].value);
+        var remarkText = getRemarkText(remarkId, 'rejection', 'standbyCancelRemark');
     });
 });

@@ -16,14 +16,18 @@
  */
 package ch.asit_asso.extract.plugins.validation;
 
-import java.util.Map;
-
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 
 
@@ -185,7 +189,29 @@ public class ValidationPlugin implements ITaskProcessor {
 
     @Override
     public final String getParams() {
-        return "[]";
+        ObjectMapper mapper = new ObjectMapper();
+        ArrayNode parametersNode = mapper.createArrayNode();
+
+        ObjectNode validMessagesNode = parametersNode.addObject();
+        validMessagesNode.put("code", this.config.getProperty("paramValidMessages"));
+        validMessagesNode.put("label", this.messages.getString("paramValidMessages.label"));
+        validMessagesNode.put("type", "list_msgs");
+        validMessagesNode.put("req", false);
+
+        ObjectNode rejectMessagesNode = parametersNode.addObject();
+        rejectMessagesNode.put("code", this.config.getProperty("paramRejectMessages"));
+        rejectMessagesNode.put("label", this.messages.getString("paramRejectMessages.label"));
+        rejectMessagesNode.put("type", "list_msgs");
+        rejectMessagesNode.put("req", false);
+
+        try {
+            return mapper.writeValueAsString(parametersNode);
+
+        } catch (JsonProcessingException exception) {
+            this.logger.error("An error occurred when the parameters were converted to JSON.", exception);
+            return null;
+        }
+
     }
 
 

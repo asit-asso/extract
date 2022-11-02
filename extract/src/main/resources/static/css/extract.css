@@ -186,9 +186,22 @@ a.btn-extract-filled:visited {
     height: 100px;
     width: 100%;
     resize: vertical;
-    margin-bottom: 46px;
     max-width: 100%;
 }
+
+.remark-templates-list {
+    width: 100%;
+}
+
+.current-step-action textarea + .remark-templates-list {
+    margin-top: 10px;
+    margin-bottom: 50px;
+}
+
+.current-step-action textarea + button {
+    margin-top: 46px;
+}
+
 
 .current-step-action textarea.task-error-reject-remark {
     height: 80px;

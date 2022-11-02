@@ -16,26 +16,20 @@
  */
 package ch.asit_asso.extract.domain;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
-import javax.persistence.Basic;
-import javax.persistence.Column;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.ForeignKey;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
-import javax.persistence.Index;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
-import javax.persistence.Table;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import jakarta.xml.bind.annotation.XmlRootElement;
 import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 
 /**
@@ -52,6 +46,8 @@ import org.slf4j.LoggerFactory;
 public class Task implements Serializable {
 
     private static final long serialVersionUID = 1L;
+    public static final String VALIDATION_MESSAGES_PARAMETER_NAME = "valid_msgs";
+    public static final String REJECTION_MESSAGES_PARAMETER_NAME = "reject_msgs";
 
     /**
      * The number that uniquely identifies this task in the application.
@@ -272,6 +268,40 @@ public class Task implements Serializable {
         this.process = parentProcess;
     }
 
+
+
+    public List<Integer> getValidationMessagesTemplatesIds() {
+        return this.getMessagesTemplatesIds(Task.VALIDATION_MESSAGES_PARAMETER_NAME);
+    }
+
+
+
+    public List<Integer> getRejectionMessagesTemplatesIds() {
+        return this.getMessagesTemplatesIds(Task.REJECTION_MESSAGES_PARAMETER_NAME);
+    }
+
+
+
+    private List<Integer> getMessagesTemplatesIds(String parameterName) {
+        assert parameterName != null : "The name of the parameter containing the messages identifiers cannot be null.";
+        Map<String, String> parameterValues = this.getParametersValues();
+
+        if (parameterValues == null || !parameterValues.containsKey(parameterName)) {
+            return null;
+        }
+
+        List<Integer> idsList = new ArrayList<>();
+
+        for (String idString : parameterValues.get(parameterName).split(",")) {
+            int id = NumberUtils.toInt(idString);
+
+            if (id > 0) {
+                idsList.add(id);
+            }
+        }
+
+        return idsList;
+    }
 
 
     public final Task createCopy() {

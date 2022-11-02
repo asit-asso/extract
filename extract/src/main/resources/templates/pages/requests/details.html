@@ -235,6 +235,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </p>
                             <textarea id="standbyValidateRemark" th:text="${request.remark}" class="form-control"
                                       th:placeholder="#{requestDetails.currentStep.validate.remark.placeholder}"></textarea>
+                            <select th:unless="${validationMessages == null}" id="validationMessagesList"
+                                    class="remark-templates-list select2-container form-control select2">
+                                <option value="" disabled selected hidden
+                                        th:text="#{requestDetails.currentStep.validate.templates.placeholder}">
+                                    {--- Validation remarks templates ---}
+                                </option>
+                                <option th:each="template : ${validationMessages}" th:object="${template}" value="1"
+                                        th:value="*{id}" th:text="*{title}">{My message title}</option>
+                            </select>
                             <button type="button" id="standbyValidateButton" class="btn btn-extract-filled"
                                     th:attr="data-action=@{'/requests/' + ${request.id} + '/validate'}">
                                 <i class="fa fa-check"></i>
@@ -249,6 +258,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </p>
                             <textarea id="standbyCancelRemark" class="form-control"
                                       th:placeholder="#{requestDetails.currentStep.reject.remark.placeholder}"></textarea>
+                            <select th:unless="${rejectionMessages == null}" id="rejectionMessagesList"
+                                    class="remark-templates-list select2-container form-control select2"
+                                    th:placeholder="#{requestDetails.currentStep.reject.templates.placeholder}">
+                                <option value="" disabled selected hidden
+                                        th:text="#{requestDetails.currentStep.reject.templates.placeholder}">
+                                    {--- Rejection remarks templates ---}
+                                </option>
+                                <option th:each="template : ${rejectionMessages}" th:object="${template}" value="1"
+                                        th:value="*{id}" th:text="*{title}">{My message title}</option>
+                            </select>
                             <button type="button" id="standbyCancelButton" class="btn btn-danger"
                                     th:attr="data-action=@{'/requests/' + ${request.id} + '/reject'}">
                                 <i class="fa fa-remove"></i>
@@ -504,6 +523,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     th:src="@{/js/requestDetails.js} + '?v=@@extractVersion@@'">
             </script>
             <script type="text/javascript" th:inline="javascript">
+                var getRemarkTextUrl = /*[[@{/requests/getRemarkText}]]*/ './remarks/getText';
+                var requestId = /*[[${request.id}]]*/ 1;
+
                 $(function() {
 
                     $('#requestCancelButton').on('click', function() {

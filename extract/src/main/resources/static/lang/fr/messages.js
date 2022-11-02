@@ -88,6 +88,12 @@ var LANG_MESSAGES = {
             }
         }
     },
+    "remarksList" : {
+        "deleteConfirm" : {
+            "title" : "Suppression d'un message",
+            "message" : "Êtes-vous sûr de vouloir supprimer le message \"{0}\" ?"
+        }
+    },
     "rulesList" : {
         "deleteConfirm" : {
             "title" : "Suppression d'une règle",

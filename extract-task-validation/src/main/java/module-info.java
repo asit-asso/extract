@@ -10,4 +10,5 @@ module ch.asit_asso.extract.plugins.validation {
     requires org.apache.commons.io;
     requires org.apache.commons.lang3;
     requires org.slf4j;
+    requires com.fasterxml.jackson.databind;
 }

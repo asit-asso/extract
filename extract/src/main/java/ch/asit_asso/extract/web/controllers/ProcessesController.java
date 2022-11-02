@@ -16,22 +16,16 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import javax.validation.Valid;
-
 import ch.asit_asso.extract.domain.Process;
+import ch.asit_asso.extract.domain.Remark;
 import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.domain.User;
-import ch.asit_asso.extract.persistence.ProcessesRepository;
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import ch.asit_asso.extract.persistence.TasksRepository;
-import ch.asit_asso.extract.persistence.UsersRepository;
-import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.ProcessModel;
+import ch.asit_asso.extract.web.model.RemarkModel;
 import ch.asit_asso.extract.web.model.TaskModel;
 import ch.asit_asso.extract.web.model.UserModel;
 import ch.asit_asso.extract.web.validators.PluginItemModelParameterValidator;
@@ -45,14 +39,13 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.InitBinder;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.validation.Valid;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 
 
@@ -103,7 +96,13 @@ public class ProcessesController extends BaseController {
     private ProcessesRepository processesRepository;
 
     /**
-     * The repository that links processes data objects with the data source.
+     * The repository that links remarks data objects with the data source.
+     */
+    @Autowired
+    private RemarkRepository remarksRepository;
+
+    /**
+     * The repository that links order data objects with the data source.
      */
     @Autowired
     private RequestsRepository requestsRepository;
@@ -577,6 +576,7 @@ public class ProcessesController extends BaseController {
         Collection<ITaskProcessor> alltasks = this.taskPluginsDiscoverer.getTaskProcessorsOrderedByLabel().values();
         model.addAttribute("alltasks", alltasks.toArray(new ITaskProcessor[]{}));
         model.addAttribute("allactiveusers", this.getAllActiveUsers());
+        model.addAttribute("allremarks", this.getAllRemarks());
 
         if (processModel != null) {
             model.addAttribute("process", processModel);
@@ -619,10 +619,9 @@ public class ProcessesController extends BaseController {
     }
 
     /**
-     * Fetches a list of connectors from the repository and returns a collection of business connector
-     * objects that use a plugin that is still available.
+     * Fetches a list of users from the repository and returns a collection of active user objects.
      *
-     * @return an array of existing connectors
+     * @return an array of existing active users
      */
     private List<UserModel> getAllActiveUsers() {
         final List<UserModel> usersList = new ArrayList<>();
@@ -633,6 +632,21 @@ public class ProcessesController extends BaseController {
         }
 
         return usersList;
+    }
+
+    /**
+     * Fetches a list of predefined remarks from the repository and returns a collection of predefined remarks objects.
+     *
+     * @return an array of existing predefined remarks
+     */
+    private List<RemarkModel> getAllRemarks() {
+        final List<RemarkModel> remarksList = new ArrayList<>();
+
+        for (Remark domainRemark : this.remarksRepository.findAllByOrderByTitle()) {
+            remarksList.add(new RemarkModel(domainRemark, this.tasksRepository));
+        }
+
+        return remarksList;
     }
 
 }

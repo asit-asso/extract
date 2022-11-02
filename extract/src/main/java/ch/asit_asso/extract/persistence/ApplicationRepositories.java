@@ -16,6 +16,7 @@
  */
 package ch.asit_asso.extract.persistence;
 
+import ch.asit_asso.extract.domain.Remark;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -52,6 +53,12 @@ public class ApplicationRepositories {
      */
     @Autowired
     private RequestsRepository requestsRepository;
+
+    /**
+     * The link between predefined remark data objects and the data source.
+     */
+    @Autowired
+    private RemarkRepository remarksRepository;
 
     /**
      * The link between rule data objects and the data source.
@@ -119,6 +126,17 @@ public class ApplicationRepositories {
      */
     public final RequestsRepository getRequestsRepository() {
         return this.requestsRepository;
+    }
+
+
+
+    /**
+     * Obtains the link between the predefined remark data objects and the data source.
+     *
+     * @return the predefined remarks repository
+     */
+    public final RemarkRepository getRemarksRepository() {
+        return this.remarksRepository;
     }
 
 

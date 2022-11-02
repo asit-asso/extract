@@ -16,34 +16,18 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
-
 import ch.asit_asso.extract.domain.Process;
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
-import ch.asit_asso.extract.domain.Request;
-import ch.asit_asso.extract.domain.RequestHistoryRecord;
-import ch.asit_asso.extract.domain.Task;
-import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.*;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
-import ch.asit_asso.extract.persistence.ProcessesRepository;
-import ch.asit_asso.extract.persistence.RequestHistoryRepository;
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import ch.asit_asso.extract.persistence.SystemParametersRepository;
-import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.utils.FileSystemUtils;
 import ch.asit_asso.extract.utils.FileSystemUtils.RequestDataFolder;
 import ch.asit_asso.extract.utils.ZipUtils;
 import ch.asit_asso.extract.web.Message;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.RequestModel;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,15 +40,20 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Optional;
 
 
 /**
@@ -137,6 +126,12 @@ public class RequestsController extends BaseController {
     private ProcessesRepository processesRepository;
 
     /**
+     * The Spring Data object that links the remark data objects with the data source.
+     */
+    @Autowired
+    private RemarkRepository remarksRepository;
+
+    /**
      * The Spring Data object that links the request data objects with the data source.
      */
     @Autowired
@@ -147,6 +142,12 @@ public class RequestsController extends BaseController {
      */
     @Autowired
     private RequestHistoryRepository requestHistoryRepository;
+
+    /**
+     * The Spring Data object that links the task entry data objects with the data source.
+     */
+    @Autowired
+    private TasksRepository tasksRepository;
 
     /**
      * The Spring Data object that links the user data objects with the data source.
@@ -186,9 +187,17 @@ public class RequestsController extends BaseController {
 
         this.addCurrentSectionToModel(RequestsController.CURRENT_SECTION_IDENTIFIER, model);
         this.addJavascriptMessagesAttribute(model);
-        model.addAttribute("request", new RequestModel(request,
+        final RequestModel requestModel = new RequestModel(request,
                 this.requestHistoryRepository.findByRequestOrderByStep(request).toArray(new RequestHistoryRecord[]{}),
-                Paths.get(this.parametersRepository.getBasePath()), this.messageSource));
+                Paths.get(this.parametersRepository.getBasePath()), this.messageSource);
+
+        model.addAttribute("request", requestModel);
+        Task currentTask = this.getCurrentTask(requestModel);
+
+        if (currentTask != null) {
+            model.addAttribute("validationMessages", this.getValidationMessagesTemplates(currentTask));
+            model.addAttribute("rejectionMessages", this.getRejectionMessagesTemplates(currentTask));
+        }
 
         String mapDataFileName = RequestsController.DEFAULT_MAP_DATA_FILE_NAME;
         Resource customMapResource = new ClassPathResource(RequestsController.CUSTOM_MAP_DATA_PATH);
@@ -204,6 +213,132 @@ public class RequestsController extends BaseController {
         this.logger.debug("Displaying request details.");
 
         return RequestsController.DETAILS_VIEW;
+    }
+
+
+
+    @GetMapping(value = "getRemarkText", produces = "text/plain")
+    @ResponseBody
+    public final String getRemarkText(@RequestParam("id") int remarkId, @RequestParam int requestId,
+                                      @RequestParam String remarkType, HttpServletResponse response) {
+
+        this.logger.debug("Processing request to get the text of {} remark {} for request {}.",
+                          remarkType, remarkId, requestId);
+        Request request = this.getDomainRequest(requestId);
+
+        if (request == null) {
+            this.logger.error("No request found in database with the identifier {}.", requestId);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+
+        if (!this.canCurrentUserViewRequestDetails(request)) {
+            this.logger.warn("The user {} tried to access the text of a remark for request {} but is not allowed to view it.",
+                    this.getCurrentUserLogin(), requestId);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return null;
+        }
+
+        final RequestModel requestModel = new RequestModel(request,
+                this.requestHistoryRepository.findByRequestOrderByStep(request).toArray(new RequestHistoryRecord[]{}),
+                Paths.get(this.parametersRepository.getBasePath()), this.messageSource);
+
+        Task currentTask = this.getCurrentTask(requestModel);
+
+        if (request.getStatus() != Request.Status.STANDBY && "VALIDATION".equals(currentTask.getCode())) {
+            this.logger.warn("The user {} tried to access the text of a remark for request {} but the request is not "
+                             + "in a state that allows the input of a remark template.", this.getCurrentUserLogin(),
+                             requestId);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return null;
+        }
+
+        List<Integer> messagesIdsList;
+
+        switch (remarkType) {
+
+            case "rejection":
+                messagesIdsList = currentTask.getRejectionMessagesTemplatesIds();
+                break;
+
+            case "validation":
+                messagesIdsList = currentTask.getValidationMessagesTemplatesIds();
+                break;
+
+            default:
+                this.logger.warn("The user {} tried to access the text of a remark with type {}, which is invalid.",
+                        this.getCurrentUserLogin(), remarkType);
+                return RequestsController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        if (messagesIdsList == null || !messagesIdsList.contains(remarkId)) {
+            this.logger.warn("The user {} tried to access the text of a remark {} for request {} but the remark is not allowed for this request.",
+                    this.getCurrentUserLogin(), remarkId, requestId);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+
+        Optional<Remark> remark = this.remarksRepository.findById(remarkId);
+
+        if (remark.isEmpty()) {
+            this.logger.warn("The user {} tried to access the text of a remark {} but it could not be found.",
+                    this.getCurrentUserLogin(), remarkId);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            return null;
+        }
+
+        User operator = this.usersRepository.findByLoginIgnoreCase(this.getCurrentUserLogin());
+
+        return remark.get().getContent()
+                .replace("{operatorName}", operator.getName())
+                .replace("{operatorEmail}", operator.getEmail());
+    }
+
+
+
+
+    private Task getCurrentTask(RequestModel currentRequest) {
+        Integer processId = currentRequest.getProcessId();
+
+        if (processId == null) {
+            return null;
+        }
+
+        int currentStep = currentRequest.getCurrentProcessStep();
+
+        if (currentStep <= 0) {
+            return null;
+        }
+
+        return this.tasksRepository.findByProcessIdAndPosition(processId.intValue(), currentStep);
+    }
+
+
+
+    private Iterable<Remark> getRejectionMessagesTemplates(Task currentTask) {
+        assert currentTask != null : "The current task cannot be null.";
+
+        List<Integer> messagesIds = currentTask.getRejectionMessagesTemplatesIds();
+
+        if (messagesIds == null || messagesIds.size() == 0) {
+            return null;
+        }
+
+        return this.remarksRepository.findAllById(messagesIds);
+    }
+
+
+
+    private Iterable<Remark> getValidationMessagesTemplates(Task currentTask) {
+        assert currentTask != null : "The current task cannot be null.";
+
+        List<Integer> messagesIds = currentTask.getValidationMessagesTemplatesIds();
+
+        if (messagesIds == null || messagesIds.size() == 0) {
+            return null;
+        }
+
+        return this.remarksRepository.findAllById(messagesIds);
     }
 
 
@@ -1399,7 +1534,6 @@ public class RequestsController extends BaseController {
      * Obtains a file that was produced by the processing of an order.
      *
      * @param request      the order that produced the desired file
-     * @param relativePath the path of the file relative to the output folder of the order
      * @return the file, or <code>null</code> if it is not available or accessible
      */
     private byte[] getRequestOutputContent(final Request request) {

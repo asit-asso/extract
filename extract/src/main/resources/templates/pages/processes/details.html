@@ -202,6 +202,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                           th:required="*{required}" th:if="*{type} == 'multitext' and !${readOnly}"
                                                                           th:field="*{value}" data-toggle="tooltip"
                                                                           th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
+                                                                <input type="hidden" th:field="*{value}" th:if="*{type} == 'list_msgs' and !${readOnly}"
+                                                                       class="parameter-select-values" />
+                                                                <select class="select2-container select2-container-multi form-control select2 parameter-select"
+                                                                        multiple="multiple" data-toggle="tooltip" th:id="${'tasks' + taskStats.index + '.parameters' + paramStats.index + '.value-select'}"
+                                                                        th:required="*{required}" th:if="*{type} == 'list_msgs' and !${readOnly}"
+                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" >
+                                                                    <option th:each="remark, remarkStats : ${allremarks}"
+                                                                            th:value="${remark.id}"
+                                                                            th:text="${remark.title}" >
+                                                                        {Option}
+                                                                    </option>
+                                                                </select>
+
                                                                 <div class="btn-group" data-toggle="buttons"
                                                                      th:required="*{required}" th:if="*{type} == 'boolean' and !${readOnly}" >
                                                                     <label class="btn btn-sm btn-toggle btn-toggle-no"
