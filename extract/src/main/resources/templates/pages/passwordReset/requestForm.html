@@ -18,15 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/masterNoNavigation">
+      layout:decorate="~{layout/masterNoNavigation}">
     <head>
-        <title th:inline="text">[[#{application.name}]]&nbsp;&ndash; [[#{passwordResetDemand.page.title}]]</title>
+        <title>[[#{application.name}]]&nbsp;&ndash; [[#{passwordResetDemand.page.title}]]</title>
     </head>
     <body>
         <div class="container-fluid">
             <th:block layout:fragment="content">
-                <div class="row">
-                    <div class="col-md-6 col-md-offset-3">
+                <div class="row justify-content-center">
+                    <div class="col-lg-6">
                         <div class="alert alert-dismissible alert-danger" th:if="${errorMessage}">
                             <button type="button" class="close" data-dismiss="alert" aria-label="Close"
                                     data-toggle="tooltip"
@@ -36,28 +36,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <h4 th:text="#{errors.panel.title}">{Error}</h4>
                             <div th:text="${#messages.msg(errorMessage)}">{Error}</div>
                         </div>
-                        <div class="login-panel panel panel-default">
-                            <div class="panel-heading">
-                                <h3 class="panel-title">
+                        <div class="login-card card card-default">
+                            <div class="card-header">
+                                <h3 class="card-title">
                                     <img src="../static/images/extract_logo.png" th:src="@{/images/extract_logo.png}" />
-                                    <span class="login-panel-title" th:text="#{passwordResetDemand.body.title}">
+                                    <span class="login-card-title" th:text="#{passwordResetDemand.body.title}">
                                         {Password reset request}
                                     </span>
                                 </h3>
                             </div>
-                            <div class="panel-body">
-                                <form th:action="@{/passwordReset/request}" action="#" method="POST" class="form-horizontal">
+                            <div class="card-body">
+                                <form th:action="@{/passwordReset/request}" action="#" method="POST">
                                     <p th:text="#{passwordResetDemand.email.explanation}">
                                         {Please enter e-mail address below.}
                                     </p>
                                     <p th:text="#{passwordResetDemand.email.forgotten}">
                                         {If you have forgotten, please contact your admin.}
                                     </p>
-                                    <div class="form-group">
-                                        <label for="email" class="sr-only" th:text="#{passwordResetDemand.email.label}">
+                                    <div class="form-group row">
+                                        <label for="email" class="col-form-label sr-only"
+                                               th:text="#{passwordResetDemand.email.label}">
                                             {E-mail address}
                                         </label>
-                                        <div class="col-lg-6">
+                                        <div class="col-xl-6">
                                             <input type="text" id="email" name="email" class="form-control"
                                                    th:value="${enteredEmail}" placeholder="{E-mail address}"
                                                    th:placeholder="#{passwordResetDemand.email.label}" />

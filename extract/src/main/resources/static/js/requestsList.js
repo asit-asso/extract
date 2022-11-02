@@ -358,7 +358,7 @@ function _createConnectorsDropDown(connectorsInfo, state) {
 
     for (var itemIndex = 0; itemIndex < connectorsInfo.length; itemIndex++) {
         var itemData = connectorsInfo[itemIndex];
-        var connectorItem = $('<li role="presentation"></li>');
+        var connectorItem = $('<li class="dropdown-item" role="presentation"></li>');
         var itemLink = $('<a role="menuitem"></a>');
         itemLink.attr('title', itemData.stateMessage);
         itemLink.attr('href', (itemData.url) ? itemData.url : '#');

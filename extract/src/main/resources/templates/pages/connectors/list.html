@@ -1,31 +1,48 @@
 <!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<!--
+Copyright (C) 2017 arx iT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/masterWithTable">
+      layout:decorate="~{layout/masterWithTable}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]&nbsp;&ndash; [[#{connectorsList.page.title}]]
         </title>
     </head>
     <body>
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content">
-                <div class="btn-group pull-right">
-                    <button class="btn btn-extract-filled dropdown-toggle btn-sm" data-toggle="dropdown">
+                <div class="btn-group float-right">
+                    <button class="btn btn-extract-filled dropdown-toggle btn-md" data-toggle="dropdown">
                         <i class="fa fa-plus fa-fw"></i>
                         <span th:text="#{connectorsList.new.button}">{Add new connector}</span>
                     </button>
                     <ul class="dropdown-menu" role="menu">
-                        <li th:each="connectorPlugin : ${plugins}" th:object="${connectorPlugin}" role="menuitem">
+                        <li class="dropdown-item" th:each="connectorPlugin : ${plugins}" th:object="${connectorPlugin}"
+                            role="menuitem">
                             <a href="add?type=test" th:href="@{'/connectors/add?type=' + *{code}}"
                                th:text="*{label}">{Connector}</a>
                         </li>
                     </ul>
                 </div>
                 <h1 class="page-header" th:text="#{connectorsList.body.title}">{Connectors}</h1>
-                <div class="panel panel-default">
-                    <div class="panel-body">
+                <div class="card card-default">
+                    <div class="card-body">
                         <table class="table table-striped table-hover dataTables dataTable">
                             <thead>
                                 <tr>
@@ -42,11 +59,11 @@
                                     </td>
                                     <td th:text="*{typeLabel}">{Connector label}</td>
                                     <td>
-                                        <div class="label label-success" th:text="#{connectorsList.table.item.active}" th:if="*{active}">{Active}</div>
-                                        <div class="label label-danger" th:text="#{connectorsList.table.item.inactive}" th:unless="*{active}">{Inactive}</div>
+                                        <div class="badge badge-success" th:text="#{connectorsList.table.item.active}" th:if="*{active}">{Active}</div>
+                                        <div class="badge badge-danger" th:text="#{connectorsList.table.item.inactive}" th:unless="*{active}">{Inactive}</div>
                                     </td>
                                     <td class="center-cell" th:with="hasActiveRequests = ${connector.hasActiveRequests()}">
-                                        <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-xs"
+                                        <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
                                                 data-toggle="tooltip"
                                                 th:classappend="${hasActiveRequests} ? 'disabled delete-button-inactive' : 'btn-danger delete-button'"
                                                 th:title="${#messages.msg('connectorsList.buttons.delete.' + (hasActiveRequests ? 'inactive' : 'active') + '.tooltip')}">
@@ -61,7 +78,7 @@
                 <form id="connectorForm" method="POST" action="#" th:action="@{/connectors/delete}">
                     <input type="hidden" id="connectorId" name="id" value="" />
                     <input type="hidden" id="connectorName" name="name" value="" />
-                    <input type="hidden" id="_csrf" value="${_csrf.token}" />
+                    <input type="hidden" id="${_csrf.parameterName}" value="${_csrf.token}" />
                 </form>
                 <div th:replace="fragments/alert :: alertModal"></div>
             </div>

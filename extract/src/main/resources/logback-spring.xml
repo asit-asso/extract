@@ -22,7 +22,7 @@
     -->
 
     <!--
-    <logger name="org.easysdi.extract" level="WARN">
+    <logger name="ch.asit_asso.extract" level="WARN">
         <appender-ref ref="FILE" />
     </logger>
     -->

@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.1" xmlns="http://xmlns.jcp.org/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/persistence http://xmlns.jcp.org/xml/ns/persistence/persistence_2_1.xsd">
-  <persistence-unit name="org.easysdi_extract_war_0.0.1-SNAPSHOTPU" transaction-type="JTA">
+  <persistence-unit name="ch.asit_asso_extract_war_0.0.1-SNAPSHOTPU" transaction-type="JTA">
     <provider>org.hibernate.ejb.HibernatePersistence</provider>
     <jta-data-source/>
-    <class>org.easysdi.extract.domain.Task</class>
-    <class>org.easysdi.extract.domain.Rule</class>
-    <class>org.easysdi.extract.domain.Request</class>
-    <class>org.easysdi.extract.domain.Process</class>
-    <class>org.easysdi.extract.domain.Connector</class>
-    <class>org.easysdi.extract.domain.User</class>
-    <class>org.easysdi.extract.domain.RequestHistoryRecord</class>
-    <class>org.easysdi.extract.domain.SystemParameter</class>
+    <class>ch.asit_asso.extract.domain.Task</class>
+    <class>ch.asit_asso.extract.domain.SystemParameter</class>
+    <class>ch.asit_asso.extract.domain.Process</class>
+    <class>ch.asit_asso.extract.domain.Rule</class>
+    <class>ch.asit_asso.extract.domain.Request</class>
+    <class>ch.asit_asso.extract.domain.Connector</class>
+    <class>ch.asit_asso.extract.domain.User</class>
+    <class>ch.asit_asso.extract.domain.RequestHistoryRecord</class>
     <exclude-unlisted-classes>false</exclude-unlisted-classes>
   </persistence-unit>
 </persistence>

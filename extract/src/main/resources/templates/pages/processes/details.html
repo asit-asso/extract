@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/master">
+      layout:decorate="~{layout/master}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]&nbsp;&ndash; [[${isNew}
             ? #{processDetails.page.title.new}
             : ${#messages.msg('processDetails.page.title.' + (process.readOnly ? 'view' : 'edit'), process.name)}]]
@@ -45,7 +45,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </ul>
                     </div>
                     <div>
-                        <div class="pull-right">
+                        <div class="float-right">
                             <button id="processCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
                                     type="button">
                                 {Cancel}
@@ -61,19 +61,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             {Process}
                         </h1>
                     </div>
-                    <div class="panel panel-default">
-                        <div class="panel-body">
+                    <div class="card card-default">
+                        <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
                                         <label th:text="#{processDetails.fields.name.label}"
-                                               class="control-label">{Name}</label>
+                                               class="col-form-label">{Name}</label>
                                         <span class="mandatory" th:unless="${readOnly}"></span>
                                         <input type="text" class="form-control" th:field="*{name}"
                                                th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}"
                                                th:unless="${readOnly}" data-toggle="tooltip" />
-                                        <div th:text="*{name}" th:if="${readOnly}" class="form-control-static">
+                                        <div th:text="*{name}" th:if="${readOnly}" class="form-control-plaintext">
                                             {Name}
                                         </div>
                                         <input type="hidden" th:field="*{name}" th:if="${readOnly}" />
@@ -82,11 +82,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         <input type="hidden" th:field="*{htmlScrollY}" />
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('users')} ? 'has-error'" >
                                         <label th:text="#{processDetails.fields.operators.label}"
-                                               class="control-label">{Operators}</label>
+                                               class="col-form-label">{Operators}</label>
                                         <span class="mandatory" th:unless="${readOnly}"></span>
                                         <input id="usersIds" type="hidden" th:field="*{usersIds}" />
                                         <select class="select2-container select2-container-multi form-control select2"
@@ -100,7 +100,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 {Option}
                                             </option>
                                         </select>
-                                        <div th:if="${readOnly}" class="form-control-static">
+                                        <div th:if="${readOnly}" class="form-control-plaintext">
                                             <th:block th:each="user, usersStats : *{users}"
                                                       th:object="${process.users[__${usersStats.index}__]}"
                                                       >
@@ -116,28 +116,28 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                     <div class="row extract-proc-tasks">
                         <!-- Tâches du traitement -->
-                        <div class="col-lg-8">
-                            <div class="panel panel-default">
-                                <div class="panel-heading panel-heading-large"
+                        <div class="col-xl-8">
+                            <div class="card card-default">
+                                <div class="card-header card-header-large"
                                      th:text="#{processDetails.panels.tasks.title}">{Tasks}</div>
-                                <div class="panel-body">
+                                <div class="card-body">
                                     <div class="row">
-                                        <div class="col-lg-12 process-empty-placeholder" th:if="${process.tasks.length==0}" >
+                                        <div class="col-xl-12 process-empty-placeholder" th:if="${process.tasks.length==0}" >
                                             <div th:style="'min-height: 500px;background-position: center; background-repeat: no-repeat; background-image:url(' + @{/images/process_empty_placeholder.png} + ');'"></div>
                                         </div>
-                                        <div class="col-lg-12 taskpanel"
+                                        <div class="col-xl-12 taskcard"
                                              th:each="task, taskStats : *{tasks}"
                                              th:object="${process.tasks[__${taskStats.index}__]}" >
 
                                             <p class="text-center task-arrow-down" th:style="${taskStats.index>0} ? 'display:block' : 'display:none'" ><i class="fa fa-arrow-down text-success" aria-hidden="true"></i></p>
 
-                                            <div class="panel panel-success chosed-task" >
-                                                <div class="panel-heading">
+                                            <div class="card border-success chosed-task" >
+                                                <div class="card-header text-success">
                                                     <div class="btn btn-success btn-circle">
                                                         <i class="fa" th:classappend="*{pluginPictoClass}"></i>
                                                     </div>
                                                     <span class="strong" th:text="*{pluginLabel}">{Task label}</span>
-                                                    <span class="label label-default helplink" style="cursor:pointer"
+                                                    <span class="badge badge-light helplink" style="cursor:pointer"
                                                           th:href="'#popup-over-task-' + *{id}"
                                                           th:if="${process.tasks[__${taskStats.index}__].pluginHelpMessage != null and process.tasks[__${taskStats.index}__].pluginHelpMessage != ''}"
                                                           th:text="#{processDetails.panels.tasks.helplink}" >{help}</span>
@@ -148,9 +148,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         <div class="popover-body" th:utext="*{pluginHelpMessage}"></div>
                                                     </div>
                                                     <div th:id="'deleteTaskButton-' + *{id}" th:href="@{'/processes/' + ${process.id} + '/deleteTask/' + *{id}}"
-                                                         class="btn btn-xs btn-danger pull-right deletetask-button"
+                                                         class="btn btn-sm btn-danger float-right deletetask-button"
                                                          th:classappend="${process.readOnly} ? 'disabled' : ''" >
-                                                        <span class="glyphicon glyphicon-remove"></span>
+                                                        <span class="fa fa-close"></span>
                                                     </div>
                                                     <input type="hidden" th:field="*{id}" />
                                                     <input type="hidden" th:field="*{pluginCode}" />
@@ -160,14 +160,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     <input type="hidden" th:field="*{tag}" />
                                                     <input type="hidden" class="taskPosition" th:field="*{position}" />
                                                 </div>
-                                                <div class="panel-body">
+                                                <div class="card-body">
                                                     <div class="row"
                                                          th:each="dynamicParameter, paramStats : *{parameters}"
                                                          th:object="${process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__]}">
-                                                        <div class="col-lg-12">
+                                                        <div class="col-xl-12">
                                                             <div class="form-group form-group-with-label"
                                                                  th:classappend="${#fields.hasErrors('value')} ? 'has-error'">
-                                                                <label th:text="*{label}" class="control-label">
+                                                                <label th:text="*{label}" class="col-form-label">
                                                                     {Label}
                                                                 </label>
                                                                 <span th:if="*{required}" class="mandatory"
@@ -204,12 +204,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                           th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
                                                                 <div class="btn-group" data-toggle="buttons"
                                                                      th:required="*{required}" th:if="*{type} == 'boolean' and !${readOnly}" >
-                                                                    <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                                                    <label class="btn btn-sm btn-toggle btn-toggle-no"
                                                                            th:classappend="*{value}=='true' ? '' : 'active'">
                                                                         <input type="radio" th:field="*{value}" value="false" />
                                                                         &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                                                     </label>
-                                                                    <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                                                    <label class="btn btn-sm btn-toggle btn-toggle-yes"
                                                                            th:classappend="*{value}=='true' ? 'active' : ''">
                                                                         <input type="radio" th:field="*{value}" value="true" />
                                                                         &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
@@ -227,11 +227,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                                                                 <div th:if="${readOnly} and *{type} != 'boolean'"
                                                                      th:text="*{type} == 'pass' ? '*****' : *{value}"
-                                                                     class="form-control-static">
+                                                                     class="form-control-plaintext">
                                                                     {Value}
                                                                 </div>
                                                                 <div th:if="${readonly} and *{type} == 'boolean'"
-                                                                     class="form-control-static"
+                                                                     class="form-control-plaintext"
                                                                      th:text="*{value} == 'false' ? #{toggle.no} : #{toggle.yes}">
                                                                     {Value}
                                                                 </div>
@@ -246,47 +246,47 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                         </div>
                         <!-- Tâches disponibles -->
-                        <div class="col-lg-4">
-                            <div class="panel panel-default">
-                                <div class="panel-heading panel-heading-large" th:text="#{processDetails.panels.availableTasks.title}">{tasks available}</div>
+                        <div class="col-xl-4">
+                            <div class="card card-default">
+                                <div class="card-header card-header-large" th:text="#{processDetails.panels.availableTasks.title}">{tasks available}</div>
 
-                                <div class="panel-body">
+                                <div class="card-body">
                                     <div class="row">
 
-                                        <div class="col-lg-12">
+                                        <div class="col-xl-12">
                                             <p>
-                                                <i class="fa fa-arrow-circle-left pull-left" style="font-size:40px" aria-hidden="true"></i>
+                                                <i class="fa fa-arrow-circle-left float-left" style="font-size:40px" aria-hidden="true"></i>
                                                 <span th:text="#{processDetails.panels.availableTasks.description}">{Tasks description}</span><br/>
                                             </p>
-                                            <div class="panel panel-default available-task"
+                                            <div class="card card-default available-task"
                                                  th:href="@{'/processes/' + ${process.id} + '/addTask/' + *{code}}"
                                                  th:each="availabletask, taskStats : ${alltasks}"
                                                  th:object="${alltasks[__${taskStats.index}__]}" >
-                                                <div class="panel-heading" >
+                                                <div class="card-header" >
                                                     <button class="btn btn-warning btn-circle" type="button" >
                                                         <i class="fa" th:classappend="*{pictoClass}" ></i>
                                                     </button>
                                                     <span th:text="*{label}">{Task label}</span>
                                                 </div>
-                                                <div class="panel-body">
+                                                <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-lg-12" th:text="*{description}">
+                                                        <div class="col-xl-12" th:text="*{description}">
                                                             {Task description}
                                                         </div>
                                                     </div>
                                                     <span style="display:none" class="taskcode" th:text="*{code}"></span>
                                                 </div>
                                             </div>
-                                            <!--<div class="panel panel-default available-task">
-                                                <div class="panel-heading">
+                                            <!--<div class="card card-default available-task">
+                                                <div class="card-header">
                                                     <button class="btn btn-warning btn-circle" type="button">
                                                         <i class="fa fa-folder-open-o"></i>
                                                     </button>
                                                     Archivage fichiers
                                                 </div>
-                                                <div class="panel-body">
+                                                <div class="card-body">
                                                     <div class="row">
-                                                        <div class="col-lg-12">
+                                                        <div class="col-xl-12">
                                                             Copie des fichiers dans un répertoire local ou réseau.
                                                         </div>
 

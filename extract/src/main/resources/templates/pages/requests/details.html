@@ -18,9 +18,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/masterWithTable">
+      layout:decorate="~{layout/masterWithTable}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]&nbsp;&ndash; [[${#messages.msg('requestDetails.page.title', request.label)}]]
         </title>
         <th:block layout:fragment="additionalStyleIncludes">
@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                  showActionBlock = ${request.inStandby or showErrorBlock},
                  hasProcess = ${not #strings.isEmpty(request.processName)}">
                 <div>
-                    <div class="pull-right">
+                    <div class="float-right">
                         <button id="requestCancelButton" class="btn btn-extract-white" th:text="#{buttons.close}"
                                 type="button">
                             {Cancel}
@@ -79,43 +79,38 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div>
                     <h3 th:with="processString = ${hasProcess} ? ${request.processName} : #{requestDetails.process.none}"
                         th:text="${#messages.msg('requestDetails.process.title', processString)}"></h3>
-                    <div class="progress splitted" th:if="${hasProcess}">
+                    <div class="progress splitted process-progress" th:if="${hasProcess}">
                         <th:block th:each="historyItem, historyStats : ${request.processHistory}"
                                   th:object="${request.processHistory[__${historyStats.index}__]}" th:switch="*{status}"
                                   th:with="label = ${#strings.startsWith(#object.taskLabel, '##')}
                                   ? ${#messages.msg(#strings.substringAfter(#object.taskLabel, '##'))}
                                   : *{taskLabel}, size = ${historyStats.size}">
-                            <div th:case="${T(org.easysdi.extract.domain.RequestHistoryRecord.Status).ERROR}"
+                            <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).ERROR}"
                                  th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
-                                 class="progress-bar progress-bar-danger">
+                                 class="progress-bar bg-danger">
                                 <i class="fa fa-warning"></i>
                                 <span th:text="${label}"></span>
-                                <i class="separator" th:unless="${historyStats.last}"></i>
 
                             </div>
-                            <div th:case="${T(org.easysdi.extract.domain.RequestHistoryRecord.Status).FINISHED}"
+                            <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).FINISHED}"
                                  th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
                                  class="progress-bar progress-bar-done">
                                 <span th:text="${label}"></span>
-                                <i class="separator" th:unless="${historyStats.last}"></i>
 
                             </div>
-                            <div th:case="${T(org.easysdi.extract.domain.RequestHistoryRecord.Status).ONGOING}"
+                            <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).ONGOING}"
                                  th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
                                  class="progress-bar progress-bar-current progress-bar-striped">
                                 <span th:text="${label}"></span>
-                                <i class="separator" th:unless="${historyStats.last}"></i>
                             </div>
-                            <div th:case="${T(org.easysdi.extract.domain.RequestHistoryRecord.Status).STANDBY}"
+                            <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).STANDBY}"
                                  th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
                                  class="progress-bar progress-bar-standby">
                                 <span th:text="${label}"></span>
-                                <i class="separator" th:unless="${historyStats.last}"></i>
                             </div>
                             <div th:case="*" th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
                                  class="progress-bar progress-bar-todo">
                                 <span th:text="${label}"></span>
-                                <i class="separator" th:unless="${historyStats.last}"></i>
                             </div>
                         </th:block>
                     </div>
@@ -130,7 +125,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </i>
                     </div>
                 </div>
-                <div class="well current-step current-step-error" th:if="${showErrorBlock}">
+                <div class="card card-body current-step current-step-error" th:if="${showErrorBlock}">
                     <h2 class="current-step-title" th:if="${request.importFail}"
                         th:text="${#messages.msg('requestDetails.currentStep.invalidProduct.title', request.connector.name, request.currentStepMessage)}">
                         {The product imported through the connector "My connector" cannot be processed : Invalid perimeter}
@@ -148,7 +143,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         {Export failed : 500 Internal server error}
                     </h2>
                     <div class="row">
-                        <div class="col-lg-6 current-step-action" th:if="${request.unmatched}">
+                        <div class="col-xl-6 current-step-action" th:if="${request.unmatched}">
                             <h3 th:text="#{requestDetails.currentStep.retryMatching.title}">{Retry}</h3>
                             <p th:text="#{requestDetails.currentStep.retryMatching.text}">
                                 {This will run the rule matching again.}
@@ -159,7 +154,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <span th:text="#{requestDetails.currentStep.retryMatching.button}">{Retry}</span>
                             </button>
                         </div>
-                        <div class="col-lg-3 current-step-action" th:if="${request.taskInError}">
+                        <div class="col-xl-3 current-step-action" th:if="${request.taskInError}">
                             <h3 th:text="#{requestDetails.currentStep.restartTask.title}">{Restart}</h3>
                             <p th:text="#{requestDetails.currentStep.restartTask.text}">
                                 {This will run the task again.}
@@ -170,7 +165,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <span th:text="#{requestDetails.currentStep.restartTask.button}">{Restart}</span>
                             </button>
                         </div>
-                        <div class="col-lg-4 current-step-action" th:if="${request.exportInError}">
+                        <div class="col-xl-4 current-step-action" th:if="${request.exportInError}">
                             <h3 th:text="#{requestDetails.currentStep.retryExport.title}">{Retry export}</h3>
                             <p th:text="#{requestDetails.currentStep.retryExport.text}">
                                 {This will run the export again.}
@@ -183,7 +178,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </div>
                         <div class="current-step-action"
                              th:if="${request.taskInError or request.exportInError}"
-                             th:attrprepend="class = ${request.taskInError} ? 'col-lg-3 ' : 'col-lg-4 '">
+                             th:attrprepend="class = ${request.taskInError} ? 'col-xl-3 ' : 'col-xl-4 '">
                             <h3 th:text="#{requestDetails.currentStep.restartProcess.title}">{Restart}</h3>
                             <p th:text="#{requestDetails.currentStep.restartProcess.text}">
                                 {This will run the process from the start.}
@@ -194,7 +189,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <span th:text="#{requestDetails.currentStep.restartProcess.button}">{Restart}</span>
                             </button>
                         </div>
-                        <div class="col-lg-3 current-step-action" th:if="${request.taskInError}">
+                        <div class="col-xl-3 current-step-action" th:if="${request.taskInError}">
                             <h3 th:text="#{requestDetails.currentStep.skipTask.title}">{Skip}</h3>
                             <p th:text="#{requestDetails.currentStep.skipTask.text}">
                                 {This skip the current task and proceed to the next task.}
@@ -206,7 +201,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </button>
                         </div>
                         <div class="current-step-action"
-                             th:attrprepend="class = ${request.unmatched} ? 'col-lg-6 ' : (${request.taskInError} ? 'col-lg-3 ' : 'col-lg-4 ')"
+                             th:attrprepend="class = ${request.unmatched} ? 'col-xl-6 ' : (${request.taskInError} ? 'col-xl-3 ' : 'col-xl-4 ')"
                              th:classappend="${#strings.equals(validationError, 'remark')} ? 'has-error'">
                             <h3 th:text="#{requestDetails.currentStep.reject.title}">{Reject}</h3>
                             <p th:text="#{requestDetails.currentStep.reject.text}">
@@ -222,7 +217,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </div>
                     </div>
                 </div>
-                <div class="well current-step current-step-standby" th:if="${request.inStandby}">
+                <div class="card card-body current-step current-step-standby" th:if="${request.inStandby}">
                     <div class="current-step-title">
                         <h2 th:text="#{requestDetails.currentStep.standby.title}">
                             {This process waits for an action.}
@@ -233,7 +228,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </p>
                     </div>
                     <div class="row">
-                        <div class="col-lg-5 current-step-action">
+                        <div class="col-xl-5 current-step-action">
                             <h3 th:text="#{requestDetails.currentStep.validate.title}">{Validate}</h3>
                             <p th:text="#{requestDetails.currentStep.validate.text}">
                                 {The process will go on. You can define or modify the remark to the customer below.}
@@ -246,7 +241,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <span th:text="#{requestDetails.currentStep.validate.button}">{Validate}</span>
                             </button>
                         </div>
-                        <div class="col-lg-5 current-step-action"
+                        <div class="col-xl-5 current-step-action"
                              th:classappend="${#strings.equals(validationError, 'remark')} ? 'has-error'">
                             <h3 th:text="#{requestDetails.currentStep.reject.title}">{Reject}</h3>
                             <p th:text="#{requestDetails.currentStep.reject.text}">
@@ -260,12 +255,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <span th:text="#{requestDetails.currentStep.reject.button}">{Reject}</span>
                             </button>
                         </div>
-                        <div class="col-lg-2 current-step-action">
+                        <div class="col-xl-2 current-step-action">
                             <h3 th:text="#{requestDetails.currentStep.restartProcess.title}">{Restart}</h3>
                             <p th:text="#{requestDetails.currentStep.restartProcess.text}">
                                 {This will run the process from the start.}
                             </p>
-                            <button type="button" id="standbyRestartButton" class="btn btn-default"
+                            <button type="button" id="standbyRestartButton" class="btn btn-secondary"
                                     th:attr="data-action=@{'/requests/' + ${request.id} + '/relaunch'}">
                                 <i class="fa fa-undo"></i>
                                 <span th:text="#{requestDetails.currentStep.restartProcess.button}">{Restart}</span>
@@ -283,14 +278,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <input type="file" id="filesToAdd" name="filesToAdd" multiple="multiple"
                            class="hidden-file-upload-control"/>
                 </form>
-                <div class="panel panel-default"
+                <div class="card card-default"
                      th:if="${request.waitingIntervention} or not (${#strings.isEmpty(request.remark) and #arrays.isEmpty(request.outputFiles)})">
-                    <div class="panel-heading">
+                    <div class="card-header">
                         <b th:text="#{requestDetails.panels.response.title}">{Response to the customer}</b>
                     </div>
-                    <div class="panel-body">
+                    <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-6">
+                            <div class="col-xl-6">
                                 <table class="list-table">
                                     <tr>
                                         <td><b th:text="#{requestDetails.remark.title}">{Remark:}</b>&nbsp;</td>
@@ -298,7 +293,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </tr>
                                 </table>
                             </div>
-                            <div class="col-lg-6">
+                            <div class="col-xl-6">
                                 <table class="list-table files-list-table" th:unless="${request.finished}">
                                     <tr>
                                         <td><b th:text="#{requestDetails.files.title}">{Files:}</b>&nbsp;</td>
@@ -346,17 +341,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </div>
                     </div>
                 </div>
-                <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <span class="pull-right" th:unless="${request.externalUrl == null}">
+                <div class="card card-default">
+                    <div class="card-header">
+                        <span class="float-right" th:unless="${request.externalUrl == null}">
                             <a href="#" th:href="${request.externalUrl}" target="_blank"
                                th:text="#{requestDetails.orderDetails.link.text}">{View details}</a>
                         </span>
                         <b th:text="#{requestDetails.panels.orderDetails.title}">{Customer request}</b>
                     </div>
-                    <div class="panel-body">
+                    <div class="card-body">
                         <div class="row">
-                            <div class="col-lg-4">
+                            <div class="col-xl-4">
                                 <h4 th:text="#{requestDetails.orderDetails.customer.title}">{Customer}</h4>
                                 <div th:text="${request.organism}" th:unless="${#strings.isEmpty(request.organism)}">
                                     {Organism}
@@ -366,7 +361,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     {Customer details}
                                 </div>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-xl-4">
                                 <th:block th:unless="${#strings.isEmpty(request.thirdPartyName)}">
                                     <h4 th:text="#{requestDetails.orderDetails.thirdParty.title}">{Third party}</h4>
                                     <div th:text="${request.thirdPartyName}">{Third party name}</div>
@@ -375,7 +370,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </div>
                                 </th:block>
                             </div>
-                            <div class="col-lg-4">
+                            <div class="col-xl-4">
                                 <h4 th:text="#{requestDetails.orderDetails.parameters.title}">{Parameters}</h4>
                                 <div th:text="#{requestDetails.orderDetails.parameters.none}"
                                      th:if="${request.parameters} == null or ${#maps.isEmpty(request.parameters)}">{(None)}</div>
@@ -387,7 +382,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </div>
                         </div>
                         <div class="row" style="margin-top: 20px">
-                            <div class="col-lg-12">
+                            <div class="col-xl-12">
                                 <h4>
                                     <span th:text="#{requestDetails.orderDetails.perimeter.title}">
                                         {Order perimeter}
@@ -434,8 +429,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </tr>
                     </tbody>
                 </table>
-                <div class="panel panel-default" th:if="${isAdmin}">
-                    <div class="panel-heading">
+                <div class="card card-default" th:if="${isAdmin}">
+                    <div class="card-header">
                         <b>
                             <a data-toggle="collapse" href="#adminToolsPanelBodyContainer" style="color:#333">
                                 <span th:text="#{requestDetails.panels.adminTools.title}">{Administration}</span>
@@ -443,12 +438,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             </a>
                         </b>
                     </div>
-                    <div id="adminToolsPanelBodyContainer" class="panel-collapse collapse">
-                        <div class="panel-body">
+                    <div id="adminToolsPanelBodyContainer" class="card-collapse collapse">
+                        <div class="card-body">
                             <div class="row admin-button-row">
-                                <div class="col-lg-2">
+                                <div class="col-xl-2">
                                     <button type="button" id="requestDeleteButton"
-                                            class="btn btn-danger btn-xs admin-tool-button"
+                                            class="btn btn-danger btn-sm admin-tool-button"
                                             th:attr="data-action = @{'/requests/' + ${request.id} + '/delete'}">
                                         <i class="fa fa-remove"></i>
                                         <span th:text="#{requestDetails.adminTools.delete.button.label}">
@@ -456,7 +451,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         </span>
                                     </button>
                                 </div>
-                                <div class="col-lg-10 admin-tool-label">
+                                <div class="col-xl-10 admin-tool-label">
                                     <span th:text="#{requestDetails.adminTools.delete.description}">
                                         {Permanently delete this request}
                                     </span>
@@ -467,24 +462,24 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 </div>
                             </div>
                             <div class="row admin-variable-row">
-                                <div class="col-lg-3" th:text="#{requestDetails.fields.requestId.label}"></div>
-                                <div th:text="${request.id}" class="col-lg-9 code code-green"></div>
+                                <div class="col-xl-3" th:text="#{requestDetails.fields.requestId.label}"></div>
+                                <div th:text="${request.id}" class="col-xl-9 code code-green"></div>
                             </div>
                             <div class="row admin-variable-row">
-                                <div class="col-lg-3" th:text="#{requestDetails.fields.productGuid.label}"></div>
-                                <div th:text="${request.productGuid}" class="col-lg-9 code code-green"></div>
+                                <div class="col-xl-3" th:text="#{requestDetails.fields.productGuid.label}"></div>
+                                <div th:text="${request.productGuid}" class="col-xl-9 code code-green"></div>
                             </div>
                             <div class="row admin-variable-row">
-                                <div class="col-lg-3" th:text="#{requestDetails.fields.clientGuid.label}"></div>
-                                <div th:text="${request.customerGuid}" class="col-lg-9 code code-green"></div>
+                                <div class="col-xl-3" th:text="#{requestDetails.fields.clientGuid.label}"></div>
+                                <div th:text="${request.customerGuid}" class="col-xl-9 code code-green"></div>
                             </div>
                             <div class="row admin-variable-row">
-                                <div class="col-lg-3" th:text="#{requestDetails.fields.organismGuid.label}"></div>
-                                <div th:text="${request.organismGuid}" class="col-lg-9 code code-green"></div>
+                                <div class="col-xl-3" th:text="#{requestDetails.fields.organismGuid.label}"></div>
+                                <div th:text="${request.organismGuid}" class="col-xl-9 code code-green"></div>
                             </div>
                             <div class="row admin-variable-row">
-                                <div class="col-lg-3" th:text="#{requestDetails.fields.orderLabel.label}"></div>
-                                <div th:text="${request.orderLabel}" class="col-lg-9 code code-green"></div>
+                                <div class="col-xl-3" th:text="#{requestDetails.fields.orderLabel.label}"></div>
+                                <div th:text="${request.orderLabel}" class="col-xl-9 code code-green"></div>
                             </div>
                         </div>
                     </div>

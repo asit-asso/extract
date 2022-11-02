@@ -25,14 +25,14 @@ function submitProcessData() {
     var usersIdsArray = $("#users").select2('val');
     $("#usersIds").val(usersIdsArray.join(','));
     //update tasks position
-    $(".extract-proc-tasks .col-lg-8 .panel-body .row .taskPosition").each(function(i) {
+    $(".extract-proc-tasks .col-xl-8 .card-body .row .taskPosition").each(function(i) {
         $(this).val(i + 1);
     });
     //submit form
     $('#processForm').submit();
 }
 
-function deleteTask(taskPanel, id) {
+function deleteTask(taskcard, id) {
     
     if (id === null || id < 0) {
         return;
@@ -42,9 +42,9 @@ function deleteTask(taskPanel, id) {
     var alertButtonsTexts = LANG_MESSAGES.generic.alertButtons;
     var message = deleteConfirmTexts.message;
     var confirmedCallback = function() {
-        taskPanel.css("background-color","white");
-        taskPanel.fadeOut(400, function(){
-            taskPanel.hide();
+        taskcard.css("background-color","white");
+        taskcard.fadeOut(400, function(){
+            taskcard.hide();
         });
         var href = $('#processForm').attr('action', $('#deleteTaskButton-' + id).attr('href'));
         $("#htmlScrollY").val( $(document).scrollTop());
@@ -110,16 +110,16 @@ $(function() {
    
     if(readOnly == "false") {
         //Gestion du drag and drop pour reordonner les tâches d'un process
-        $(".extract-proc-tasks .col-lg-8 .panel-body .row:first").sortable({
-            items: '.taskpanel',
+        $('.extract-proc-tasks .col-xl-8 .card-body .row:first').sortable({
+            items: '.taskcard',
             helper: 'clone',
-            handle: '.panel-heading',
-            placeholder: "placeholder",
+            handle: '.card-header',
+            placeholder: 'placeholder',
             refreshPositions: true,
             opacity: 0.9,
             scroll: true,
             over: function(event, ui) {
-                var cl = ui.item.attr('class');
+                const cl = ui.item.attr('class');
                 $('.placeholder').addClass(cl);
             },
             create : function(event, ui) {
@@ -127,15 +127,15 @@ $(function() {
             },
             start : function(e, ui) {
                 $(e.target.id + ' .task-arrow-down').css('display', 'none');
-                 $(".extract-proc-tasks .col-lg-8 .panel-body .row .taskpanel").css('margin-top', '20px');
+                 $(".extract-proc-tasks .col-xl-8 .card-body .row .taskcard").css('margin-top', '20px');
                 //ui.item.find('.task-arrow-down').css('display','none');
                 //ui.placeholder.height(ui.item.children().height());
             },
             stop : function(e, ui) {
                 var $currentItemActive = ui.item.find('.btn-toggle.active input');
-                $(".extract-proc-tasks .col-lg-8 .panel-body .row .taskpanel").css('margin-top', '');
+                $(".extract-proc-tasks .col-xl-8 .card-body .row .taskcard").css('margin-top', '');
                 
-                $(".extract-proc-tasks .col-lg-8 .panel-body .row .task-arrow-down").each(function(i) {
+                $(".extract-proc-tasks .col-xl-8 .card-body .row .task-arrow-down").each(function(i) {
                     //display arrow down
                     $(this).css('display','none');
                     if(i > 0)
@@ -146,12 +146,12 @@ $(function() {
         });
 
         //Gestion du drag and drop pour l'ajout d'une tâche de la droite vers la gauche
-        $(".extract-proc-tasks  .col-lg-4 .available-task").draggable({
+        $(".extract-proc-tasks  .col-xl-4 .available-task").draggable({
             helper: 'clone',
             revert : 'invalid'
         });
-        $(".extract-proc-tasks .col-lg-8 .panel-body:first").droppable({
-            accept: ".extract-proc-tasks  .col-lg-4 .available-task",
+        $(".extract-proc-tasks .col-xl-8 .card-body:first").droppable({
+            accept: ".extract-proc-tasks  .col-xl-4 .available-task",
             hoverClass: "panel-droppable-hilight",
             tolerance: "touch",
             drop : function(e, ui){
@@ -170,9 +170,9 @@ $(function() {
                 return;
             }
 
-            var taskPanel = $button.closest('.chosed-task');
+            var taskcard = $button.closest('.chosed-task');
 
-            deleteTask(taskPanel, idTask);
+            deleteTask(taskcard, idTask);
         });
     }
 });

@@ -2,9 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/master">
+      layout:decorate="~{layout/master}">
     <head>
-        <title th:inline="text">[[#{application.name}]]</title>
+        <title>[[#{application.name}]]</title>
     </head>
     <body>
         <div id="wrapper">

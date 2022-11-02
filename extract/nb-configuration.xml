@@ -9,7 +9,6 @@
     <spellchecker-wordlist xmlns="http://www.netbeans.org/ns/spellchecker-wordlist/1">
         <word>plugin</word>
     </spellchecker-wordlist>
-    <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1"/>
     <properties xmlns="http://www.netbeans.org/ns/maven-properties-data/1">
         <!--
         Properties that influence various parts of the IDE, especially code formatting and the like.
@@ -21,30 +20,24 @@
         <org-netbeans-modules-css-prep.less_2e_mappings>
             /less:/css
         </org-netbeans-modules-css-prep.less_2e_mappings>
-        <org-netbeans-modules-css-prep.less_2e_enabled>
-            false
-        </org-netbeans-modules-css-prep.less_2e_enabled>
+        <org-netbeans-modules-css-prep.less_2e_enabled>false</org-netbeans-modules-css-prep.less_2e_enabled>
         <org-netbeans-modules-css-prep.sass_2e_mappings>
             /scss:/css
         </org-netbeans-modules-css-prep.sass_2e_mappings>
-        <org-netbeans-modules-css-prep.sass_2e_enabled>
-            false
-        </org-netbeans-modules-css-prep.sass_2e_enabled>
+        <org-netbeans-modules-css-prep.sass_2e_enabled>false</org-netbeans-modules-css-prep.sass_2e_enabled>
         <org-netbeans-modules-css-prep.less_2e_compiler_2e_options/>
-        <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>
-            Tomcat
-        </org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>
         <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_j2eeVersion>
             1.7-web
         </org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_j2eeVersion>
-        <org-netbeans-modules-javascript2-requirejs.enabled>
-            true
-        </org-netbeans-modules-javascript2-requirejs.enabled>
+        <org-netbeans-modules-javascript2-requirejs.enabled>false</org-netbeans-modules-javascript2-requirejs.enabled>
         <org-netbeans-modules-web-clientproject-api.js_2e_libs_2e_folder>../resources/static/lib</org-netbeans-modules-web-clientproject-api.js_2e_libs_2e_folder>
         <org-netbeans-modules-maven-j2ee.netbeans_2e_deploy_2e_on_2e_save>
             false
         </org-netbeans-modules-maven-j2ee.netbeans_2e_deploy_2e_on_2e_save>
         <netbeans.hint.license>gpl30</netbeans.hint.license>
         <netbeans.compile.on.save>none</netbeans.compile.on.save>
+        <netbeans.hint.jdkPlatform>Zulu_17.0.1</netbeans.hint.jdkPlatform>
+        <org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>Tomcat</org-netbeans-modules-maven-j2ee.netbeans_2e_hint_2e_deploy_2e_server>
     </properties>
+    <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1"/>
 </project-shared-configuration>

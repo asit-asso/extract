@@ -2,9 +2,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/master">
+      layout:decorate="~{layout/master}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]&nbsp;&ndash; [[${user.beingCreated}
             ? #{userDetails.page.title.new}
             : ${#messages.msg('userDetails.page.title.edit', user.name)}]]
@@ -27,7 +27,7 @@
                         </ul>
                     </div>
                     <div>
-                        <div class="pull-right">
+                        <div class="float-right">
                             <button id="userCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
                                     type="button">
                                 {Cancel}
@@ -41,13 +41,13 @@
                             {User}
                         </h1>
                     </div>
-                    <div class="panel panel-default">
-                        <div class="panel-body">
+                    <div class="card card-default">
+                        <div class="card-body">
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
-                                        <label th:text="#{userDetails.fields.fullName.label}" class="control-label">
+                                        <label th:text="#{userDetails.fields.fullName.label}" class="col-form-label">
                                             {Full name}
                                         </label>
                                         <span class="mandatory" data-toggle="tooltip"
@@ -59,29 +59,29 @@
                                         <input type="hidden" th:field="*{beingCreated}" />
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label">
                                         <div>
                                             <label th:text="#{userDetails.fields.profile.label}">{Role}</label>
                                         </div>
                                         <div th:unless="${isOwnAccount}" class="btn-group" data-toggle="buttons">
-                                            <label class="btn btn-xs btn-toggle btn-toggle-info"
+                                            <label class="btn btn-sm btn-toggle btn-toggle-info"
                                                    th:classappend="!*{admin} ? 'active'">
                                                 <input type="radio" th:field="*{profile}"
-                                                       th:value="${T(org.easysdi.extract.domain.User.Profile).OPERATOR}"
+                                                       th:value="${T(ch.asit_asso.extract.domain.User.Profile).OPERATOR}"
                                                        />
                                                 &nbsp;<span th:text="#{user.profile.OPERATOR}">{Operator}</span>
                                             </label>
-                                            <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                            <label class="btn btn-sm btn-toggle btn-toggle-yes"
                                                    th:classappend="*{admin} ? 'active'">
                                                 <input type="radio" th:field="*{profile}"
-                                                       th:value="${T(org.easysdi.extract.domain.User.Profile).ADMIN}" />
+                                                       th:value="${T(ch.asit_asso.extract.domain.User.Profile).ADMIN}" />
                                                 &nbsp;<span th:text="#{user.profile.ADMIN}">{Administrator}</span>
                                             </label>
                                         </div>
                                         <div th:if="${isOwnAccount}">
                                             <span th:text="${#messages.msg('user.profile.' + user.profile)}"
-                                                  data-toggle="tooltip" class="form-control-static"
+                                                  data-toggle="tooltip" class="form-control-plaintext"
                                                   th:title="#{userDetails.fields.profile.inactive.tooltip}"></span>
                                             <input type="hidden" th:field="*{profile}" />
                                         </div>
@@ -89,10 +89,10 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('login')} ? 'has-error'">
-                                        <label th:text="#{userDetails.fields.login.label}" class="control-label">
+                                        <label th:text="#{userDetails.fields.login.label}" class="col-form-label">
                                             {Login}
                                         </label>
                                         <span class="mandatory" data-toggle="tooltip"
@@ -102,7 +102,7 @@
                                                maxlength="50" data-toggle="tooltip" autocomplete="off" />
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:with="canEditActive = ${isOwnAccount} or ${isAssociatedToProcesses}">
                                         <div>
@@ -110,12 +110,12 @@
                                         </div>
                                         <div th:unless="${canEditActive}"
                                              class="btn-group" data-toggle="buttons">
-                                            <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                            <label class="btn btn-sm btn-toggle btn-toggle-no"
                                                    th:classappend="*{active} ? '' : 'active'">
                                                 <input type="radio" th:field="*{active}" value="0" />
                                                 &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                             </label>
-                                            <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                            <label class="btn btn-sm btn-toggle btn-toggle-yes"
                                                    th:classappend="*{active} ? 'active' : ''">
                                                 <input type="radio" th:field="*{active}" value="1" />
                                                 &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
@@ -124,17 +124,17 @@
                                         <div th:if="${canEditActive}">
                                             <span th:text="${#messages.msg('toggle.' + (user.active ? 'yes' : 'no'))}"
                                                   th:title="#{userDetails.fields.active.inactive.tooltip}"
-                                                  data-toggle="tooltip" class="form-control-static"></span>
+                                                  data-toggle="tooltip" class="form-control-plaintext"></span>
                                             <input type="hidden" th:field="*{active}" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('email')} ? 'has-error'">
-                                        <label th:text="#{userDetails.fields.email.label}" class="control-label">
+                                        <label th:text="#{userDetails.fields.email.label}" class="col-form-label">
                                             {E-mail address}
                                         </label>
                                         <span class="mandatory" data-toggle="tooltip"
@@ -144,18 +144,18 @@
                                                maxlength="50" data-toggle="tooltip" autocomplete="off" />
                                     </div>
                                 </div>
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label">
                                         <div>
                                             <label th:text="#{userDetails.fields.mailActive.label}">{Active notifications}</label>
                                         </div>
                                         <div class="btn-group" data-toggle="buttons">
-                                            <label class="btn btn-xs btn-toggle btn-toggle-no"
+                                            <label class="btn btn-sm btn-toggle btn-toggle-no"
                                                    th:classappend="*{mailActive} ? '' : 'active'">
                                                 <input type="radio" th:field="*{mailActive}" value="0" />
                                                 &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                             </label>
-                                            <label class="btn btn-xs btn-toggle btn-toggle-yes"
+                                            <label class="btn btn-sm btn-toggle btn-toggle-yes"
                                                    th:classappend="*{mailActive} ? 'active' : ''">
                                                 <input type="radio" th:field="*{mailActive}" value="1" />
                                                 &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
@@ -165,10 +165,10 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('password')} ? 'has-error'">
-                                        <label th:text="#{userDetails.fields.password.label}" class="control-label">
+                                        <label th:text="#{userDetails.fields.password.label}" class="col-form-label">
                                             {Password}
                                         </label>
                                         <span class="mandatory" data-toggle="tooltip"
@@ -180,11 +180,11 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-lg-6">
+                                <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('passwordConfirmation')} ? 'has-error'">
                                         <label th:text="#{userDetails.fields.passwordConfirmation.label}"
-                                               class="control-label">
+                                               class="col-form-label">
                                             {Password}
                                         </label>
                                         <span class="mandatory" data-toggle="tooltip"

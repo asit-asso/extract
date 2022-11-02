@@ -6,23 +6,25 @@ a, a:active, a:hover, a:visited {
 
 body {
     background-color: #fff;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 0.875rem;
     padding-top: 50px;
 }
 
 h1 {
-    font-size: 22px;
+    font-size: 1.375rem;
 }
 
 h2 {
-    font-size: 20px;
+    font-size: 1.25rem;
 }
 
 h3 {
-    font-size: 18px;
+    font-size: 1.125rem;
 }
 
 p {
-    margin-bottom: 14px;
+    margin-bottom: 0.875rem;
 }
 
 tbody > tr.error > td,
@@ -71,6 +73,10 @@ tbody > tr.standby > th {
     padding-top: 10px;
 }
 
+.alert .close {
+    margin-top: -4px;
+}
+
 .btn-extract-filled,
 a.btn-extract-filled,
 a.btn-extract-filled:active,
@@ -91,6 +97,10 @@ a.btn-extract-filled:visited {
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+
+.btn-toggle > input {
+    display: none;
 }
 
 .btn-toggle.active {
@@ -142,7 +152,7 @@ a.btn-extract-filled:visited {
 }
 
 .current-step-caret {
-    font-size: 70px;
+    font-size: 4.375rem;
     margin-top: -39px;
 }
 
@@ -210,24 +220,23 @@ a.btn-extract-filled:visited {
     display: inline-block;
 }
 
-a.connector-state {
+a.connector-state, .dropdown-item a {
     color: black;
 }
 
-a.connector-state:hover {
+a.connector-state:hover, .dropdown-item a:hover {
     text-decoration: none;
 }
 
 .connector-state {
-    border: 1px solid #ddd;
-    border-left-width: 8px;
     border-radius: 6px;
-    border-left-color: #3c763d;
+    border: 1px solid #ddd;
+    border-left: 8px #3c763d;
     background-color: #dbfbd3;
     color: black;
     cursor: pointer;
     cursor: hand;
-    font-size: 14px;
+    font-size: 0.875rem;
     margin: 0 0 0 10px;
     padding: 5px;
 }
@@ -279,32 +288,40 @@ input[type="file"].hidden-file-upload-control {
     display: none;
 }
 
-.panel-body .dt-bootstrap {
+.card {
+    margin-bottom: 14px;
+}
+
+.card.border-success .card-header {
+    background-color: #DFF0D8;
+}
+
+.card-body .dt-bootstrap {
     margin-bottom: 0;
 }
 
-.extract-proc-tasks .col-lg-8 .panel .panel-body .panel .panel-body{
+.extract-proc-tasks .col-lg-8 .card .card-body .card .card-body{
     margin-bottom: 0;
 }
 
-.extract-proc-tasks .col-lg-8 .panel .panel-body .panel{
+.extract-proc-tasks .col-lg-8 .card .card-body .card{
     margin-bottom: 0;
 }
 
-.extract-proc-tasks .col-lg-8 .panel .panel-body p{
+.extract-proc-tasks .col-lg-8 .card .card-body p{
     margin-bottom: 0;
-    font-size: 35px;
+    font-size: 2.1875rem;
 }
 
 .form-control {
     padding: 6px 9px;
 }
 
-span.form-control-static {
+span.form-control-plaintext {
     display: inline-block;
 }
 
-.form-control-static {
+.form-control-plaintext {
     padding-left: 9px;
 }
 
@@ -390,9 +407,9 @@ table.list-table.files-list-table {
     margin-top: 10px;
 }
 
-.login-panel .panel-title .login-panel-title {
+.login-card .card-title .login-card-title {
     display: inline-block;
-    font-size: 18px;
+    font-size: 1.125rem;
     font-weight: 300;
     padding-bottom: 6px;
     padding-left: 20px;
@@ -436,47 +453,46 @@ table.list-table.files-list-table {
 
 .navbar-brand {
     padding: 2px;
+    margin-right: 30px;
 }
 
 .navbar-brand img {
     margin: 2px;
 }
 
-.navbar-header {
-    margin-right: 30px;
-}
-
 .navbar-nav > li  {
-    font-size: 16px;
+    font-size: 1rem;
 }
 
-.navbar-default .navbar-nav > .active > a,
-.navbar-default .navbar-nav > .active > a:hover,
-.navbar-default .navbar-nav > .active > a:focus {
+.navbar-light .navbar-nav > .active > a.nav-link,
+.navbar-light .navbar-nav > .active > a.nav-link:hover,
+.navbar-light .navbar-nav > .active > a.nav-link:focus {
     color: white;
     background-color: gray;
 }
 
 .page-header {
+    padding-bottom: 9px;
+    margin: 40px 0 20px;
     border-bottom: none;
-    margin-top: 40px;
+    /*margin-top: 40px;*/
     /*margin-left: 10px;*/
 }
 
-.panel-heading-large {
-    font-size: 18px;
+.card-heading-large {
+    font-size: 1.125rem;
     margin-bottom: 0;
     margin-top: 0;
 }
 
-.panel-heading h3 {
+.card-heading h3 {
     margin-bottom: 0;
     margin-top: 0;
     padding-bottom: 0;
     padding-top: 0;
 }
 
-.panel-heading .btn-sm {
+.card-heading .btn-sm {
     margin-top: -5px;
 }
 
@@ -510,8 +526,8 @@ table.list-table.files-list-table {
     color: #5cb85c;
     color: red;
     float: right;
-    font-size: 37px;
-    line-height: 22px;
+    font-size: 2.3125rem;
+    line-height: 1.375rem;
     margin-right: -12px;
     box-sizing: border-box;
     display: inline-block;
@@ -584,14 +600,14 @@ table.list-table.files-list-table {
     max-height: 500px;
     min-height: 100px;
     background-color: white;
-    font-size: 11px;
+    font-size: 0.6875rem;
 }
 .popover .popover-body {
     padding: 9px 14px;
     overflow: auto;
     max-height: 450px;
     min-width:650px;
-    font-size: 9.5pt;
+    font-size: 0.8rem;
 }
 
 .popover .popup-header{
@@ -605,7 +621,7 @@ table.list-table.files-list-table {
 }
 .popover .popup-content {
     display: none;
-    font-size: 11px;
+    font-size: 0.6875rem;
     background: white;
     max-width:640px;
     min-width:480px;
@@ -651,6 +667,10 @@ table.dataTable thead .sorting::after {
     content: "" !important;
 }
 
+table.dataTables thead th {
+    border-top: none;
+}
+
 tr.request-row:hover > td {
     background-color: #f5f5f5;
 }
@@ -662,7 +682,7 @@ tr.request-row:hover > td {
 
 }
 
-.chosed-task .panel-heading{
+.chosed-task .card-heading{
     cursor: move; /* fallback if grab cursor is unsupported */
     cursor: grab;
     cursor: -moz-grab;
@@ -671,14 +691,14 @@ tr.request-row:hover > td {
     -moz-user-select: none;
 }
 
-.chosed-task .panel-heading button{
+.chosed-task .card-heading button{
     cursor: move; /* fallback if grab cursor is unsupported */
     cursor: grab;
     cursor: -moz-grab;
     cursor: -webkit-grab;
 }
 
-.chosed-task .panel-heading:hover{
+.chosed-task .card-heading:hover{
     background-color: #99d482;
 }
 
@@ -701,16 +721,16 @@ tr.request-row:hover > td {
 .available-task:hover{
     background-color: lightgray;
 }
-.available-task:hover .panel-heading{
+.available-task:hover .card-heading{
     background-color: gray;
 }
 
-.available-task .panel-heading{
+.available-task .card-heading{
     font-weight: bold;
 }
 
 
-.available-task .panel-heading {
+.available-task .card-heading {
     font-weight: bold;
 }
 
@@ -720,20 +740,20 @@ tr.request-row:hover > td {
     padding: 6px 0;
     border-radius: 15px;
     text-align: center;
-    font-size: 12px;
+    font-size: 0.75rem;
     line-height: 1.428571429;
 }
 
-.extract-proc-tasks .col-lg-8 .panel .panel-body .panel .panel-body{
+.extract-proc-tasks .col-lg-8 .card .card-body .card .card-body{
     margin-bottom: 0;
 }
 
-.extract-proc-tasks .col-lg-8 .panel .panel-body .panel{
+.extract-proc-tasks .col-lg-8 .card .card-body .card{
     margin-bottom: 0;
 }
-.extract-proc-tasks .col-lg-8 .panel .panel-body p{
+.extract-proc-tasks .col-lg-8 .card .card-body p{
     margin-bottom: 0;
-    font-size: 35px;
+    font-size: 2.1875rem;
 }
 
 .placeholder {
@@ -749,6 +769,21 @@ tr.request-row:hover > td {
 .panel-droppable-hilight > * {
     opacity:0.7;
 }
+
+.process-progress {
+    height: 2rem;
+    margin-bottom: 14px;
+}
+
+.process-progress .progress-bar {
+    flex-direction: row;
+    align-items: center;
+}
+
+.process-progress .progress-bar .fa {
+    margin-right: 0.5rem;
+}
+
 /********** IDs **********/
 
 #alertModal .modal-body {

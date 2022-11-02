@@ -2,30 +2,30 @@
 
 ## Introduction
 
-Ce projet repr�sente le c&oelig;ur du module Extract permettant l'extraction de donn�es � partir de commandes. Il
-contient � la fois l'application web d'administration et le moteur d'execution des extractions en arri�re-plan,
+Ce projet représente le c&oelig;ur du module Extract permettant l'extraction de données à partir de commandes. Il
+contient à la fois l'application web d'administration et le moteur d'execution des extractions en arrière-plan,
 
-## Pr�-requis pour l'utilisation
+## Pré-requis pour l'utilisation
 * OS 64 bits
-* Java 7
-* Tomcat 7
+* Java 17
+* Tomcat 9
 
-## Pr�-requis pour le d�veloppement et la compilation
-* Java 7
+## Pré-requis pour le développement et la compilation
+* Java 17
 * [Yarn][Yarn_Site]
-* Projet extract-interface (Interface commune pour l'utilisation des plugins connecteurs et t�ches)
+* Projet extract-interface (Interface commune pour l'utilisation des plugins connecteurs et tâches)
 
 ## Installation des librairies JavaScript
 
-Les librairies JavaScript utilis�es par l'application Web et leurs d�pendances sont g�r�es au moyen du gestionnaire de
-packages [Yarn][Yarn_Site]. Si vous r�cup�rez le code depuis le repository, il faudra installer ces packages avant de pouvoir
-ex�cuter l'application.
+Les librairies JavaScript utilisées par l'application Web et leurs dépendances sont gérées au moyen du gestionnaire de
+packages [Yarn][Yarn_Site]. Si vous récupérez le code depuis le repository, il faudra installer ces packages avant de pouvoir
+exécuter l'application.
 
-Pour ce faire, ouvrez une ligne de commande dans le r�pertoire racine du projet et ex�cutez la commande suivante&nbsp;:
+Pour ce faire, ouvrez une ligne de commande dans le répertoire racine du projet et exécutez la commande suivante&nbsp;:
 ```
 yarn install
 ```
 
-Les librairies JavaScript n�cessaires devraient maintenant se trouver dans le r�pertoire `src/main/resources/static/lib`.
+Les librairies JavaScript nécessaires devraient maintenant se trouver dans le répertoire `src/main/resources/static/lib`.
 
 [Yarn_Site]: https://yarnpkg.com/ "Site du gestionnaire de package Yarn"

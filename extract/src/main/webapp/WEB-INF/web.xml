@@ -5,7 +5,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
          version="3.0">
     <display-name>Extract</display-name>
-    <description>Extraction module for the easySDI platform</description>
+    <description>Extraction module for processing geographical data orders</description>
     <session-config>
         <session-timeout>
             30

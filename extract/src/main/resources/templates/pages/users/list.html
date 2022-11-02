@@ -2,25 +2,25 @@
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      layout:decorator="layout/masterWithTable">
+      layout:decorate="~{layout/masterWithTable}">
     <head>
-        <title th:inline="text">
+        <title>
             [[#{application.name}]]&nbsp;&ndash; [[#{usersList.page.title}]]
         </title>
     </head>
     <body>
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content">
-                <div class="btn-group pull-right">
-                    <a class="btn btn-extract-filled dropdown-toggle btn-sm" href="add"
+                <div class="btn-group float-right">
+                    <a class="btn btn-extract-filled btn-md" href="add"
                        th:href="@{/users/add}">
                         <i class="fa fa-plus fa-fw"></i>
                         <span th:text="#{usersList.new.button}">{Add new user}</span>
                     </a>
                 </div>
                 <h1 class="page-header" th:text="#{usersList.body.title}">{Users and permissions}</h1>
-                <div class="panel panel-default">
-                    <div class="panel-body">
+                <div class="card card-default">
+                    <div class="card-body">
                         <table class="table table-striped table-hover dataTables dataTable">
                             <thead>
                                 <tr>
@@ -40,23 +40,23 @@
                                     <td th:text="*{name}">{Titi Toto}</td>
                                     <td th:text="*{email}">{toto@tata.com}</td>
                                     <td th:switch="*{profile}">
-                                        <div class="label label-success" th:text="#{user.profile.ADMIN}"
-                                             th:case="${T(org.easysdi.extract.domain.User.Profile).ADMIN}">
+                                        <div class="badge badge-success" th:text="#{user.profile.ADMIN}"
+                                             th:case="${T(ch.asit_asso.extract.domain.User.Profile).ADMIN}">
                                             {Administrator}
                                         </div>
-                                        <div class="label label-info" th:text="#{user.profile.OPERATOR}"
-                                             th:case="${T(org.easysdi.extract.domain.User.Profile).OPERATOR}">
+                                        <div class="badge badge-info" th:text="#{user.profile.OPERATOR}"
+                                             th:case="${T(ch.asit_asso.extract.domain.User.Profile).OPERATOR}">
                                             {Operator}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="label label-success" th:text="#{usersList.table.item.active}"
+                                        <div class="badge badge-success" th:text="#{usersList.table.item.active}"
                                              th:if="*{active}">{Active}</div>
-                                        <div class="label label-danger" th:text="#{usersList.table.item.inactive}"
+                                        <div class="badge badge-danger" th:text="#{usersList.table.item.inactive}"
                                              th:unless="*{active}">{Inactive}</div>
                                     </td>
                                     <td class="center-cell" th:with="canBeDeleted = not *{isAssociatedToProcesses()} and *{id} != ${currentUserId}">
-                                        <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-xs"
+                                        <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
                                                 data-toggle="tooltip"
                                                 th:classappend="${canBeDeleted} ? 'btn-danger delete-button' : 'disabled delete-button-inactive'"
                                                 th:title="${#messages.msg('usersList.buttons.delete.' + (canBeDeleted ? 'active' : 'inactive') + '.tooltip')}">

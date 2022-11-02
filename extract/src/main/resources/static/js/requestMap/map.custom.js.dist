@@ -23,7 +23,7 @@ function initializeMap() {
 
         var swissProjection = ol.proj.get('EPSG:2056');
 
-        fetch('https://wmts.asit-asso.ch/wmts/GetCapabilities.xml').then(function(response) {
+        fetch('https://ows.asitvd.ch/wmts/GetCapabilities').then(function(response) {
             return response.text();
 
         }).then(function(capabilitiesText) {
@@ -48,8 +48,7 @@ function initializeMap() {
                             params: {
                                 'LAYERS': 'vd.commune'
                             },
-							visible: true,
-                            url: 'https://www.ogc.vd.ch/public/services/OGC/wmsVD/Mapserver/WMSServer'
+                            url: 'http://wms.vd.ch/public/services/wmsVD/Mapserver/Wmsserver'
                         }),
                         title: 'Communes',
                     })
