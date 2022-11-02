@@ -30,7 +30,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <span th:text="#{errorPage.body.title}">{Error}</span>
                 </h1>
                 <p th:text="#{errorPage.text}">{An error occurred during the last operation}</p>
-                <div th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#ctx.httpServletResponse.status)}"
+                <div th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#ctx.response.status)}"
                      class="code">
                     <p th:text="|${httpStatus} - ${httpStatus.reasonPhrase}|">{404}</p>
                     <p th:text="${message}">{Error java.lang.NullPointerException}</p>
