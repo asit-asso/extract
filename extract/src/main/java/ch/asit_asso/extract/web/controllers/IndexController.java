@@ -45,10 +45,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpSession;
@@ -187,7 +184,7 @@ public class IndexController extends BaseController {
      * @param redirectAttributes the data to pass to the view that the user will be redirected to
      * @return the string that identifies the next view to display
      */
-    @GetMapping("forbidden")
+    @RequestMapping(value="forbidden", method = { RequestMethod.GET, RequestMethod.POST})
     public final String handleForbidden(final RedirectAttributes redirectAttributes) {
         this.logger.debug("A forbidden access error has been issued.");
 
