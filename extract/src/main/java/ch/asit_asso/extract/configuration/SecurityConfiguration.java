@@ -70,6 +70,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                         "/getActiveConnectors",
                         "/getCurrentRequests",
                         "/getFinishedRequests",
+                        "/getWorkingState",
                         "/js/**"
                 ).hasAnyAuthority(Profile.OPERATOR.name(), Profile.ADMIN.name())
                 .mvcMatchers("").hasAnyAuthority(Profile.OPERATOR.name(), Profile.ADMIN.name())

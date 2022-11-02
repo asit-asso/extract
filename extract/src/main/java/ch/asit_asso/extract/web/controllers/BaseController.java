@@ -16,12 +16,11 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.authentication.ApplicationUser;
 import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.web.Message;
 import ch.asit_asso.extract.web.Message.MessageType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,6 +30,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 
 
@@ -309,12 +310,12 @@ public abstract class BaseController {
 
             if (authority.equals(grantedAuthority.getAuthority())) {
                 this.logger.debug("The {} authority is available for the current user {}.", authority,
-                        currentAuthentication.getPrincipal());
+                        this.getCurrentUserLogin());
                 return true;
             }
         }
 
-        this.logger.debug("The user {} does not possess the authority {}.", currentAuthentication.getPrincipal(),
+        this.logger.debug("The user {} does not possess the authority {}.", this.getCurrentUserLogin(),
                 authority);
         return false;
     }

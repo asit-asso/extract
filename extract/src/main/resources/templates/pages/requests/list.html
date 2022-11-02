@@ -62,6 +62,10 @@
                         </button>
                         <div><strong th:text="#{orchestrator.status.scheduleConfigError}"></strong></div>
                         <th:block th:text="#{orchestrator.status.noScheduleSpan}"></th:block>
+                        <div th:if="${isAdmin}">
+                            <a href="../../parameters" th:href="@{/parameters}" class="text-danger"
+                               th:text="#{requestsList.errors.baseFolder.notFound.link}">{Edit the parameters}</a>
+                        </div>
                     </div>
                     <div class="card card-default">
                         <div class="card-header">

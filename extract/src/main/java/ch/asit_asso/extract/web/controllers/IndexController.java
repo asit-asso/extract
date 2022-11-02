@@ -16,35 +16,24 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
-import ch.asit_asso.extract.persistence.ConnectorsRepository;
-import ch.asit_asso.extract.persistence.ProcessesRepository;
-import ch.asit_asso.extract.web.model.json.ConnectorJsonModel;
-import ch.asit_asso.extract.web.model.json.DataTableResponse;
-import com.fasterxml.jackson.annotation.JsonView;
-import java.io.File;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Locale;
-import javax.servlet.http.HttpSession;
 import ch.asit_asso.extract.domain.Connector;
+import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Request.Status;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.exceptions.BaseFolderNotFoundException;
-import ch.asit_asso.extract.persistence.RequestHistoryRepository;
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import ch.asit_asso.extract.persistence.SystemParametersRepository;
-import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
+import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.persistence.sorts.RequestSort;
 import ch.asit_asso.extract.persistence.specifications.RequestSpecification;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.RequestModel;
 import ch.asit_asso.extract.web.model.comparators.RequestModelByTaskDateComparator;
+import ch.asit_asso.extract.web.model.json.ConnectorJsonModel;
+import ch.asit_asso.extract.web.model.json.DataTableResponse;
 import ch.asit_asso.extract.web.model.json.PublicField;
 import ch.asit_asso.extract.web.model.json.RequestJsonModel;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,6 +50,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import javax.servlet.http.HttpSession;
+import java.io.File;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Locale;
 
 
 
@@ -230,13 +226,16 @@ public class IndexController extends BaseController {
     @GetMapping("getWorkingState")
     @ResponseBody
     public final String handleGetWorkingState() {
-
+        this.logger.debug("Processing request to get working state.");
         if (!this.isCurrentUserApplicationUser()) {
+            this.logger.debug("User {} is not an application user.", this.getCurrentUserLogin());
             return null;
         }
 
+        this.logger.debug("Initializing orchestrator setting…");
         OrchestratorSettings orchestratorSettings = new OrchestratorSettings(this.parametersRepository);
 
+        this.logger.debug("Current working state string is {}", orchestratorSettings.getStateString());
         return orchestratorSettings.getStateString();
     }
 
