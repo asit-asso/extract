@@ -34,7 +34,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
-
+import org.springframework.lang.NonNull;
 import java.io.File;
 import java.nio.file.Paths;
 import java.util.*;
@@ -133,7 +133,7 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
      * @return the request updated to reflect the result of the export
      */
     @Override
-    public final Request process(final Request request) {
+    public final Request process(@NonNull Request request) {
         assert this.connectorPluginDiscoverer != null : "The connector plugin discoverer must be set.";
 
         RequestHistoryRecord historyRecord = this.createHistoryRecord(request);
@@ -322,32 +322,37 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
         assert request.getConnector() != null : "The request connector cannot be null.";
         assert resultMessage != null : "The result error message cannot be null.";
 
-        this.logger.debug("Sending an e-mail notification to the administrators.");
-        final RequestExportFailedEmail message = new RequestExportFailedEmail(this.emailSettings);
-        final String[] operatorsAddresses
-                = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(request.getProcess().getId());
-        final Set<String> recipientsAddresses
-                = new HashSet<>(Arrays.asList(operatorsAddresses));
+        try {
+            this.logger.debug("Sending an e-mail notification to the administrators.");
+            final RequestExportFailedEmail message = new RequestExportFailedEmail(this.emailSettings);
+            final String[] operatorsAddresses
+                    = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(request.getProcess().getId());
+            final Set<String> recipientsAddresses
+                    = new HashSet<>(Arrays.asList(operatorsAddresses));
 
-        for (String adminAddress : this.repositories.getUsersRepository().getActiveAdministratorsAddresses()) {
+            for (String adminAddress : this.repositories.getUsersRepository().getActiveAdministratorsAddresses()) {
 
-            if (adminAddress == null || recipientsAddresses.contains(adminAddress)) {
-                continue;
+                if (adminAddress == null || recipientsAddresses.contains(adminAddress)) {
+                    continue;
+                }
+
+                recipientsAddresses.add(adminAddress);
             }
 
-            recipientsAddresses.add(adminAddress);
-        }
+            if (!message.initialize(request, resultMessage, errorDate, recipientsAddresses.toArray(new String[]{}))) {
+                this.logger.error("Could not create the request export failure message.");
+                return;
+            }
 
-        if (!message.initialize(request, resultMessage, errorDate, recipientsAddresses.toArray(new String[]{}))) {
-            this.logger.error("Could not create the request export failure message.");
-            return;
-        }
+            if (message.send()) {
+                this.logger.info("The request export failure notification was successfully sent to the operators.");
 
-        if (message.send()) {
-            this.logger.info("The request export failure notification was successfully sent to the operators.");
+            } else {
+                this.logger.warn("The request export failure notification was not sent.");
+            }
 
-        } else {
-            this.logger.warn("The request export failure notification was not sent.");
+        } catch (Exception exception) {
+            this.logger.warn("An error prevented notifying the operators by e-mail.", exception);
         }
     }
 
