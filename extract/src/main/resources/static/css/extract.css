@@ -93,6 +93,13 @@ a.btn-extract-filled:visited {
     color: #3ab872;
 }
 
+.btn-sm {
+    padding: .0625rem .3125rem;
+    font-size: .75rem;
+    line-height: 1.5;
+    border-radius: .1875rem;
+}
+
 .btn-toggle {
     background-color: #fff;
     border: 1px solid #ccc;
@@ -557,7 +564,7 @@ table.list-table.files-list-table {
 }
 
 .progress.split .progress-bar + i.separator {
-    margin-right: 15px;
+    width: 30px;
 }
 
 .progress.split .progress-bar + i.separator::before{
@@ -566,7 +573,7 @@ table.list-table.files-list-table {
     color: red;
     font-size: 58px;
     line-height: 32px;
-    margin-right: -12px;
+    margin-left: -1px;
     box-sizing: border-box;
     display: inline-block;
     font-family: FontAwesome;
@@ -791,6 +798,11 @@ a.request-link {
     padding-bottom: 6px;
     padding-left: 12px;
     padding-top: 6px;
+}
+
+.table td, .table th {
+    padding: 8px;
+    line-height: 1.42857143;
 }
 
 table.dataTable thead .sorting::after {

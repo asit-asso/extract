@@ -86,29 +86,29 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                   ? ${#messages.msg(#strings.substringAfter(#object.taskLabel, '##'))}
                                   : *{taskLabel}, size = ${historyStats.size}">
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).ERROR}"
-                                 th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
                                  class="progress-bar bg-danger">
                                 <i class="fa fa-warning"></i>
                                 <span th:text="${label}"></span>
 
                             </div>
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).FINISHED}"
-                                 th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
                                  class="progress-bar progress-bar-done">
                                 <span th:text="${label}"></span>
 
                             </div>
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).ONGOING}"
-                                 th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
                                  class="progress-bar progress-bar-current progress-bar-striped">
                                 <span th:text="${label}"></span>
                             </div>
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).STANDBY}"
-                                 th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
                                  class="progress-bar progress-bar-standby">
                                 <span th:text="${label}"></span>
                             </div>
-                            <div th:case="*" th:style="'width: calc(100% / ' + ${size} + ')'" role="progressbar"
+                            <div th:case="*" th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
                                  class="progress-bar progress-bar-todo">
                                 <span th:text="${label}"></span>
                             </div>
