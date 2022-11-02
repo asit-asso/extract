@@ -175,15 +175,29 @@ a.btn-extract-filled:visited {
 }
 
 .current-step-action {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: max-content 1fr max-content;
     min-height: 230px;
     padding-right: 20px;
     padding-left: 15px;
 }
 
-.current-step-action button {
-    bottom: 0;
-    position: absolute;
-    right: 20px;
+.current-step-action-title {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.current-step-action-content {
+    grid-column: 1;
+    grid-row: 2;
+    margin-bottom: 12px;
+}
+
+.current-step-action-buttons {
+    grid-column: 1;
+    grid-row: 3;
+    text-align: end;
 }
 
 .current-step-action textarea {
@@ -199,13 +213,7 @@ a.btn-extract-filled:visited {
 
 .current-step-action textarea + .remark-templates-list {
     margin-top: 10px;
-    margin-bottom: 50px;
 }
-
-.current-step-action textarea + button {
-    margin-top: 46px;
-}
-
 
 .current-step-action textarea.task-error-reject-remark {
     height: 80px;
@@ -468,6 +476,15 @@ table.list-table.files-list-table {
     bottom: 1.6em;
 }
 
+.navbar {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.navbar-toggler {
+    margin: 0.5rem 0;
+}
+
 .navbar-brand {
     padding: 2px;
     margin-right: 30px;
@@ -479,6 +496,11 @@ table.list-table.files-list-table {
 
 .navbar-nav > li  {
     font-size: 1rem;
+}
+
+.nav.navbar-nav .nav-item, .nav.navbar-nav .nav-item.active .nav-link {
+    display: flex;
+    align-items: center;
 }
 
 .navbar-light .navbar-nav > .active > a.nav-link,
@@ -521,30 +543,29 @@ table.list-table.files-list-table {
     margin-right: 10px;
 }
 
-.progress.splitted .progress-bar{
-    border-right: 15px solid white;
-}
-
 .preserve-whitespace {
     overflow-wrap: break-word;
     white-space: pre-wrap;
 }
 
-.table-striped > tbody > tr:nth-child(2n+1) > td .progress.splitted .progress-bar {
+.table-striped > tbody > tr:nth-child(2n+1) > td .progress.split .progress-bar {
     border-right-color: #f9f9f9;
 }
 
-.progress.splitted .progress-bar:last-of-type{
-    border-right: none;
+.progress.split {
+    background-color: #fff;
 }
 
-.progress.splitted .progress-bar i.separator::before{
+.progress.split .progress-bar + i.separator {
+    margin-right: 15px;
+}
+
+.progress.split .progress-bar + i.separator::before{
     content: "\f0da";
     color: #5cb85c;
     color: red;
-    float: right;
-    font-size: 2.3125rem;
-    line-height: 1.375rem;
+    font-size: 58px;
+    line-height: 32px;
     margin-right: -12px;
     box-sizing: border-box;
     display: inline-block;
@@ -553,23 +574,23 @@ table.list-table.files-list-table {
     font-weight: normal;
 }
 
-.progress.splitted .progress-bar-current i.separator::before{
+.progress.split .progress-bar-current + i.separator::before{
     color: #3ab872;
 }
 
-.progress.splitted .progress-bar-danger i.separator::before{
+.progress.split .progress-bar-danger + i.separator::before{
     color: #d9534f;
 }
 
-.progress.splitted .progress-bar-done i.separator::before{
+.progress.split .progress-bar-done + i.separator::before{
     color: #a7d2a7;
 }
 
-.progress.splitted .progress-bar-standby i.separator::before{
+.progress.split .progress-bar-standby + i.separator::before{
     color: #ffb200;
 }
 
-.progress.splitted .progress-bar-todo i.separator::before{
+.progress.split .progress-bar-todo + i.separator::before{
     color: #cacaca;
 }
 
@@ -945,11 +966,6 @@ tr.request-row:hover > td {
         padding: 15px 0 20px 0;
         margin-left: 15px;
         margin-right: 20px;
-    }
-
-    .current-step-action button {
-        bottom: 20px;
-        right: 0;
     }
 
     .current-step-action textarea {

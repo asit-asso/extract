@@ -79,7 +79,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div>
                     <h3 th:with="processString = ${hasProcess} ? ${request.processName} : #{requestDetails.process.none}"
                         th:text="${#messages.msg('requestDetails.process.title', processString)}"></h3>
-                    <div class="progress splitted process-progress" th:if="${hasProcess}">
+                    <div class="progress split process-progress" th:if="${hasProcess}">
                         <th:block th:each="historyItem, historyStats : ${request.processHistory}"
                                   th:object="${request.processHistory[__${historyStats.index}__]}" th:switch="*{status}"
                                   th:with="label = ${#strings.startsWith(#object.taskLabel, '##')}
@@ -112,6 +112,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                  class="progress-bar progress-bar-todo">
                                 <span th:text="${label}"></span>
                             </div>
+                            <i class="separator" th:unless="${historyStats.last}"></i>
                         </th:block>
                     </div>
                 </div>
@@ -145,75 +146,105 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <div class="row">
                         <div class="col-xl-6 current-step-action" th:if="${request.unmatched}">
                             <h3 th:text="#{requestDetails.currentStep.retryMatching.title}">{Retry}</h3>
-                            <p th:text="#{requestDetails.currentStep.retryMatching.text}">
-                                {This will run the rule matching again.}
-                            </p>
-                            <button type="button" id="errorRetryMatchingButton" class="btn btn-extract-filled"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/retryMatching'}">
-                                <i class="fa fa-retweet"></i>
-                                <span th:text="#{requestDetails.currentStep.retryMatching.button}">{Retry}</span>
-                            </button>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.retryMatching.text}">
+                                    {This will run the rule matching again.}
+                                </p>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="errorRetryMatchingButton" class="btn btn-extract-filled"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/retryMatching'}">
+                                    <i class="fa fa-retweet"></i>
+                                    <span th:text="#{requestDetails.currentStep.retryMatching.button}">{Retry}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-xl-3 current-step-action" th:if="${request.taskInError}">
                             <h3 th:text="#{requestDetails.currentStep.restartTask.title}">{Restart}</h3>
-                            <p th:text="#{requestDetails.currentStep.restartTask.text}">
-                                {This will run the task again.}
-                            </p>
-                            <button type="button" id="errorRestartButton" class="btn btn-extract-filled"
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.restartTask.text}">
+                                    {This will run the task again.}
+                                </p>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="errorRestartButton" class="btn btn-extract-filled"
                                     th:attr="data-action=@{'/requests/' + ${request.id} + '/restartTask'}">
-                                <i class="fa fa-cog"></i>
-                                <span th:text="#{requestDetails.currentStep.restartTask.button}">{Restart}</span>
-                            </button>
+                                    <i class="fa fa-cog"></i>
+                                    <span th:text="#{requestDetails.currentStep.restartTask.button}">{Restart}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-xl-4 current-step-action" th:if="${request.exportInError}">
-                            <h3 th:text="#{requestDetails.currentStep.retryExport.title}">{Retry export}</h3>
-                            <p th:text="#{requestDetails.currentStep.retryExport.text}">
-                                {This will run the export again.}
-                            </p>
-                            <button type="button" id="errorRetryExportButton" class="btn btn-extract-filled"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/retryExport'}">
-                                <i class="fa fa-upload"></i>
-                                <span th:text="#{requestDetails.currentStep.retryExport.button}">{Retry}</span>
-                            </button>
+                            <h3 class="current-step-action-title"
+                                th:text="#{requestDetails.currentStep.retryExport.title}">{Retry export}</h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.retryExport.text}">
+                                    {This will run the export again.}
+                                </p>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="errorRetryExportButton" class="btn btn-extract-filled"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/retryExport'}">
+                                    <i class="fa fa-upload"></i>
+                                    <span th:text="#{requestDetails.currentStep.retryExport.button}">{Retry}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="current-step-action"
                              th:if="${request.taskInError or request.exportInError}"
                              th:attrprepend="class = ${request.taskInError} ? 'col-xl-3 ' : 'col-xl-4 '">
-                            <h3 th:text="#{requestDetails.currentStep.restartProcess.title}">{Restart}</h3>
-                            <p th:text="#{requestDetails.currentStep.restartProcess.text}">
-                                {This will run the process from the start.}
-                            </p>
-                            <button type="button" id="errorRelaunchButton" class="btn btn-extract-filled"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/relaunch'}">
-                                <i class="fa fa-undo"></i>
-                                <span th:text="#{requestDetails.currentStep.restartProcess.button}">{Restart}</span>
-                            </button>
+                            <h3 class="current-step-action-title"
+                                th:text="#{requestDetails.currentStep.restartProcess.title}">{Restart}</h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.restartProcess.text}">
+                                    {This will run the process from the start.}
+                                </p>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="errorRelaunchButton" class="btn btn-extract-filled"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/relaunch'}">
+                                    <i class="fa fa-undo"></i>
+                                    <span th:text="#{requestDetails.currentStep.restartProcess.button}">{Restart}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-xl-3 current-step-action" th:if="${request.taskInError}">
-                            <h3 th:text="#{requestDetails.currentStep.skipTask.title}">{Skip}</h3>
-                            <p th:text="#{requestDetails.currentStep.skipTask.text}">
-                                {This skip the current task and proceed to the next task.}
-                            </p>
-                            <button type="button" id="errorSkipButton" class="btn btn-danger"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/skipTask'}">
-                                <i class="fa fa-arrow-right"></i>
-                                <span th:text="#{requestDetails.currentStep.skipTask.button}">{Skip}</span>
-                            </button>
+                            <h3 class="current-step-action-title"
+                                th:text="#{requestDetails.currentStep.skipTask.title}">{Skip}</h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.skipTask.text}">
+                                    {This skip the current task and proceed to the next task.}
+                                </p>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="errorSkipButton" class="btn btn-danger"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/skipTask'}">
+                                    <i class="fa fa-arrow-right"></i>
+                                    <span th:text="#{requestDetails.currentStep.skipTask.button}">{Skip}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="current-step-action"
                              th:attrprepend="class = ${request.unmatched} ? 'col-xl-6 ' : (${request.taskInError} ? 'col-xl-3 ' : 'col-xl-4 ')"
                              th:classappend="${#strings.equals(validationError, 'remark')} ? 'has-error'">
-                            <h3 th:text="#{requestDetails.currentStep.reject.title}">{Reject}</h3>
-                            <p th:text="#{requestDetails.currentStep.reject.text}">
-                                {The process will be canceled and the customer will be notified with your remark below.}
-                            </p>
-                            <textarea id="errorCancelRemark" class="form-control" th:classappend="${request.taskInError} ? task-error-reject-remark"
-                                      th:placeholder="#{requestDetails.currentStep.reject.remark.placeholder}"></textarea>
-                            <button type="button" id="errorCancelButton" class="btn btn-danger"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/reject'}">
-                                <i class="fa fa-remove"></i>
-                                <span th:text="#{requestDetails.currentStep.reject.button}">{Reject}</span>
-                            </button>
+                            <h3 class="current-step-action-title" th:text="#{requestDetails.currentStep.reject.title}">
+                                {Reject}
+                            </h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.reject.text}">
+                                    {The process will be canceled and the customer will be notified with your remark below.}
+                                </p>
+                                <textarea id="errorCancelRemark" class="form-control"
+                                          th:classappend="${request.taskInError} ? 'task-error-reject-remark'"
+                                          th:placeholder="#{requestDetails.currentStep.reject.remark.placeholder}"></textarea>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="errorCancelButton" class="btn btn-danger"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/reject'}">
+                                    <i class="fa fa-remove"></i>
+                                    <span th:text="#{requestDetails.currentStep.reject.button}">{Reject}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -229,61 +260,73 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     </div>
                     <div class="row">
                         <div class="col-xl-5 current-step-action">
-                            <h3 th:text="#{requestDetails.currentStep.validate.title}">{Validate}</h3>
-                            <p th:text="#{requestDetails.currentStep.validate.text}">
-                                {The process will go on. You can define or modify the remark to the customer below.}
-                            </p>
-                            <textarea id="standbyValidateRemark" th:text="${request.remark}" class="form-control"
-                                      th:placeholder="#{requestDetails.currentStep.validate.remark.placeholder}"></textarea>
-                            <select th:unless="${validationMessages == null}" id="validationMessagesList"
-                                    class="remark-templates-list select2-container form-control select2">
-                                <option value="" disabled selected hidden
-                                        th:text="#{requestDetails.currentStep.validate.templates.placeholder}">
-                                    {--- Validation remarks templates ---}
-                                </option>
-                                <option th:each="template : ${validationMessages}" th:object="${template}" value="1"
-                                        th:value="*{id}" th:text="*{title}">{My message title}</option>
-                            </select>
-                            <button type="button" id="standbyValidateButton" class="btn btn-extract-filled"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/validate'}">
-                                <i class="fa fa-check"></i>
-                                <span th:text="#{requestDetails.currentStep.validate.button}">{Validate}</span>
-                            </button>
+                            <h3 class="current-step-action-title" th:text="#{requestDetails.currentStep.validate.title}">{Validate}</h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.validate.text}">
+                                    {The process will go on. You can define or modify the remark to the customer below.}
+                                </p>
+                                <textarea id="standbyValidateRemark" th:text="${request.remark}" class="form-control"
+                                          th:placeholder="#{requestDetails.currentStep.validate.remark.placeholder}"></textarea>
+                                <select th:unless="${validationMessages == null}" id="validationMessagesList"
+                                        class="remark-templates-list select2-container form-control select2">
+                                    <option value="" disabled selected hidden
+                                            th:text="#{requestDetails.currentStep.validate.templates.placeholder}">
+                                        {--- Validation remarks templates ---}
+                                    </option>
+                                    <option th:each="template : ${validationMessages}" th:object="${template}" value="1"
+                                            th:value="*{id}" th:text="*{title}">{My message title}</option>
+                                </select>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="standbyValidateButton" class="btn btn-extract-filled"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/validate'}">
+                                    <i class="fa fa-check"></i>
+                                    <span th:text="#{requestDetails.currentStep.validate.button}">{Validate}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-xl-5 current-step-action"
                              th:classappend="${#strings.equals(validationError, 'remark')} ? 'has-error'">
-                            <h3 th:text="#{requestDetails.currentStep.reject.title}">{Reject}</h3>
-                            <p th:text="#{requestDetails.currentStep.reject.text}">
-                                {The process will be canceled and the customer will be notified with your remark below.}
-                            </p>
-                            <textarea id="standbyCancelRemark" class="form-control"
-                                      th:placeholder="#{requestDetails.currentStep.reject.remark.placeholder}"></textarea>
-                            <select th:unless="${rejectionMessages == null}" id="rejectionMessagesList"
-                                    class="remark-templates-list select2-container form-control select2"
-                                    th:placeholder="#{requestDetails.currentStep.reject.templates.placeholder}">
-                                <option value="" disabled selected hidden
-                                        th:text="#{requestDetails.currentStep.reject.templates.placeholder}">
-                                    {--- Rejection remarks templates ---}
-                                </option>
-                                <option th:each="template : ${rejectionMessages}" th:object="${template}" value="1"
-                                        th:value="*{id}" th:text="*{title}">{My message title}</option>
-                            </select>
-                            <button type="button" id="standbyCancelButton" class="btn btn-danger"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/reject'}">
-                                <i class="fa fa-remove"></i>
-                                <span th:text="#{requestDetails.currentStep.reject.button}">{Reject}</span>
-                            </button>
+                            <h3 class="current-step-action-title" th:text="#{requestDetails.currentStep.reject.title}">{Reject}</h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.reject.text}">
+                                    {The process will be canceled and the customer will be notified with your remark below.}
+                                </p>
+                                <textarea id="standbyCancelRemark" class="form-control"
+                                          th:placeholder="#{requestDetails.currentStep.reject.remark.placeholder}"></textarea>
+                                <select th:unless="${rejectionMessages == null}" id="rejectionMessagesList"
+                                        class="remark-templates-list select2-container form-control select2"
+                                        th:placeholder="#{requestDetails.currentStep.reject.templates.placeholder}">
+                                    <option value="" disabled selected hidden
+                                            th:text="#{requestDetails.currentStep.reject.templates.placeholder}">
+                                        {--- Rejection remarks templates ---}
+                                    </option>
+                                    <option th:each="template : ${rejectionMessages}" th:object="${template}" value="1"
+                                            th:value="*{id}" th:text="*{title}">{My message title}</option>
+                                </select>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="standbyCancelButton" class="btn btn-danger"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/reject'}">
+                                    <i class="fa fa-remove"></i>
+                                    <span th:text="#{requestDetails.currentStep.reject.button}">{Reject}</span>
+                                </button>
+                            </div>
                         </div>
                         <div class="col-xl-2 current-step-action">
-                            <h3 th:text="#{requestDetails.currentStep.restartProcess.title}">{Restart}</h3>
-                            <p th:text="#{requestDetails.currentStep.restartProcess.text}">
-                                {This will run the process from the start.}
-                            </p>
-                            <button type="button" id="standbyRestartButton" class="btn btn-secondary"
-                                    th:attr="data-action=@{'/requests/' + ${request.id} + '/relaunch'}">
-                                <i class="fa fa-undo"></i>
-                                <span th:text="#{requestDetails.currentStep.restartProcess.button}">{Restart}</span>
-                            </button>
+                            <h3 class="current-step-action-title" th:text="#{requestDetails.currentStep.restartProcess.title}">{Restart}</h3>
+                            <div class="current-step-action-content">
+                                <p th:text="#{requestDetails.currentStep.restartProcess.text}">
+                                    {This will run the process from the start.}
+                                </p>
+                            </div>
+                            <div class="current-step-action-buttons">
+                                <button type="button" id="standbyRestartButton" class="btn btn-secondary"
+                                        th:attr="data-action=@{'/requests/' + ${request.id} + '/relaunch'}">
+                                    <i class="fa fa-undo"></i>
+                                    <span th:text="#{requestDetails.currentStep.restartProcess.button}">{Restart}</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

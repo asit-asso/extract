@@ -37,82 +37,84 @@
     </head>
     <body>
         <div id="wrapper">
-            <nav class="navbar navbar-expand-xl navbar-light bg-light" role="navigation" style="/*margin-bottom: 0*/"
+            <nav class="navbar navbar-expand-xl navbar-light bg-light fixed-top" role="navigation" style="/*margin-bottom: 0*/"
                  th:fragment="navigation">
-                <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#bs-navbar">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <a class="navbar-brand float-xl-left" th:href="@{/}" href="login.html"><!--
-                    --><img th:src="@{/images/extract_logo.png}"
-                            th:alt="#{logo.alt}"
-                            src="images/extract_logo.png" alt="Logo Extract" /><!--
-                    --></a>
+                <div class="container align-items-stretch">
+                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#bs-navbar">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    <a class="navbar-brand float-xl-left" th:href="@{/}" href="login.html"><!--
+                        --><img th:src="@{/images/extract_logo.png}"
+                                th:alt="#{logo.alt}"
+                                src="images/extract_logo.png" alt="Logo Extract" /><!--
+                        --></a>
 
-                <div sec:authorize="isAuthenticated()" class="collapse navbar-collapse justify-content-between"
-                     id="bs-navbar">
-                        <ul class="nav navbar-nav">
-                            <li sec:authorize="hasAnyAuthority('ADMIN', 'OPERATOR')" class="nav-item"
-                                th:classappend="${currentSection} == 'home' ? 'active' : ''">
-                                <a href="" th:href="@{/}" class="nav-link">
-                                    <i class="fa fa-home fa-fw"></i>&nbsp;
-                                    <span th:text="#{navigation.home}">{Home}</span>
-                                </a>
-                            </li>
-                            <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                th:classappend="${currentSection} == 'processes' ? 'active' : ''">
-                                <a href="processes" th:href="@{/processes}" class="nav-link">
-                                    <i class="fa fa-cogs fa-fw"></i>&nbsp;
-                                    <span th:text="#{navigation.processes}">{Traitements}</span>
-                                </a>
-                            </li>
-                            <!--//
-                            <li>
-                                <a href="requests" th:href="@{/requests}">
-                                    <i class="fa fa-history fa-fw"></i>&nbsp;
-                                    <span th:text="#{navigation.history}">{Historique}</span>
-                                </a>
-                            </li> //-->
-                            <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                th:classappend="${currentSection} == 'connectors' ? 'active' : ''">
-                                <a href="connectors" th:href="@{/connectors}" class="nav-link">
-                                    <i class="fa fa-plug fa-fw"></i>&nbsp;
-                                    <span th:text="#{navigation.connectors}">{Connecteurs}</span>
-                                </a>
-                            </li>
-                            <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                th:classappend="${currentSection} == 'users' ? 'active' : ''">
-                                <a href="users" th:href="@{/users}" class="nav-link">
-                                    <i class="fa fa-users fa-fw"></i>&nbsp;
-                                    <span th:text="#{navigation.users}">{Utilisateurs et droits}</span>
-                                </a>
-                            </li>
-                            <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                th:classappend="${currentSection} == 'parameters' ? 'active' : ''">
-                                <a href="parameters" th:href="@{/parameters}" class="nav-link">
-                                    <i class="fa fa-wrench fa-fw"></i>&nbsp;
-                                    <span th:text="#{navigation.settings}">{Paramètres}</span>
-                                </a>
-                            </li>
-                        </ul>
-                        <ul class="nav navbar-nav">
-                            <li class="nav-item" th:classappend="${currentSection} == 'currentUser' ? 'active' : ''">
-                                <a href="#" id="userEditLink" title="Edit your data" th:title="#{menu.user.editInfo}"
-                                   class="nav-link">
-                                    <i class="fa fa-user fa-fw"></i>
-                                    <span sec:authentication="name">{Name}</span>
-                                </a>
-                            </li>
-                            <li class="nav-item">
-                                <a href="#" id="logoutLink" title="Logout" th:title="#{menu.user.logout}"
-                                   class="nav-link">
-                                    <i class="fa fa-sign-out fa-fw"></i>
-                                </a>
-                            </li>
-                        </ul>
+                    <div sec:authorize="isAuthenticated()" id="bs-navbar"
+                         class="collapse navbar-collapse justify-content-between align-items-stretch">
+                            <ul class="nav navbar-nav">
+                                <li sec:authorize="hasAnyAuthority('ADMIN', 'OPERATOR')" class="nav-item"
+                                    th:classappend="${currentSection} == 'home' ? 'active' : ''">
+                                    <a href="" th:href="@{/}" class="nav-link">
+                                        <i class="fa fa-home fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.home}">{Home}</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
+                                    th:classappend="${currentSection} == 'processes' ? 'active' : ''">
+                                    <a href="processes" th:href="@{/processes}" class="nav-link">
+                                        <i class="fa fa-cogs fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.processes}">{Traitements}</span>
+                                    </a>
+                                </li>
+                                <!--//
+                                <li>
+                                    <a href="requests" th:href="@{/requests}">
+                                        <i class="fa fa-history fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.history}">{Historique}</span>
+                                    </a>
+                                </li> //-->
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
+                                    th:classappend="${currentSection} == 'connectors' ? 'active' : ''">
+                                    <a href="connectors" th:href="@{/connectors}" class="nav-link">
+                                        <i class="fa fa-plug fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.connectors}">{Connecteurs}</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
+                                    th:classappend="${currentSection} == 'users' ? 'active' : ''">
+                                    <a href="users" th:href="@{/users}" class="nav-link">
+                                        <i class="fa fa-users fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.users}">{Utilisateurs et droits}</span>
+                                    </a>
+                                </li>
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
+                                    th:classappend="${currentSection} == 'parameters' ? 'active' : ''">
+                                    <a href="parameters" th:href="@{/parameters}" class="nav-link">
+                                        <i class="fa fa-wrench fa-fw"></i>&nbsp;
+                                        <span th:text="#{navigation.settings}">{Paramètres}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <ul class="nav navbar-nav">
+                                <li class="nav-item" th:classappend="${currentSection} == 'currentUser' ? 'active' : ''">
+                                    <a href="#" id="userEditLink" title="Edit your data" th:title="#{menu.user.editInfo}"
+                                       class="nav-link">
+                                        <i class="fa fa-user fa-fw"></i>
+                                        <span sec:authentication="name">{Name}</span>
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="#" id="logoutLink" title="Logout" th:title="#{menu.user.logout}"
+                                       class="nav-link">
+                                        <i class="fa fa-sign-out fa-fw"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                    </div>
+                    <form id="logoutForm" action="#" th:action="@{/login/disconnect}" method="POST">
+                    </form>
+                    <!-- /.navbar-top-links -->
                 </div>
-                <form id="logoutForm" action="#" th:action="@{/login/disconnect}" method="POST">
-                </form>
-                <!-- /.navbar-top-links -->
             </nav>
             <th:block th:replace="fragments/message :: dismissibleMessage"></th:block>
             <div id="page-wrapper" layout:fragment="content">

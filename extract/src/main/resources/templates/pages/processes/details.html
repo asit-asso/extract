@@ -176,7 +176,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         <div class="popover-body" th:utext="*{pluginHelpMessage}"></div>
                                                     </div>
                                                     <div th:id="|deleteTaskButton-*{id}|"
-                                                         th:href="|@{/processes/${process.id}/deleteTask/*{id}}|"
+                                                         th:href="@{|/processes/${process.id}/deleteTask/*{id}|}"
                                                          class="btn btn-sm btn-danger float-right deletetask-button"
                                                          th:classappend="${process.readOnly} ? 'disabled' : ''" >
                                                         <span class="fa fa-close"></span>
@@ -262,11 +262,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:required="*{required}" th:min="*{minValue}"
                                                                        th:max="*{maxValue}" th:step="*{step}"
                                                                        class="form-control" autocomplete="off"
-                                                                       th:value="*{value} != null ? *{value} : ''"
+                                                                       th:value="*{value} ?: ''"
                                                                        data-toggle="tooltip"
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
-                                                                       th:name="|parameters[${paramStats.index}].value|"
-                                                                       th:id="|parameters${paramStats.index}.value|" />
+                                                                       th:name="|tasks[${taskStats.index}].parameters[${paramStats.index}].value|"
+                                                                       th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value|" />
 
                                                                 <div th:if="${readOnly} and *{type} != 'boolean'"
                                                                      th:text="*{type} == 'pass' ? '*****' : *{value}"
