@@ -866,15 +866,15 @@ tr.request-row:hover > td {
     user-select: none;
     -moz-user-select: none;
 }
-.available-task button{
-    cursor: move; /* fallback if grab cursor is unsupported */
-    cursor: grab;
-    cursor: -moz-grab;
-    cursor: -webkit-grab;
+
+.task-icon {
+    display: inline-block;
 }
+
 .available-task:hover{
     background-color: lightgray;
 }
+
 .available-task:hover .card-heading{
     background-color: gray;
 }
@@ -888,7 +888,7 @@ tr.request-row:hover > td {
     font-weight: bold;
 }
 
-.available-task .btn-circle, .extract-proc-tasks .btn-circle {
+.available-task .circle-icon, .extract-proc-tasks .circle-icon {
     width: 30px;
     height: 30px;
     padding: 6px 0;

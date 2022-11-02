@@ -157,7 +157,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                                             <div class="card border-success chosed-task" >
                                                 <div class="card-header text-success">
-                                                    <div class="btn btn-success btn-circle">
+                                                    <div class="task-icon circle-icon bg-success text-white">
                                                         <i class="fa" th:classappend="*{pluginPictoClass}"></i>
                                                     </div>
                                                     <span class="strong" th:text="*{pluginLabel}">{Task label}</span>
@@ -292,10 +292,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         <div class="col-xl-4">
                             <div class="card card-default">
                                 <div class="card-header card-header-large" th:text="#{processDetails.panels.availableTasks.title}">{tasks available}</div>
-
                                 <div class="card-body">
                                     <div class="row">
-
                                         <div class="col-xl-12">
                                             <p>
                                                 <i class="fa fa-arrow-circle-left float-left" style="font-size:40px" aria-hidden="true"></i>
@@ -306,9 +304,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                  th:each="availabletask, taskStats : ${alltasks}"
                                                  th:object="${alltasks[__${taskStats.index}__]}" >
                                                 <div class="card-header" >
-                                                    <button class="btn btn-warning btn-circle" type="button" >
+                                                    <div class="task-icon circle-icon bg-warning">
                                                         <i class="fa" th:classappend="*{pictoClass}" ></i>
-                                                    </button>
+                                                    </div>
                                                     <span th:text="*{label}">{Task label}</span>
                                                 </div>
                                                 <div class="card-body">
@@ -320,29 +318,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     <span style="display:none" class="taskcode" th:text="*{code}"></span>
                                                 </div>
                                             </div>
-                                            <!--<div class="card card-default available-task">
-                                                <div class="card-header">
-                                                    <button class="btn btn-warning btn-circle" type="button">
-                                                        <i class="fa fa-folder-open-o"></i>
-                                                    </button>
-                                                    Archivage fichiers
-                                                </div>
-                                                <div class="card-body">
-                                                    <div class="row">
-                                                        <div class="col-xl-12">
-                                                            Copie des fichiers dans un répertoire local ou réseau.
-                                                        </div>
-
-                                                    </div>
-                                                </div>
-                                            </div>-->
-
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </form>
                 <div th:replace="fragments/alert :: alertModal"></div>
