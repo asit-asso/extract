@@ -164,8 +164,13 @@ public class UserGroupValidator extends BaseValidator {
      * @param userGroupModel the model representing the user group whose members data should be checked.
      */
     private String validateUsersList(final UserGroupModel userGroupModel) {
-        Optional<UserGroup> domainUserGroup = this.userGroupsRepository.findById(userGroupModel.getId());
-        boolean isAssociatedToProcesses = (domainUserGroup.isPresent() && domainUserGroup.get().isAssociatedToProcesses());
+        boolean isAssociatedToProcesses = false;
+
+        if (!userGroupModel.isBeingCreated()) {
+            Optional<UserGroup> domainUserGroup = this.userGroupsRepository.findById(userGroupModel.getId());
+            isAssociatedToProcesses = (domainUserGroup.isPresent() && domainUserGroup.get().isAssociatedToProcesses());
+        }
+
         String userIdsString = userGroupModel.getUsersIds();
         this.logger.debug("Users ids are {} (isEmpty: {}). The user group {} associated to a process.",
                             userIdsString, StringUtils.isEmpty(userIdsString),
@@ -184,9 +189,9 @@ public class UserGroupValidator extends BaseValidator {
         boolean hasActiveUsers = false;
 
         for (String idString : userIdsString.split(",")) {
-            Integer userId = NumberUtils.toInt(idString);
+            Integer userId = NumberUtils.toInt(idString, -1);
 
-            if (userId == null) {
+            if (userId < 0) {
                 return "userGroupDetails.errors.users.invalidId";
             }
 
