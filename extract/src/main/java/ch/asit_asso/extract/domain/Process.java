@@ -42,12 +42,12 @@ import java.util.List;
 @Table(name = "Processes")
 @NamedQueries({
     @NamedQuery(name = "Process.getProcessOperatorsAddresses",
-            query = "SELECT u.email FROM User u WHERE (u.id IN (SELECT u.id FROM Process p JOIN p.usersCollection u WHERE p.id = :processId) "
-                    + " OR u.id IN (SELECT u.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection  WHERE p.id = :processId))"
+            query = "SELECT u.email FROM User u WHERE (u.id IN (SELECT pu.id FROM Process p JOIN p.usersCollection pu WHERE p.id = :processId) "
+                    + " OR u.id IN (SELECT uu.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection uu WHERE p.id = :processId))"
                     + "AND u.active = true AND u.mailActive = true"),
     @NamedQuery(name = "Process.getProcessOperatorsIds",
-            query = "SELECT u.id FROM User u WHERE u.id IN (SELECT u.id FROM Process p JOIN p.usersCollection u WHERE p.id = :processId) "
-                    + " OR u.id IN (SELECT u.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection  WHERE p.id = :processId)")
+            query = "SELECT u.id FROM User u WHERE u.id IN (SELECT pu.id FROM Process p JOIN p.usersCollection pu WHERE p.id = :processId) "
+                    + " OR u.id IN (SELECT uu.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection uu WHERE p.id = :processId)")
 })
 @XmlRootElement
 public class Process implements Serializable {
@@ -91,7 +91,7 @@ public class Process implements Serializable {
     private Collection<User> usersCollection;
 
 
-    @JoinTable(name = "processes_user_groups",
+    @JoinTable(name = "processes_usergroups",
             joinColumns = {
                     @JoinColumn(name = "id_process", referencedColumnName = "id_process",
                             foreignKey = @ForeignKey(name = "FK_PROCESSES_USERGROUPS_PROCESS")

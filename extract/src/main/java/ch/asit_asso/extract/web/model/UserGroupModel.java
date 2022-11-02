@@ -389,13 +389,17 @@ public class UserGroupModel {
         if (!StringUtils.isEmpty(userIds)) {
 
             for (String userId : userIds.split(",")) {
+                this.logger.debug("Looking to add user with id {}", userId);
                 Optional<User> user = usersRepository.findById(NumberUtils.toInt(userId));
 
                 if (!user.isPresent()) {
                     this.logger.warn("Could not find a user to copy with id {}", userId);
+                    continue;
                 }
 
-                usersCollection.add(user.get());
+                User domainUser = user.get();
+                this.logger.debug("Adding user {} to group {}", domainUser.getName(), domainUserGroup.getName());
+                usersCollection.add(domainUser);
             }
         }
 

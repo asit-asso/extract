@@ -29,7 +29,7 @@ import java.util.Collection;
  * An entity used to affect permissions to a set of users.
  */
 @Entity
-@Table(name="USERGROUP", uniqueConstraints = {
+@Table(name="USERGROUPS", uniqueConstraints = {
         @UniqueConstraint(columnNames = "name", name = "UNQ_USERGROUP_NAME")
 })
 @XmlRootElement
@@ -59,14 +59,14 @@ public class UserGroup {
      * The users that are members of this group.
      */
     @JoinTable(name = "users_usergroups",
-            joinColumns = {
-                    @JoinColumn(name = "id_usergroup", referencedColumnName = "id_usergroup",
-                            foreignKey = @ForeignKey(name = "FK_USERGROUPS_USERS_USERGROUP")
-                    )
-            },
             inverseJoinColumns = {
                     @JoinColumn(name = "id_user", referencedColumnName = "id_user",
-                            foreignKey = @ForeignKey(name = "FK_USERGROUPS_USERS_USER")
+                            foreignKey = @ForeignKey(name = "FK_USERS_USERGROUPS_USER")
+                    )
+            },
+            joinColumns = {
+                    @JoinColumn(name = "id_usergroup", referencedColumnName = "id_usergroup",
+                            foreignKey = @ForeignKey(name = "FK_USERS_USERGROUPS_USERGROUP")
                     )
             }
     )

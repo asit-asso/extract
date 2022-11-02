@@ -227,7 +227,7 @@ public class UserGroupsController extends BaseController {
     /**
      * Processes the data submitted to modify an existing user group.
      *
-     * @param userModel          the user group data submitted for the update
+     * @param userGroupModel     the user group data submitted for the update
      * @param bindingResult      an object assembling the result of the user group data validation
      * @param model              the data to display in the next view
      * @param id                 the number that identifies the user group to update
