@@ -1190,6 +1190,8 @@ public class Easysdiv4 implements IConnector {
             this.logger.debug("Client details are : {}", clientDetails);
             final String tiers = this.getXMLNodeLabelFromXpath(document,
                     config.getProperty("getOrders.xpath.tiers").replace("<guid>", guid));
+            final String tiersGuid = this.getXMLNodeLabelFromXpath(document,
+                    config.getProperty("getOrders.xpath.tiersGuid").replace("<guid>", guid));
             final String tiersDetails = this.buildAddressDetailsFromXpath(document,
                     config.getProperty("getOrders.xpath.tiersdetails").replace("<guid>", guid));
             final String perimeter = this.getOrderPerimeterFromDocument(document, guid);
@@ -1225,6 +1227,7 @@ public class Easysdiv4 implements IConnector {
                 product.setClientGuid(clientGuid);
                 product.setClientDetails(clientDetails);
                 product.setTiers(tiers);
+                product.setTiersGuid(tiersGuid);
                 product.setTiersDetails(tiersDetails);
                 product.setPerimeter(perimeter);
                 product.setSurface(surface);

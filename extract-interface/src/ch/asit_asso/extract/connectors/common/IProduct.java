@@ -116,6 +116,15 @@ public interface IProduct {
 
 
     /**
+     * Obtains the string that uniquely identifies the person that this product was ordered on behalf of, if any.
+     *
+     * @return the identifier of the third party, or <code>null</code> if there is not any
+     */
+    String getTiersGuid();
+
+
+
+    /**
      * Obtains additional information about the person that this product was ordered on behalf of, if any.
      *
      * @return a string with details about the third party (usually contact information), or <code>null</code> if

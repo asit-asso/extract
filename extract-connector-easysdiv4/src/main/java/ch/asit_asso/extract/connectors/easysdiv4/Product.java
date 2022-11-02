@@ -16,12 +16,13 @@
  */
 package ch.asit_asso.extract.connectors.easysdiv4;
 
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.net.URL;
 import ch.asit_asso.extract.connectors.common.IProduct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 
 
@@ -86,6 +87,11 @@ public class Product implements IProduct {
      * The name of the person that this data item was requested on behalf of, if any.
      */
     private String tiers;
+
+    /**
+     * The string that uniquely identifies the person that this data item was requested on behalf of, if any.
+     */
+    private String tiersGuid;
 
     /**
      * Additional information (usually contact information) about the person that this data item was
@@ -292,6 +298,21 @@ public class Product implements IProduct {
      */
     public final void setTiers(final String name) {
         this.tiers = name;
+    }
+
+
+    @Override
+    public final String getTiersGuid() { return this.tiersGuid; }
+
+
+
+    /**
+     * Defines the string that uniquely identifies the person that this product was requested on behalf of.
+     *
+     * @param tiersGuid the identifier of the third party, or <code>null</code> if there is not any
+     */
+    public final void setTiersGuid(final String tiersGuid) {
+        this.tiersGuid = tiersGuid;
     }
 
 

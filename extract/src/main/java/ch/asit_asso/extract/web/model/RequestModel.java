@@ -364,6 +364,16 @@ public class RequestModel {
 
 
     /**
+     * Obtains the identifying string of the third party on behalf of which this order was placed.
+     *
+     * @return the third party guid
+     */
+    public final String getTiersGuid() {
+        return this.request.getTiersGuid();
+    }
+
+
+    /**
      * Obtains a description of each file produced during the processing of this order.
      *
      * @return an array that contains the output files descriptions

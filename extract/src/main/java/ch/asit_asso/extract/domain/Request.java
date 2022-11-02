@@ -132,9 +132,17 @@ public class Request implements Serializable {
     /**
      * Additional information about the third-party (if any) that this data item was ordered on behalf of.
      */
-    @Size(max = 4000)
+    @Size(max = 255)
     @Column(name = "p_tiersdetails")
     private String tiersDetails;
+
+
+    /**
+     * Additional information about the third-party (if any) that this data item was ordered on behalf of.
+     */
+    @Size(max = 4000)
+    @Column(name = "p_tiersguid")
+    private String tiersGuid;
 
     /**
      * The WKT geometry of the geographical area for this order.
@@ -438,9 +446,10 @@ public class Request implements Serializable {
 
 
     /**
-     * Obtains the organization that the person who placed this data item order is part of.
+     * Obtains the string that uniquely identifies the organization that the person who placed this data item order is
+     * part of.
      *
-     * @return the name of the organization
+     * @return the identifier of the organization
      */
     public String getOrganismGuid() {
         return this.organismGuid;
@@ -449,9 +458,9 @@ public class Request implements Serializable {
 
 
     /**
-     * Defines the organization that the person who placed this data item order is part of.
+     * Defines the string that uniquely identifies the organization that the person who placed this data item order is part of.
      *
-     * @param organismName the name of the organization
+     * @param organismGuid the identifier of the organization
      */
     public void setOrganismGuid(final String organismGuid) {
         this.organismGuid = organismGuid;
@@ -482,9 +491,9 @@ public class Request implements Serializable {
 
 
     /**
-     * Obtains the name of the customer who ordered this data item.
+     * Obtains the string that uniquely identifies the customer who ordered this data item.
      *
-     * @return the customer name
+     * @return the identifier of the customer
      */
     public String getClientGuid() {
         return this.clientGuid;
@@ -493,9 +502,9 @@ public class Request implements Serializable {
 
 
     /**
-     * Defines the name of the customer who ordered this data item.
+     * Defines the string that uniquely identifies the customer who ordered this data item.
      *
-     * @param customer the customer name
+     * @param customerGuid the identifier of the customer
      */
     public void setClientGuid(final String customerGuid) {
         this.clientGuid = customerGuid;
@@ -543,6 +552,30 @@ public class Request implements Serializable {
      */
     public void setTiers(final String name) {
         this.tiers = name;
+    }
+
+
+
+    /**
+     * Obtains the string that uniquely identifies the third party (if any) on behalf of which this data item
+     * was ordered.
+     *
+     * @return the identifier of the third party, or <code>null</code> if there is none
+     */
+    public String getTiersGuid() {
+        return this.tiersGuid;
+    }
+
+
+
+    /**
+     * Defines the string that uniquely identifies the third party (if any) on behalf of which this data item
+     * was ordered.
+     *
+     * @param tiersGuid the identifier of the third party, or <code>null</code> if there is none
+     */
+    public void setTiersGuid(final String tiersGuid) {
+        this.tiersGuid = tiersGuid;
     }
 
 

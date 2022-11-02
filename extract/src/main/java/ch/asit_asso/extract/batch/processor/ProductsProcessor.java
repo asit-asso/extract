@@ -84,6 +84,7 @@ public class ProductsProcessor implements ItemProcessor<IProduct, Request> {
             request.setProductGuid(product.getProductGuid());
             request.setProductLabel(product.getProductLabel());
             request.setTiers(product.getTiers());
+            request.setTiersGuid(product.getTiersGuid());
             request.setTiersDetails(product.getTiersDetails());
             request.setSurface(product.getSurface());
             request.setStartDate(new GregorianCalendar());
