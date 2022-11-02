@@ -508,6 +508,7 @@ table.list-table.files-list-table {
 .nav.navbar-nav .nav-item, .nav.navbar-nav .nav-item.active .nav-link {
     display: flex;
     align-items: center;
+    height: 100%;
 }
 
 .navbar-light .navbar-nav > .active > a.nav-link,
