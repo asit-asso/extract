@@ -142,7 +142,7 @@ function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSe
  *
  *
  */
-function loadWorkingState(scheduledStopDivId, stoppedDivId, ajaxUrl, refreshInterval) {
+function loadWorkingState(scheduledStopDivId, stoppedDivId, scheduleConfigErrorDivId, ajaxUrl, refreshInterval) {
 
     if (!ajaxUrl) {
         return;
@@ -169,8 +169,16 @@ function loadWorkingState(scheduledStopDivId, stoppedDivId, ajaxUrl, refreshInte
     if (!$stoppedDiv) {
         return;
     }
+
+    var $scheduleConfigErrorDiv = $("#" + scheduleConfigErrorDivId);
+
+    if (!$scheduleConfigErrorDiv) {
+        return;
+    }
+
     _scheduledStopDiv = $scheduledStopDiv;
     _stoppedDiv = $stoppedDiv;
+    _scheduleConfigErrorDiv = $scheduleConfigErrorDiv;
     _workingStateUrl = ajaxUrl;
 
     _refreshWorkingState();
@@ -269,6 +277,8 @@ var _filterStartDateTo = "";
 var _scheduledStopDiv;
 
 var _stoppedDiv;
+
+var _scheduleConfigErrorDiv;
 
 var _workingStateUrl;
 
@@ -621,7 +631,7 @@ function _refreshConnectorsState() {
  */
 function _refreshWorkingState() {
 
-    if (!_workingStateUrl || !_scheduledStopDiv || !_stoppedDiv) {
+    if (!_workingStateUrl || !_scheduledStopDiv || !_stoppedDiv || !_scheduleConfigErrorDiv) {
         return;
     }
 
@@ -638,6 +648,7 @@ function _refreshWorkingState() {
 
             _scheduledStopDiv.toggle(data === "SCHEDULED_STOP");
             _stoppedDiv.toggle(data === "STOPPED");
+            _scheduleConfigErrorDiv.toggle(data === "SCHEDULE_CONFIG_ERROR");
         }
     });
 }

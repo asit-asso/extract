@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.Objects;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.joda.time.DateTime;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -43,6 +44,10 @@ public class OrchestratorSettings {
 
     private OrchestratorTimeRangeCollection ranges;
 
+    /**
+     * The writer to the application logs.
+     */
+    private final Logger logger = LoggerFactory.getLogger(OrchestratorSettings.class);
 
 
     public final int getFrequency() {
@@ -145,6 +150,7 @@ public class OrchestratorSettings {
 
 
     public String getStateString() {
+        this.logger.debug("Current mode is {}. There are {} ranges configured.", this.getMode().toString(), this.ranges.getRanges().length);
 
         if (this.isWorking()) {
             return "RUNNING";
@@ -152,6 +158,10 @@ public class OrchestratorSettings {
 
         if (this.getMode() == OrchestratorSettings.SchedulerMode.OFF) {
             return "STOPPED";
+        }
+
+        if (this.getMode() == OrchestratorSettings.SchedulerMode.RANGES && this.ranges.getRanges().length == 0) {
+            return "SCHEDULE_CONFIG_ERROR";
         }
 
         return "SCHEDULED_STOP";

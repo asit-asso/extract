@@ -55,6 +55,14 @@
                         <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                         <th:block th:text="#{orchestrator.status.fullStop}"></th:block>
                     </div>
+                    <div id="scheduleConfigErrorMessage" class="alert alert-dismissible alert-danger" style="display: none">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                                th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <div><strong th:text="#{orchestrator.status.scheduleConfigError}"></strong></div>
+                        <th:block th:text="#{orchestrator.status.noScheduleSpan}"></th:block>
+                    </div>
                     <div class="card card-default">
                         <div class="card-header">
                             <h3 th:text="#{requestsList.panels.currentRequests.title}">{Current requests}</h3>
@@ -232,8 +240,8 @@
                         loadDatepickers(applicationLanguage);
 
                         loadConnectors("connectorsStateContainer", connectorsRefreshUrl, refreshInterval);
-                        loadWorkingState("scheduledStopMessage", "stoppedMessage", workingStateRefreshUrl,
-                                refreshInterval);
+                        loadWorkingState("scheduledStopMessage", "stoppedMessage", "scheduleConfigErrorMessage",
+                                workingStateRefreshUrl, refreshInterval);
             </script>
         </th:block>
     </body>
