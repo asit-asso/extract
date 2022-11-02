@@ -112,44 +112,39 @@ $(function() {
     $("#popup-over-rulehelp .popover-body").load(ruleHelpHref);
     
     //Initialize help window for rule
-    $('#rulesTable .helplink').popover({
-            html : true,
-            container : 'body',
-            trigger : 'manual',
+    document.querySelectorAll('#rulesTable .helplink').forEach(popover => {
+        new bootstrap.Popover(popover, {
+            html: true,
+            container: 'body',
+            trigger: 'manual',
             placement: 'auto',
-            title: function() {
-                var content = $(this).attr("data-popover-content");
-                var popupHeader = $(content).children(".popover-heading").clone();
-                return $(popupHeader).wrapAll("<div/>").parent().html();
+            title: function () {
+                var content = $(this).attr('data-popover-content');
+                var popupHeader = $(content).children('.popover-heading').clone();
+                return $(popupHeader).wrapAll('<div/>').parent().html();
             },
-            content: function() {
-                var content = $(this).attr("data-popover-content");
-                var popupBody = $(content).children(".popover-body").clone();
-                
-                return popupBody.wrapAll("<div/>").parent().html();
+            content: function () {
+                var content = $(this).attr('data-popover-content');
+                var popupBody = $(content).children('.popover-body').clone();
+                return popupBody.wrapAll('<div/>').parent().html();
             }
-    }).click(function(evt) {
-        evt.stopPropagation();
-        $(this).popover('show');
+        });
+        $(popover).on('click', function (evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const thisPopup = bootstrap.Popover.getOrCreateInstance(this);
+            const isThisPopupShown = $('#' + $(this).attr('aria-describedby')).is(':visible');
+            $('#rulesTable .helplink').popover('hide');
+
+            if (!isThisPopupShown) {
+                thisPopup.show();
+            }
+        });
     });
-    /*$('html').click(function() {
-        if ($('.popover').has(e.target).length === 0) {
-            $('#rulesTable .fa-info-circle').popover('hide');
-        }
-    });*/
-    /*$('#rulesTable .fa-info-circle').bind('shown.bs.popover', function (e) {
-        $('#popup-over-rulehelp').show();
-    }) ;*/
     // Fermeture de la popup au clic sur la croix
    $(document).on("click",".popup-header .img-close", function() {
        $('#rulesTable .helplink').popover('hide');
    });
-   /*$('#rulesTable .fa-info-circle').click( function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        $(this).popover('show');	
-   });*/
-    
 });
 
 

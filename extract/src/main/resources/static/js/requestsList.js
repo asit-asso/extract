@@ -350,7 +350,7 @@ function _createConnectorsDropDown(connectorsInfo, state) {
     var isError = (state === REQUESTS_LIST_CONNECTOR_STATUS_ERROR);
     var connectorDropDown = $('<div class="dropdown"></div>');
     var itemId = ((isError) ? "failed" : "ok") + "ConnectorsDropDown";
-    var connectorLink = $('<a id="' + itemId + '" class="connector-state dropdown-toggle" data-toggle="dropdown"></a>');
+    var connectorLink = $('<a id="' + itemId + '" class="connector-state dropdown-toggle" data-bs-toggle="dropdown"></a>');
     connectorLink.addClass((isError) ? 'connector-state-error' : 'connector-state-success');
 
     if (isError) {

@@ -52,7 +52,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <p th:text="#{passwordResetDemand.email.forgotten}">
                                         {If you have forgotten, please contact your admin.}
                                     </p>
-                                    <div class="form-group row">
+                                    <div class="form-group row gx-1">
                                         <label for="email" class="form-label col-form-label visually-hidden"
                                                th:text="#{passwordResetDemand.email.label}">
                                             {E-mail address}
@@ -62,11 +62,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                    th:value="${enteredEmail}" placeholder="{E-mail address}"
                                                    th:placeholder="#{passwordResetDemand.email.label}" />
                                         </div>
-                                        <span class="mandatory" data-bs-toggle="tooltip"
-                                              th:title="#{field.mandatory.tooltip}"></span>
+                                        <div class="col-xl-6">
+                                            <span class="mandatory" data-bs-toggle="tooltip"
+                                                  th:title="#{field.mandatory.tooltip}"></span>
+                                        </div>
                                     </div>
                                     <input type="hidden" id="_csrf" value="${_csrf.token}" />
-                                    <button type="submit" class="btn btn-extract-filled"
+                                    <button type="submit" class="btn btn-extract-filled mt-3"
                                             th:text="#{passwordResetDemand.buttons.submit.label}" />
                                 </form>
                             </div>

@@ -7,13 +7,13 @@
 
 $(function() {
     $('[data-toggle="tooltip"]').tooltip();
-    $.fn.popover.Constructor.Default.whiteList.table = [];
-    $.fn.popover.Constructor.Default.whiteList.tr = [];
-    $.fn.popover.Constructor.Default.whiteList.td = [];
-    $.fn.popover.Constructor.Default.whiteList.th = [];
-    $.fn.popover.Constructor.Default.whiteList.div = [];
-    $.fn.popover.Constructor.Default.whiteList.tbody = [];
-    $.fn.popover.Constructor.Default.whiteList.thead = [];
+    bootstrap.Tooltip.Default.allowList.table = [];
+    bootstrap.Tooltip.Default.allowList.tr = [];
+    bootstrap.Tooltip.Default.allowList.td = [];
+    bootstrap.Tooltip.Default.allowList.th = [];
+    bootstrap.Tooltip.Default.allowList.div = [];
+    bootstrap.Tooltip.Default.allowList.tbody = [];
+    bootstrap.Tooltip.Default.allowList.thead = [];
 });
 
 
@@ -137,7 +137,7 @@ function _hideAlertModal() {
  * @author Yves Grasset
  */
 function _showAlertModal(title, message, showCancel, callbackOk, callbackCancel, labelOk, labelCancel) {
-    
+
     if (!title || !message) {
         return;
     }
@@ -184,8 +184,8 @@ function _showAlertModal(title, message, showCancel, callbackOk, callbackCancel,
         _centerModal('alertModal');        
     });
     
-    $('#alertModal').modal({
-        'backdrop' : 'static',
-        'show' : true
-    });
+    //$('#alertModal').modal({
+    new bootstrap.Modal('#alertModal', {
+        'backdrop' : 'static'
+    }).show();
 }

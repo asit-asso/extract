@@ -85,7 +85,12 @@ tbody > tr.standby > th {
     margin-top: -4px;
 }
 
+.badge.bg-success {
+    background-color: #3ab872 !important;
+}
+
 .btn.disabled {
+    border: none;
     pointer-events: auto;
 }
 
@@ -97,6 +102,14 @@ a.btn-extract-filled:visited {
     background-color: #3ab872;
     border-color: #3ab872;
     color: #fff;
+    text-decoration: none;
+}
+
+.btn-extract-filled:hover,
+.btn-extract-filled:active,
+.btn-extract-filled:first-child:active {
+    background-color: #3ab872;
+    border-color: #3ab872;
 }
 
 .btn-extract-white {
@@ -105,11 +118,23 @@ a.btn-extract-filled:visited {
     color: #3ab872;
 }
 
+.btn-extract-white:hover,
+.btn-extract-white:active,
+.btn-extract-white:first-child:active {
+    background-color: #fff;
+    border-color: #3ab872;
+}
+
 .btn-sm {
     padding: .0625rem .3125rem;
     font-size: .75rem;
     line-height: 1.5;
     border-radius: .1875rem;
+}
+
+
+.btn-check:not(:checked) + .btn-toggle:hover {
+    border: 1px solid #ccc;
 }
 
 .btn-toggle {

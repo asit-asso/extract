@@ -163,7 +163,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     <span class="badge bg-light text-dark helplink" style="cursor:pointer"
                                                           th:href="|#popup-over-task-*{id}|"
                                                           th:if="${process.tasks[__${taskStats.index}__].pluginHelpMessage != null and process.tasks[__${taskStats.index}__].pluginHelpMessage != ''}"
-                                                          th:text="#{processDetails.panels.tasks.helplink}" >{help}</span>
+                                                          th:text="#{processDetails.panels.tasks.helplink}">{help}</span>
                                                     <div th:id="|popup-over-task-*{id}|" id="popup-over-task"
                                                          class="popup-over-content">
                                                         <div class="popover-heading">

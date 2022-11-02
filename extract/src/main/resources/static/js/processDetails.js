@@ -106,11 +106,9 @@ $(function() {
 
     $(".parameter-select-values").each(function (index, item) {
         var idsArray = $(item).val().split(',');
-        console.log("Values:", idsArray);
         var selectId = $(item).attr("id") + "-select";
         var select2Item = $(document.getElementById(selectId));
         $(select2Item).val(idsArray);
-        console.log("Select ID:", selectId, "Value:", $(select2Item).val());
         $(select2Item).trigger('change');
     });
 
@@ -121,30 +119,39 @@ $(function() {
         html: 'true',
         content : $(this).attr("content")
     });*/
-     
-    $('.helplink').popover({
-            html : true,
-            container : 'body',
-            trigger : 'manual',
+
+
+
+    document.querySelectorAll('.helplink').forEach(popover => {
+        new bootstrap.Popover(popover, {
+            html: true,
+            container: 'body',
+            trigger: 'manual',
             placement: 'auto',
-            title: function() {
-                var content = $(this).attr("href");
-                var popupHeader = $(content).children(".popover-heading").clone();
-                return $(popupHeader).wrapAll("<div/>").parent().html();
+            title: function () {
+                var content = $(this).attr('href');
+                var popupHeader = $(content).children('.popover-heading').clone();
+                return $(popupHeader).wrapAll('<div/>').parent().html();
             },
-            content: function() {
-                var content = $(this).attr("href");
-                var popupBody = $(content).children(".popover-body").clone();
-                
-                return popupBody.wrapAll("<div/>").parent().html();
+            content: function () {
+                var content = $(this).attr('href');
+                var popupBody = $(content).children('.popover-body').clone();
+                return popupBody.wrapAll('<div/>').parent().html();
             }
-    }).click(function(evt) {
-        evt.preventDefault();
-        evt.stopPropagation();
-        $('.popover').hide();
-        $(this).popover('show');
+        });
+        $(popover).on('click', function(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+            const thisPopup = bootstrap.Popover.getOrCreateInstance(this);
+            const isThisPopupShown = $('#' + $(this).attr('aria-describedby')).is(':visible');
+            $('.helplink').popover('hide');
+
+            if (!isThisPopupShown) {
+                thisPopup.show();
+            }
+        });
     });
-    
+
     $(document).on("click",".popup-header .img-close", function() {
        $('.helplink').popover('hide');
    });
