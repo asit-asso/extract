@@ -1,14 +1,15 @@
 {
     "dependencies": {
-        "bootstrap": "twbs/bootstrap#4.6.1",
+        "bootstrap": "twbs/bootstrap#5.2.2",
         "bootstrap-datepicker": "1.9.0",
-        "datatables.net": "DataTables/Dist-DataTables#1.10.18",
-        "datatables.net-bs4": "DataTables/Dist-DataTables-Bootstrap4#1.12.1",
+        "datatables.net": "DataTables/Dist-DataTables#1.11.5",
+        "datatables.net-bs5": "DataTables/Dist-DataTables-Bootstrap5#1.11.3",
         "font-awesome": "FortAwesome/Font-Awesome#4.7.0",
         "jquery": "jquery/jquery-dist#3.6.0",
         "jquery-ui": "1.13.1",
         "ol-layerswitcher": "3.8.3",
         "openlayers": "4.6.5",
+        "@popperjs/core": "^2.11.6",
         "proj4": "2.8.0",
         "select2": "ivaynberg/select2#4.0.9",
         "timepicker": "1.13.18"

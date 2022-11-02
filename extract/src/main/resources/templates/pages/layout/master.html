@@ -40,10 +40,10 @@
             <nav class="navbar navbar-expand-xl navbar-light bg-light fixed-top" role="navigation" style="/*margin-bottom: 0*/"
                  th:fragment="navigation">
                 <div class="container align-items-stretch">
-                    <button type="button" class="navbar-toggler" data-toggle="collapse" data-target="#bs-navbar">
+                    <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-target="#bs-navbar">
                         <span class="navbar-toggler-icon"></span>
                     </button>
-                    <a class="navbar-brand float-xl-left" th:href="@{/}" href="login.html"><!--
+                    <a class="navbar-brand float-xl-start" th:href="@{/}" href="login.html"><!--
                         --><img th:src="@{/images/extract_logo.png}"
                                 th:alt="#{logo.alt}"
                                 src="images/extract_logo.png" alt="Logo Extract" /><!--
@@ -52,16 +52,16 @@
                     <div sec:authorize="isAuthenticated()" id="bs-navbar"
                          class="collapse navbar-collapse justify-content-between align-items-stretch">
                             <ul class="nav navbar-nav">
-                                <li sec:authorize="hasAnyAuthority('ADMIN', 'OPERATOR')" class="nav-item"
-                                    th:classappend="${currentSection} == 'home' ? 'active' : ''">
-                                    <a href="" th:href="@{/}" class="nav-link">
+                                <li sec:authorize="hasAnyAuthority('ADMIN', 'OPERATOR')" class="nav-item">
+                                    <a href="" th:href="@{/}" class="nav-link"
+                                       th:classappend="${currentSection} == 'home' ? 'active' : ''">
                                         <i class="fa fa-home fa-fw"></i>&nbsp;
                                         <span th:text="#{navigation.home}">{Home}</span>
                                     </a>
                                 </li>
-                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                    th:classappend="${currentSection} == 'processes' ? 'active' : ''">
-                                    <a href="processes" th:href="@{/processes}" class="nav-link">
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item">
+                                    <a href="processes" th:href="@{/processes}" class="nav-link"
+                                       th:classappend="${currentSection} == 'processes' ? 'active' : ''">
                                         <i class="fa fa-cogs fa-fw"></i>&nbsp;
                                         <span th:text="#{navigation.processes}">{Traitements}</span>
                                     </a>
@@ -73,16 +73,16 @@
                                         <span th:text="#{navigation.history}">{Historique}</span>
                                     </a>
                                 </li> //-->
-                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                    th:classappend="${currentSection} == 'connectors' ? 'active' : ''">
-                                    <a href="connectors" th:href="@{/connectors}" class="nav-link">
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item">
+                                    <a href="connectors" th:href="@{/connectors}" class="nav-link"
+                                       th:classappend="${currentSection} == 'connectors' ? 'active' : ''">
                                         <i class="fa fa-plug fa-fw"></i>&nbsp;
                                         <span th:text="#{navigation.connectors}">{Connecteurs}</span>
                                     </a>
                                 </li>
-                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item"
-                                    th:classappend="${currentSection} == 'users' ? 'active' : ''">
-                                    <a href="users" th:href="@{/users}" class="nav-link">
+                                <li sec:authorize="hasAuthority('ADMIN')" class="nav-item">
+                                    <a href="users" th:href="@{/users}" class="nav-link"
+                                       th:classappend="${currentSection} == 'users' ? 'active' : ''">
                                         <i class="fa fa-users fa-fw"></i>&nbsp;
                                         <span th:text="#{navigation.users}">{Utilisateurs et droits}</span>
                                     </a>
@@ -96,10 +96,10 @@
                                 </li>
                             </ul>
                             <ul class="nav navbar-nav">
-                                <li class="nav-item" th:classappend="${currentSection} == 'currentUser' ? 'active' : ''">
+                                <li class="nav-item">
                                     <a href="#" th:href="@{'users/' + ${#authentication.principal.userId}}"
                                        id="userEditLink" title="Edit your data" th:title="#{menu.user.editInfo}"
-                                       class="nav-link">
+                                       class="nav-link" th:classappend="${currentSection} == 'currentUser' ? 'active' : ''">
                                         <i class="fa fa-user fa-fw"></i>
                                         <span sec:authentication="name">{Name}</span>
                                     </a>

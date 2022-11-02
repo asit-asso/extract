@@ -36,29 +36,26 @@
                     </p>
                 </th:block>
                 <th:block th:unless="${baseFolderError}">
-                    <div id="connectorsStateContainer" class="float-right">
+                    <div id="connectorsStateContainer" class="float-end">
                     </div>
                     <h1 class="page-header" th:text="#{requestsList.body.title}">{Home}</h1>
                     <div id="scheduledStopMessage" class="alert alert-dismissible alert-warning" style="display: none">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                         <th:block th:text="#{orchestrator.status.scheduledStop}"></th:block>
                     </div>
                     <div id="stoppedMessage" class="alert alert-dismissible alert-warning" style="display: none">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                         <th:block th:text="#{orchestrator.status.fullStop}"></th:block>
                     </div>
                     <div id="scheduleConfigErrorMessage" class="alert alert-dismissible alert-danger" style="display: none">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <div><strong th:text="#{orchestrator.status.scheduleConfigError}"></strong></div>
                         <th:block th:text="#{orchestrator.status.noScheduleSpan}"></th:block>
@@ -102,14 +99,17 @@
                     </div>
                     <div class="card card-default">
                         <div class="card-header">
-                            <form class="form-inline filter-form-inline float-right" role="form">
-                                <div class="form-group">
-                                    <label for="textFilter" th:text="#{requestsList.filters.text.label}">{Filter:}</label>
+                            <form class="filter-form-inline float-end" role="form">
+                                <div class="col">
+                                    <label for="textFilter" class="form-label"
+                                           th:text="#{requestsList.filters.text.label}">{Filter:}</label>
+                                </div>
+                                <div class="col">
                                     <input type="text" class="form-control request-filter-control" id="textFilter"
                                            placeholder="{Keyword, order code}"
                                            th:placeholder="#{requestsList.filters.text.placeholder}" />
                                 </div>
-                                <div class="form-group">
+                                <div class="col">
                                     <select id="connectorFilter" class="select2 form-control request-filter-control"
                                             th:attr="data-placeholder = #{requestsList.filters.connector.placeholder}">
                                         <option value=""></option>
@@ -117,7 +117,7 @@
                                                 value="{1}" th:value="*{id}" th:text="*{name}">{My connector}</option>
                                     </select>
                                 </div>
-                                <div class="form-group">
+                                <div class="col">
                                     <select id="processFilter" class="select2 form-control request-filter-control"
                                             th:attr="data-placeholder = #{requestsList.filters.process.placeholder}">
                                         <option value=""></option>
@@ -125,35 +125,31 @@
                                                 value="{1}" th:value="*{id}" th:text="*{name}">{My process}</option>
                                     </select>
                                 </div>
-                                <div class="form-group datepicker-form-group">
-                                    <label class="sr-only" for="startDateFromFilter"
+                                <div class="col datepicker-form-group">
+                                    <label class="form-label visually-hidden" for="startDateFromFilter"
                                            th:text="#{requestsList.filters.startDate.from.label}">{Sent date - From}</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control datepicker request-filter-control"
                                                id="startDateFromFilter"
                                                th:placeholder="#{requestsList.filters.startDate.from.placeholder}" />
-                                        <div class="input-group-append">
-                                            <div class="input-group-text">
-                                                <i class="fa fa-calendar"></i>
-                                            </div>
+                                        <div class="input-group-text">
+                                            <i class="fa fa-calendar"></i>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-group datepicker-form-group">
-                                    <label class="sr-only" for="startDateToFilter"
+                                <div class="col datepicker-form-group">
+                                    <label class="form-label visually-hidden" for="startDateToFilter"
                                            th:text="#{requestsList.filters.startDate.to.label}">{Sent date - To}</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control datepicker request-filter-control"
                                                id="startDateToFilter"
                                                th:placeholder="#{requestsList.filters.startDate.to.placeholder}" />
-                                        <div class="input-group-append">
-                                            <div class="input-group-text">
-                                                <i class="fa fa-calendar"></i>
-                                            </div>
+                                        <div class="input-group-text">
+                                            <i class="fa fa-calendar"></i>
                                         </div>
                                     </div>
                                 </div>
-                                <div class="form-group">
+                                <div class="col">
                                     <a id="filterButton" class="btn btn-extract-filled" href="#">
                                         <i class="fa fa-search"></i>
                                     </a>

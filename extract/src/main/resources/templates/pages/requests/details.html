@@ -39,7 +39,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                  showActionBlock = ${request.inStandby or showErrorBlock},
                  hasProcess = ${not #strings.isEmpty(request.processName)}">
                 <div>
-                    <div class="float-right">
+                    <div class="float-end">
                         <button id="requestCancelButton" class="btn btn-extract-white" th:text="#{buttons.close}"
                                 type="button">
                             {Cancel}
@@ -60,18 +60,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <div id="scheduledStopMessage" class="alert alert-dismissible alert-warning"
                      th:if="${orchestratorState} == 'SCHEDULED_STOP'">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                             th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                        <span aria-hidden="true">&times;</span>
                     </button>
                     <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                     <th:block th:text="#{orchestrator.status.scheduledStop}"></th:block>
                 </div>
                 <div id="stoppedMessage" class="alert alert-dismissible alert-warning"
                      th:if="${orchestratorState} == 'STOPPED'">
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close" data-toggle="tooltip"
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close" data-bs-toggle="tooltip"
                             th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                        <span aria-hidden="true">&times;</span>
                     </button>
                     <div><strong th:text="#{orchestrator.status.stopped}"></strong></div>
                     <th:block th:text="#{orchestrator.status.fullStop}"></th:block>
@@ -405,7 +403,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <div class="card card-default">
                     <div class="card-header">
-                        <span class="float-right" th:unless="${request.externalUrl == null}">
+                        <span class="float-end" th:unless="${request.externalUrl == null}">
                             <a href="#" th:href="${request.externalUrl}" target="_blank"
                                th:text="#{requestDetails.orderDetails.link.text}">{View details}</a>
                         </span>
@@ -494,7 +492,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div class="card card-default" th:if="${isAdmin}">
                     <div class="card-header">
                         <b>
-                            <a data-toggle="collapse" href="#adminToolsPanelBodyContainer" style="color:#333">
+                            <a data-bs-toggle="collapse" href="#adminToolsPanelBodyContainer" style="color:#333">
                                 <span th:text="#{requestDetails.panels.adminTools.title}">{Administration}</span>
                                 <i class="fa fa-caret-down"></i>
                             </a>

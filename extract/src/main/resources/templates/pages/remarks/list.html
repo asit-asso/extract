@@ -11,7 +11,7 @@
 <body>
 <div id="wrapper">
     <div id="page-wrapper" layout:fragment="content">
-        <div class="btn-group float-right">
+        <div class="btn-group float-end">
             <a class="btn btn-extract-filled btn-md" href="add"
                th:href="@{/remarks/add}">
                 <i class="fa fa-plus fa-fw"></i>
@@ -37,7 +37,7 @@
                         <td th:text="*{content}">{Titi Toto}</td>
                         <td class="center-cell">
                             <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
-                                    data-toggle="tooltip"
+                                    data-bs-toggle="tooltip"
                                     th:classappend="*{deletable} ? 'btn-danger delete-button' : 'disabled delete-button-inactive'"
                                     th:title="${#messages.msg('remarksList.buttons.delete.' + (remark.deletable ? 'active' : 'inactive') + '.tooltip')}">
                                 <span class="fa fa-remove fa-fw"></span>

@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <body>
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content">
-                <div class="btn-group float-right">
-                    <button class="btn btn-extract-filled dropdown-toggle btn-md" data-toggle="dropdown">
+                <div class="btn-group float-end">
+                    <button class="btn btn-extract-filled dropdown-toggle btn-md" data-bs-toggle="dropdown">
                         <i class="fa fa-plus fa-fw"></i>
                         <span th:text="#{connectorsList.new.button}">{Add new connector}</span>
                     </button>
@@ -59,12 +59,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </td>
                                     <td th:text="*{typeLabel}">{Connector label}</td>
                                     <td>
-                                        <div class="badge badge-success" th:text="#{connectorsList.table.item.active}" th:if="*{active}">{Active}</div>
-                                        <div class="badge badge-danger" th:text="#{connectorsList.table.item.inactive}" th:unless="*{active}">{Inactive}</div>
+                                        <div class="badge bg-success" th:text="#{connectorsList.table.item.active}" th:if="*{active}">{Active}</div>
+                                        <div class="badge bg-danger" th:text="#{connectorsList.table.item.inactive}" th:unless="*{active}">{Inactive}</div>
                                     </td>
                                     <td class="center-cell" th:with="hasActiveRequests = ${connector.hasActiveRequests()}">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
-                                                data-toggle="tooltip"
+                                                data-bs-toggle="tooltip"
                                                 th:classappend="${hasActiveRequests} ? 'disabled delete-button-inactive' : 'btn-danger delete-button'"
                                                 th:title="${#messages.msg('connectorsList.buttons.delete.' + (hasActiveRequests ? 'inactive' : 'active') + '.tooltip')}">
                                             <span class="fa fa-remove fa-fw"></span>

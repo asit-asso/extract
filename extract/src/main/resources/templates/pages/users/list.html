@@ -11,7 +11,7 @@
     <body>
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content">
-                <div class="float-right">
+                <div class="float-end">
                     <a class="btn btn-extract-white btn-md" href="../userGroups"
                        th:href="@{/userGroups}">
                         <i class="fa fa-users fa-fw"></i>
@@ -46,30 +46,30 @@
                                     <td th:text="*{name}">{Titi Toto}</td>
                                     <td th:text="*{email}">{toto@tata.com}</td>
                                     <td th:switch="*{profile}">
-                                        <div class="badge badge-success" th:text="#{user.profile.ADMIN}"
+                                        <div class="badge bg-success" th:text="#{user.profile.ADMIN}"
                                              th:case="${T(ch.asit_asso.extract.domain.User.Profile).ADMIN}">
                                             {Administrator}
                                         </div>
-                                        <div class="badge badge-info" th:text="#{user.profile.OPERATOR}"
+                                        <div class="badge bg-info" th:text="#{user.profile.OPERATOR}"
                                              th:case="${T(ch.asit_asso.extract.domain.User.Profile).OPERATOR}">
                                             {Operator}
                                         </div>
                                     </td>
                                     <td>
-                                        <div class="badge badge-success" th:text="#{usersList.table.item.active}"
+                                        <div class="badge bg-success" th:text="#{usersList.table.item.active}"
                                              th:if="*{active}">{Active}</div>
-                                        <div class="badge badge-danger" th:text="#{usersList.table.item.inactive}"
+                                        <div class="badge bg-danger" th:text="#{usersList.table.item.inactive}"
                                              th:unless="*{active}">{Inactive}</div>
                                     </td>
                                     <td>
-                                        <div class="badge badge-success" th:text="#{usersList.table.item.mailActive}"
+                                        <div class="badge bg-success" th:text="#{usersList.table.item.mailActive}"
                                              th:if="*{mailActive}">{Active}</div>
-                                        <div class="badge badge-danger" th:text="#{usersList.table.item.mailInactive}"
+                                        <div class="badge bg-danger" th:text="#{usersList.table.item.mailInactive}"
                                              th:unless="*{mailActive}">{Inactive}</div>
                                     </td>
                                     <td class="center-cell" th:with="canBeDeleted = not *{associatedToProcesses} and *{id} != ${currentUserId} and not *{lastActiveMemberOfProcessGroup}">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
-                                                data-toggle="tooltip"
+                                                data-bs-toggle="tooltip"
                                                 th:classappend="${canBeDeleted} ? 'btn-danger delete-button' : 'disabled delete-button-inactive'"
                                                 th:title="${#messages.msg('usersList.buttons.delete.'
                                                             + (canBeDeleted ? 'active'

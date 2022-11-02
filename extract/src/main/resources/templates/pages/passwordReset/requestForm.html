@@ -28,10 +28,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div class="row justify-content-center">
                     <div class="col-lg-6">
                         <div class="alert alert-dismissible alert-danger" th:if="${errorMessage}">
-                            <button type="button" class="close" data-dismiss="alert" aria-label="Close"
-                                    data-toggle="tooltip"
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                                    data-bs-toggle="tooltip"
                                     th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                                <span aria-hidden="true">&times;</span>
                             </button>
                             <h4 th:text="#{errors.panel.title}">{Error}</h4>
                             <div th:text="${#messages.msg(errorMessage)}">{Error}</div>
@@ -54,7 +53,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         {If you have forgotten, please contact your admin.}
                                     </p>
                                     <div class="form-group row">
-                                        <label for="email" class="col-form-label sr-only"
+                                        <label for="email" class="form-label col-form-label visually-hidden"
                                                th:text="#{passwordResetDemand.email.label}">
                                             {E-mail address}
                                         </label>
@@ -63,7 +62,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                    th:value="${enteredEmail}" placeholder="{E-mail address}"
                                                    th:placeholder="#{passwordResetDemand.email.label}" />
                                         </div>
-                                        <span class="mandatory" data-toggle="tooltip"
+                                        <span class="mandatory" data-bs-toggle="tooltip"
                                               th:title="#{field.mandatory.tooltip}"></span>
                                     </div>
                                     <input type="hidden" id="_csrf" value="${_csrf.token}" />

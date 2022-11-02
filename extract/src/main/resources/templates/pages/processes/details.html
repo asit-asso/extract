@@ -34,10 +34,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                       th:action="${isNew} ? @{/processes/add} : @{|/processes/*{id}|}"
                       th:with="readOnly = ${process.readOnly}">
                     <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
-                                data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                                data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <h4 th:text="#{errors.panel.title}">{Error}</h4>
                         <ul>
@@ -45,13 +44,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </ul>
                     </div>
                     <div>
-                        <div class="float-right">
+                        <div class="float-end">
                             <button id="processCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
                                     type="button">
                                 {Cancel}
                             </button>
                             <button id="processSaveButton" th:text="#{buttons.save}" class="btn btn-extract-filled"
-                                    th:classappend="${process.readOnly} ? 'disabled' : ''" data-toggle="tooltip"
+                                    th:classappend="${process.readOnly} ? 'disabled' : ''" data-bs-toggle="tooltip"
                                     th:title="${process.readOnly} ? #{processDetails.readonly.info} : ''"
                                     type="button">
                                 {Save}
@@ -68,11 +67,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
                                         <label th:text="#{processDetails.fields.name.label}"
-                                               class="col-form-label">{Name}</label>
+                                               class="form-label col-form-label">{Name}</label>
                                         <span class="mandatory" th:unless="${readOnly}"></span>
                                         <input type="text" class="form-control" th:field="*{name}"
                                                th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}"
-                                               th:unless="${readOnly}" data-toggle="tooltip" />
+                                               th:unless="${readOnly}" data-bs-toggle="tooltip" />
                                         <div th:text="*{name}" th:if="${readOnly}" class="form-control-plaintext">
                                             {Name}
                                         </div>
@@ -86,12 +85,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('users')} ? 'has-error'" >
                                         <label th:text="#{processDetails.fields.operators.label}"
-                                               class="col-form-label">{Operators}</label>
+                                               class="form-label col-form-label">{Operators}</label>
                                         <span class="mandatory" th:unless="${readOnly}"></span>
                                         <input id="usersIds" type="hidden" th:field="*{usersIds}" />
                                         <input id="userGroupsIds" type="hidden" th:field="*{userGroupsIds}" />
                                         <select class="select2-container select2-container-multi form-control select2 user-select"
-                                                multiple="multiple" data-toggle="tooltip"
+                                                multiple="multiple" data-bs-toggle="tooltip"
                                                 th:id="users"
                                                 th:unless="${readOnly}"
                                                 th:title="${#fields.hasErrors('users')} ? ${#fields.errors('users')[0]}" >
@@ -161,7 +160,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         <i class="fa" th:classappend="*{pluginPictoClass}"></i>
                                                     </div>
                                                     <span class="strong" th:text="*{pluginLabel}">{Task label}</span>
-                                                    <span class="badge badge-light helplink" style="cursor:pointer"
+                                                    <span class="badge bg-light text-dark helplink" style="cursor:pointer"
                                                           th:href="|#popup-over-task-*{id}|"
                                                           th:if="${process.tasks[__${taskStats.index}__].pluginHelpMessage != null and process.tasks[__${taskStats.index}__].pluginHelpMessage != ''}"
                                                           th:text="#{processDetails.panels.tasks.helplink}" >{help}</span>
@@ -177,7 +176,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     </div>
                                                     <div th:id="|deleteTaskButton-*{id}|"
                                                          th:href="@{|/processes/${process.id}/deleteTask/*{id}|}"
-                                                         class="btn btn-sm btn-danger float-right deletetask-button"
+                                                         class="btn btn-sm btn-danger float-end deletetask-button"
                                                          th:classappend="${process.readOnly} ? 'disabled' : ''" >
                                                         <span class="fa fa-close"></span>
                                                     </div>
@@ -196,12 +195,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         <div class="col-xl-12">
                                                             <div class="form-group form-group-with-label"
                                                                  th:classappend="${#fields.hasErrors('value')} ? 'has-error'">
-                                                                <label th:text="*{label}" class="col-form-label">
+                                                                <label th:text="*{label}" class="form-label col-form-label">
                                                                     {Label}
                                                                 </label>
                                                                 <span th:if="*{required}" class="mandatory"
                                                                       th:title="#{field.mandatory.tooltip}"
-                                                                      th:unless="${readOnly}" data-toggle="tooltip">
+                                                                      th:unless="${readOnly}" data-bs-toggle="tooltip">
                                                                 </span><br/>
                                                                 <input type="hidden" th:field="*{name}" />
                                                                 <input type="hidden" th:field="*{type}" />
@@ -216,11 +215,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:field="*{step}" />
                                                                 <input type="text" th:required="*{required}"
                                                                        th:if="(*{type} == 'text' or *{type} == 'email') and !${readOnly}"
-                                                                       th:maxlength="*{maxLength}" data-toggle="tooltip"
+                                                                       th:maxlength="*{maxLength}" data-bs-toggle="tooltip"
                                                                        class="form-control" th:field="*{value}"
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" />
                                                                 <input type="password" th:required="*{required}"
-                                                                       data-toggle="tooltip" autocomplete="off"
+                                                                       data-bs-toggle="tooltip" autocomplete="off"
                                                                        th:if="*{type} == 'pass' and !${readOnly}"
                                                                        th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value|"
                                                                        class="form-control" th:maxlength="*{maxLength}"
@@ -229,12 +228,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:value="${isNew or process.tasks[__${taskStats.index}__].tag=='ADDED' or #strings.isEmpty(process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__].value)}? '' : '*****'" />
                                                                 <textarea class="form-control" style="resize:vertical"
                                                                           th:required="*{required}" th:if="*{type} == 'multitext' and !${readOnly}"
-                                                                          th:field="*{value}" data-toggle="tooltip"
+                                                                          th:field="*{value}" data-bs-toggle="tooltip"
                                                                           th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
                                                                 <input type="hidden" th:field="*{value}" th:if="*{type} == 'list_msgs' and !${readOnly}"
                                                                        class="parameter-select-values" />
                                                                 <select class="select2-container select2-container-multi form-control select2 parameter-select"
-                                                                        multiple="multiple" data-toggle="tooltip"
+                                                                        multiple="multiple" data-bs-toggle="tooltip"
                                                                         th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value-select|"
                                                                         th:required="*{required}" th:if="*{type} == 'list_msgs' and !${readOnly}"
                                                                         th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" >
@@ -245,16 +244,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                     </option>
                                                                 </select>
 
-                                                                <div class="btn-group" data-toggle="buttons"
+                                                                <div class="btn-group" data-bs-toggle="buttons"
                                                                      th:required="*{required}" th:if="*{type} == 'boolean' and !${readOnly}" >
-                                                                    <label class="btn btn-sm btn-toggle btn-toggle-no"
-                                                                           th:classappend="*{value}=='true' ? '' : 'active'">
-                                                                        <input type="radio" th:field="*{value}" value="false" />
+                                                                    <input type="radio" class="btn-check"
+                                                                           th:field="*{value}" value="false" />
+                                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                                            th:for="|tasks${taskStats.index}.parameters${paramStats.index}.value1|">
                                                                         &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                                                     </label>
-                                                                    <label class="btn btn-sm btn-toggle btn-toggle-yes"
-                                                                           th:classappend="*{value}=='true' ? 'active' : ''">
-                                                                        <input type="radio" th:field="*{value}" value="true" />
+                                                                    <input type="radio" class="btn-check"
+                                                                           th:field="*{value}" value="true" />
+                                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                                           th:for="|tasks${taskStats.index}.parameters${paramStats.index}.value2|">
                                                                         &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
                                                                     </label>
                                                                 </div>
@@ -263,7 +264,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:max="*{maxValue}" th:step="*{step}"
                                                                        class="form-control" autocomplete="off"
                                                                        th:value="*{value} ?: ''"
-                                                                       data-toggle="tooltip"
+                                                                       data-bs-toggle="tooltip"
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
                                                                        th:name="|tasks[${taskStats.index}].parameters[${paramStats.index}].value|"
                                                                        th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value|" />
@@ -296,7 +297,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     <div class="row">
                                         <div class="col-xl-12">
                                             <p>
-                                                <i class="fa fa-arrow-circle-left float-left" style="font-size:40px" aria-hidden="true"></i>
+                                                <i class="fa fa-arrow-circle-left float-start" style="font-size:40px" aria-hidden="true"></i>
                                                 <span th:text="#{processDetails.panels.availableTasks.description}">{Tasks description}</span><br/>
                                             </p>
                                             <div class="card card-default available-task"

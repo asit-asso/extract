@@ -16,10 +16,9 @@
                 <form id="userGroupForm" method="POST" action="#" th:object='${userGroup}' class="form"
                       th:action="${userGroup.beingCreated} ? @{/userGroups/add} : @{|/userGroups/${userGroup.id}|}">
                     <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
-                                data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                                data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <h4 th:text="#{errors.panel.title}">{Error}</h4>
                         <ul>
@@ -27,7 +26,7 @@
                         </ul>
                     </div>
                     <div>
-                        <div class="float-right">
+                        <div class="float-end">
                             <button id="userGroupCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
                                     type="button">
                                 {Cancel}
@@ -47,13 +46,14 @@
                             <div class="row">
                                 <div class="col-12 form-group form-group-with-label"
                                      th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
-                                    <label th:text="#{userGroupDetails.fields.name.label}" class="col-form-label">
+                                    <label th:text="#{userGroupDetails.fields.name.label}"
+                                           class="form-label col-form-label">
                                         {Full name}
                                     </label>
-                                    <span class="mandatory" data-toggle="tooltip"
+                                    <span class="mandatory" data-bs-toggle="tooltip"
                                           th:title="#{field.mandatory.tooltip}"></span>
                                     <input type="text" class="form-control" th:field="*{name}" maxlength="50"
-                                           data-toggle="tooltip"
+                                           data-bs-toggle="tooltip"
                                            th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}" />
                                     <input type="hidden" th:field="*{id}" />
                                     <input type="hidden" th:field="*{beingCreated}" />
@@ -62,14 +62,15 @@
                             <div class="row">
                                 <div class="col-12 form-group form-group-with-label"
                                      th:classappend="${#fields.hasErrors('users')} ? 'has-error'">
-                                    <label th:text="#{userGroupDetails.fields.users.label}" class="col-form-label">
+                                    <label th:text="#{userGroupDetails.fields.users.label}"
+                                           class="form-label col-form-label">
                                         {Users}
                                     </label>
-                                    <span class="mandatory" data-toggle="tooltip"
+                                    <span class="mandatory" data-bs-toggle="tooltip"
                                           th:title="#{field.mandatory.tooltip}" th:if="*{associatedToProcesses}"></span>
                                     <input id="usersIds" type="hidden" th:field="*{usersIds}" />
                                     <select class="select2-container select2-container-multi form-control select2"
-                                            multiple="multiple" data-toggle="tooltip"
+                                            multiple="multiple" data-bs-toggle="tooltip"
                                             th:id="users"
                                             th:title="${#fields.hasErrors('users')} ? ${#fields.errors('users')[0]}" >
                                         <option th:each="user, userStats : ${allactiveusers}" th:value="${user.id}"

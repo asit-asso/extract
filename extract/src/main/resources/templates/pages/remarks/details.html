@@ -16,10 +16,9 @@
                 <form id="remarkForm" method="POST" action="#" th:object='${remark}' class="form"
                       th:action="${isNew} ? @{/remarks/add} : @{'/remarks/' + ${remark.id}}">
                     <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
-                                data-toggle="tooltip"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                                data-bs-toggle="tooltip"
                                 th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <h4 th:text="#{errors.panel.title}">{Error}</h4>
                         <ul>
@@ -27,7 +26,7 @@
                         </ul>
                     </div>
                     <div>
-                        <div class="float-right">
+                        <div class="float-end">
                             <button id="remarkCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
                                     type="button">
                                 {Cancel}
@@ -49,13 +48,13 @@
                                 <div class="col-xl-12">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('title')} ? 'has-error'">
-                                        <label th:text="#{remarkDetails.fields.title.label}" class="col-form-label">
+                                        <label th:text="#{remarkDetails.fields.title.label}" class="form-label col-form-label">
                                             {Title}
                                         </label>
-                                        <span class="mandatory" data-toggle="tooltip"
+                                        <span class="mandatory" data-bs-toggle="tooltip"
                                               th:title="#{field.mandatory.tooltip}"></span>
                                         <input type="text" class="form-control" th:field="*{title}" maxlength="255"
-                                               data-toggle="tooltip"
+                                               data-bs-toggle="tooltip"
                                                th:title="${#fields.hasErrors('title')} ? ${#fields.errors('title')[0]}" />
                                         <input type="hidden" th:field="*{id}" />
                                         <input type="hidden" th:field="${isNew}" />
@@ -64,13 +63,14 @@
                                 <div class="col-xl-12">
                                     <div class="form-group form-group-with-label"
                                          th:classappend="${#fields.hasErrors('content')} ? 'has-error'">
-                                        <label th:text="#{remarkDetails.fields.content.label}" class="col-form-label">
+                                        <label th:text="#{remarkDetails.fields.content.label}"
+                                               class="form-label col-form-label">
                                             {Body}
                                         </label>
-                                        <span class="mandatory" data-toggle="tooltip"
+                                        <span class="mandatory" data-bs-toggle="tooltip"
                                               th:title="#{field.mandatory.tooltip}"></span>
                                         <textarea class="form-control" style="resize:vertical"
-                                                  th:field="*{content}" data-toggle="tooltip"
+                                                  th:field="*{content}" data-bs-toggle="tooltip"
                                                   th:title="${#fields.hasErrors('content')} ? ${#fields.errors('content')[0]}"></textarea>
                                     </div>
                                 </div>

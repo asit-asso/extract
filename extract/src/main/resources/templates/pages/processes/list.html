@@ -27,7 +27,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
     <body>
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content">
-                <div class="btn-group float-right">
+                <div class="btn-group float-end">
                     <a class="btn btn-extract-filled btn-md" href="/add"
                        th:href="@{/processes/add}">
                         <i class="fa fa-plus fa-fw"></i>
@@ -66,7 +66,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </td>
                                     <td class="center-cell">
                                         <button id="cloneButton-1" th:id="'cloneButton-' + *{id}"
-                                                class="btn btn-sm btn-extract-filled clone-button " data-toggle="tooltip"
+                                                class="btn btn-sm btn-extract-filled clone-button " data-bs-toggle="tooltip"
                                                 th:attr="data-action=@{/processes/clone}"
                                                 th:title="${#messages.msg('processesList.buttons.clone.tooltip')}">
                                             <span class="fa fa-copy fa-fw"></span>
@@ -74,7 +74,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                     </td>
                                     <td class="center-cell">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}"
-                                                class="btn btn-sm" data-toggle="tooltip"
+                                                class="btn btn-sm" data-bs-toggle="tooltip"
                                                 th:attr="data-action=@{/processes/delete}"
                                                 th:classappend="*{deletable} ? 'btn-danger delete-button'
                                                 : 'disabled delete-button-inactive'"

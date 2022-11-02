@@ -22,24 +22,24 @@
                                 <form role="form" method="POST" action="#" th:action="@{/login}">
                                     <div class="alert alert-danger" th:if="${error}" th:text="${#messages.msg(error)}">
                                     </div>
-                                    <fieldset>
-                                        <div class="form-group">
+                                    <fieldset class="row gy-3">
+                                        <div class="col-12">
                                             <input class="form-control" placeholder="{Login}"
                                                    th:placeholder="#{login.fields.username.placeholder}"
                                                    name="username" type="text" th:value="${submittedName} ?: ''"
                                                    autofocus="autofocus" />
                                         </div>
-                                        <div class="form-group">
+                                        <div class="col-12">
                                             <input class="form-control" placeholder="{Password}"
                                                    th:placeholder="#{login.fields.password.placeholder}"
                                                    name="password" type="password" value="" />
                                         </div>
-
-                                        <!-- Change this to a button or input when using this as a form -->
-                                        <button id="loginButton" class="btn btn-xl btn-extract-filled btn-block"
-                                                th:text="#{login.actions.submit}">
-                                            {Log in}
-                                        </button>
+                                        <div class="col-12">
+                                            <button id="loginButton" class="btn btn-xl btn-extract-filled w-100"
+                                                    th:text="#{login.actions.submit}">
+                                                {Log in}
+                                            </button>
+                                        </div>
                                     </fieldset>
                                 </form>
                                 <div style="margin-top: 15px">

@@ -16,10 +16,9 @@
                 <form id="connectorForm" method="POST" action="#" th:object='${connector}' class="form"
                       th:action="${isNew} ? @{/connectors/add} : @{'/connectors/' + ${connector.id}}">
                     <div class="alert alert-dismissible alert-danger" th:if="${#fields.hasErrors('*')}">
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"
-                                th:attr="aria-label=#{message.close}" data-toggle="tooltip" th:title="#{message.close}"
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                                th:attr="aria-label=#{message.close}" data-bs-toggle="tooltip" th:title="#{message.close}"
                                 title="{Close}">
-                            <span aria-hidden="true">&times;</span>
                         </button>
                         <h4 th:text="#{errors.panel.title}">{Error}</h4>
                         <ul>
@@ -27,7 +26,7 @@
                         </ul>
                     </div>
                     <div>
-                        <div class="float-right">
+                        <div class="float-end">
                             <button id="connectorCancelButton" class="btn btn-extract-white" th:text="#{buttons.cancel}"
                                     type="button">
                                 {Cancel}
@@ -67,57 +66,59 @@
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
                                                 <label for="connectorName" th:text="#{connectorDetails.fields.name.label}"
-                                                       class="col-form-label">
+                                                       class="form-label col-form-label">
                                                     {Name}
                                                 </label>
-                                                <span class="mandatory" data-toggle="tooltip"
+                                                <span class="mandatory" data-bs-toggle="tooltip"
                                                       th:title="#{field.mandatory.tooltip}"></span>
                                                 <input type="text" class="form-control" th:field="*{name}" value="{Nom}"
-                                                       data-toggle="tooltip"
+                                                       data-bs-toggle="tooltip"
                                                        th:title="${#fields.hasErrors('name')} ? ${#fields.errors('name')[0]}" />
                                             </div>
                                         </div>
                                         <div class="col-xl-3">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('importFrequency')} ? 'has-error'">
-                                                <label for="importFrequency" class="col-form-label"
+                                                <label for="importFrequency" class="form-label col-form-label"
                                                        th:text="#{connectorDetails.fields.frequency.label}">{Frequency}</label>
-                                                <span class="mandatory" data-toggle="tooltip"
+                                                <span class="mandatory" data-bs-toggle="tooltip"
                                                       th:title="#{field.mandatory.tooltip}"></span>
                                                 <input type="number" class="form-control" th:field="*{importFrequency}"
                                                        th:title="${#fields.hasErrors('importFrequency')} ? ${#fields.errors('importFrequency')[0]}"
-                                                       value="3600" step="1" min="1" data-toggle="tooltip" />
+                                                       value="3600" step="1" min="1" data-bs-toggle="tooltip" />
                                             </div>
                                         </div>
                                         <div class="col-xl-3">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('maximumRetries')} ? 'has-error'">
-                                                <label for="maxRetries" class="col-form-label"
+                                                <label for="maxRetries" class="form-label col-form-label"
                                                        th:text="#{connectorDetails.fields.maxRetries.label}">{Max retries}</label>
-                                                <span class="mandatory" data-toggle="tooltip"
+                                                <span class="mandatory" data-bs-toggle="tooltip"
                                                       th:title="#{field.mandatory.tooltip}"></span>
                                                 <input type="number" class="form-control" th:field="*{maximumRetries}"
                                                        th:title="${#fields.hasErrors('maximumRetries')} ? ${#fields.errors('maximumRetries')[0]}"
-                                                       value="3" step="1" min="0" data-toggle="tooltip" />
+                                                       value="3" step="1" min="0" data-bs-toggle="tooltip" />
                                             </div>
                                         </div>
                                         <div class="col-xl-2">
                                             <div class="form-group form-group-with-label">
                                                 <div>
                                                     <label th:text="#{connectorDetails.fields.active.label}"
-                                                           class="col-form-label">
+                                                           class="form-label col-form-label">
                                                         {Active}
                                                     </label>
                                                 </div>
-                                                <div class="btn-group" data-toggle="buttons">
-                                                    <label class="btn btn-sm btn-toggle btn-toggle-no"
-                                                           th:classappend="*{active} ? '' : 'active'">
-                                                        <input type="radio" th:field="*{active}" value="0" />
+                                                <div class="btn-group" data-bs-toggle="buttons">
+                                                    <input type="radio" class="btn-check" id="active1"
+                                                           th:field="*{active}" value="0" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                           for="active1">
                                                         &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                                     </label>
-                                                    <label class="btn btn-sm btn-toggle btn-toggle-yes"
-                                                           th:classappend="*{active} ? 'active' : ''">
-                                                        <input type="radio" th:field="*{active}" value="1" />
+                                                    <input type="radio" class="btn-check" id="active2"
+                                                           th:field="*{active}" value="1" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                           for="active2">
                                                         &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
                                                     </label>
                                                 </div>
@@ -127,7 +128,8 @@
                                     <div class="row">
                                         <div class="col-xl-6">
                                             <div class="form-group form-group-with-label">
-                                                <label th:text="#{connectorDetails.fields.type.label}" class="col-form-label">
+                                                <label th:text="#{connectorDetails.fields.type.label}"
+                                                       class="form-label col-form-label">
                                                     {Type}
                                                 </label>
                                                 <div id="connectorType" class="form-control-plaintext" th:text="*{typeLabel}">
@@ -144,8 +146,10 @@
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('value')} ? 'has-error'">
-                                                <label th:text="*{label}" class="col-form-label">{Label}</label>
-                                                <span th:if="*{required}" class="mandatory" data-toggle="tooltip"
+                                                <label th:text="*{label}" class="form-label col-form-label">
+                                                    {Label}
+                                                </label>
+                                                <span th:if="*{required}" class="mandatory" data-bs-toggle="tooltip"
                                                       th:title="#{field.mandatory.tooltip}"></span>
                                                 <input type="hidden" th:field="*{name}" />
                                                 <input type="hidden" th:field="*{type}" />
@@ -156,36 +160,38 @@
                                                 <input type="hidden" th:if="*{minValue} != null" th:field="*{minValue}" />
                                                 <input type="hidden" th:if="*{step} != null" th:field="*{step}" />
                                                 <input type="text" th:if="*{type} == 'text'" th:required="*{required}"
-                                                       data-toggle="tooltip"
+                                                       data-bs-toggle="tooltip"
                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
                                                        th:maxlength="*{maxLength}" class="form-control" th:field="*{value}" />
                                                 <input type="password" th:if="*{type} == 'pass'" th:required="*{required}"
                                                        th:maxlength="*{maxLength}" class="form-control" autocomplete="off"
-                                                       th:value="${isNew} ? '' : '*****'" data-toggle="tooltip"
+                                                       th:value="${isNew} ? '' : '*****'" data-bs-toggle="tooltip"
                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
                                                        th:name="${'parameters[' + paramStats.index + '].value'}"
                                                        th:id="${'parameters' + paramStats.index + '.value'}" />
                                                 <textarea class="form-control" style="resize:vertical"
                                                           th:required="*{required}" th:if="*{type} == 'multitext'"
-                                                          th:field="*{value}" data-toggle="tooltip"
+                                                          th:field="*{value}" data-bs-toggle="tooltip"
                                                           th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
-                                                <div class="btn-group" data-toggle="buttons"
+                                                <div class="btn-group" data-bs-toggle="buttons"
                                                      th:required="*{required}" th:if="*{type} == 'boolean'" >
-                                                    <label class="btn btn-sm btn-toggle btn-toggle-no"
-                                                           th:classappend="*{value}=='true' ? '' : 'active'">
-                                                        <input type="radio" th:field="*{value}" value="false" />
+                                                    <input type="radio" class="btn-check" th:field="*{value}"
+                                                           value="false" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                           th:for="|parameters${paramStats.index}.value1|">
                                                         &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                                     </label>
-                                                    <label class="btn btn-sm btn-toggle btn-toggle-yes"
-                                                           th:classappend="*{value}=='true' ? 'active' : ''">
-                                                        <input type="radio" th:field="*{value}" value="true" />
+                                                    <input type="radio" class="btn-check" th:field="*{value}"
+                                                           value="true" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                           th:for="|parameters${paramStats.index}.value2|">
                                                         &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
                                                     </label>
                                                 </div>
                                                 <input type="number" th:if="*{type} == 'numeric'" th:required="*{required}"
                                                        th:min="*{minValue}" th:max="*{maxValue}" th:step="*{step}"
                                                        class="form-control" autocomplete="off"
-                                                       th:value="*{value} != null ? *{value} : ''" data-toggle="tooltip"
+                                                       th:value="*{value} != null ? *{value} : ''" data-bs-toggle="tooltip"
                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
                                                        th:name="${'parameters[' + paramStats.index + '].value'}"
                                                        th:id="${'parameters' + paramStats.index + '.value'}" />
@@ -212,17 +218,17 @@
                                            class="table table-striped table-hover dataTables dataTable">
                                         <thead>
                                             <tr>
-                                                <th >
+                                                <th>
                                                     <span class="fa fa-exchange fa-xl fa-rotate-90" ></span>
                                                 </th>
                                                 <th>
                                                     <label th:text="#{rulesList.table.headers.rule}"></label>
-                                                    <span class="badge badge-light helplink" style="cursor:pointer"
+                                                    <span class="badge bg-light text-dark helplink" style="cursor:pointer"
                                                           th:text="#{rulesList.table.headers.help}"
                                                           data-popover-content="#popup-over-rulehelp">{Help}</span>
                                                 </th>
-                                                <th ><label th:text="#{rulesList.table.headers.process}">{Process}</label></th>
-                                                <th ><label th:text="#{rulesList.table.headers.active}">{Active}</label></th>
+                                                <th><label th:text="#{rulesList.table.headers.process}">{Process}</label></th>
+                                                <th><label th:text="#{rulesList.table.headers.active}">{Active}</label></th>
                                                 <th class="center-cell">
                                                     <label th:text="#{rulesList.table.headers.delete}">{Delete}</label>
                                                 </th>
@@ -242,7 +248,7 @@
                                                 <td class="ruleCondition"
                                                     th:classappend="${#fields.hasErrors('rule')} ? 'has-error'">
                                                     <textarea class="form-control" style="resize:vertical"
-                                                              th:field="*{rule}" data-toggle="tooltip"
+                                                              th:field="*{rule}" data-bs-toggle="tooltip"
                                                               th:title="${#fields.hasErrors('rule')}
                                                               ? ${#fields.errors('rule')[0]}"></textarea>
                                                 </td>
@@ -250,7 +256,7 @@
                                                     th:classappend="${#fields.hasErrors('processId')} ? 'has-error'">
                                                     <input type="hidden" class="form-control" th:field="*{processId}" />
                                                     <select class="form-control" th:field="*{processId}"
-                                                            data-toggle="tooltip"
+                                                            data-bs-toggle="tooltip"
                                                             th:title="${#fields.hasErrors('processId')} ? ${#fields.errors('processId')[0]}">
                                                         <option disabled="true" th:value="0" th:text="#{common.select.prompt}">
                                                             {---}
@@ -263,17 +269,17 @@
                                                     </select>
                                                 </td>
                                                 <td width="110">
-                                                    <div class="btn-group" data-toggle="buttons">
-                                                        <label class="btn btn-sm btn-toggle btn-toggle-no"
-                                                               th:classappend="*{active} ? '' : 'active'">
-                                                            <input type="radio" th:field="*{active}" value="0"
-                                                                   th:name="${'rules[' + ruleStats.index + '].active'+'No'}" />
+                                                    <div class="btn-group" data-bs-toggle="buttons">
+                                                        <input type="radio" class="btn-check" th:field="*{active}"
+                                                               value="0" />
+                                                        <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                               th:for="|rules${ruleStats.index}.active1|">
                                                             &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                                         </label>
-                                                        <label class="btn btn-sm btn-toggle btn-toggle-yes"
-                                                               th:classappend="*{active} ? 'active' : ''">
-                                                            <input type="radio" th:field="*{active}" value="1"
-                                                                   th:name="${'rules[' + ruleStats.index + '].active'+'Yes'}" />
+                                                        <input type="radio" class="btn-check" th:field="*{active}"
+                                                               value="1" />
+                                                        <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                               th:for="|rules${ruleStats.index}.active2|">
                                                             &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
                                                         </label>
                                                     </div>
@@ -296,7 +302,7 @@
                                         </span>
                                     </p>
                                     <p class="text-center">
-                                        <span style="font-size: 15px" class="badge badge-warning">
+                                        <span style="font-size: 15px" class="badge bg-warning">
                                             <i class="fa fa-exclamation-triangle "></i> <span th:text="#{rulesList.help.warning}"></span>
                                         </span>
                                     </p>
