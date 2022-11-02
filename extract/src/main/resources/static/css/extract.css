@@ -525,6 +525,15 @@ table.list-table.files-list-table {
     /*margin-left: 10px;*/
 }
 
+.page-link, .page-link:hover, .page-link:active, page-link:visited {
+    color: #3ab872;
+}
+
+.page-item.active .page-link {
+    background-color: #3ab872;
+    border-color: #3ab872;
+}
+
 .card-heading-large {
     font-size: 1.125rem;
     margin-bottom: 0;
