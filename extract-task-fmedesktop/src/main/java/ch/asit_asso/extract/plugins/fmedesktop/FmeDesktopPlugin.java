@@ -408,7 +408,8 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             final Process fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
 
             try {
-                Thread.currentThread().wait(500);
+                // Gives the FME process some time to start before checking the number of available instances again
+                Thread.sleep(200);
 
             } catch (InterruptedException interruptedException) {
                 this.logger.warn("The wait timeout to let the FME extraction start has been interrupted.",
