@@ -318,6 +318,51 @@ public class FmeDesktopPlugin implements ITaskProcessor {
     }
 
 
+    /**
+     * Ensures that the quotes in a JSON parameters string are correctly formatted to be passed as a
+     * parameter to FME Desktop.
+     *
+     * @param json the JSON parameter string
+     * @return a properly quoted JSON string
+     */
+    private String formatJsonParametersQuotes(final String json) {
+
+        if (StringUtils.isEmpty(json)) {
+            return json;
+        }
+
+        return String.format("\"%s\"", json.replaceAll("\\\\\"", "\\\\u0022").replaceAll("\"", "\"\""));
+    }
+
+
+
+    /**
+     * Obtains the command line that will launch the processing of the current request by FNE Desktop.
+     *
+     * @param request           the request to process
+     * @param fmeScriptPath     the location of the FME script that will process the request
+     * @param fmeExecutablePath the location of the FME Desktop executable file (fme.exe)
+     * @return the FME command line
+     */
+    private String getFmeCommandForRequest(final ITaskProcessorRequest request, final String fmeScriptPath,
+                                           final String fmeExecutablePath) {
+        final String productId = request.getProductGuid();
+        final String perimeter = request.getPerimeter();
+        final String parameters = request.getParameters();
+
+        return String.format(
+                "\"%s\" \"%s\" --%s \"%s\" --%s \"%s\" --%s \"%s\" --%s %s --%s \"%s\" --%s %s --%s \"%s\" --%s \"%s\"",
+                fmeExecutablePath, fmeScriptPath, this.config.getProperty("paramRequestPerimeter"), perimeter,
+                this.config.getProperty("paramRequestProduct"), productId,
+                this.config.getProperty("paramRequestFolderOut"), request.getFolderOut(),
+                this.config.getProperty("paramRequestParameters"), this.formatJsonParametersQuotes(parameters),
+                this.config.getProperty("paramRequestOrderLabel"), request.getOrderLabel(),
+                this.config.getProperty("paramRequestInternalId"), request.getId(),
+                this.config.getProperty("paramRequestClientGuid"), request.getClientGuid(),
+                this.config.getProperty("paramRequestOrganismGuid"), request.getOrganismGuid());
+    }
+
+
 
     private String[] getFmeCommandForRequestAsArray(final ITaskProcessorRequest request, final String fmeScriptPath,
                                                     final String fmeExecutablePath) {
@@ -400,12 +445,21 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             }
 
             this.logger.debug("Start FME extraction");
-            final String[] commandArray = this.getFmeCommandForRequestAsArray(request, fmeScriptPath, fmeExecutablePath);
-            this.logger.debug("Executed command line tokens are : {}", StringUtils.join(commandArray, " "));
-            this.logger.debug("Current user is {}", System.getProperty("user.name"));
+            final Process fmeTaskProcess;
             final File dirWorkspace = new File(FilenameUtils.getFullPathNoEndSeparator(fmeScriptPath));
             this.logger.debug("Current working directory is {}", dirWorkspace);
-            final Process fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
+            this.logger.debug("Current user is {}", System.getProperty("user.name"));
+
+            if (SystemUtils.IS_OS_WINDOWS) {
+                final String command = this.getFmeCommandForRequest(request, fmeScriptPath, fmeExecutablePath);
+                this.logger.debug("Executed command line is : {}", command);
+                fmeTaskProcess = Runtime.getRuntime().exec(command, null, dirWorkspace);
+
+            } else {
+                final String[] commandArray = this.getFmeCommandForRequestAsArray(request, fmeScriptPath, fmeExecutablePath);
+                this.logger.debug("Executed command line tokens are : {}", StringUtils.join(commandArray, " "));
+                fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
+            }
 
             try {
                 // Gives the FME process some time to start before checking the number of available instances again
