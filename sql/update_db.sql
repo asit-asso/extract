@@ -85,6 +85,8 @@ ALTER TABLE requests
 
 ALTER TABLE requests ALTER COLUMN p_parameters TYPE TEXT;
 ALTER TABLE requests ALTER COLUMN p_perimeter TYPE TEXT;
+ALTER TABLE requests ALTER COLUMN p_tiersguid TYPE VARCHAR (255) COLLATE pg_catalog."default";
+ALTER TABLE requests ALTER COLUMN p_tiersdetails TYPE VARCHAR (4000) COLLATE pg_catalog."default";
 
 -- REQUEST_HISTORY Table
 
@@ -154,7 +156,7 @@ UPDATE users SET mailactive = true WHERE mailactive IS NULL;
 -- USERS_USERGROUPS Table
 
 ALTER TABLE users_usergroups
-DROP CONSTRAINT fk_users_usergroups_user;
+DROP CONSTRAINT IF EXISTS fk_users_usergroups_user;
 
 ALTER TABLE users_usergroups
     ADD CONSTRAINT fk_users_usergroups_user FOREIGN KEY (id_user)
