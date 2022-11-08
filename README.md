@@ -36,6 +36,8 @@ Actuellement, 33 fournisseurs diffusent tout ou partie de leurs géodonnées ave
 * Bureau Jaquier Pointet SA qui gère la diffusion de 17 communes en délégation
 * Cartoriviera qui gère la diffusion de 10 communes et associations intercommunales (SIGE)
 * Ville de Morges
+* Viteos
+* SITN
 
 ## Pour installer
 
