@@ -27,17 +27,19 @@ L'ASIT, des administrations et gestionnaires de réseaux forment un groupe utili
 
 ## En production 
 
-Actuellement, 33 fournisseurs diffusent tout ou partie de leurs géodonnées avec Extract grâce aux 7 instances installées chez :
+Actuellement, 37 fournisseurs diffusent tout ou partie de leurs géodonnées avec Extract grâce aux 11 instances installées chez :
 
 * Ville de Nyon & TRN SA
-* Ville de Pully
-* Romande Energie
+* Ville de Pully & Belmont-sur-Lausanne
+* Romande Energie SA & SIE SA
 * Ville de Lausanne
 * Bureau Jaquier Pointet SA qui gère la diffusion de 17 communes en délégation
-* Cartoriviera qui gère la diffusion de 10 communes et associations intercommunales (SIGE)
+* Cartoriviera qui gère la diffusion de 9 communes et associations intercommunales (SIGE)
 * Ville de Morges
-* Viteos
+* Viteos SA
 * SITN
+* Holdigaz Prestations SA
+* ASIT - Association pour le système d'information du territoire
 
 ## Pour installer
 
