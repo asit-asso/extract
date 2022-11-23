@@ -34,7 +34,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>2.7.2</version>
+        <version>2.7.5</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
 
@@ -91,6 +91,7 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
+            <version>42.5.0</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -122,7 +123,7 @@
         <dependency>
             <groupId>org.hsqldb</groupId>
             <artifactId>hsqldb</artifactId>
-            <version>2.7.0</version>
+            <version>2.7.1</version>
             <scope>runtime</scope>
         </dependency>
         <dependency>
@@ -176,13 +177,15 @@
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
-            <version>2.9.0</version>
+            <version>2.10</version>
         </dependency>
+<!--
         <dependency>
             <groupId>commons-validator</groupId>
             <artifactId>commons-validator</artifactId>
             <version>1.7</version>
         </dependency>
+-->
         <dependency>
             <groupId>org.locationtech.jts</groupId>
             <artifactId>jts-core</artifactId>
@@ -191,7 +194,7 @@
         <dependency>
             <groupId>joda-time</groupId>
             <artifactId>joda-time</artifactId>
-            <version>2.10.14</version>
+            <version>2.12.1</version>
         </dependency>
         <dependency>
             <groupId>jakarta.xml.bind</groupId>
@@ -201,13 +204,66 @@
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13</version>
+            <version>4.13.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>prod-linux</id>
+            <properties>
+                <configId>chge-tomcat2</configId>
+            </properties>
+        </profile>
+        <profile>
+            <id>prod-windows</id>
+            <properties>
+                <configId>chge-asitvd</configId>
+            </properties>
+        </profile>
+        <profile>
+            <id>development</id>
+            <properties>
+                <configId>default</configId>
+            </properties>
+        </profile>
+        <profile>
+            <id>development-linux</id>
+            <properties>
+                <configId>dev-linux</configId>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>release</id>
+            <properties>
+                <configId>release</configId>
+            </properties>
+        </profile>
+        <profile>
+            <id>release-profile</id>
+            <properties>
+                <configId>release</configId>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <finalName>${project.artifactId}##${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>application*.properties</exclude>
+                    <exclude>logback-spring*.xml</exclude>
+                    <exclude>static/lib/.bin/**</exclude>
+                    <exclude>static/lib/**/.bin/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -222,6 +278,30 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <condition property="configFilePart" value=".${configId}" else="">
+                                    <not>
+                                        <equals arg1="${configId}" arg2="default" />
+                                    </not>
+                                </condition>
+                                <copy file="src/main/resources/application${configFilePart}.properties"
+                                      tofile="${project.build.outputDirectory}/application.properties" />
+                                <copy file="src/main/resources/logback-spring${configFilePart}.xml"
+                                      tofile="${project.build.outputDirectory}/logback-spring.xml" />
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
@@ -322,5 +402,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

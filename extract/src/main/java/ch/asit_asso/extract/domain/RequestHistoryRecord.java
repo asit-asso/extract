@@ -51,6 +51,8 @@ import org.thymeleaf.util.StringUtils;
 @XmlRootElement
 public class RequestHistoryRecord implements Serializable {
 
+    private static final int MAX_MESSAGE_SIZE = 4000;
+
     /**
      * The identifier of the history entry.
      */
@@ -91,8 +93,8 @@ public class RequestHistoryRecord implements Serializable {
     /**
      * The string produced by the task plugin to explain the result.
      */
-    @Column(name = "last_msg", length = 4000)
-    @Size(max = 4000)
+    @Column(name = "last_msg", length = RequestHistoryRecord.MAX_MESSAGE_SIZE)
+    @Size(max = RequestHistoryRecord.MAX_MESSAGE_SIZE)
     private String message;
 
     /**
@@ -128,7 +130,6 @@ public class RequestHistoryRecord implements Serializable {
     private User user;
 
 
-
     /**
      * Obtains the unique identifier of this entry.
      *
@@ -137,7 +138,6 @@ public class RequestHistoryRecord implements Serializable {
     public Integer getId() {
         return this.id;
     }
-
 
 
     /**
@@ -150,7 +150,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the user-friendly name of the plugin that executed the task.
      *
@@ -159,7 +158,6 @@ public class RequestHistoryRecord implements Serializable {
     public String getTaskLabel() {
         return this.taskLabel;
     }
-
 
 
     /**
@@ -172,7 +170,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the state of the task execution.
      *
@@ -181,7 +178,6 @@ public class RequestHistoryRecord implements Serializable {
     public Status getStatus() {
         return this.status;
     }
-
 
 
     /**
@@ -194,7 +190,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the position of this entry in the processing of the request, including reruns.
      *
@@ -203,7 +198,6 @@ public class RequestHistoryRecord implements Serializable {
     public Integer getStep() {
         return this.step;
     }
-
 
 
     /**
@@ -216,7 +210,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the position of the task related to this entry in the request process.
      *
@@ -225,7 +218,6 @@ public class RequestHistoryRecord implements Serializable {
     public Integer getProcessStep() {
         return this.processStep;
     }
-
 
 
     /**
@@ -238,7 +230,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains when the task execution began.
      *
@@ -247,7 +238,6 @@ public class RequestHistoryRecord implements Serializable {
     public Calendar getStartDate() {
         return this.startDate;
     }
-
 
 
     /**
@@ -260,7 +250,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains when the task execution completed.
      *
@@ -269,7 +258,6 @@ public class RequestHistoryRecord implements Serializable {
     public Calendar getEndDate() {
         return this.endDate;
     }
-
 
 
     /**
@@ -282,7 +270,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the request whose processing is traced by this entry.
      *
@@ -291,7 +278,6 @@ public class RequestHistoryRecord implements Serializable {
     public Request getRequest() {
         return this.request;
     }
-
 
 
     /**
@@ -304,7 +290,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the user that executed the task.
      *
@@ -313,7 +298,6 @@ public class RequestHistoryRecord implements Serializable {
     public User getUser() {
         return this.user;
     }
-
 
 
     /**
@@ -326,7 +310,6 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Obtains the string produced by the task plugin to explain its result.
      *
@@ -337,14 +320,13 @@ public class RequestHistoryRecord implements Serializable {
     }
 
 
-
     /**
      * Defines the string produced by the task plugin to explain its result.
      *
      * @param resultMessage the message
      */
     public void setMessage(final String resultMessage) {
-        this.message = resultMessage;
+        this.message = StringUtils.abbreviate(resultMessage, RequestHistoryRecord.MAX_MESSAGE_SIZE);
     }
 
 

@@ -16,15 +16,18 @@
  */
 package ch.asit_asso.extract.web.model;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
 import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Rule;
-import org.apache.commons.collections.ListUtils;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -63,7 +66,7 @@ public class ConnectorModelTest {
         this.dummyConnectorInstance.setLastImportMessage(ConnectorModelTest.DEFAULT_IMPORT_MESSAGE);
         this.dummyConnectorInstance.setName("Test connector model");
         this.dummyConnectorInstance.setMaximumRetries(3);
-        this.dummyConnectorInstance.setRequestsCollection(ListUtils.EMPTY_LIST);
+        this.dummyConnectorInstance.setRequestsCollection(new ArrayList<>());
 
         HashMap<String, String> parametersValues = new HashMap<>();
         parametersValues.put("url", "http://titi.toto.ta");

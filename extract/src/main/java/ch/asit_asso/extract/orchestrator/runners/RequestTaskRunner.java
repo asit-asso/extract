@@ -16,8 +16,17 @@
  */
 package ch.asit_asso.extract.orchestrator.runners;
 
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.domain.*;
+import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.domain.RequestHistoryRecord;
+import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.Email;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.TaskFailedEmail;
@@ -34,9 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.util.StringUtils;
-
-import java.util.*;
-import java.util.concurrent.CopyOnWriteArraySet;
 
 
 
@@ -711,6 +717,7 @@ public class RequestTaskRunner implements Runnable {
 
         this.taskHistoryRecord.setStatus(taskResultStatus);
         this.taskHistoryRecord.setEndDate(taskEndDate);
+        this.logger.debug("Task result message is: {}", message);
         this.taskHistoryRecord.setMessage(message);
         this.taskHistoryRecord
                 = this.applicationRepositories.getRequestHistoryRepository().save(this.taskHistoryRecord);

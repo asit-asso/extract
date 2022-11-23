@@ -22,8 +22,8 @@ import java.util.Locale;
 import java.util.Properties;
 
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
+import ch.asit_asso.extract.utils.EmailUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -424,7 +424,7 @@ public class EmailSettings implements IEmailSettings {
     @Override
     public final boolean isValid() {
 
-        return EmailValidator.getInstance().isValid(this.senderAddress) && !StringUtils.isBlank(this.senderName)
+        return EmailUtils.isAddressValid(this.senderAddress) && !StringUtils.isBlank(this.senderName)
                 && !StringUtils.isBlank(this.smtpHost) && this.smtpPort >= EmailSettings.FIRST_VALID_HTTP_PORT
                 && this.smtpPort <= EmailSettings.LAST_VALID_HTTP_PORT && this.sslType != null;
     }

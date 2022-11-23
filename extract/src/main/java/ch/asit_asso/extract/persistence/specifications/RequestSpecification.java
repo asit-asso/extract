@@ -23,15 +23,14 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
-import org.apache.commons.collections.CollectionUtils;
 import ch.asit_asso.extract.domain.Request_;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.CollectionUtils;
 import org.thymeleaf.util.StringUtils;
 
 
