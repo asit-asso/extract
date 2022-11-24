@@ -16,7 +16,7 @@
  */
 package ch.asit_asso.extract.web.model;
 
-import org.apache.commons.validator.routines.EmailValidator;
+import ch.asit_asso.extract.utils.EmailUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -599,12 +599,10 @@ public class PluginItemModelParameter {
             return !isMandatory;
         }
 
-        EmailValidator validator = EmailValidator.getInstance();
-
         for (String address : emailString.split("[;,]")) {
             address = address.trim();
 
-            if (!validator.isValid(address)) {
+            if (!EmailUtils.isAddressValid(address)) {
                 this.logger.error("The e-mail address {} did not validate.", address);
                 return false;
             }

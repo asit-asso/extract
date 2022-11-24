@@ -16,12 +16,6 @@
  */
 package ch.asit_asso.extract.plugins.email;
 
-import ch.asit_asso.extract.plugins.common.ITaskProcessor;
-import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.lang.reflect.Field;
 import java.text.DateFormat;
 import java.util.ArrayList;
@@ -29,11 +23,17 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import javax.mail.internet.AddressException;
+import javax.mail.internet.InternetAddress;
+import ch.asit_asso.extract.plugins.common.IEmailSettings;
+import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
+import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
-import ch.asit_asso.extract.plugins.common.IEmailSettings;
-import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -397,17 +397,40 @@ public class EmailPlugin implements ITaskProcessor {
         }
 
         List<String> addressesList = new ArrayList<>();
-        EmailValidator validator = EmailValidator.getInstance();
 
         for (String address : addressesString.split("[,;]")) {
             address = address.trim();
 
-            if (validator.isValid(address)) {
+            if (this.isEmailAddressValid(address)) {
                 addressesList.add(address);
             }
         }
 
         return addressesList.toArray(new String[addressesList.size()]);
+    }
+
+
+
+    private boolean isEmailAddressValid(final String address) {
+//        EmailValidator validator = EmailValidator.getInstance();
+//
+//        if (validator.isValid(address)) {
+//            return true;
+//        }
+//
+//        return false;
+
+        // Version temporaire le temps que la faille due aux dépendances d'Apache Commons Validator soit corrigée
+        // (prévu pour la v2.0 de cette librairie)
+        try {
+            InternetAddress emailAddr = new InternetAddress(address);
+            emailAddr.validate();
+
+        } catch (AddressException ex) {
+            return false;
+        }
+
+        return true;
     }
 
 

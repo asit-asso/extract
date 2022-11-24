@@ -25,8 +25,8 @@ import javax.servlet.http.HttpSession;
 
 import ch.asit_asso.extract.email.PasswordResetEmail;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.EmailUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.web.Message.MessageType;
@@ -355,7 +355,7 @@ public class PasswordResetController extends BaseController {
      */
     private String defineUserToken(final String email) {
 
-        if (!EmailValidator.getInstance().isValid(email)) {
+        if (!EmailUtils.isAddressValid(email)) {
             this.logger.debug("The submitted e-mail {} is invalid.", email);
             return "passwordResetDemand.errors.email.invalid";
         }

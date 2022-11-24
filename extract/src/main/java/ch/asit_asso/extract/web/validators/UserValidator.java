@@ -17,8 +17,8 @@
 package ch.asit_asso.extract.web.validators;
 
 import ch.asit_asso.extract.authentication.ApplicationUser;
+import ch.asit_asso.extract.utils.EmailUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.web.model.UserModel;
@@ -189,7 +189,7 @@ public class UserValidator extends BaseValidator {
             return "userDetails.errors.email.required";
         }
 
-        if (!EmailValidator.getInstance().isValid(email)) {
+        if (!EmailUtils.isAddressValid(email)) {
             return "userDetails.errors.email.invalid";
         }
 

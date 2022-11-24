@@ -17,9 +17,9 @@
 package ch.asit_asso.extract.web.validators;
 
 import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
+import ch.asit_asso.extract.utils.EmailUtils;
 import ch.asit_asso.extract.web.model.SystemParameterModel;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -257,7 +257,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        return EmailValidator.getInstance().isValid(email);
+        return EmailUtils.isAddressValid(email);
     }
 
 

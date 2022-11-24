@@ -11,8 +11,7 @@ module ch.asit_asso.extract.core {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires com.google.gson;
-    requires commons.collections;
-    requires commons.validator;
+    //requires commons.validator;
     requires jakarta.mail;
     requires jakarta.xml.bind;
     requires java.scripting;

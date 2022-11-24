@@ -132,7 +132,7 @@ public class Request implements Serializable {
     /**
      * Additional information about the third-party (if any) that this data item was ordered on behalf of.
      */
-    @Size(max = 255)
+    @Size(max = 4000)
     @Column(name = "p_tiersdetails")
     private String tiersDetails;
 
@@ -140,7 +140,7 @@ public class Request implements Serializable {
     /**
      * Additional information about the third-party (if any) that this data item was ordered on behalf of.
      */
-    @Size(max = 4000)
+    @Size(max = 255)
     @Column(name = "p_tiersguid")
     private String tiersGuid;
 
