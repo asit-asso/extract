@@ -438,7 +438,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
 
 
     private Process launchFmeTaskProcess(final ITaskProcessorRequest request, final String fmeScriptPath,
-                                                      final String fmeExecutablePath) throws IOException {
+                                         final String fmeExecutablePath) throws IOException {
 
         try {
             FmeDesktopPlugin.LOCK.lock();
@@ -453,17 +453,22 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             final File dirWorkspace = new File(FilenameUtils.getFullPathNoEndSeparator(fmeScriptPath));
             this.logger.debug("Current working directory is {}", dirWorkspace);
             this.logger.debug("Current user is {}", System.getProperty("user.name"));
+            ProcessBuilder processBuilder;
 
             if (SystemUtils.IS_OS_WINDOWS) {
                 final String command = this.getFmeCommandForRequest(request, fmeScriptPath, fmeExecutablePath);
                 this.logger.debug("Executed command line is : {}", command);
-                fmeTaskProcess = Runtime.getRuntime().exec(command, null, dirWorkspace);
+                processBuilder = new ProcessBuilder(command);
 
             } else {
                 final String[] commandArray = this.getFmeCommandForRequestAsArray(request, fmeScriptPath, fmeExecutablePath);
                 this.logger.debug("Executed command line tokens are : {}", StringUtils.join(commandArray, " "));
-                fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
+                processBuilder = new ProcessBuilder(commandArray);
             }
+
+            fmeTaskProcess = processBuilder.directory(dirWorkspace)
+                                           .redirectOutput(ProcessBuilder.Redirect.DISCARD)
+                                           .start();
 
             try {
                 // Gives the FME process some time to start before checking the number of available instances again

@@ -24,6 +24,11 @@ public abstract class EmailUtils {
 
         // Version temporaire le temps que la faille due aux dépendances d'Apache Commons Validator soit corrigée
         // (prévu pour la v2.0 de cette librairie)
+
+        if (address == null) {
+            return false;
+        }
+
         try {
             InternetAddress emailAddr = new InternetAddress(address);
             emailAddr.validate();
