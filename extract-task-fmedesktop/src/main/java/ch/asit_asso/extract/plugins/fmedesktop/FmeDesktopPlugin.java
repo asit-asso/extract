@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -360,7 +361,8 @@ public class FmeDesktopPlugin implements ITaskProcessor {
 
         return String.format(
                 "\"%s\" \"%s\" --%s \"%s\" --%s \"%s\" --%s \"%s\" --%s %s --%s \"%s\" --%s %s --%s \"%s\" --%s \"%s\"",
-                fmeExecutablePath, fmeScriptPath, this.config.getProperty("paramRequestPerimeter"), perimeter,
+                fmeExecutablePath, Paths.get(fmeScriptPath).getFileName().toString(),
+                this.config.getProperty("paramRequestPerimeter"), perimeter,
                 this.config.getProperty("paramRequestProduct"), productId,
                 this.config.getProperty("paramRequestFolderOut"), request.getFolderOut(),
                 this.config.getProperty("paramRequestParameters"), this.formatJsonParametersQuotes(parameters),
@@ -379,7 +381,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         final String parameters = request.getParameters();
 
         return new String[]{
-            fmeExecutablePath, fmeScriptPath,
+            fmeExecutablePath, Paths.get(fmeScriptPath).getFileName().toString(),
             this.formatParameterName("paramRequestPerimeter"), perimeter,
             this.formatParameterName("paramRequestProduct"), productId,
             this.formatParameterName("paramRequestFolderOut"), request.getFolderOut(),
@@ -411,9 +413,9 @@ public class FmeDesktopPlugin implements ITaskProcessor {
                 fmeExecutablePath, (fmeExecutable.exists()) ? "exists" : "does not exist",
                 (fmeExecutable.canRead()) ? "is" : "is not", (fmeExecutable.isFile()) ? "is" : "is not");
 
-//        if (!fmeExecutable.exists() || !fmeExecutable.canRead() || !fmeExecutable.isFile()) {
-//            return null;
-//        }
+        if (!fmeExecutable.exists() || !fmeExecutable.canRead() || !fmeExecutable.isFile()) {
+            return null;
+        }
 
         return fmeExecutablePath;
     }
