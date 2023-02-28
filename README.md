@@ -27,15 +27,19 @@ L'ASIT, des administrations et gestionnaires de réseaux forment un groupe utili
 
 ## En production 
 
-Actuellement, 33 fournisseurs diffusent tout ou partie de leurs géodonnées avec Extract grâce aux 7 instances installées chez :
+Actuellement, 37 fournisseurs diffusent tout ou partie de leurs géodonnées avec Extract grâce aux 11 instances installées chez :
 
 * Ville de Nyon & TRN SA
-* Ville de Pully
-* Romande Energie
+* Ville de Pully & Belmont-sur-Lausanne
+* Romande Energie SA & SIE SA
 * Ville de Lausanne
 * Bureau Jaquier Pointet SA qui gère la diffusion de 17 communes en délégation
-* Cartoriviera qui gère la diffusion de 10 communes et associations intercommunales (SIGE)
+* Cartoriviera qui gère la diffusion de 9 communes et associations intercommunales (SIGE)
 * Ville de Morges
+* Viteos SA
+* SITN
+* Holdigaz Prestations SA
+* ASIT - Association pour le système d'information du territoire
 
 ## Pour installer
 
@@ -43,21 +47,9 @@ Suivez les guides d'installation et d'exploitation ici : https://github.com/asit
 
 ### Prérequis:
 * Windows or Linux, 64bit
-* Java 7 ou Java 8 (Java 9+ non supporté), Oracle ou OpenJDK, en 64bit
-* Tomcat 7 to 9, 64bit
-* PostgreSQL >= 9.4
-
-### Juste pour essayer (avec docker et maven):
-
-Lancez les commandes suivantes 
-```bash
-mvn clean install
-docker-compose up
-```
-Puis ouvrez `http://localhost:8080/extract/login` dans votre navigateur,\
-Utilisateur par défaut : `admin`, mot de passe : `motdepasse21`.
-
-Il ne reste qu'à lire la documentation 😊
+* Java 17 (Oracle ou OpenJDK)
+* Tomcat 9 (Extract n’est actuellement pas compatible avec Tomcat 10 en raison de l’utilisation de Spring Boot 2)
+* PostgreSQL >= 12
 
 ## Documentation et liens:
 
