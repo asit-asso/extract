@@ -335,7 +335,11 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             return json;
         }
 
-        return String.format("\"%s\"", json.replaceAll("\\\\\"", "\\\\u0022").replaceAll("\"", "\"\""));
+        return String.format("\"%s\"", json.replaceAll("\\\\\\\\", "\\\\u005c")
+                                           .replaceAll("\\\\n", "\\\\u000d\\\\u000a")
+                                           .replaceAll("\\\\\"", "\\\\u0022")
+                                           .replaceAll("\"", "\"\"")
+                                           .replaceAll("/", "\\\\u002f"));
     }
 
 
@@ -407,9 +411,9 @@ public class FmeDesktopPlugin implements ITaskProcessor {
                 fmeExecutablePath, (fmeExecutable.exists()) ? "exists" : "does not exist",
                 (fmeExecutable.canRead()) ? "is" : "is not", (fmeExecutable.isFile()) ? "is" : "is not");
 
-        if (!fmeExecutable.exists() || !fmeExecutable.canRead() || !fmeExecutable.isFile()) {
-            return null;
-        }
+//        if (!fmeExecutable.exists() || !fmeExecutable.canRead() || !fmeExecutable.isFile()) {
+//            return null;
+//        }
 
         return fmeExecutablePath;
     }
@@ -458,11 +462,13 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             if (SystemUtils.IS_OS_WINDOWS) {
                 final String command = this.getFmeCommandForRequest(request, fmeScriptPath, fmeExecutablePath);
                 this.logger.debug("Executed command line is : {}", command);
+                //fmeTaskProcess = Runtime.getRuntime().exec(command, null, dirWorkspace);
                 processBuilder = new ProcessBuilder(command);
 
             } else {
                 final String[] commandArray = this.getFmeCommandForRequestAsArray(request, fmeScriptPath, fmeExecutablePath);
                 this.logger.debug("Executed command line tokens are : {}", StringUtils.join(commandArray, " "));
+                //fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
                 processBuilder = new ProcessBuilder(commandArray);
             }
 
