@@ -14,4 +14,5 @@ module ch.asit_asso.extract.plugins.email {
     requires org.apache.commons.io;
     requires org.apache.commons.lang3;
     requires org.slf4j;
+    requires ch.qos.logback.classic;
 }

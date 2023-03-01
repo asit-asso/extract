@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -335,7 +336,11 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             return json;
         }
 
-        return String.format("\"%s\"", json.replaceAll("\\\\\"", "\\\\u0022").replaceAll("\"", "\"\""));
+        return String.format("\"%s\"", json.replaceAll("\\\\\\\\", "\\\\u005c")
+                                           .replaceAll("\\\\n", "\\\\u000d\\\\u000a")
+                                           .replaceAll("\\\\\"", "\\\\u0022")
+                                           .replaceAll("\"", "\"\"")
+                                           .replaceAll("/", "\\\\u002f"));
     }
 
 
@@ -356,7 +361,8 @@ public class FmeDesktopPlugin implements ITaskProcessor {
 
         return String.format(
                 "\"%s\" \"%s\" --%s \"%s\" --%s \"%s\" --%s \"%s\" --%s %s --%s \"%s\" --%s %s --%s \"%s\" --%s \"%s\"",
-                fmeExecutablePath, fmeScriptPath, this.config.getProperty("paramRequestPerimeter"), perimeter,
+                fmeExecutablePath, Paths.get(fmeScriptPath).getFileName().toString(),
+                this.config.getProperty("paramRequestPerimeter"), perimeter,
                 this.config.getProperty("paramRequestProduct"), productId,
                 this.config.getProperty("paramRequestFolderOut"), request.getFolderOut(),
                 this.config.getProperty("paramRequestParameters"), this.formatJsonParametersQuotes(parameters),
@@ -375,7 +381,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         final String parameters = request.getParameters();
 
         return new String[]{
-            fmeExecutablePath, fmeScriptPath,
+            fmeExecutablePath, Paths.get(fmeScriptPath).getFileName().toString(),
             this.formatParameterName("paramRequestPerimeter"), perimeter,
             this.formatParameterName("paramRequestProduct"), productId,
             this.formatParameterName("paramRequestFolderOut"), request.getFolderOut(),
@@ -458,11 +464,13 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             if (SystemUtils.IS_OS_WINDOWS) {
                 final String command = this.getFmeCommandForRequest(request, fmeScriptPath, fmeExecutablePath);
                 this.logger.debug("Executed command line is : {}", command);
+                //fmeTaskProcess = Runtime.getRuntime().exec(command, null, dirWorkspace);
                 processBuilder = new ProcessBuilder(command);
 
             } else {
                 final String[] commandArray = this.getFmeCommandForRequestAsArray(request, fmeScriptPath, fmeExecutablePath);
                 this.logger.debug("Executed command line tokens are : {}", StringUtils.join(commandArray, " "));
+                //fmeTaskProcess = Runtime.getRuntime().exec(commandArray, null, dirWorkspace);
                 processBuilder = new ProcessBuilder(commandArray);
             }
 

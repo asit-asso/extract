@@ -5,7 +5,7 @@
 
     <groupId>ch.asit_asso</groupId>
     <artifactId>extract</artifactId>
-    <version>2.0.2-RELEASE</version>
+    <version>2.0.3-RELEASE</version>
     <packaging>war</packaging>
 
     <name>extract</name>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>ch.asit_asso</groupId>
             <artifactId>extract-plugin-commoninterface</artifactId>
-            <version>2.0.2-RELEASE</version>
+            <version>2.0.3-RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -209,61 +209,8 @@
         </dependency>
     </dependencies>
 
-    <profiles>
-        <profile>
-            <id>prod-linux</id>
-            <properties>
-                <configId>chge-tomcat2</configId>
-            </properties>
-        </profile>
-        <profile>
-            <id>prod-windows</id>
-            <properties>
-                <configId>chge-asitvd</configId>
-            </properties>
-        </profile>
-        <profile>
-            <id>development</id>
-            <properties>
-                <configId>default</configId>
-            </properties>
-        </profile>
-        <profile>
-            <id>development-linux</id>
-            <properties>
-                <configId>dev-linux</configId>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>release</id>
-            <properties>
-                <configId>release</configId>
-            </properties>
-        </profile>
-        <profile>
-            <id>release-profile</id>
-            <properties>
-                <configId>release</configId>
-            </properties>
-        </profile>
-    </profiles>
-
     <build>
         <finalName>${project.artifactId}##${project.version}</finalName>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <excludes>
-                    <exclude>application*.properties</exclude>
-                    <exclude>logback-spring*.xml</exclude>
-                    <exclude>static/lib/.bin/**</exclude>
-                    <exclude>static/lib/**/.bin/**</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -278,30 +225,6 @@
             </plugins>
         </pluginManagement>
         <plugins>
-            <plugin>
-                <artifactId>maven-antrun-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>test</phase>
-                        <goals>
-                            <goal>run</goal>
-                        </goals>
-                        <configuration>
-                            <target>
-                                <condition property="configFilePart" value=".${configId}" else="">
-                                    <not>
-                                        <equals arg1="${configId}" arg2="default" />
-                                    </not>
-                                </condition>
-                                <copy file="src/main/resources/application${configFilePart}.properties"
-                                      tofile="${project.build.outputDirectory}/application.properties" />
-                                <copy file="src/main/resources/logback-spring${configFilePart}.xml"
-                                      tofile="${project.build.outputDirectory}/logback-spring.xml" />
-                            </target>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
