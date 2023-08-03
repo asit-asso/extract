@@ -11,7 +11,7 @@ jobs:
                   distribution: 'temurin'
                   java-version: '17'
                   cache: maven
-            - run: mvn -B package -DskipTests=true
+            - run: mvn -q package -DskipTests=true
             - name: Upload artifact for deployment job
               uses: actions/upload-artifact@v3
               with:
@@ -36,4 +36,4 @@ jobs:
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
-             - run: mvn clean test
+             - run: mvn -q clean test
