@@ -19,9 +19,15 @@ jobs:
                   path: '$/target/*.war'
 
     test-extract:
+        needs: build-extract
         runs-on: ubuntu-latest
         steps:
              - uses: actions/checkout@v3
+             - uses: actions/setup-java@v3
+               with:
+                   distribution: 'temurin'
+                   java-version: '17'
+                   cache: maven
              - name: Download artifact generated in build job
                uses: actions/upload-artifact@v2
                with:
