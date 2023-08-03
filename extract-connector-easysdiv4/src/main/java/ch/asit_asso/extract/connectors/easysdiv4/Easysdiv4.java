@@ -131,7 +131,7 @@ public class Easysdiv4 implements IConnector {
     /**
      * The code that uniquely identifies this plugin.
      */
-    private final String code = "easysdiv4";
+    private final String code = "easysdiv5";
 
     /**
      * The parameters values to communicate with a particular easySDI v4 server.
