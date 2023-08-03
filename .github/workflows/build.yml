@@ -35,5 +35,5 @@ jobs:
                    path: /tmp/extract.war
              - uses: isbang/compose-action@v1.5.0
                with:
-                   compose-file: "./docker-compose-test.yml"
+                   compose-file: "./docker-compose-test.yaml"
              - run: mvn clean test
