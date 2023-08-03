@@ -16,7 +16,7 @@ jobs:
               uses: actions/upload-artifact@v2
               with:
                   name: java-app
-                  path: '$/target/*.war'
+                  path: '/home/runner/work/extract/extract/extract/target/*.war'
 
     test-extract:
         needs: build-extract
