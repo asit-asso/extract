@@ -13,7 +13,7 @@ jobs:
                   cache: maven
             - run: mvn -B package -DskipTests=true
             - name: Upload artifact for deployment job
-              uses: actions/upload-artifact@v2
+              uses: actions/upload-artifact@v3
               with:
                   name: java-app
                   path: '/home/runner/work/extract/extract/extract/target/*.war'
@@ -29,7 +29,7 @@ jobs:
                    java-version: '17'
                    cache: maven
              - name: Download artifact generated in build job
-               uses: actions/download-artifact@v2
+               uses: actions/download-artifact@v3
                with:
                    name: java-app
                    path: /tmp/extract.war
