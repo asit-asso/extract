@@ -1,0 +1,50 @@
+version: '3'
+
+volumes:
+    extract_db_data:
+
+services:
+    pgsql:
+        image: postgres:12-alpine
+        environment:
+            - POSTGRES_DB=extract
+            - POSTGRES_USER=extractuser
+            - POSTGRES_PASSWORD=demopassword
+        ports:
+            - "5432:5432"
+
+    tomcat:
+        build: ./docker/tomcat
+        container_name: tomcat
+        depends_on:
+            - pgsql
+            - mailhog
+        volumes:
+            - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
+        environment:
+            - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
+        ports:
+            - "8080:8080"
+
+    mailhog:
+        image: mailhog/mailhog
+        tty: true
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+        volumes:
+            - ./docker/mailhog:/home/mailhog/conf
+        entrypoint: MailHog -auth-file=/home/mailhog/conf/auth-users
+
+    update_db_on_start:
+        build: ./docker/update-db
+        depends_on:
+            - tomcat
+        volumes:
+            - ./sql/update_db.sql:/update_db.sql
+            - ./sql/create_test_data.sql:/create_test_data.sql
+        environment:
+            - PGHOST=pgsql
+            - PGDB=extract
+            - PGUSER=extractuser
+            - PGPASSWORD=demopassword
