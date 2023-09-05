@@ -11,7 +11,7 @@ jobs:
                   distribution: 'temurin'
                   java-version: '17'
                   cache: maven
-            - run: mvn -q package -DskipTests=true
+            - run: mvn -q package -DskipTests=true --batch-mode
             - name: Upload artifact for deployment job
               uses: actions/upload-artifact@v3
               with:
@@ -36,4 +36,12 @@ jobs:
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
-             - run: mvn -q clean test
+             - name: Execute unit tests
+               run: mvn -q test --batch-mode --fail-at-end
+             - name: Execute integration tests
+               run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
+             - name: Execute functional tests
+               run: mvn -q verify -Pfunctional-tests --batch-mode --fail-at-end
+            # - name: "Publication des résultats de tests"
+            #    if: success() || failure()
+            #    uses: scacap/action-surefire-report@v1

@@ -4,12 +4,14 @@ import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Rule;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Tag;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.*;
 
+@Tag("unit")
 public class RequestMatcherTest {
 
     RequestMatcher testMatcher;

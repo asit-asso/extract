@@ -28,6 +28,7 @@ import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Rule;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Tag;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -37,6 +38,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Yves Grasset
  */
+@Tag("unit")
 public class ConnectorModelTest {
     final static String DEFAULT_IMPORT_MESSAGE = "Dummy connector, could not import";
 
