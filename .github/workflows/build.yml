@@ -38,11 +38,11 @@ jobs:
                with:
                    compose-file: "./docker-compose-test.yaml"
              - name: Execute unit tests
-               run: mvn -q test -Punit-tests --batch-mode --fail-at-end
+               run: mvn -q test -Punit-tests --fail-at-end
              - name: Execute integration tests
-               run: mvn -q verify -Pintegration-tests --batch-mode
+               run: mvn -q verify -Pintegration-tests
              - name: Execute functional tests
-               run: mvn -q failsafe:integration-test -Pfunctional-tests --batch-mode
+               run: mvn -q verify -Pfunctional-tests
             # - name: "Publishes test results"
             #    if: success() || failure()
             #    uses: scacap/action-surefire-report@v1
