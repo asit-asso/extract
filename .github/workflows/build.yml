@@ -27,6 +27,7 @@ jobs:
                with:
                    distribution: 'temurin'
                    java-version: '17'
+                   cache: maven
              - uses: browser-actions/setup-chrome@v1
              - name: Download artifact generated in build job
                uses: actions/download-artifact@v3
@@ -37,7 +38,7 @@ jobs:
                with:
                    compose-file: "./docker-compose-test.yaml"
              - name: Execute unit tests
-               run: mvn -q surefire:test -Punit-tests --batch-mode --fail-at-end
+               run: mvn -q clean test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
                run: mvn -q failsafe:integration-test -Pintegration-tests --batch-mode
              - name: Execute functional tests
