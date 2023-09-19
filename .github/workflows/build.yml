@@ -27,7 +27,6 @@ jobs:
                with:
                    distribution: 'temurin'
                    java-version: '17'
-                   cache: maven
              - uses: browser-actions/setup-chrome@v1
              - name: Download artifact generated in build job
                uses: actions/download-artifact@v3
