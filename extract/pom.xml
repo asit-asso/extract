@@ -44,6 +44,7 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+		<skip.unit.tests>${skipTests}</skip.unit.tests>
     </properties>
 
     <dependencies>
@@ -403,7 +404,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <skipTests>${skip.unit.tests}</skipTests>
+                    <skipTests>${skip.surefire.tests}</skipTests>
                 </configuration>
             </plugin>
             <plugin>
