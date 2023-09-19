@@ -40,7 +40,7 @@ jobs:
              - name: Execute unit tests
                run: mvn -q clean test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
-               run: mvn -q failsafe:integration-test -Pintegration-tests --batch-mode
+               run: mvn -q clean verify -Pintegration-tests --batch-mode
              - name: Execute functional tests
                run: mvn -q failsafe:integration-test -Pfunctional-tests --batch-mode
             # - name: "Publishes test results"
