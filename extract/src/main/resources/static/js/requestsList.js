@@ -124,6 +124,14 @@ function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSe
         console.log("ERROR - No table found with the given identifier.");
     }
 
+    $table
+        .on('preInit.dt preXhr.dt', () => {
+            $table.removeClass('loaded').addClass('loading');
+        })
+        .on('draw.dt', () => {
+            $table.removeClass('loading').addClass('loaded');
+        });
+
     var requestsTable = $table.DataTable(configuration);
 
     if (refreshInterval) {
