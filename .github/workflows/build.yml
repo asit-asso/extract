@@ -29,7 +29,6 @@ jobs:
                    java-version: '17'
                    cache: maven
              - uses: browser-actions/setup-chrome@v1
-             - run: chrome --version
              - name: Download artifact generated in build job
                uses: actions/download-artifact@v3
                with:
