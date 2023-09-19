@@ -37,12 +37,10 @@ jobs:
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
-             - name: Build préparatoire aux tests
-               run: mvn -q package -DskipTests --batch-mode
              - name: Execute unit tests
-               run: mvn -q surefire:test -Punit-tests --batch-mode --fail-at-end
+               run: mvn -q test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
-               run: mvn -q failsafe:integration-test -Pintegration-tests --batch-mode
+               run: mvn -q verify -Pintegration-tests --batch-mode
              - name: Execute functional tests
                run: mvn -q failsafe:integration-test -Pfunctional-tests --batch-mode
             # - name: "Publishes test results"
