@@ -40,9 +40,9 @@ jobs:
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
-               run: mvn -q verify -Pintegration-tests -Dskip.surefire.tests --batch-mode
+               run: mvn -q verify -Pintegration-tests --batch-mode
              - name: Execute functional tests
-               run: mvn -q verify -Pfunctional-tests -Dskip.surefire.tests --batch-mode
+               run: mvn -q verify -Pfunctional-tests --batch-mode
             # - name: "Publishes test results"
             #    if: success() || failure()
             #    uses: scacap/action-surefire-report@v1

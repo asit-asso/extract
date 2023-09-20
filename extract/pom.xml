@@ -44,7 +44,6 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
-		<skip.surefire.tests>${skipTests}</skip.surefire.tests>
     </properties>
 
     <dependencies>
@@ -253,7 +252,6 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <skip>false</skip>
                             <summaryFile>target/failsafe-reports/failsafe-summary-integration.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
@@ -271,7 +269,6 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <skip>false</skip>
                             <summaryFile>target/failsafe-reports/failsafe-summary-functional.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>
@@ -404,7 +401,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <skipTests>${skip.surefire.tests}</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
             <plugin>
