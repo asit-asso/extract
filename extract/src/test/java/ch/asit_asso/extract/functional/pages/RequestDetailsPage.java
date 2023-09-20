@@ -9,7 +9,7 @@ public class RequestDetailsPage {
 
     private static final By ANY_ACTION_PANEL_LOCATOR = By.cssSelector("div.current-step");
     private static final By ERROR_PANEL_LOCATOR = By.cssSelector("div.current-step.current-step-error");
-    private static final String EXPECTED_PAGE_TITLE_START = "Extract - Détails de la demande";
+    private static final String EXPECTED_PAGE_TITLE_START = "Extract – Détails de la demande";
     private static final String EXPECTED_URL_FORMAT = "%s/requests/%d";
     private static final By VALIDATION_PANEL_LOCATOR = By.cssSelector("div.current-step.current-step-standby");
 
@@ -31,16 +31,16 @@ public class RequestDetailsPage {
 
 
     public boolean hasErrorActionPanel() {
-        WebElement actionPane = this.driver.findElement(RequestDetailsPage.ERROR_PANEL_LOCATOR);
+        List<WebElement> actionPanesList = this.driver.findElements(RequestDetailsPage.ERROR_PANEL_LOCATOR);
 
-        return actionPane != null && actionPane.isDisplayed();
+        return actionPanesList.size() == 1 && actionPanesList.get(0).isDisplayed();
     }
 
 
     public boolean hasValidationActionPanel() {
-        WebElement actionPane = this.driver.findElement(RequestDetailsPage.VALIDATION_PANEL_LOCATOR);
+        List<WebElement> actionPanesList = this.driver.findElements(RequestDetailsPage.VALIDATION_PANEL_LOCATOR);
 
-        return actionPane != null && actionPane.isDisplayed();
+        return actionPanesList.size() == 1 && actionPanesList.get(0).isDisplayed();
     }
 
 
