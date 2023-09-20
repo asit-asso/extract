@@ -12,5 +12,5 @@ module ch.asit_asso.extract.plugins.archive {
     requires org.apache.commons.lang3;
     requires org.apache.commons.io;
     requires org.slf4j;
-    requires ch.qos.logback.classic;
+    //requires ch.qos.logback.classic;
 }

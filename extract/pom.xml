@@ -202,18 +202,9 @@
             <version>4.0.0</version>
         </dependency>
         <dependency>
-            <groupId>org.apache.derby</groupId>
-            <artifactId>derby</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
             <version>4.12.1</version>
-        </dependency>
-        <dependency>
-            <groupId>io.github.bonigarcia</groupId>
-            <artifactId>webdrivermanager</artifactId>
-            <version>5.4.1</version>
         </dependency>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
@@ -252,6 +243,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
+                            <skip>false</skip>
                             <summaryFile>target/failsafe-reports/failsafe-summary-integration.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
@@ -269,6 +261,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
+                            <skip>false</skip>
                             <summaryFile>target/failsafe-reports/failsafe-summary-functional.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>

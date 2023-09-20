@@ -21,9 +21,10 @@ public class RequestDetailsPage {
             throw new IllegalArgumentException("The web driver cannot be null.");
         }
 
-//        if (!webDriver.getTitle().startsWith(RequestDetailsPage.EXPECTED_PAGE_TITLE_START)) {
-//            throw new IllegalStateException("The web driver does not seem to point toward the home page.");
-//        }
+        if (!webDriver.getTitle().startsWith(RequestDetailsPage.EXPECTED_PAGE_TITLE_START)) {
+            throw new IllegalStateException(String.format(
+                    "The web driver does not seem to point toward the request details page: %s", webDriver.getTitle()));
+        }
 
         this.driver = webDriver;
     }

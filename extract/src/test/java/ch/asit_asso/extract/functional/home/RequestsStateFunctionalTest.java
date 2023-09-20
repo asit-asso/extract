@@ -1,6 +1,8 @@
 package ch.asit_asso.extract.functional.home;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
+import ch.qos.logback.classic.Level;
 import ch.asit_asso.extract.functional.pages.HomePage;
 import ch.asit_asso.extract.functional.pages.LoginPage;
 import ch.asit_asso.extract.functional.pages.RequestDetailsPage;
@@ -8,8 +10,10 @@ import ch.asit_asso.extract.functional.pages.components.CurrentRequestsTableComp
 import ch.asit_asso.extract.functional.pages.components.FinishedRequestsTableComponent;
 import ch.asit_asso.extract.functional.pages.components.RequestTableRowComponent;
 import ch.asit_asso.extract.functional.pages.enums.RequestState;
+import ch.qos.logback.classic.Logger;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -34,18 +39,33 @@ public class RequestsStateFunctionalTest {
     private static final int REJECTED_REQUEST_ID = 4;
 
     private static final int STANDBY_REQUEST_ID = 1;
-    
+
     private WebDriver driver;
     private HomePage homePage;
 
+
+    @BeforeAll
+    public static void setupClass() {
+        WebDriverManager.chromedriver().disableTracing().setup();
+        ((Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+    }
+
     @BeforeEach
     public void setUp() {
-        WebDriverManager.chromedriver().setup();
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--no-sandbox");
-        options.addArguments("--disable-dev-shm-usage");
-        options.addArguments("--headless");
-        options.addArguments("--remote-allow-origins=*");
+        options.addArguments(
+                List.of("--disable-gpu",
+                        "--window-size=1920,1200",
+                        "--ignore-certificate-errors",
+                        "--disable-extensions",
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--headless",
+                        "--remote-allow-origins=*",
+                        "--disable-logging",
+                        "--log-level=3"
+                )
+        );
 
         this.driver = new ChromeDriver(options);
         this.driver.get(RequestsStateFunctionalTest.APPLICATION_URL);

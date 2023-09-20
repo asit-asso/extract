@@ -19,7 +19,8 @@ public class LoginPage {
         }
 
         if (!LoginPage.EXPECTED_PAGE_TITLE.equals(webDriver.getTitle())) {
-            throw new IllegalStateException("The web driver does not seem to point toward the login page.");
+            throw new IllegalStateException(String.format(
+                    "The web driver does not seem to point toward the login page: %s", webDriver.getTitle()));
         }
 
         this.driver = webDriver;
