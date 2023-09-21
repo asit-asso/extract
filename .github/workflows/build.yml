@@ -65,6 +65,11 @@ jobs:
                    verbose: true
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
+             - name: Fetching Extract logs
+               uses: actions/upload-artifact@v3
+               with:
+                  name: extract-logs
+                  path: /var/log/extract/
             # - name: "Publishes test results"
             #    if: success() || failure()
             #    uses: scacap/action-surefire-report@v1

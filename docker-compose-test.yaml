@@ -23,6 +23,7 @@ services:
                 condition: service_started
         volumes:
             - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
+            - /var/log/extract:/var/log/extract
         environment:
             - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
         ports:
