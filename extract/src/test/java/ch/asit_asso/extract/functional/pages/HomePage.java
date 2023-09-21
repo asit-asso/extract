@@ -39,8 +39,9 @@ public class HomePage {
         WebElement currentRequestsTable = driver.findElement(HomePage.CURRENT_REQUESTS_TABLE_LOCATOR);
         homePageWait.until(webDriver ->
                                    currentRequestsTable.isDisplayed()
-                                           && currentRequestsTable.getAttribute("class")
-                                                                  .contains(HomePage.LOADED_CSS_CLASS));
+                                             && !currentRequestsTable.findElements(By.cssSelector("tr[data-href]")).isEmpty());
+//                                           && currentRequestsTable.getAttribute("class")
+//                                                                  .contains(HomePage.LOADED_CSS_CLASS));
 
         return new CurrentRequestsTableComponent(this.driver, currentRequestsTable);
     }
@@ -51,8 +52,9 @@ public class HomePage {
         WebElement finishedRequestsTable = driver.findElement(HomePage.FINISHED_REQUESTS_TABLE_LOCATOR);
         homePageWait.until(webDriver ->
                                    finishedRequestsTable.isDisplayed()
-                                        && finishedRequestsTable.getAttribute("class")
-                                                                .contains(HomePage.LOADED_CSS_CLASS));
+                                          && !finishedRequestsTable.findElements(By.cssSelector("tr[data-href]")).isEmpty());
+//                                        && finishedRequestsTable.getAttribute("class")
+//                                                                .contains(HomePage.LOADED_CSS_CLASS));
 
         return new FinishedRequestsTableComponent(this.driver, finishedRequestsTable);
     }
