@@ -43,11 +43,7 @@ jobs:
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
-                   services: |
-                       pgsql
-                       tomcat
-                       mailhog
-                       update_db_on_start
+                   up-flags: "--build --wait"
                    
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
