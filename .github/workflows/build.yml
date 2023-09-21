@@ -34,6 +34,10 @@ jobs:
                with:
                    name: java-app
                    path: /tmp/extract.war
+                   
+             - name: Display structure of downloaded files
+               run: ls -R
+               working-directory: /tmp/
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
@@ -47,10 +51,19 @@ jobs:
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode
+            - name: Wait on server start
+               uses: iFaxity/wait-on-action@v1.1.0
+               with:
+                   resource: http://localhost:8080/
+                   interval: 5000
+                   timeout: 150000
+                   verbose: true
              - name: Wait on application deployment
                uses: iFaxity/wait-on-action@v1.1.0
                with:
                    resource: http://localhost:8080/extract/login
+                   interval: 5000
+                   timeout: 150000
                    verbose: true
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
