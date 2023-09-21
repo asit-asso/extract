@@ -38,6 +38,8 @@ jobs:
                run: mv /tmp/extract*.war /tmp/extract.war
              - name: Create local Extract logs folder
                run: mkdir -p /tmp/log/extract
+             - name: Give all permissions on Extract log folder
+               run: chmod 0777 /tmp/log/extract
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
