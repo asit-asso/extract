@@ -47,7 +47,8 @@ services:
     update_db_on_start:
         build: ./docker/update-db
         depends_on:
-            - tomcat
+            tomcat:
+                condition: service_healthy
         volumes:
             - ./sql/update_db.sql:/update_db.sql
             - ./sql/create_test_data.sql:/create_test_data.sql
