@@ -6,7 +6,7 @@ RUN apk add --update \
   && rm -rf /var/cache/apk/*
 
 #unset entrypoint
-ENTRYPOINT []
+#ENTRYPOINT []
 
 # Copy scripts
 COPY wait-for-web.sh wait-for-web.sh
