@@ -66,6 +66,7 @@ jobs:
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
              - name: Fetching Extract logs
+               if: always()
                uses: actions/upload-artifact@v3
                with:
                   name: extract-logs
