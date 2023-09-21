@@ -54,3 +54,5 @@ INSERT INTO request_history(id_record, end_date, last_msg, process_step, start_d
 VALUES(9, '2022-11-21 16:47:02.126', 'OK', 1, '2022-11-21 16:46:02.126', 'FINISHED', 2, 'Validation opérateur', 4, 2);
 INSERT INTO request_history(id_record, end_date, last_msg, process_step, start_date, status, step, task_label, id_request, id_user)
 VALUES(10, '2022-11-21 16:57:02.126', '', 2, '2022-11-21 16:56:02.126', 'FINISHED', 3, 'Exportation', 4, 1);
+
+UPDATE system SET value = 20 WHERE key = dashboard_interval;

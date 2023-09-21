@@ -35,26 +35,24 @@ public class HomePage {
 
 
     public CurrentRequestsTableComponent getCurrentRequestsTableWhenLoaded() {
-        Wait<WebDriver> homePageWait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        Wait<WebDriver> homePageWait = new WebDriverWait(driver, Duration.ofSeconds(40));
         WebElement currentRequestsTable = driver.findElement(HomePage.CURRENT_REQUESTS_TABLE_LOCATOR);
         homePageWait.until(webDriver ->
                                    currentRequestsTable.isDisplayed()
-                                             && !currentRequestsTable.findElements(By.cssSelector("tr[data-href]")).isEmpty());
-//                                           && currentRequestsTable.getAttribute("class")
-//                                                                  .contains(HomePage.LOADED_CSS_CLASS));
+                                           && currentRequestsTable.getAttribute("class")
+                                                                  .contains(HomePage.LOADED_CSS_CLASS));
 
         return new CurrentRequestsTableComponent(this.driver, currentRequestsTable);
     }
 
 
     public FinishedRequestsTableComponent getFinishedRequestsTableWhenLoaded() {
-        Wait<WebDriver> homePageWait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        Wait<WebDriver> homePageWait = new WebDriverWait(driver, Duration.ofSeconds(40));
         WebElement finishedRequestsTable = driver.findElement(HomePage.FINISHED_REQUESTS_TABLE_LOCATOR);
         homePageWait.until(webDriver ->
                                    finishedRequestsTable.isDisplayed()
-                                          && !finishedRequestsTable.findElements(By.cssSelector("tr[data-href]")).isEmpty());
-//                                        && finishedRequestsTable.getAttribute("class")
-//                                                                .contains(HomePage.LOADED_CSS_CLASS));
+                                        && finishedRequestsTable.getAttribute("class")
+                                                                .contains(HomePage.LOADED_CSS_CLASS));
 
         return new FinishedRequestsTableComponent(this.driver, finishedRequestsTable);
     }
