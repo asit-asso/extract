@@ -71,7 +71,7 @@ jobs:
                run: mvn -q verify -Pfunctional-tests --batch-mode
              - name: Changement permissions logs
                if: always()
-               run: chmod a+r *.log
+               run: sudo chmod a+r *.log
                working-directory: /tmp/log/extract
              - name: Fetching Extract logs
                if: always()
