@@ -47,6 +47,11 @@ jobs:
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode
+             - name: Wait on application deployment
+               uses: iFaxity/wait-on-action@v1.1.0
+               with:
+                   resource: http://localhost:8080/extract/login
+                   verbose: true
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
             # - name: "Publishes test results"
