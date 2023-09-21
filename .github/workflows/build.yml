@@ -67,6 +67,9 @@ jobs:
                    verbose: true
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
+             - name: Lecture des logs
+               run: ls -R
+               working-directory: /tmp/log
              - name: Fetching Extract logs
                if: always()
                uses: actions/upload-artifact@v3
