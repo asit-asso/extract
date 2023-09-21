@@ -50,7 +50,7 @@ jobs:
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode
-            - name: Wait on server start
+             - name: Wait on server start
                uses: iFaxity/wait-on-action@v1.1.0
                with:
                    resource: http://localhost:8080/
