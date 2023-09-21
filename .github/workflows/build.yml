@@ -70,7 +70,7 @@ jobs:
                uses: actions/upload-artifact@v3
                with:
                   name: extract-logs
-                  path: /var/log/extract/
+                  path: /tmp/log/extract/
             # - name: "Publishes test results"
             #    if: success() || failure()
             #    uses: scacap/action-surefire-report@v1
