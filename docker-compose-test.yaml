@@ -32,7 +32,7 @@ services:
             test: "curl --output /dev/null --fail --silent --head localhost:8080/extract/login"
             interval: 10s
             timeout: 10s
-            retries: 10
+            retries: 100
 
     mailhog:
         image: mailhog/mailhog
