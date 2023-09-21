@@ -17,14 +17,21 @@ services:
         build: ./docker/tomcat
         container_name: tomcat
         depends_on:
-            - pgsql
-            - mailhog
+            pgsql:
+                condition: service_started
+            mailhog:
+                condition: service_started
         volumes:
             - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
         environment:
             - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
         ports:
             - "8080:8080"
+        healthcheck:
+            test: "curl --output /dev/null --fail --silent --head localhost:8080/extract/login"
+            interval: 10s
+            timeout: 10s
+            retries: 10
 
     mailhog:
         image: mailhog/mailhog
