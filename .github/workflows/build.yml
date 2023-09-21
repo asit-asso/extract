@@ -68,6 +68,7 @@ jobs:
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
              - name: Lecture des logs
+               if: always()
                run: ls -R
                working-directory: /tmp/log
              - name: Fetching Extract logs
