@@ -33,11 +33,10 @@ jobs:
                uses: actions/download-artifact@v3
                with:
                    name: java-app
-                   path: /tmp/extract.war
-                   
+                   path: /tmp/extract.war                   
              - name: Display structure of downloaded files
                run: ls -R
-               working-directory: /tmp/
+               working-directory: /tmp
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
