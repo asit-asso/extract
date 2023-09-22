@@ -6,13 +6,11 @@ RUN apk add --update \
   && rm -rf /var/cache/apk/*
 
 #unset entrypoint
-#ENTRYPOINT []
+ENTRYPOINT []
 
 # Copy scripts
 COPY wait-for-web.sh wait-for-web.sh
 COPY update-db-when-ready.sh update-db-when-ready.sh
 RUN chmod +x wait-for-web.sh update-db-when-ready.sh
 
-ENTRYPOINT ["/update-db-when-ready.sh"]
-
-#CMD /update-db-when-ready.sh
+CMD /update-db-when-ready.sh

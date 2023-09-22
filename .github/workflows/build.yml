@@ -43,7 +43,7 @@ jobs:
              - uses: isbang/compose-action@v1.5.0
                with:
                    compose-file: "./docker-compose-test.yaml"
-                   up-flags: "--wait"
+                   up-flags: "--wait-timeout"
                    
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
