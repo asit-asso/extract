@@ -7,3 +7,4 @@ echo "Updating database schema..."
 psql --host=$PGHOST --username=$PGUSER --dbname=$PGDB < /update_db.sql
 psql --host=$PGHOST --username=$PGUSER --dbname=$PGDB < /create_test_data.sql
 echo "Done"
+/wait-for-web.sh http://tomcat:8080/titi/toto -1

@@ -10,7 +10,10 @@ attempt_counter=0
 max_attempts=${2-10}
 
 until $(curl --output /dev/null --silent --head --fail "$1"); do
-    if [ ${attempt_counter} -eq ${max_attempts} ];then
+	if [ ${max_attempts} -lt 0 ]; then
+		sleep 300
+
+	elif [ ${attempt_counter} -eq ${max_attempts} ];then
       echo "Max attempts reached"
       exit 1
     fi
