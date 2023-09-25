@@ -15,8 +15,17 @@ jobs:
                   java-version: '17'
                   cache: maven
                   
+            - name: Install NodeJS
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 16
+                  cache: 'npm'
+                  
             - name: Install Yarn
-              uses: mskelton/setup-yarn@v1
+              run: npm install --global yarn
+            
+            - name: Install JavaScript dependencies
+              run: yarn install
               working-directory: /home/runner/work/extract/extract/extract          
                   
             - name: Build the code
