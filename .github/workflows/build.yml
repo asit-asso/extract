@@ -50,8 +50,8 @@ jobs:
              - name: Rename artifact file to version-agnostic name
                run: mv /tmp/extract*.war /tmp/extract.war
                
-             - name: Create local Extract logs folder
-               run: mkdir -p /tmp/log/extract
+             - name: Create local Extract folders
+               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/extract/orders
                
              - name: Give all permissions on Extract log folder
                run: chmod 0777 /tmp/log/extract
