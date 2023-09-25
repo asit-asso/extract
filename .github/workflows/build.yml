@@ -20,6 +20,7 @@ jobs:
               with:
                   node-version: 16
                   cache: 'npm'
+                  cache-dependency-path: './extract/package.json
                   
             - name: Install Yarn
               run: npm install --global yarn
