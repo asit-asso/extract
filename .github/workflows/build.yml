@@ -17,9 +17,7 @@ jobs:
                   
             - name: Install Yarn
               uses: mskelton/setup-yarn@v1
-              
-            - name: Install JavaScript dependencies
-              run: yarn install
+              working-directory: /home/runner/work/extract/extract/extract          
                   
             - name: Build the code
               run: mvn -q package -DskipTests=true --batch-mode
