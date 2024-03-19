@@ -16,27 +16,42 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorApplication;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorBackupCodes;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorRememberMe;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.User.UserType;
 import ch.asit_asso.extract.domain.UserGroup;
+import ch.asit_asso.extract.ldap.LdapSettings;
+import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
+import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.UserModel;
 import ch.asit_asso.extract.web.validators.UserValidator;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.validation.Valid;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 /**
@@ -50,12 +65,12 @@ import java.util.stream.Collectors;
 public class UsersController extends BaseController {
 
     /**
-     * The string that identifies the part of the web site that this controller manages.
+     * The string that identifies the part of the website that this controller manages.
      */
     private static final String CURRENT_SECTION_IDENTIFIER = "users";
 
     /**
-     * The string that identifies the part of the web site that this controller manages.
+     * The string that identifies the part of the website that this controller manages.
      */
     private static final String CURRENT_USER_SECTION_IDENTIFIER = "currentUser";
 
@@ -74,23 +89,43 @@ public class UsersController extends BaseController {
      */
     private static final String REDIRECT_TO_LIST = "redirect:/users";
 
+    public static final String REDIRECT_TO_2FA_REGISTER = "redirect:/2fa/register";
+
     /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
+    private final RecoveryCodeRepository backupCodesRepository;
+
     /**
      * The Spring Security object that allows to hash passwords.
      */
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final Secrets secrets;
+
+    private final RememberMeTokenRepository rememberMeRepository;
+
+    private final TwoFactorService twoFactorService;
 
     /**
      * The Spring Data repository that links the user data objects to the data source.
      */
-    @Autowired
-    private UsersRepository usersRepository;
+    private final UsersRepository usersRepository;
 
+    private final LdapSettings ldapSettings;
+
+
+
+    public UsersController(RecoveryCodeRepository codesRepository, Secrets secrets,
+                           RememberMeTokenRepository tokensRepository, TwoFactorService twoFactorService,
+                           UsersRepository usersRepository, LdapSettings ldapSettings) {
+        this.backupCodesRepository = codesRepository;
+        this.secrets = secrets;
+        this.rememberMeRepository = tokensRepository;
+        this.twoFactorService = twoFactorService;
+        this.usersRepository = usersRepository;
+        this.ldapSettings = ldapSettings;
+    }
 
 
     /**
@@ -121,7 +156,7 @@ public class UsersController extends BaseController {
         this.logger.debug("Processing a request to add a user");
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         if (userModel.getId() != null) {
@@ -141,13 +176,22 @@ public class UsersController extends BaseController {
             return UsersController.REDIRECT_TO_LIST;
         }
 
+        if (userModel.getUserType() != UserType.LOCAL) {
+            this.logger.warn("The user {} tried to add a user with a user type different than LOCAL."
+                                     + " The data may have been tampered with, so the operation is denied.", this.getCurrentUserLogin());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+
+            return UsersController.REDIRECT_TO_LIST;
+        }
+
+
         if (bindingResult.hasErrors()) {
             this.logger.info("Adding the user failed because of invalid data.");
 
             return this.prepareModelForDetailsView(model, false, null, redirectAttributes);
         }
 
-        User domainUser = userModel.createDomainObject(this.passwordEncoder);
+        User domainUser = userModel.createDomainObject(this.secrets, this.twoFactorService);
         boolean success;
 
         try {
@@ -185,7 +229,7 @@ public class UsersController extends BaseController {
             final RedirectAttributes redirectAttributes) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         if (id == this.usersRepository.getSystemUserId()) {
@@ -258,17 +302,18 @@ public class UsersController extends BaseController {
      */
     @PostMapping("{id}")
     public final String updateItem(@Valid @ModelAttribute("user") final UserModel userModel,
-            final BindingResult bindingResult, final ModelMap model, @PathVariable final int id,
-            final RedirectAttributes redirectAttributes) {
+                                   final BindingResult bindingResult, final ModelMap model, @PathVariable final int id,
+                                   final RedirectAttributes redirectAttributes, final HttpServletRequest request,
+                                   final HttpServletResponse response) {
         this.logger.debug("Processing the data to update a user.");
 
         if (!this.canEditUser(id)) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         final String currentUser = this.getCurrentUserLogin();
         final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
-                : REDIRECT_TO_HOME;
+                : UsersController.REDIRECT_TO_HOME;
 
         if (id == this.usersRepository.getSystemUserId()) {
             this.logger.warn("The user {} tried to edit the details of the system user.", currentUser);
@@ -310,11 +355,26 @@ public class UsersController extends BaseController {
             return redirectTarget;
         }
 
-        userModel.updateDomainObject(domainUser, this.passwordEncoder, (userModel.getId() == this.getCurrentUserId()));
+        boolean displayWizard = this.isEditingCurrentUser(userModel)
+                                && userModel.isTwoFactorForced() && !domainUser.isTwoFactorForced();
+
+        userModel.updateDomainObject(domainUser, this.secrets, this.twoFactorService,
+                                     (userModel.getId() == this.getCurrentUserId()), this.isCurrentUserAdmin());
+
         boolean success;
 
         try {
             domainUser = this.usersRepository.save(domainUser);
+
+            if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.INACTIVE) {
+                TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
+                                                                             this.secrets);
+                rememberMeUser.disable(request, response);
+                TwoFactorBackupCodes backupCodesUser = new TwoFactorBackupCodes(domainUser, this.backupCodesRepository,
+                                                                                this.secrets);
+                backupCodesUser.delete();
+
+            }
             success = (domainUser != null);
 
         } catch (Exception exception) {
@@ -329,6 +389,310 @@ public class UsersController extends BaseController {
         }
 
         this.addStatusMessage(redirectAttributes, "usersList.user.updated", MessageType.SUCCESS);
+
+        if (displayWizard) {
+            return this.prepareFor2faWizard(request);
+        }
+
+        return redirectTarget;
+    }
+
+
+
+    @NotNull
+    private String prepareFor2faWizard(HttpServletRequest request) {
+        request.getSession().setAttribute("2faStep", "REGISTER");
+
+        return UsersController.REDIRECT_TO_2FA_REGISTER;
+    }
+
+
+
+    private boolean isEditingCurrentUser(UserModel userModel) {
+        return this.getCurrentUserLogin().equals(userModel.getLogin());
+    }
+
+
+
+    @PostMapping("{id}/migrate")
+    public final String migrateUserToLdap(@ModelAttribute("user") final UserModel userModel,
+                                          final ModelMap model, @PathVariable final int id,
+                                          final RedirectAttributes redirectAttributes) {
+
+        this.logger.debug("Processing the data to migrate a user to LDAP.");
+
+        if (!this.canEditUser(id)) {
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        final String currentUser = this.getCurrentUserLogin();
+        final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
+                : UsersController.REDIRECT_TO_HOME;
+
+        if (id == this.usersRepository.getSystemUserId()) {
+            this.logger.warn("The user {} tried to migrate the system user to LDAP.", currentUser);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (id != userModel.getId()) {
+            this.logger.warn("The user {} tried to migrate user id {}, but the data was set for user id {}."
+                                     + " The data may have been tampered with, so the operation is denied.",
+                             currentUser, id, userModel.getId());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        this.logger.debug("Fetching the user to migrate.");
+        User domainUser = this.usersRepository.findById(id).orElse(null);
+
+        if (domainUser == null) {
+            this.logger.error("No user found in database with id {}.", id);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        domainUser.setUserType(UserType.LDAP);
+        domainUser.setPassword(null);
+
+        domainUser = this.usersRepository.save(domainUser);
+
+        if (domainUser == null) {
+            this.addStatusMessage(model, "userDetails.errors.user.migration.failed", MessageType.ERROR);
+
+            return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+        this.addStatusMessage(redirectAttributes, "usersList.user.migrated", MessageType.SUCCESS);
+
+        return redirectTarget;
+    }
+
+
+
+    @PostMapping("{id}/disable2fa")
+    public final String disableTwoFactorAuthentication(@ModelAttribute("user") final UserModel userModel,
+                                                       final ModelMap model, @PathVariable final int id,
+                                                       final RedirectAttributes redirectAttributes) {
+
+        this.logger.debug("Processing the data to disable two-factor authentication for a user.");
+
+        if (!this.canEditUser(id)) {
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        final String currentUser = this.getCurrentUserLogin();
+        final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
+                : UsersController.REDIRECT_TO_HOME;
+
+        if (id == this.usersRepository.getSystemUserId()) {
+            this.logger.warn("The user {} tried to disable two-factor authentication for the system user.", currentUser);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (id != userModel.getId()) {
+            this.logger.warn("The user {} tried to disable two-factor authentication for user id {}, but the data was set"
+                             + " for user id {}. The data may have been tampered with, so the operation is denied.",
+                             currentUser, id, userModel.getId());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        this.logger.debug("Fetching the user.");
+        User domainUser = this.usersRepository.findById(id).orElse(null);
+
+        if (domainUser == null) {
+            this.logger.error("No user found in database with id {}.", id);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.INACTIVE) {
+            this.logger.warn("The user {} tried to disable two-factor authentication of user {} for which it was"
+                             + " already off.",
+                             currentUser, domainUser.getLogin());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.operation.illegal", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (domainUser.isTwoFactorForced() && !this.isCurrentUserAdmin()) {
+            this.logger.warn("The user {} tried to disable their forced two-factor authentication of user {} while not"
+                             + " being an administrator.",
+                             currentUser, domainUser.getLogin());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.operation.illegal", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
+                                                                             this.twoFactorService);
+        twoFactorApplication.disable();
+
+        domainUser = this.usersRepository.save(domainUser);
+
+        if (domainUser == null) {
+            this.addStatusMessage(model, "userDetails.errors.user.2fa.disable.failed", MessageType.ERROR);
+
+            return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+        this.addStatusMessage(redirectAttributes, "usersList.user.2fa.disabled", MessageType.SUCCESS);
+
+        return redirectTarget;
+    }
+
+
+
+    @PostMapping("{id}/enable2fa")
+    public final String enableTwoFactorAuthentication(@ModelAttribute("user") final UserModel userModel,
+                                                      final ModelMap model, @PathVariable final int id,
+                                                      final RedirectAttributes redirectAttributes,
+                                                      final HttpServletRequest request) {
+
+        this.logger.debug("Processing the data to enable two-factor authentication for a user.");
+
+        if (!this.canEditUser(id)) {
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        final String currentUser = this.getCurrentUserLogin();
+        final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
+                : UsersController.REDIRECT_TO_HOME;
+
+        if (id == this.usersRepository.getSystemUserId()) {
+            this.logger.warn("The user {} tried to enable two-factor authentication for the system user.", currentUser);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (id != userModel.getId()) {
+            this.logger.warn("The user {} tried to enable two-factor authentication for user id {}, but the data was set"
+                             + " for user id {}. The data may have been tampered with, so the operation is denied.",
+                             currentUser, id, userModel.getId());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        this.logger.debug("Fetching the user.");
+        User domainUser = this.usersRepository.findById(id).orElse(null);
+
+        if (domainUser == null) {
+            this.logger.error("No user found in database with id {}.", id);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (domainUser.getTwoFactorStatus() != User.TwoFactorStatus.INACTIVE) {
+            this.logger.warn("The user {} tried to enable two-factor authentication for user {} for which it was"
+                             + " already enabled.",
+                             currentUser, domainUser.getLogin());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.operation.illegal", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
+                                                                             this.twoFactorService);
+        twoFactorApplication.enable();
+
+        domainUser = this.usersRepository.save(domainUser);
+
+        if (domainUser == null) {
+            this.addStatusMessage(model, "userDetails.errors.user.2fa.enable.failed", MessageType.ERROR);
+
+            return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+        if (this.isEditingCurrentUser(userModel)) {
+            return this.prepareFor2faWizard(request);
+        }
+
+        this.addStatusMessage(redirectAttributes, "usersList.user.2fa.enabled", MessageType.SUCCESS);
+
+        return redirectTarget;
+    }
+
+
+
+    @PostMapping("{id}/reset2fa")
+    public final String resetTwoFactorAuthentication(@ModelAttribute("user") final UserModel userModel,
+                                                     final ModelMap model, @PathVariable final int id,
+                                                     final RedirectAttributes redirectAttributes,
+                                                     final HttpServletRequest request) {
+
+        this.logger.debug("Processing the data to reset two-factor authentication for a user.");
+
+        if (!this.canEditUser(id)) {
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        final String currentUser = this.getCurrentUserLogin();
+        final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
+                : UsersController.REDIRECT_TO_HOME;
+
+        if (id == this.usersRepository.getSystemUserId()) {
+            this.logger.warn("The user {} tried to reset two-factor authentication for the system user.", currentUser);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (id != userModel.getId()) {
+            this.logger.warn("The user {} tried to reset two-factor authentication for user id {}, but the data was set"
+                             + " for user id {}. The data may have been tampered with, so the operation is denied.",
+                             currentUser, id, userModel.getId());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        this.logger.debug("Fetching the user.");
+        User domainUser = this.usersRepository.findById(id).orElse(null);
+
+        if (domainUser == null) {
+            this.logger.error("No user found in database with id {}.", id);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        if (domainUser.getTwoFactorStatus() != User.TwoFactorStatus.ACTIVE) {
+            this.logger.warn("The user {} tried to reset two-factor authentication for user {} for which it was not already active.",
+                             currentUser, domainUser.getLogin());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.operation.illegal", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
+                                                                             this.twoFactorService);
+        twoFactorApplication.enable();
+
+        domainUser = this.usersRepository.save(domainUser);
+
+        if (domainUser == null) {
+            this.addStatusMessage(model, "userDetails.errors.user.2fa.reset.failed", MessageType.ERROR);
+
+            return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+
+        if (this.isEditingCurrentUser(userModel)) {
+            return this.prepareFor2faWizard(request);
+        }
+
+        this.addStatusMessage(redirectAttributes, "usersList.user.2fa.reset", MessageType.SUCCESS);
 
         return redirectTarget;
     }
@@ -345,7 +709,7 @@ public class UsersController extends BaseController {
     public final String viewAddForm(final ModelMap model) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         return this.prepareModelForDetailsView(model, true, null, null);
@@ -366,7 +730,7 @@ public class UsersController extends BaseController {
             final RedirectAttributes redirectAttributes) {
 
         if (!this.canEditUser(id)) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         if (Objects.equals(id, this.usersRepository.getSystemUserId())) {
@@ -392,7 +756,7 @@ public class UsersController extends BaseController {
     public final String viewList(final ModelMap model) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return UsersController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         return this.prepareModelForListView(model);
@@ -425,7 +789,7 @@ public class UsersController extends BaseController {
      *                           <code>null</code> if the user
      *                           is a new one
      * @param redirectAttributes the data to pass to the next if a redirection is necessary. <code>null</code> can be
-     *                           passed only if the user to display is a new one (because there won't be a redirection.
+     *                           passed only if the user to display is a new one (because there won't be a redirection).
      * @return the string that identifies the next view
      */
     private String prepareModelForDetailsView(final ModelMap model, final boolean createModel, final Integer id,
@@ -434,6 +798,10 @@ public class UsersController extends BaseController {
                 "The redirect attributes must be set if the user to display is not a new one.";
 
         String currentSection = UsersController.CURRENT_SECTION_IDENTIFIER;
+        this.ldapSettings.refresh();
+        this.addJavascriptMessagesAttribute(model);
+        model.addAttribute("isLdapOn", this.ldapSettings.isEnabled());
+        model.addAttribute("isAdmin", this.isCurrentUserAdmin());
 
         if (id == null) {
 
@@ -442,6 +810,7 @@ public class UsersController extends BaseController {
             }
 
             model.addAttribute("isOwnAccount", false);
+            model.addAttribute("isLocalUser", true);
             model.addAttribute("isAssociatedToProcesses", false);
             model.addAttribute("userGroups", "");
 
@@ -460,6 +829,7 @@ public class UsersController extends BaseController {
 
             final boolean isCurrentUser = (id == this.getCurrentUserId());
             model.addAttribute("isOwnAccount", isCurrentUser);
+            model.addAttribute("isLocalUser", domainUser.getUserType() == UserType.LOCAL);
             model.addAttribute("isAssociatedToProcesses", domainUser.isAssociatedToProcesses());
             model.addAttribute("userGroups", domainUser.getUserGroupsCollection()
                                                         .stream()

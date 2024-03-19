@@ -7,6 +7,7 @@
  * Sends the data about the parameters to the server for updating.
  */
 function submitParametersData() {
+    $('#validationFocusProperties').val($('#validation-properties-select').val().join(','));
     $('#parametersForm').submit();
 }
 
@@ -31,3 +32,56 @@ function removeOrchestratorTimeRange() {
     $("#parametersForm").attr("action", $(this).attr("href"));
     $("#parametersForm").submit();
 }
+
+function updateSynchroFieldsDisplay(isSynchroEnabled) {
+
+    if (isSynchroEnabled) {
+        showSynchroFields();
+
+    } else {
+        hideSynchroFields();
+    }
+}
+
+function hideSynchroFields() {
+    $(".synchro-field-row").addClass("d-none");
+}
+
+
+function showSynchroFields() {
+    $(".synchro-field-row").removeClass("d-none");
+}
+
+// function testLdap() {
+//     $.ajax(_ldapTestUrl, {
+//         cache : false,
+//         method: 'POST',
+//         error : function() {
+//             alert('ERROR - Could not test the LDAP connection.');
+//         },
+//         success : function(data) {
+//
+//             alert(data);
+//         }
+//     })
+// }
+
+$(function() {
+    $(".properties-select.select2").select2({
+        multiple:true,
+        tags: true
+    });
+
+    var propertiesString = $('#validationFocusProperties').val();
+
+    if (propertiesString) {
+        var propertiesArray = propertiesString.split(',');
+
+        for (var tagIndex = 0; tagIndex < propertiesArray.length; tagIndex++) {
+            var property = propertiesArray[tagIndex];
+            $('#validation-properties-select').append(new Option(property, property, false, true));
+        }
+
+        $('#validation-properties-select').trigger('change');
+    }
+});

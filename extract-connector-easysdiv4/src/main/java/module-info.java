@@ -17,5 +17,5 @@ module ch.asit_asso.extract.connectors.easysdiv4 {
     requires org.apache.httpcomponents.httpcore;
     requires org.apache.httpcomponents.httpmime;
     requires org.slf4j;
-    requires ch.qos.logback.classic;
+    //requires ch.qos.logback.classic;
 }

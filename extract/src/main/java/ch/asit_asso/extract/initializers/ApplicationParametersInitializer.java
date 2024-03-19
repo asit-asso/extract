@@ -18,6 +18,7 @@ package ch.asit_asso.extract.initializers;
 
 import ch.asit_asso.extract.domain.SystemParameter;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -48,11 +49,33 @@ class ApplicationParametersInitializer {
      */
     private static final String DEFAULT_DASHBOARD_INTERVAL = "20";
 
+    private static final String DEFAULT_DISPLAY_TEMP_FOLDER = "false";
+
     /**
      * The default value for the parameter indicating whether the application must send e-mail
      * notifications. Possible values are "true" or "false".
      */
     private static final String DEFAULT_ENABLE_MAIL_NOTIFICATIONS = "false";
+
+    private static final String DEFAULT_ENABLE_LDAP = "false";
+
+    private static final String DEFAULT_ENABLE_LDAP_SYNCHRONIZATION = "false";
+
+    private static final LdapSettings.EncryptionType DEFAULT_LDAP_ENCRYPTION = LdapSettings.EncryptionType.LDAPS;
+
+    private static final String DEFAULT_LDAP_ADMINS_GROUP = "cn=extract_admins,dc=laboite,dc=ch";
+
+    private static final String DEFAULT_LDAP_BASE_DN = "cn=admin,dc=laboite,dc=ch";
+
+    private static final String DEFAULT_LDAP_OPERATORS_GROUP = "cn=extract_operators,dc=laboite,dc=ch";
+
+    private static final String DEFAULT_LDAP_SERVER = "monserveurldap.laboite.ch";
+
+    private static final String DEFAULT_LDAP_PASSWORD = "monmotdepasseldap";
+
+    private static final String DEFAULT_LDAP_SYNCHRONIZATION_HOURS = "24";
+
+    private static final String DEFAULT_LDAP_USERNAME = "monuserldap";
 
     /**
      * The default value for the parameter indicating whether the orchestrator shall run or not. Possible
@@ -108,6 +131,8 @@ class ApplicationParametersInitializer {
      * The default value for the parameter that defines the type of secured connection to establish.
      */
     private static final EmailSettings.SslType DEFAULT_SSL_TYPE = EmailSettings.SslType.NONE;
+
+    private static final String DEFAULT_STANDBY_REMINDER_DAYS = "0";
 
     /**
      * The writer to the application logs.
@@ -168,6 +193,33 @@ class ApplicationParametersInitializer {
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_MODE);
         this.ensureParameterInitialized(SystemParametersRepository.SCHEDULER_RANGES,
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_RANGES);
+        this.ensureParameterInitialized(SystemParametersRepository.STANDBY_REMINDER_DAYS,
+                ApplicationParametersInitializer.DEFAULT_STANDBY_REMINDER_DAYS);
+        this.ensureParameterInitialized(SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY,
+                                        "");
+        this.ensureParameterInitialized(SystemParametersRepository.DISPLAY_TEMP_FOLDER,
+                                        ApplicationParametersInitializer.DEFAULT_DISPLAY_TEMP_FOLDER);
+        this.ensureParameterInitialized(SystemParametersRepository.ENABLE_LDAP_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_ENABLE_LDAP);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_SERVER_NAMES_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_SERVER);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_ENCRYPTION_TYPE_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_ENCRYPTION.name());
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_BASE_DN_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_BASE_DN);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_ADMINS_GROUP_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_ADMINS_GROUP);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_OPERATORS_GROUP_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_OPERATORS_GROUP);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_ENABLE_SYNCHRO_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_ENABLE_LDAP_SYNCHRONIZATION);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_USER_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_USERNAME);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_PASSWORD_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_PASSWORD);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_SYNCHRO_HOURS_FREQUENCY_KEY,
+                                        ApplicationParametersInitializer.DEFAULT_LDAP_SYNCHRONIZATION_HOURS);
+        this.ensureParameterInitialized(SystemParametersRepository.LDAP_LAST_SYNCHRO_DATE_KEY, "");
 
     }
 

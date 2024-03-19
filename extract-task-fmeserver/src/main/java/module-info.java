@@ -15,5 +15,5 @@ module ch.asit_asso.extract.plugins.fmeserver {
     requires org.apache.httpcomponents.httpcore;
     requires org.json;
     requires org.slf4j;
-    requires ch.qos.logback.classic;
+    //requires ch.qos.logback.classic;
 }

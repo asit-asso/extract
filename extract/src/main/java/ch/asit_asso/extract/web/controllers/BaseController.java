@@ -16,6 +16,9 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.util.Arrays;
+import java.util.List;
+import javax.servlet.http.HttpServletRequest;
 import ch.asit_asso.extract.authentication.ApplicationUser;
 import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.web.Message;
@@ -30,8 +33,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.servlet.http.HttpServletRequest;
 
 
 
@@ -194,6 +195,7 @@ public abstract class BaseController {
      * @return <code>true</code> if the user is an administrator
      */
     protected final boolean isCurrentUserAdmin() {
+
         return this.hasCurrentUserAuthority(BaseController.ADMIN_AUTHORITY);
     }
 
@@ -210,8 +212,28 @@ public abstract class BaseController {
             return false;
         }
 
-        return (this.getCurrentAuthentication().getPrincipal() instanceof ApplicationUser);
+        if (!(this.getCurrentAuthentication().getPrincipal() instanceof ApplicationUser)) {
+            return false;
+        }
 
+        return this.isApplicationRoleInAuthorities();
+    }
+
+
+
+    private boolean isApplicationRoleInAuthorities() {
+        final List<String> acceptedAuthoritiesNames = Arrays.stream(Profile.values())
+                                                      .map(Profile::name)
+                                                      .toList();
+
+        List<String> grantedAuthoritiesNames = this.getCurrentAuthentication().getAuthorities().stream()
+                                                   .map(GrantedAuthority::getAuthority).toList();
+
+        this.logger.debug("Looking for one of [{}] among granted authorities ([{}])",
+                          String.join(", ", acceptedAuthoritiesNames),
+                          String.join(", ", grantedAuthoritiesNames));
+
+        return grantedAuthoritiesNames.stream().anyMatch(acceptedAuthoritiesNames::contains);
     }
 
 
@@ -278,7 +300,7 @@ public abstract class BaseController {
         if (request != null) {
             remoteAddress = request.getHeader("X-FORWARDED-FOR");
 
-            if (remoteAddress == null || "".equals(remoteAddress)) {
+            if (remoteAddress == null || remoteAddress.isEmpty()) {
                 remoteAddress = request.getRemoteAddr();
             }
         }

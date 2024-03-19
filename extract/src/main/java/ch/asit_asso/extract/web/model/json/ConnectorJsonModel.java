@@ -16,12 +16,12 @@
  */
 package ch.asit_asso.extract.web.model.json;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 import ch.asit_asso.extract.domain.Connector;
+import com.fasterxml.jackson.annotation.JsonView;
 import org.joda.time.DateTime;
 import org.springframework.context.MessageSource;
 
@@ -196,6 +196,11 @@ public class ConnectorJsonModel implements JsonModel {
         List<ConnectorJsonModel> modelsList = new ArrayList<>();
 
         for (Connector connector : connectorsArray) {
+
+            if (!canViewConnectorsDetails && !connector.isInError()) {
+                continue;
+            }
+
             modelsList.add(new ConnectorJsonModel(connector, messageSource, canViewConnectorsDetails));
         }
 

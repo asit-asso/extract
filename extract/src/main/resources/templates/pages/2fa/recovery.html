@@ -1,0 +1,79 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<!--
+Copyright (C) 2017 arx iT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/masterNoNavigation}">
+<head>
+    <title>[[#{application.name}]]&nbsp;&ndash; [[#{2fa.recovery.page.title}]]</title>
+</head>
+<body>
+<div class="container-fluid">
+    <th:block layout:fragment="content">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="alert alert-dismissible alert-danger" th:if="${errorMessage}">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                            data-bs-toggle="tooltip"
+                            th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                    </button>
+                    <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                    <div th:text="${#messages.msg(errorMessage)}">{Error}</div>
+                </div>
+                <div class="login-card card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <img src="../static/images/extract_logo.png" th:src="@{/images/extract_logo.png}" />
+                            <span class="login-card-title" th:text="#{2fa.recovery.body.title}">
+                                        {2FA registration}
+                                    </span>
+                        </h3>
+                    </div>
+                    <div class="card-body card-body-2fa">
+                        <div>
+                            <img src="../static/images/key.png" th:src="@{/images/key.png}" />
+                        </div>
+                        <form th:action="@{/2fa/recovery}" action="#" method="POST">
+                            <h3 th:text="#{2fa.recovery.code}">
+                                {Backup code}
+                            </h3>
+                            <div class="form-group">
+                                <input type="text" id="code" name="code" class="form-control"
+                                       placeholder="XXXXXX-XXXXXX" autocomplete="off" autofocus />
+                            </div>
+                            <input type="hidden" id="_csrf" value="${_csrf.token}" />
+                            <div class="button-row">
+                                <a class="btn btn-extract-white" href="2fa/authenticate"
+                                   th:href="@{/2fa/authenticate}" th:text="#{2fa.recovery.buttons.back.label}">
+                                    {Back}
+                                </a>
+                                <button type="submit" class="btn btn-extract-filled"
+                                        th:text="#{2fa.recovery.submit.label}" />
+                            </div>
+                        </form>
+                        <div th:text="#{2fa.recovery.code.explanation}">
+                            {If you cannot access your device, enter one of your backup codes.}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</div>
+</body>
+</html>

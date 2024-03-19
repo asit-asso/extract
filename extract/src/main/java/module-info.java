@@ -33,9 +33,11 @@ module ch.asit_asso.extract.core {
     requires spring.core;
     requires spring.data.jpa;
     requires spring.data.commons;
+    requires spring.ldap.core;
     requires spring.security.config;
     requires spring.security.core;
     requires spring.security.crypto;
+    requires spring.security.ldap;
     requires spring.security.web;
     requires spring.tx;
     requires spring.web;
@@ -45,4 +47,7 @@ module ch.asit_asso.extract.core {
     requires thymeleaf.spring5;
     requires thymeleaf;
     requires java.persistence;
+    requires aerogear.otp.java;
+    requires two.factor.auth;
+    requires org.jetbrains.annotations;
 }

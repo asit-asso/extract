@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -92,17 +91,10 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
         Map<String, ITaskProcessor> taskProcessors = this.getTaskProcessorDiscoverer().getTaskProcessors();
 
         //Sorted by label
-        List<Map.Entry<String, ITaskProcessor>> values = new ArrayList(taskProcessors.entrySet());
+        List<Map.Entry<String, ITaskProcessor>> values = new ArrayList<>(taskProcessors.entrySet());
         Comparator<Map.Entry<String, ITaskProcessor>> tcComparator
-                = new Comparator<Map.Entry<String, ITaskProcessor>>() {
-            @Override
-            public int compare(final Map.Entry<String, ITaskProcessor> entry1,
-                    final Map.Entry<String, ITaskProcessor> entry2) {
-                return entry1.getValue().getLabel().compareTo(entry2.getValue().getLabel());
-            }
-
-        };
-        Collections.sort(values, tcComparator);
+                = Comparator.comparing(entry -> entry.getValue().getLabel());
+        values.sort(tcComparator);
         taskProcessors = new LinkedHashMap<>();
 
         for (Map.Entry<String, ITaskProcessor> entry : values) {

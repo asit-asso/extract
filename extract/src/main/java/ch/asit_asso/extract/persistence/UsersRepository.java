@@ -17,6 +17,7 @@
 package ch.asit_asso.extract.persistence;
 
 import java.util.Collection;
+import java.util.List;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
@@ -32,12 +33,23 @@ import org.springframework.data.repository.query.Param;
  */
 public interface UsersRepository extends PagingAndSortingRepository<User, Integer> {
 
+    int countByEmailIgnoreCase(String email);
+
+
+
+    int countByEmailIgnoreCaseAndLoginNot(String email, String login);
+
+
     /**
      * Obtains all the users that are allowed to log in.
      *
      * @return an array of users
      */
     User[] findAllActiveApplicationUsers();
+
+
+
+    User[] findAllActiveApplicationUsersByUserType(User.UserType userType);
 
 
 
@@ -60,6 +72,10 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
 
 
 
+    User findByEmailIgnoreCaseAndLoginNot(String email, String login);
+
+
+
     /**
      * Obtains the active user that is registered with a given e-mail address.
      *
@@ -67,6 +83,10 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
      * @return the user, or <code>null</code> if none was found
      */
     User findByEmailIgnoreCaseAndActiveTrue(String email);
+
+
+
+    User findByEmailIgnoreCaseAndActiveTrueAndUserTypeIs(String email, User.UserType userType);
 
 
 
@@ -89,6 +109,48 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
      * @return the user, or <code>null</code> if none was found
      */
     User findByLoginIgnoreCase(String login);
+
+
+
+    /**
+     * Obtains an active user of a certain type based on the name used to log in.
+     *
+     * @param login     the user login identifier
+     * @param userType  the kind of account to look for
+     * @return the user, or <code>null</code> if none was found
+     */
+    User findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(String login, User.UserType userType);
+
+
+    User[] findByActiveTrueAndUserTypeIsAndLoginNotIn(User.UserType userType, List<String> loginsToExclude);
+
+
+    /**
+     * Obtains an active local user based on the name used to log in.
+     *
+     * @param login the user login identifier
+     * @return the user, or <code>null</code> if none was found
+     */
+    default User findLocalActiveUser(String login) {
+        return this.findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(login, User.UserType.LOCAL);
+    }
+
+
+    /**
+     * Obtains an active local user based on the name used to log in.
+     *
+     * @param email the user e-mail address
+     * @return the user, or <code>null</code> if none was found
+     */
+    default User findLocalActiveUserByEmail(String email) {
+        return this.findByEmailIgnoreCaseAndActiveTrueAndUserTypeIs(email, User.UserType.LOCAL);
+    }
+
+
+
+    default User[] findLdapActiveUsersNotIn(List<String> loginsToExclude) {
+        return this.findByActiveTrueAndUserTypeIsAndLoginNotIn(User.UserType.LDAP, loginsToExclude);
+    }
 
 
 

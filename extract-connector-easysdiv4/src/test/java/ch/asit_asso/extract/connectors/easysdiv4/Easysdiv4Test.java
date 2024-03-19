@@ -16,26 +16,22 @@
  */
 package ch.asit_asso.extract.connectors.easysdiv4;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import org.junit.jupiter.api.Assertions;
 
 
 /**
@@ -88,20 +84,7 @@ public class Easysdiv4Test {
 
 
 
-    @BeforeClass
-    public static final void setUpClass() {
-
-    }
-
-
-
-    @AfterClass
-    public static final void tearDownClass() {
-    }
-
-
-
-    @Before
+    @BeforeEach
     public final void setUp() {
         this.configuration = new ConnectorConfig(Easysdiv4Test.CONFIG_FILE_PATH);
         this.messages = new LocalizedMessages(Easysdiv4Test.INSTANCE_LANGUAGE);
@@ -127,12 +110,6 @@ public class Easysdiv4Test {
 
 
 
-    @After
-    public final void tearDown() {
-    }
-
-
-
     /**
      * Test of newInstance method, of class Easysdiv4.
      */
@@ -141,7 +118,7 @@ public class Easysdiv4Test {
         System.out.println("newInstance without parameters");
         Easysdiv4 instance = new Easysdiv4();
         Easysdiv4 result = instance.newInstance(Easysdiv4Test.INSTANCE_LANGUAGE);
-        Assert.assertNotSame(instance, result);
+        Assertions.assertNotSame(instance, result);
     }
 
 
@@ -154,7 +131,7 @@ public class Easysdiv4Test {
         System.out.println("newInstance with parameters");
         Easysdiv4 instance = new Easysdiv4();
         Easysdiv4 result = instance.newInstance(Easysdiv4Test.INSTANCE_LANGUAGE, this.testParameters);
-        Assert.assertNotSame(instance, result);
+        Assertions.assertNotSame(instance, result);
     }
 
 
@@ -168,7 +145,7 @@ public class Easysdiv4Test {
         Easysdiv4 instance = new Easysdiv4(Easysdiv4Test.INSTANCE_LANGUAGE);
         String expResult = this.messages.getString(Easysdiv4Test.LABEL_STRING_IDENTIFIER);
         String result = instance.getLabel();
-        Assert.assertEquals(expResult, result);
+        Assertions.assertEquals(expResult, result);
     }
 
 
@@ -181,7 +158,7 @@ public class Easysdiv4Test {
         System.out.println("getCode");
         Easysdiv4 instance = new Easysdiv4();
         String result = instance.getCode();
-        Assert.assertEquals(Easysdiv4Test.EXPECTED_PLUGIN_CODE, result);
+        Assertions.assertEquals(Easysdiv4Test.EXPECTED_PLUGIN_CODE, result);
     }
 
 
@@ -195,7 +172,7 @@ public class Easysdiv4Test {
         Easysdiv4 instance = new Easysdiv4(Easysdiv4Test.INSTANCE_LANGUAGE);
         String expResult = this.messages.getString(Easysdiv4Test.DESCRIPTION_STRING_IDENTIFIER);
         String result = instance.getDescription();
-        Assert.assertEquals(expResult, result);
+        Assertions.assertEquals(expResult, result);
     }
 
 
@@ -209,7 +186,7 @@ public class Easysdiv4Test {
         Easysdiv4 instance = new Easysdiv4(Easysdiv4Test.INSTANCE_LANGUAGE);
         String expResult = this.messages.getString(Easysdiv4Test.HELP_STRING_IDENTIFIER);
         String result = instance.getHelp();
-        Assert.assertEquals(expResult, result);
+        Assertions.assertEquals(expResult, result);
     }
 
 
@@ -222,7 +199,7 @@ public class Easysdiv4Test {
         System.out.println("getPicto");
         Easysdiv4 instance = new Easysdiv4();
         String result = instance.getPicto();
-        Assert.assertEquals(Easysdiv4Test.EXPECTED_ICON_CLASS, result);
+        Assertions.assertEquals(Easysdiv4Test.EXPECTED_ICON_CLASS, result);
     }
 
 
@@ -241,86 +218,92 @@ public class Easysdiv4Test {
 
         } catch (IOException exception) {
             this.logger.error("An error occurred when the parameters JSON was parsed.", exception);
-            Assert.fail("Could not parse the parameters JSON string.");
+            Assertions.fail("Could not parse the parameters JSON string.");
         }
 
-        Assert.assertNotNull(parametersArray);
-        Assert.assertEquals(this.testParameters.size(), parametersArray.size());
+        Assertions.assertNotNull(parametersArray);
+        Assertions.assertEquals(this.testParameters.size(), parametersArray.size());
         List<String> requiredCodes = new ArrayList<>(Arrays.asList(requiredParametersCodes));
 
         for (int parameterIndex = 0; parameterIndex < parametersArray.size(); parameterIndex++) {
             JsonNode parameterData = parametersArray.get(parameterIndex);
-            Assert.assertTrue(String.format("The parameter #%d does not have a code property", parameterIndex),
-                    parameterData.hasNonNull(Easysdiv4Test.PARAMETER_CODE_NAME));
+            Assertions.assertTrue(parameterData.hasNonNull(Easysdiv4Test.PARAMETER_CODE_NAME),
+                                  String.format("The parameter #%d does not have a code property", parameterIndex));
             String parameterCode = parameterData.get(Easysdiv4Test.PARAMETER_CODE_NAME).textValue();
-            Assert.assertTrue(String.format("The code for parameter #%d is null or blank", parameterIndex),
-                    StringUtils.isNotBlank(parameterCode));
-            Assert.assertTrue(
-                    String.format("The parameter code %s is not expected or has already been defined.", parameterCode),
-                    requiredCodes.indexOf(parameterCode) >= 0
+            Assertions.assertTrue(StringUtils.isNotBlank(parameterCode),
+                                  String.format("The code for parameter #%d is null or blank", parameterIndex));
+            Assertions.assertTrue(requiredCodes.contains(parameterCode),
+                                  String.format("The parameter code %s is not expected or has already been defined.",
+                                                parameterCode)
             );
             requiredCodes.remove(parameterCode);
 
-            Assert.assertTrue(String.format("The parameter %s does not have a label property", parameterCode),
-                    parameterData.hasNonNull(Easysdiv4Test.PARAMETER_LABEL_NAME));
+            Assertions.assertTrue(parameterData.hasNonNull(Easysdiv4Test.PARAMETER_LABEL_NAME),
+                                  String.format("The parameter %s does not have a label property", parameterCode));
             String label = parameterData.get(Easysdiv4Test.PARAMETER_LABEL_NAME).textValue();
-            Assert.assertTrue(String.format("The label for parameter %s is null or blank.", parameterCode),
-                    StringUtils.isNotBlank(label));
+            Assertions.assertTrue(StringUtils.isNotBlank(label),
+                                  String.format("The label for parameter %s is null or blank.", parameterCode));
 
-            Assert.assertTrue(String.format("The parameter %s does not have a type property", parameterCode),
-                    parameterData.hasNonNull(Easysdiv4Test.PARAMETER_TYPE_NAME));
+            Assertions.assertTrue(parameterData.hasNonNull(Easysdiv4Test.PARAMETER_TYPE_NAME),
+                                  String.format("The parameter %s does not have a type property", parameterCode));
             String parameterType = parameterData.get(Easysdiv4Test.PARAMETER_TYPE_NAME).textValue();
-            Assert.assertTrue(String.format("The type for parameter %s is invalid.", parameterCode),
-                    StringUtils.isNotBlank(label)
-                    && ArrayUtils.contains(Easysdiv4Test.VALID_PARAMETER_TYPES, parameterType));
+            Assertions.assertTrue(StringUtils.isNotBlank(label)
+                                          && ArrayUtils.contains(Easysdiv4Test.VALID_PARAMETER_TYPES, parameterType),
+                                  String.format("The type for parameter %s is invalid.", parameterCode));
 
-            Assert.assertTrue(String.format("The parameter %s does not have a required property", parameterCode),
-                    parameterData.hasNonNull(Easysdiv4Test.PARAMETER_REQUIRED_NAME));
-            Assert.assertTrue(String.format("The required field for the parameter %s is not a boolean", parameterCode),
-                    parameterData.get(Easysdiv4Test.PARAMETER_REQUIRED_NAME).isBoolean());
+            Assertions.assertTrue(parameterData.hasNonNull(Easysdiv4Test.PARAMETER_REQUIRED_NAME),
+                                  String.format("The parameter %s does not have a required property", parameterCode));
+            Assertions.assertTrue(parameterData.get(Easysdiv4Test.PARAMETER_REQUIRED_NAME).isBoolean(),
+                                  String.format("The required field for the parameter %s is not a boolean",
+                                                parameterCode));
 
             if (parameterType.equals("numeric")) {
                 Integer maxValue = null;
 
                 if (parameterData.hasNonNull(Easysdiv4Test.PARAMETER_MAX_VALUE_NAME)) {
-                    Assert.assertTrue(String.format("The maximum value for parameter %s is not a number", parameterCode),
-                            parameterData.get(Easysdiv4Test.PARAMETER_MAX_VALUE_NAME).isNumber());
+                    Assertions.assertTrue(parameterData.get(Easysdiv4Test.PARAMETER_MAX_VALUE_NAME).isNumber(),
+                                          String.format("The maximum value for parameter %s is not a number",
+                                                        parameterCode));
                     maxValue = parameterData.get(Easysdiv4Test.PARAMETER_MAX_VALUE_NAME).intValue();
                 }
 
                 if (parameterData.hasNonNull(Easysdiv4Test.PARAMETER_MIN_VALUE_NAME)) {
-                    Assert.assertTrue(String.format("The minimum value for parameter %s is not an integer", parameterCode),
-                            parameterData.get(Easysdiv4Test.PARAMETER_MIN_VALUE_NAME).isInt());
+                    Assertions.assertTrue(parameterData.get(Easysdiv4Test.PARAMETER_MIN_VALUE_NAME).isInt(),
+                                          String.format("The minimum value for parameter %s is not an integer",
+                                                        parameterCode));
                     int minValue = parameterData.get(Easysdiv4Test.PARAMETER_MIN_VALUE_NAME).intValue();
 
                     if (maxValue != null) {
-                        Assert.assertTrue(
-                                String.format("The minimum value for parameter %s must be less than the maximum value",
-                                        parameterCode), minValue < maxValue);
+                        Assertions.assertTrue(minValue < maxValue,
+                              String.format("The minimum value for parameter %s must be less than the maximum value",
+                                            parameterCode));
                     }
                 }
 
                 if (parameterData.hasNonNull(Easysdiv4Test.PARAMETER_STEP_NAME)) {
-                    Assert.assertTrue(String.format("The step value for parameter %s is not an integer", parameterCode),
-                            parameterData.get(Easysdiv4Test.PARAMETER_STEP_NAME).isInt());
+                    Assertions.assertTrue(parameterData.get(Easysdiv4Test.PARAMETER_STEP_NAME).isInt(),
+                                          String.format("The step value for parameter %s is not an integer",
+                                                        parameterCode));
                 }
 
             } else {
-                Assert.assertTrue(String.format("The parameter %s does not have a maximum length property", parameterCode),
-                        parameterData.hasNonNull(Easysdiv4Test.PARAMETER_MAX_LENGTH_NAME));
-                Assert.assertTrue(String.format("The maximum length for parameter %s is not an integer", parameterCode),
-                        parameterData.get(Easysdiv4Test.PARAMETER_MAX_LENGTH_NAME).isInt());
+                Assertions.assertTrue(parameterData.hasNonNull(Easysdiv4Test.PARAMETER_MAX_LENGTH_NAME),
+                                      String.format("The parameter %s does not have a maximum length property",
+                                                    parameterCode));
+                Assertions.assertTrue(parameterData.get(Easysdiv4Test.PARAMETER_MAX_LENGTH_NAME).isInt(),
+                                      String.format("The maximum length for parameter %s is not an integer",
+                                                    parameterCode));
                 int maxLength = parameterData.get(Easysdiv4Test.PARAMETER_MAX_LENGTH_NAME).intValue();
-                Assert.assertTrue(
-                        String.format("The maximum length of parameter %s is not strictly positive", parameterCode),
-                        maxLength > 0
+                Assertions.assertTrue(maxLength > 0,
+                                      String.format("The maximum length of parameter %s is not strictly positive",
+                                                    parameterCode)
                 );
             }
         }
 
-        Assert.assertTrue(
-                String.format("The following parameters are missing: %s", StringUtils.join(requiredCodes, ", ")),
-                requiredCodes.isEmpty()
+        Assertions.assertTrue(requiredCodes.isEmpty(),
+                              String.format("The following parameters are missing: %s",
+                                            StringUtils.join(requiredCodes, ", "))
         );
     }
 

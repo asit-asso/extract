@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
     <body>
         <div layout:fragment="content">
-            <p th:text="${#messages.msg('email.taskStandby.description', processName, productLabel)}">
+            <p th:text="${#messages.msg('email.taskStandby.description', processName, productLabel, orderLabel)}">
                 {The task ended in standby mode.}
             </p>
             <p>

@@ -17,11 +17,10 @@
 package ch.asit_asso.extract.initializers;
 
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
+import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 
@@ -37,8 +36,7 @@ public class ApplicationInitializer {
     /**
      * An ensemble of objects that link the data objects of the application to the data source.
      */
-    @Autowired
-    private ApplicationRepositories applicationRepositories;
+    private final ApplicationRepositories applicationRepositories;
 
     /**
      * The writer to the application logs.
@@ -48,8 +46,7 @@ public class ApplicationInitializer {
     /**
      * The access to the application localized strings.
      */
-    @Autowired
-    private MessageSource messageSource;
+    private final MessageSource messageSource;
 
     /**
      * The object that ensures the parameters generic to the application are set.
@@ -59,8 +56,7 @@ public class ApplicationInitializer {
     /**
      * The Spring Security object used by the application to hash passwords.
      */
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final Secrets secrets;
 
     /**
      * The object that ensures that there are users defined.
@@ -68,11 +64,19 @@ public class ApplicationInitializer {
     private UsersInitializer usersInitializer;
 
 
+    public ApplicationInitializer(ApplicationRepositories repositories, MessageSource messageSource,
+                                  Secrets secrets) {
+        this.applicationRepositories = repositories;
+        this.messageSource = messageSource;
+        this.secrets = secrets;
+        this.ensureInitialized();
+    }
+
 
     /**
      * Carries the appropriate actions if the application is not operational.
      */
-    public final void ensureInitialized() {
+    public synchronized final void ensureInitialized() {
         this.logger.debug("Check that the application data is initialized.");
         this.getUsersInitializer().ensureInitialized();
         this.getParametersInitializer().ensureInitialized();
@@ -106,7 +110,7 @@ public class ApplicationInitializer {
 
         if (this.usersInitializer == null) {
             this.usersInitializer = new UsersInitializer(this.applicationRepositories.getUsersRepository(),
-                    this.passwordEncoder, this.messageSource);
+                                                         this.secrets, this.messageSource);
         }
 
         return this.usersInitializer;

@@ -4,6 +4,8 @@ package ch.asit_asso.extract.utils;
 
 import javax.mail.internet.AddressException;
 import javax.mail.internet.InternetAddress;
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.persistence.UsersRepository;
 
 /**
  * A set of helper functions to manipulate e-mail info.
@@ -38,5 +40,32 @@ public abstract class EmailUtils {
         }
 
         return true;
+    }
+
+
+
+    public static boolean isAddressInUse(final String address, final User currentUser,
+                                         final UsersRepository usersRepository) {
+
+        if (currentUser != null && currentUser.getId() != null) {
+            return EmailUtils.isAddressInUseByOtherUser(address, currentUser.getLogin(), usersRepository);
+        }
+
+        return EmailUtils.isAddressInUse(address, usersRepository);
+    }
+
+
+
+    public static boolean isAddressInUse(final String address, final UsersRepository usersRepository) {
+
+        return (usersRepository.countByEmailIgnoreCase(address) > 0);
+    }
+
+
+
+    public static boolean isAddressInUseByOtherUser(final String address, final String currentUserLogin,
+                                                           final UsersRepository usersRepository) {
+
+        return (usersRepository.countByEmailIgnoreCaseAndLoginNot(address, currentUserLogin) > 0);
     }
 }

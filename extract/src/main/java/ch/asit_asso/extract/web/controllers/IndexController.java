@@ -340,7 +340,8 @@ public class IndexController extends BaseController {
             this.logger.debug("Number of total requests: {}. Number of pages: {}.", pagedResult.getTotalElements(),
                               pagedResult.getTotalPages());
             RequestModel[] requestModelArray = RequestModel.fromDomainRequestsPage(pagedResult,
-                    this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource);
+                    this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource,
+                    this.parametersRepository.getValidationFocusProperties().split(","));
             RequestJsonModel[] requestsData
                     = RequestJsonModel.fromRequestModelsArray(requestModelArray, this.messageSource);
 
@@ -402,7 +403,8 @@ public class IndexController extends BaseController {
         }
 
         RequestModel[] currentRequests = RequestModel.fromDomainRequestsCollection(currentDomainRequests,
-                this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource);
+                this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource,
+                this.parametersRepository.getValidationFocusProperties().split(","));
         Arrays.sort(currentRequests, new RequestModelByTaskDateComparator(true));
 
         return currentRequests;

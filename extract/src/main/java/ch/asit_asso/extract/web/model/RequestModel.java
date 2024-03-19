@@ -136,6 +136,10 @@ public class RequestModel {
 
 
 
+    private final List<String> validationFocusProperties;
+
+
+
     /**
      * Creates a new instance of the request model.
      *
@@ -146,7 +150,7 @@ public class RequestModel {
      * @param localizedMessagesSource the access to the localized application strings
      */
     public RequestModel(final Request domainRequest, final RequestHistoryRecord[] historyRecords,
-            final Path requestBaseFolder, final MessageSource localizedMessagesSource) {
+            final Path requestBaseFolder, final MessageSource localizedMessagesSource, final String[] validationFocusProperties) {
 
         if (domainRequest == null) {
             throw new IllegalArgumentException("The request cannot be null.");
@@ -174,6 +178,7 @@ public class RequestModel {
                 ? this.fullHistory[this.fullHistory.length - 1].getProcessStep() : -1;
 
         this.processHistory = this.buildProcessHistory();
+        this.validationFocusProperties = List.of(validationFocusProperties);
         this.logger.debug("The process history contains {} items.", this.processHistory.length);
     }
 
@@ -360,6 +365,10 @@ public class RequestModel {
     public final String getOrganismGuid() {
         return this.request.getOrganismGuid();
     }
+
+
+
+    public final String getOutputFolderPath() { return this.outputFolderPath.toString(); }
 
 
 
@@ -683,6 +692,30 @@ public class RequestModel {
 
 
 
+    public final Map<String, String> getValidationFocusParameters() {
+        Map<String, String> displayParameters = this.getDisplayParameters();
+        Map<String, String> focusParameters = new HashMap<>();
+
+        for (String parameterKey : this.validationFocusProperties) {
+
+            if (!displayParameters.containsKey(parameterKey)) {
+                continue;
+            }
+
+            String value = displayParameters.get(parameterKey);
+
+            if (StringUtils.isEmpty(value)) {
+                continue;
+            }
+
+            focusParameters.put(parameterKey, value);
+        }
+
+        return focusParameters;
+    }
+
+
+
     /**
      * Obtains whether the result for this order failed to be sent back to the server.
      *
@@ -807,7 +840,7 @@ public class RequestModel {
      */
     public static final RequestModel[] fromDomainRequestsCollection(final Collection<Request> requestsCollection,
             final RequestHistoryRepository historyRepository, final String basePath,
-            final MessageSource messageSource) {
+            final MessageSource messageSource, String[] validationFocusProperties) {
 
         if (requestsCollection == null) {
             throw new IllegalArgumentException("The domain requests collection cannot be null.");
@@ -840,7 +873,7 @@ public class RequestModel {
             historyRecords.clear();
             historyRecords.addAll(historyRepository.findByRequestOrderByStep(domainRequest));
             modelsList.add(new RequestModel(domainRequest, historyRecords.toArray(new RequestHistoryRecord[]{}),
-                    baseFolderPath, messageSource));
+                    baseFolderPath, messageSource, validationFocusProperties));
         }
 
         return modelsList.toArray(new RequestModel[]{});
@@ -861,7 +894,7 @@ public class RequestModel {
      */
     public static final RequestModel[] fromDomainRequestsPage(final Page<Request> requestsPage,
             final RequestHistoryRepository historyRepository, final String basePath,
-            final MessageSource messageSource) {
+            final MessageSource messageSource, String[] validationFocusProperties) {
 
         if (requestsPage == null) {
             throw new IllegalArgumentException("The domain requests page cannot be null.");
@@ -894,7 +927,7 @@ public class RequestModel {
             historyRecords.clear();
             historyRecords.addAll(historyRepository.findByRequestOrderByStep(domainRequest));
             modelsList.add(new RequestModel(domainRequest, historyRecords.toArray(new RequestHistoryRecord[]{}),
-                    baseFolderPath, messageSource));
+                    baseFolderPath, messageSource, validationFocusProperties));
         }
 
         return modelsList.toArray(new RequestModel[]{});

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdi:product xmlns:sdi="http://www.easysdi.org/2011/sdi" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xsi:schemaLocation="http://www.easysdi.org/2011/sdi/setproductparameters.xsd" 
+            guid="" 
+            xsi:type="sdi:rejection">
+    <sdi:order></sdi:order>
+    <sdi:state>rejected</sdi:state>
+    <!-- remark is mandatory -->
+    <sdi:remark></sdi:remark>
+</sdi:product>

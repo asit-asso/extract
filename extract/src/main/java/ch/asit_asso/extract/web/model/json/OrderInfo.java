@@ -16,9 +16,9 @@
  */
 package ch.asit_asso.extract.web.model.json;
 
-import com.fasterxml.jackson.annotation.JsonView;
 import ch.asit_asso.extract.domain.Connector;
-
+import com.fasterxml.jackson.annotation.JsonView;
+import org.springframework.beans.factory.annotation.Value;
 
 
 /**
@@ -45,6 +45,9 @@ public class OrderInfo {
      */
     @JsonView(PublicField.class)
     private final String productLabel;
+
+    @Value("#{messageProperties['requestDetails.connector.deleted']}")
+    private String deletedConnectorText = "(Supprimé)";
 
 
 
@@ -90,11 +93,11 @@ public class OrderInfo {
      */
     public OrderInfo(final String order, final String product, final Connector connector) {
 
-        if (connector == null) {
-            throw new IllegalArgumentException("The connector cannot be null.");
-        }
+//        if (connector == null) {
+//            throw new IllegalArgumentException("The connector cannot be null.");
+//        }
 
-        this.connectorName = connector.getName();
+        this.connectorName = (connector != null) ? connector.getName() : this.deletedConnectorText;
         this.orderLabel = order;
         this.productLabel = product;
     }

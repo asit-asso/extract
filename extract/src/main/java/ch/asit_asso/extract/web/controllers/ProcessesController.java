@@ -17,6 +17,7 @@
 package ch.asit_asso.extract.web.controllers;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.validation.Valid;
@@ -34,6 +35,7 @@ import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.web.Message.MessageType;
+import ch.asit_asso.extract.web.model.PluginItemModelParameter;
 import ch.asit_asso.extract.web.model.ProcessModel;
 import ch.asit_asso.extract.web.model.RemarkModel;
 import ch.asit_asso.extract.web.model.TaskModel;
@@ -172,7 +174,7 @@ public class ProcessesController extends BaseController {
         this.logger.debug("Processing the data to add a process.");
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         if (bindingResult.hasErrors()) {
@@ -190,25 +192,6 @@ public class ProcessesController extends BaseController {
 
 
 
-    /*
-    private void createProcessInDataSource(final ProcessModel processModel) {
-        ch.asit_asso.extract.domain.Process domainProcess = processModel.createDomainObject();
-        domainProcess = this.processesRepository.save(domainProcess);
-
-        createProcessTasksInDataSource(processModel.getTasks(), domainProcess);
-    }
-
-
-
-    private void createProcessTasksInDataSource(final TaskModel[] processTaskModels, Process domainProcess) {
-
-        for (TaskModel taskModel : processTaskModels) {
-            Task domainTask = taskModel.createDomainTask(domainProcess);
-            domainTask.setProcess(domainProcess);
-            this.tasksRepository.save(domainTask);
-        }
-    }
-     */
     /**
      * Inserts a new task in the current process.
      *
@@ -220,15 +203,14 @@ public class ProcessesController extends BaseController {
      * @return the string that identifies the view to display
      */
     @PostMapping("{processId}/addTask/{taskCode}")
-    public final String addTask(@ModelAttribute("process") final ProcessModel processModel,
-            final ModelMap model,
-            @PathVariable final int processId, @PathVariable final String taskCode,
-            final RedirectAttributes redirectAttributes) {
+    public final String addTask(@ModelAttribute("process") final ProcessModel processModel, final ModelMap model,
+                                @PathVariable final int processId, @PathVariable final String taskCode,
+                                final RedirectAttributes redirectAttributes) {
 
         this.logger.debug("Processing the data to add a task to the proces.");
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         ITaskProcessor taskProcessor = this.taskPluginsDiscoverer.getTaskProcessor(taskCode);
@@ -269,7 +251,7 @@ public class ProcessesController extends BaseController {
         try {
 
             if (!this.isCurrentUserAdmin()) {
-                return REDIRECT_TO_ACCESS_DENIED;
+                return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
             }
 
             if (bindingResult.hasErrors()) {
@@ -278,17 +260,25 @@ public class ProcessesController extends BaseController {
                 return this.prepareModelForDetailsView(model, false);
             }
 
+            this.logger.debug("Model parameters are : {}",
+                              String.join("\n",
+                                          Arrays.stream(processModel.getTasks()).map(task ->
+                                                                                     String.format("%s: [%s]",
+                                                                                                   task.getPluginCode(),
+                                                                                                   String.join(", ",
+                                                                                                               Arrays.stream(task.getParameters()).map(
+                                                                                                               PluginItemModelParameter::getName).toList()
+                                                                                                   )
+                                                                                     )
+                                          ).toList()
+                              )
+            );
+
             this.logger.debug("Fetching the process to update.");
             Process domainProcess = this.processesRepository.findById(id).orElse(null);
 
             if (domainProcess == null) {
-                /*this.logger.error("No process found in database with identifier {}.", id);
-                this.addStatusMessage(redirectAttributes, "processesList.errors.process.notFound",
-                        MessageType.ERROR);
-                 */
-                return addItem(processModel, bindingResult, model, redirectAttributes);
-
-                //return ProcessesController.REDIRECT_TO_LIST;
+                return this.addItem(processModel, bindingResult, model, redirectAttributes);
             }
 
             if (!domainProcess.canBeEdited(this.requestsRepository)) {
@@ -327,7 +317,7 @@ public class ProcessesController extends BaseController {
             final RedirectAttributes redirectAttributes) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         Process domainProcess = this.processesRepository.findById(id).orElse(null);
@@ -382,7 +372,7 @@ public class ProcessesController extends BaseController {
             final RedirectAttributes redirectAttributes) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         Process domainProcess = this.processesRepository.findById(id).orElse(null);
@@ -443,7 +433,7 @@ public class ProcessesController extends BaseController {
         this.logger.debug("Processing a request to delete the task with id {}.", taskId);
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         processModel.removeTask(taskId);
@@ -465,7 +455,7 @@ public class ProcessesController extends BaseController {
         try {
 
             if (!this.isCurrentUserAdmin()) {
-                return REDIRECT_TO_ACCESS_DENIED;
+                return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
             }
 
             final ProcessModel newProcessModel = new ProcessModel();
@@ -490,7 +480,7 @@ public class ProcessesController extends BaseController {
     public final String viewList(final ModelMap model) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         return this.prepareModelForListView(model);
@@ -511,7 +501,7 @@ public class ProcessesController extends BaseController {
             final RedirectAttributes redirectAttributes) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return ProcessesController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         Process domainProcess = this.processesRepository.findById(id).orElse(null);
@@ -618,7 +608,7 @@ public class ProcessesController extends BaseController {
     /**
      * Fetches a list of users from the repository and returns a collection of active user objects.
      *
-     * @return an array of existing active users
+     * @return a list of existing active users
      */
     private List<UserModel> getAllActiveUsers() {
         final List<UserModel> usersList = new ArrayList<>();
@@ -642,7 +632,7 @@ public class ProcessesController extends BaseController {
     /**
      * Fetches a list of predefined remarks from the repository and returns a collection of predefined remarks objects.
      *
-     * @return an array of existing predefined remarks
+     * @return a list of existing predefined remarks
      */
     private List<RemarkModel> getAllRemarks() {
         final List<RemarkModel> remarksList = new ArrayList<>();

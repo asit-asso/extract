@@ -16,16 +16,35 @@
  */
 package ch.asit_asso.extract.domain;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Objects;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.*;
 
 
 /**
@@ -139,7 +158,7 @@ public class User implements Serializable {
      * A unique string that allows this user to change her password once.
      */
     @Size(max = 50)
-    @Column(name = "tokenpass", nullable = true)
+    @Column(name = "tokenpass")
     private String passwordResetToken;
 
     /**
@@ -148,6 +167,36 @@ public class User implements Serializable {
     @Temporal(TemporalType.TIMESTAMP)
     @Column(name = "tokenexpire")
     private Calendar tokenExpiration;
+
+    @Column(name = "two_factor_forced")
+    private boolean twoFactorForced;
+
+
+    @Column(name = "two_factor_status")
+    @Enumerated(EnumType.STRING)
+    private TwoFactorStatus twoFactorStatus;
+
+    @Size(max = 100)
+    @Column(name = "two_factor_token")
+    private String twoFactorToken;
+
+
+    @Size(max = 100)
+    @Column(name = "two_factor_standby_token")
+    private String twoFactorStandbyToken;
+
+
+    @Column(name = "user_type")
+    @Enumerated(EnumType.STRING)
+    private UserType userType;
+
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Collection<RecoveryCode> twoFactorRecoveryCodesCollection;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Collection<RememberMeToken> rememberMeTokensCollection;
+
 
     /**
      * The request processings that this user can operate.
@@ -176,6 +225,19 @@ public class User implements Serializable {
          * associated to.
          */
         OPERATOR
+    }
+
+
+    public enum TwoFactorStatus {
+        ACTIVE,
+        INACTIVE,
+        STANDBY
+    }
+
+
+    public enum UserType {
+        LDAP,
+        LOCAL
     }
 
 
@@ -441,6 +503,46 @@ public class User implements Serializable {
 
 
 
+    public boolean isTwoFactorForced() { return this.twoFactorForced; }
+
+
+
+    public void setTwoFactorForced(final boolean isForced) { this.twoFactorForced = isForced; }
+
+
+
+    public TwoFactorStatus getTwoFactorStatus() { return this.twoFactorStatus; }
+
+
+
+    public void setTwoFactorStatus(final TwoFactorStatus status) { this.twoFactorStatus = status; }
+
+
+
+    public String getTwoFactorToken() { return this.twoFactorToken; }
+
+
+
+    public void setTwoFactorToken(String token) { this.twoFactorToken = token; }
+
+
+
+    public String getTwoFactorStandbyToken() { return this.twoFactorStandbyToken; }
+
+
+
+    public void setTwoFactorStandbyToken(String token) { this.twoFactorStandbyToken = token; }
+
+
+    public UserType getUserType() {
+        return this.userType;
+    }
+
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
+
     /**
      * Removes the token that allows this user to change her password.
      *
@@ -520,7 +622,6 @@ public class User implements Serializable {
         return userGroupsCollection;
     }
 
-
     /**
      * Defines the groups that this user is a member of
      *
@@ -528,6 +629,30 @@ public class User implements Serializable {
      */
     public void setUserGroupsCollection(Collection<UserGroup> userGroupsCollection) {
         this.userGroupsCollection = userGroupsCollection;
+    }
+
+
+
+    public Collection<RecoveryCode> getTwoFactorRecoveryCodesCollection() {
+        return this.twoFactorRecoveryCodesCollection;
+    }
+
+
+
+    public void setTwoFactorRecoveryCodesCollection(Collection<RecoveryCode> twoFactorRecoveryCodesCollection) {
+        this.twoFactorRecoveryCodesCollection = twoFactorRecoveryCodesCollection;
+    }
+
+
+
+    public Collection<RememberMeToken> getRememberMeTokensCollection() {
+        return this.rememberMeTokensCollection;
+    }
+
+
+
+    public void setRememberMeTokensCollection(Collection<RememberMeToken> tokensCollection) {
+        this.rememberMeTokensCollection = tokensCollection;
     }
 
 
@@ -540,7 +665,7 @@ public class User implements Serializable {
      * @return <code>true</code> if at least one process is associated to this user
      */
     public final boolean isAssociatedToProcesses() {
-        return this.processesCollection != null && this.processesCollection.size() > 0;
+        return this.processesCollection != null && !this.processesCollection.isEmpty();
     }
 
 
@@ -576,7 +701,7 @@ public class User implements Serializable {
      */
     public final boolean isLastActiveMemberOfProcessGroup() {
 
-        if (this.getUserGroupsCollection().size() == 0) {
+        if (this.getUserGroupsCollection().isEmpty()) {
             return false;
         }
 
@@ -594,7 +719,7 @@ public class User implements Serializable {
 
             for (User groupUser : group.getUsersCollection()) {
 
-                if (groupUser.getId() == this.getId() || !groupUser.isActive()) {
+                if (Objects.equals(groupUser.getId(), this.getId()) || !groupUser.isActive()) {
                     continue;
                 }
 
@@ -624,11 +749,9 @@ public class User implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof User)) {
+        if (!(object instanceof User other)) {
             return false;
         }
-
-        User other = (User) object;
 
         return this.id.equals(other.id);
     }

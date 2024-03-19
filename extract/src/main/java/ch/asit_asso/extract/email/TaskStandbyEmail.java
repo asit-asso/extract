@@ -137,6 +137,7 @@ public class TaskStandbyEmail extends Email {
         final Context model = new Context();
         model.setVariable("processName", request.getProcess().getName());
         model.setVariable("productLabel", request.getProductLabel());
+        model.setVariable("orderLabel", request.getOrderLabel());
 
         try {
             model.setVariable("dashboardItemUrl", this.getAbsoluteUrl(String.format("/requests/%d",
