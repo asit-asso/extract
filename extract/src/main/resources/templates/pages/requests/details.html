@@ -51,10 +51,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </h1>
                         <div th:object="${request.connector}">
                             <span th:text="#{requestDetails.connector.label}">{Connector:}</span>&nbsp;
-                            <a href="connectors/id" th:if="${isAdmin}" th:text="*{name}" th:href="@{'/connectors/' + *{id}}">
+                            <a href="connectors/id" th:if="${isAdmin}" th:text="*{name}" th:href="@{'/connectors/' + *{id}}"
+                                th:unless="${request.connector} == null">
                                 {My connector}
                             </a>
-                            <span th:unless="${isAdmin}" th:text="*{name}"></span>
+                            <span th:unless="${isAdmin} or ${request.connector} == null" th:text="*{name}"></span>
+                            <i th:if="${request.connector} == null" th:text="#{requestDetails.connector.deleted}">
+                                {(Deleted)}
+                            </i>
                         </div>
                     </div>
                 </div>
