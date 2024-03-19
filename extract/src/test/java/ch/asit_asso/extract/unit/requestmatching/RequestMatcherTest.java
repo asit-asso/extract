@@ -1,15 +1,20 @@
-package ch.asit_asso.extract.requestmatching;
-
-import ch.asit_asso.extract.domain.Request;
-import ch.asit_asso.extract.domain.Rule;
-import org.junit.Before;
-import org.junit.Test;
+package ch.asit_asso.extract.unit.requestmatching;
 
 import java.util.ArrayList;
 import java.util.List;
+import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.domain.Rule;
+import ch.asit_asso.extract.requestmatching.RequestMatcher;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+@Tag("unit")
 public class RequestMatcherTest {
 
     RequestMatcher testMatcher;
@@ -19,7 +24,7 @@ public class RequestMatcherTest {
     final List<Rule> testRules = new ArrayList<>();
 
 
-    @Before
+    @BeforeEach
     public void setUp() {
         final Request testRequest = new Request();
         testRequest.setClient("Yves Grasset");
@@ -54,7 +59,7 @@ public class RequestMatcherTest {
         //testRequest.setClientDetails("av. de la Praille 45\n1227 Carouge\n+41 22 344 45 10\nygr@arxit.com");
         testRequest.setClientDetails("ygr@arxit.com");
         this.testMatcherWithNoThirdParty = new RequestMatcher(testRequestWithNoThirdParty);
-        
+
         this.testRules.clear();
     }
 
@@ -453,21 +458,24 @@ public class RequestMatcherTest {
     @Test
     public void matchRequestWithRuleWithCarriageReturns() {
         final Rule carriageReturnsInListRule = new Rule();
-        carriageReturnsInListRule.setRule("productguid IN (\r\n" +
-                "\"522917a2-526a-4857-bcf7-2a7ef07a3097\",\r\n" +
-                "\"71bf9e39-646d-4da6-a832-c4b3eafd4150\",\r\n" +
-                "\"5b5d2798-6154-42ea-8b25-4a8c0e9fe6e9\"\r\n" +
-                ")");
+        carriageReturnsInListRule.setRule("""
+                                                  productguid IN (\r
+                                                  "522917a2-526a-4857-bcf7-2a7ef07a3097",\r
+                                                  "71bf9e39-646d-4da6-a832-c4b3eafd4150",\r
+                                                  "5b5d2798-6154-42ea-8b25-4a8c0e9fe6e9"\r
+                                                  )"""
+        );
         carriageReturnsInListRule.setActive(true);
         carriageReturnsInListRule.setPosition(1);
         assertTrue(this.testMatcher.isRuleMatching(carriageReturnsInListRule));
 
         final Rule carriageReturnsNotInListRule = new Rule();
-        carriageReturnsNotInListRule.setRule("productguid NOT IN (\r\n" +
-                "\"522917a2-526a-4857-bcf7-2a7ef07a3097\",\r\n" +
-                "\"71bf9e39-646d-4da6-a832-c4b3eafd4150\",\r\n" +
-                "\"5b5d2798-6154-42ea-8b25-4a8c0e9fe6e9\"\r\n" +
-                ")");
+        carriageReturnsNotInListRule.setRule("""
+                                                     productguid NOT IN (\r
+                                                     "522917a2-526a-4857-bcf7-2a7ef07a3097",\r
+                                                     "71bf9e39-646d-4da6-a832-c4b3eafd4150",\r
+                                                     "5b5d2798-6154-42ea-8b25-4a8c0e9fe6e9"\r
+                                                     )""");
         carriageReturnsNotInListRule.setActive(true);
         carriageReturnsNotInListRule.setPosition(2);
         assertFalse(this.testMatcher.isRuleMatching(carriageReturnsNotInListRule));
