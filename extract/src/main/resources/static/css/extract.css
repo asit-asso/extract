@@ -297,8 +297,12 @@ a.btn-extract-filled:visited {
     margin-bottom: 40px;
 }
 
+.current-step-standby .current-step-title {
+    margin-bottom: 20px;
+}
+
 .connector-name {
-    color: gray;
+    color: #808080;
     font-style: italic;
 }
 
@@ -623,7 +627,7 @@ table.list-table.files-list-table {
 .navbar-light .navbar-nav > .nav-item > a.nav-link.active:hover,
 .navbar-light .navbar-nav > .nav-item > .active > a.nav-link.active:focus {
     color: white;
-    background-color: gray;
+    background-color: #808080;
 }
 
 .page-header {
@@ -875,7 +879,7 @@ table.list-table.files-list-table {
 .popover .popover-table .popover-table-data {
     vertical-align:top;
     border:none;
-    border-bottom:solid gray 1.0pt;
+    border-bottom:solid #808080 1.0pt;
     padding:0 5.4pt 0 5.4pt;
 }
 
@@ -960,6 +964,7 @@ tr.request-row:hover > td {
 
 .validation-parameters-card {
     background-color: #ffb200;
+    margin-bottom: 20px;
 }
 
 /***** Specific CSS for processes tasks ****/
@@ -1009,7 +1014,7 @@ tr.request-row:hover > td {
 }
 
 .available-task:hover .card-heading{
-    background-color: gray;
+    background-color: #808080;
 }
 
 .available-task .card-heading{
