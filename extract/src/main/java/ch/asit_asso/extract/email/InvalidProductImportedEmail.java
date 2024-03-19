@@ -139,6 +139,7 @@ public class InvalidProductImportedEmail extends Email {
 
         Context model = new Context();
         model.setVariable("productLabel", request.getProductLabel());
+        model.setVariable("orderLabel", request.getOrderLabel());
         model.setVariable("connectorName", request.getConnector().getName());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(importTime.getTime()));
