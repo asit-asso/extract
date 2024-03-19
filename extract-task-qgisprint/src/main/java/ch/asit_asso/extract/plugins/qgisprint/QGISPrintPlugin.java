@@ -28,6 +28,7 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +36,9 @@ import java.util.Map;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.auth.AuthScope;
@@ -46,12 +49,17 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
 import org.apache.http.impl.client.BasicAuthCache;
 import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.locationtech.jts.geom.Coordinate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
@@ -59,7 +67,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.io.WKTReader;
+import org.locationtech.jts.io.gml2.GMLWriter;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -167,8 +178,6 @@ public class QGISPrintPlugin implements ITaskProcessor {
         this();
         this.inputs = taskSettings;
     }
-
-
 
     /**
      * Creates a new instance of the automated remark plugin.
@@ -330,15 +339,6 @@ public class QGISPrintPlugin implements ITaskProcessor {
         crsNode.put("req", false);
         crsNode.put("maxlength", 50);
 
-        ObjectNode limitNode = parametersNode.addObject();
-        limitNode.put("code", this.config.getProperty("paramLimitEntities"));
-        limitNode.put("label", this.messages.getString("paramLimitEntities.label"));
-        limitNode.put("type", "numeric");
-        limitNode.put("req", false);
-        limitNode.put("min", 1);
-        limitNode.put("step", 1);
-
-
         try {
             return mapper.writeValueAsString(parametersNode);
 
@@ -386,7 +386,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
             if (!StringUtils.isEmpty(folderOut)) {
                 folderOut = Paths.get(folderOut, subFolderName).toString();
             }
-
+            this.logger.debug("Request perimeter is {}.", request.getPerimeter());
             this.logger.debug("calling WMS GetProjectSettings from url {}.", baseurl);
 
             //File qgisProject = new File(pathProject);
@@ -399,7 +399,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
                 throw new Exception(this.messages.getString("plugin.error.coveragelayer"));
 
             //get feature Ids
-            ArrayList<String> listFeatureIds = this.getFeatureIds(baseurl, pathProject, coverageLayer);
+            ArrayList<String> listFeatureIds = this.getFeatureIds(baseurl, pathProject, coverageLayer, request.getPerimeter());
             if(listFeatureIds.isEmpty())
                 throw new Exception(this.messages.getString("plugin.error.getFeature.noids"));
 
@@ -498,6 +498,69 @@ public class QGISPrintPlugin implements ITaskProcessor {
 
     }
 
+
+    /**
+     * Generate an GML for a WKT passed by parameter, this GML is used by GetFeature request
+     * @param coverageLayer the coverage layer retrieved in WSProjectSettings qyery
+     * @param wkt the perimeter for the request, this perimeter is in WKT format
+     * @return A GML string
+     * @throws IOException
+     * @throws ParseException
+     * @throws org.locationtech.jts.io.ParseException
+     */
+    private String getGMLPerimeter(String coverageLayer, String wkt)
+            throws IOException, ParseException, org.locationtech.jts.io.ParseException {
+
+        WKTReader wktReader = new WKTReader();
+        Geometry geom = wktReader.read(wkt);
+        String gml = "";
+        String xmlFilePath = switch (geom.getGeometryType()) {
+            case Geometry.TYPENAME_POINT -> this.config.getProperty("getFeature.body.point");
+            case Geometry.TYPENAME_POLYGON -> this.config.getProperty("getFeature.body.polygon");
+            case Geometry.TYPENAME_LINESTRING -> this.config.getProperty("getFeature.body.polyline");
+            default -> "";
+        };
+
+        try (InputStream fileStream = this.getClass().getClassLoader().getResourceAsStream(xmlFilePath)) {
+
+            assert fileStream != null;
+            gml = IOUtils.toString(fileStream, StandardCharsets.UTF_8);
+        }
+
+        gml = gml.replace(this.config.getProperty("template.coveragelayer.key"), coverageLayer);
+        StringBuilder listCoords = new StringBuilder();
+        for(Coordinate coord : geom.getCoordinates()) {
+            listCoords.append(coord.getX()).append(" ").append(coord.getY()).append(" ");
+        }
+        gml = gml.replace(this.config.getProperty("template.coordinates.key"), listCoords.toString());
+
+        //GMLWriter gmlWriter = new GMLWriter(true);
+        //String gml = gmlWriter.write(geom);
+
+        return gml;
+    }
+
+    /**
+     * Creates the content of the HTTP request with the perimeter request on body
+     *
+     * @param exportXml  the XML document that describes the result of the request processing
+     * @param resultFile the file that contains the generated data for the request
+     * @return the HTTP entity to export
+     */
+    private HttpEntity createHttpEntity(final String xml, final File resultFile) {
+        MultipartEntityBuilder entityBuilder = MultipartEntityBuilder.create();
+        entityBuilder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        entityBuilder.setCharset(StandardCharsets.UTF_8);
+        entityBuilder.addTextBody("xml", xml, ContentType.TEXT_XML);
+
+        if (resultFile != null) {
+            entityBuilder.addBinaryBody("file", resultFile);
+        }
+
+        entityBuilder.setContentType(ContentType.MULTIPART_FORM_DATA);
+        return entityBuilder.build();
+    }
+
     /**
      * Execute the query GetFeature for the qgis service passed in parameter
      * @param baseUrl the qgis server url
@@ -506,7 +569,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
      * @return
      * @throws Exception
      */
-    private ArrayList<String>  getFeatureIds(String baseUrl, String pathQGS, String coverageLayer)
+    private ArrayList<String>  getFeatureIds(String baseUrl, String pathQGS, String coverageLayer, String wktPerimeter)
             throws Exception {
 
         final String paramsUrl = String.format(this.config.getProperty("GetFeatureParamUrl"), coverageLayer, pathQGS);
@@ -515,9 +578,17 @@ public class QGISPrintPlugin implements ITaskProcessor {
 
         final URI targetUri = new URI(requestUrl);
         final HttpHost targetServer = this.getHostFromUri(targetUri);
+        String gmlPerimeter = "";
 
+        if(wktPerimeter != null && !wktPerimeter.isEmpty()) {
+            gmlPerimeter = getGMLPerimeter(coverageLayer, wktPerimeter);
+            this.logger.debug("GML Perimeter is : " + gmlPerimeter);
+        }
         try (CloseableHttpClient httpclient = this.getHttpClient(targetServer, this.login, this.password)) {
             HttpPost httpPost = new HttpPost(targetUri);
+            StringEntity xmlEntity = new StringEntity(gmlPerimeter);
+            httpPost.setEntity(xmlEntity );
+            //httpPost.setEntity
             final HttpClientContext clientContext = this.getBasicAuthenticationContext(targetServer);
 
             this.logger.debug("Executing QGIS request GetFeature.");
@@ -548,7 +619,6 @@ public class QGISPrintPlugin implements ITaskProcessor {
         final int httpCode = response.getStatusLine().getStatusCode();
         final String httpMessage = this.getMessageFromHttpCode(httpCode);
         this.logger.debug("HTTP GetFeature completed with status code {}.", httpCode);
-        String limitEntities = this.inputs.get(this.config.getProperty("paramLimitEntities"));
 
         if (httpCode != QGISPrintPlugin.CREATED_HTTP_STATUS_CODE && httpCode != QGISPrintPlugin.SUCCESS_HTTP_STATUS_CODE) {
             this.logger.error("GetFeature has failed with HTTP code {} => return directly output", httpCode);
@@ -571,10 +641,8 @@ public class QGISPrintPlugin implements ITaskProcessor {
         final NodeList idsList = this.getXMLNodeListFromXPath(document,
                 String.format(this.config.getProperty("getFeature.xpath.gmlId"), coverageLayer));
         ArrayList<String> ids = new ArrayList<String>();
-        int maxNbAtlasPK = idsList.getLength();
-        //si property maxNbAtlasPK is "-1" in config then retrieve all ids
-        if(!limitEntities.isEmpty()) maxNbAtlasPK = Integer.parseInt(limitEntities);
-        for (int i = 0; i < maxNbAtlasPK; i++) {
+
+        for (int i = 0; i < idsList.getLength(); i++) {
             ids.add(idsList.item(i).getTextContent());
         }
 
