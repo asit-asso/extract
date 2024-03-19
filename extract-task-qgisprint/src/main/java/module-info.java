@@ -20,6 +20,7 @@ module ch.asit_asso.extract.plugins.qgisprint {
     requires org.locationtech.jts;
     requires org.geotools.main;
     requires org.geotools.xml;
+    requires org.jsoup;
 
     //requires ch.qos.logback.classic;
 }
