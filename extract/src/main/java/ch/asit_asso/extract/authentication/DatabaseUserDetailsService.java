@@ -72,15 +72,15 @@ public class DatabaseUserDetailsService implements UserDetailsService {
     @Transactional()
     @Override
     public UserDetails loadUserByUsername(final String login) throws UsernameNotFoundException {
-        this.logger.debug("Looking for an active user with login {}.", login);
-        User domainUser = this.usersRepository.findByLoginIgnoreCaseAndActiveTrue(login);
+        this.logger.debug("Looking for an active local user with login {}.", login);
+        User domainUser = this.usersRepository.findLocalActiveUser(login);
 
         if (domainUser == null) {
-            this.logger.debug("No active user found with login {}.", login);
-            throw new UsernameNotFoundException("User not found.");
+            this.logger.debug("No active local user found with login {}.", login);
+            throw new UsernameNotFoundException("Local user not found.");
         }
 
-        this.logger.debug("An active user with login {} has been found.", login);
+        this.logger.debug("An active local user with login {} has been found.", login);
 
         if (domainUser.cleanPasswordResetToken()) {
             domainUser = this.usersRepository.save(domainUser);

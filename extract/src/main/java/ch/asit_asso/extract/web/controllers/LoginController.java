@@ -66,7 +66,6 @@ public class LoginController extends BaseController {
     }
 
 
-
     /**
      * Handles a login attempt that failed.
      *

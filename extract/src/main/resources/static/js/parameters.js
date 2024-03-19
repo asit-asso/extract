@@ -33,6 +33,25 @@ function removeOrchestratorTimeRange() {
     $("#parametersForm").submit();
 }
 
+function updateSynchroFieldsDisplay(isSynchroEnabled) {
+
+    if (isSynchroEnabled) {
+        showSynchroFields();
+
+    } else {
+        hideSynchroFields();
+    }
+}
+
+function hideSynchroFields() {
+    $(".synchro-field-row").addClass("d-none");
+}
+
+
+function showSynchroFields() {
+    $(".synchro-field-row").removeClass("d-none");
+}
+
 $(function() {
     $(".properties-select.select2").select2({
         multiple:true,

@@ -93,6 +93,29 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
 
 
     /**
+     * Obtains an active user of a certain type based on the name used to log in.
+     *
+     * @param login     the user login identifier
+     * @param userType  the kind of account to look for
+     * @return the user, or <code>null</code> if none was found
+     */
+    User findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(String login, User.UserType userType);
+
+
+
+    /**
+     * Obtains an active local user based on the name used to log in.
+     *
+     * @param login the user login identifier
+     * @return the user, or <code>null</code> if none was found
+     */
+    default User findLocalActiveUser(String login) {
+        return this.findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(login, User.UserType.LOCAL);
+    }
+
+
+
+    /**
      * Obtains an active user based on the name used to log in.
      *
      * @param login the user login identifier

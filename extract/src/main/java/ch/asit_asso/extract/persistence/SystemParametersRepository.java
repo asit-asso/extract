@@ -46,6 +46,30 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      */
     String ENABLE_MAIL_NOTIFICATIONS = "mails_enable";
 
+    String ENABLE_LDAP_KEY = "ldap_on";
+
+    String LDAP_ADMINS_GROUP_KEY = "ldap_admins_group";
+
+    String LDAP_BASE_DN_KEY = "ldap_base_dn";
+
+    String LDAP_ENABLE_SYNCHRO_KEY = "ldap_synchro_on";
+
+    String LDAP_ENCRYPTION_TYPE_KEY = "ldap_encryption_type";
+
+    String LDAP_LAST_SYNCHRO_DATE_KEY = "ldap_last_synchro";
+
+    String LDAP_OPERATORS_GROUP_KEY = "ldap_operators_group";
+
+    String LDAP_PASSWORD_KEY = "ldap_password";
+
+    String LDAP_SERVER_NAMES_KEY = "ldap_servers";
+
+    String LDAP_SYNCHRO_HOURS_FREQUENCY_KEY = "ldap_synchro_freq";
+
+    String LDAP_USER_KEY = "ldap_user";
+
+
+
     /**
      * The string that identifying the parameter that defines whether the orchestrator shall run.
      */
@@ -144,6 +168,50 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      * @return a string containing the interval in seconds
      */
     String getDashboardRefreshInterval();
+
+
+
+    String getLdapAdminsGroup();
+
+
+
+    String getLdapBaseDn();
+
+
+
+    String getLdapEncryptionType();
+
+
+
+    String getLdapLastSynchronizationDate();
+
+
+
+    String getLdapServers();
+
+
+
+    String getLdapOperatorsGroup();
+
+
+
+    String getLdapSynchronizationFrequency();
+
+
+
+    String getLdapSynchronizationPassword();
+
+
+
+    String getLdapSynchronizationUserName();
+
+
+
+    String isLdapEnabled();
+
+
+
+    String isLdapSynchronizationEnabled();
 
 
 
