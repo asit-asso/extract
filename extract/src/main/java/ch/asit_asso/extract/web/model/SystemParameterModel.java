@@ -16,15 +16,15 @@
  */
 package ch.asit_asso.extract.web.model;
 
-import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
-import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import ch.asit_asso.extract.domain.SystemParameter;
 import ch.asit_asso.extract.email.EmailSettings.SslType;
+import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
+import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,6 +113,8 @@ public class SystemParameterModel extends PluginItemModel {
      */
     private SslType sslType;
 
+
+    private String validationFocusProperties;
 
 
     /**
@@ -446,6 +448,14 @@ public class SystemParameterModel extends PluginItemModel {
     public final void setMailEnabled(final boolean sendNotifications) {
         this.mailEnabled = sendNotifications;
     }
+
+
+
+    public final String getValidationFocusProperties() { return this.validationFocusProperties; }
+
+
+
+    public final void setValidationFocusProperties(String propertiesString) { this.validationFocusProperties = propertiesString; }
 
 
 

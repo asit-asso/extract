@@ -168,6 +168,8 @@ class ApplicationParametersInitializer {
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_MODE);
         this.ensureParameterInitialized(SystemParametersRepository.SCHEDULER_RANGES,
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_RANGES);
+        this.ensureParameterInitialized(SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY,
+                                        "");
 
     }
 

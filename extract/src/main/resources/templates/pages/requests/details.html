@@ -256,6 +256,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             {Plugin message : Please validate data}
                         </p>
                     </div>
+                    <div class="card card-body validation-parameters-card"
+                         th:unless="${request.validationFocusParameters} == null or ${#maps.isEmpty(request.validationFocusParameters)}">
+                        <div class="mb-2" th:each="parameter : ${request.validationFocusParameters}" th:object="${parameter}">
+                            <div class="strong" th:text="*{key}">{KEY}</div>
+                            <div th:text="*{value}">{Value}</div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-xl-5 current-step-action">
                             <h3 class="current-step-action-title" th:text="#{requestDetails.currentStep.validate.title}">{Validate}</h3>

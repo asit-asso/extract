@@ -16,10 +16,30 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.List;
+import java.util.Optional;
+import javax.servlet.http.HttpServletResponse;
+import javax.transaction.Transactional;
 import ch.asit_asso.extract.domain.Process;
-import ch.asit_asso.extract.domain.*;
+import ch.asit_asso.extract.domain.Remark;
+import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.domain.RequestHistoryRecord;
+import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
-import ch.asit_asso.extract.persistence.*;
+import ch.asit_asso.extract.persistence.ProcessesRepository;
+import ch.asit_asso.extract.persistence.RemarkRepository;
+import ch.asit_asso.extract.persistence.RequestHistoryRepository;
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.persistence.TasksRepository;
+import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.FileSystemUtils;
 import ch.asit_asso.extract.utils.FileSystemUtils.RequestDataFolder;
 import ch.asit_asso.extract.utils.ZipUtils;
@@ -40,20 +60,14 @@ import org.springframework.core.io.Resource;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.servlet.http.HttpServletResponse;
-import javax.transaction.Transactional;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.Optional;
 
 
 /**
@@ -189,7 +203,8 @@ public class RequestsController extends BaseController {
         this.addJavascriptMessagesAttribute(model);
         final RequestModel requestModel = new RequestModel(request,
                 this.requestHistoryRepository.findByRequestOrderByStep(request).toArray(new RequestHistoryRecord[]{}),
-                Paths.get(this.parametersRepository.getBasePath()), this.messageSource);
+                Paths.get(this.parametersRepository.getBasePath()), this.messageSource,
+                this.parametersRepository.getValidationFocusProperties().split(","));
 
         model.addAttribute("request", requestModel);
         Task currentTask = this.getCurrentTask(requestModel);
@@ -241,7 +256,8 @@ public class RequestsController extends BaseController {
 
         final RequestModel requestModel = new RequestModel(request,
                 this.requestHistoryRepository.findByRequestOrderByStep(request).toArray(new RequestHistoryRecord[]{}),
-                Paths.get(this.parametersRepository.getBasePath()), this.messageSource);
+                Paths.get(this.parametersRepository.getBasePath()), this.messageSource,
+                this.parametersRepository.getValidationFocusProperties().split(","));
 
         Task currentTask = this.getCurrentTask(requestModel);
 

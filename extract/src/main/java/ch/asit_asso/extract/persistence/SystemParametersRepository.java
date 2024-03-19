@@ -100,6 +100,9 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
     String SMTP_SSL_KEY = "smtp_ssl";
 
 
+    String VALIDATION_FOCUS_PROPERTIES_KEY = "validation_focus_properties";
+
+
 
     /**
      * Checks if an application setting has been set with a given key.
@@ -237,5 +240,9 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      * @return <code>"true"</code> if the notifications are enabled
      */
     String isEmailNotificationEnabled();
+
+
+
+    String getValidationFocusProperties();
 
 }
