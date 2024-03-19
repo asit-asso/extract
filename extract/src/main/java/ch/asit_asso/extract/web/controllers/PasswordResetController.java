@@ -248,6 +248,7 @@ public class PasswordResetController extends BaseController {
     private User addPasswordResetToken(final User user) {
         assert user != null : "The user cannot be null.";
         assert user.isActive() : "A password reset token cannot be added to an inactive user.";
+        assert user.getUserType() == User.UserType.LOCAL : "A password reset token can only be added to a local user.";
 
         this.logger.debug("Setting the user properties to allow a password reset.");
         user.setPasswordResetInfo(this.getNewToken());
@@ -325,6 +326,16 @@ public class PasswordResetController extends BaseController {
                     MessageType.ERROR, request.getSession());
         }
 
+        if (tokenUser.getUserType() != User.UserType.LOCAL) {
+            this.logger.warn("The user {} with IP address {} submitted password reset data for a non-local user.",
+                             currentUserLogin, this.getRemoteIpAddress(request));
+            tokenUser.cleanPasswordResetToken();
+            this.usersRepository.save(tokenUser);
+
+            return this.terminateSession(redirectAttributes, "passwordResetForm.errors.token.invalid",
+                                         MessageType.ERROR, request.getSession());
+        }
+
         return null;
     }
 
@@ -363,11 +374,11 @@ public class PasswordResetController extends BaseController {
             return "passwordResetDemand.errors.email.invalid";
         }
 
-        User user = this.usersRepository.findByEmailIgnoreCaseAndActiveTrue(email);
+        User user = this.usersRepository.findLocalActiveUserByEmail(email);
 
         if (user == null) {
             this.logger.warn("A password reset request has been submitted for the e-mail address {}, but it does not"
-                    + " match any active user.", email);
+                    + " match any active local user.", email);
             return "passwordResetDemand.errors.user.notFound";
         }
 
