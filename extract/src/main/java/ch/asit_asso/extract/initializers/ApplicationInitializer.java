@@ -69,13 +69,14 @@ public class ApplicationInitializer {
         this.applicationRepositories = repositories;
         this.messageSource = messageSource;
         this.secrets = secrets;
+        this.ensureInitialized();
     }
 
 
     /**
      * Carries the appropriate actions if the application is not operational.
      */
-    public final void ensureInitialized() {
+    public synchronized final void ensureInitialized() {
         this.logger.debug("Check that the application data is initialized.");
         this.getUsersInitializer().ensureInitialized();
         this.getParametersInitializer().ensureInitialized();
