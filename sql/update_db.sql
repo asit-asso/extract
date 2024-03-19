@@ -88,6 +88,12 @@ ALTER TABLE requests ALTER COLUMN p_perimeter TYPE TEXT;
 ALTER TABLE requests ALTER COLUMN p_tiersguid TYPE VARCHAR (255) COLLATE pg_catalog."default";
 ALTER TABLE requests ALTER COLUMN p_tiersdetails TYPE VARCHAR (4000) COLLATE pg_catalog."default";
 
+UPDATE requests r SET last_reminder = (
+    SELECT MAX(rh.end_date)
+    FROM request_history rh
+    WHERE rh.id_request = r.id_request
+) WHERE r.status = 'STANDBY' AND r.last_reminder IS NULL;
+
 -- REQUEST_HISTORY Table
 
 ALTER TABLE request_history
@@ -152,6 +158,9 @@ UPDATE tasks
 
 UPDATE users SET mailactive = FALSE WHERE login = 'system';
 UPDATE users SET mailactive = true WHERE mailactive IS NULL;
+UPDATE users SET two_factor_forced = false WHERE two_factor_forced IS NULL;
+UPDATE users SET two_factor_status = 'INACTIVE' WHERE two_factor_status IS NULL;
+UPDATE users SET user_type = 'LOCAL' WHERE user_type IS NULL;
 
 -- USERS_USERGROUPS Table
 
