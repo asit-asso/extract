@@ -45,4 +45,6 @@ module ch.asit_asso.extract.core {
     requires thymeleaf.spring5;
     requires thymeleaf;
     requires java.persistence;
+    requires aerogear.otp.java;
+    requires two.factor.auth;
 }

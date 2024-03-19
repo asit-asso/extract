@@ -35,6 +35,7 @@
                                     <th th:text="#{usersList.table.headers.role}">{Role}</th>
                                     <th th:text="#{usersList.table.headers.state}">{State}</th>
                                     <th th:text="#{usersList.table.headers.notifications}">{Notifications}</th>
+                                    <th th:text="#{usersList.table.headers.2fa}">{2FA}</th>
                                     <th th:text="#{usersList.table.headers.delete}" class="center-cell">{Delete}</th>
                                 </tr>
                             </thead>
@@ -66,6 +67,20 @@
                                              th:if="*{mailActive}">{Active}</div>
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.mailInactive}"
                                              th:unless="*{mailActive}">{Inactive}</div>
+                                    </td>
+                                    <td th:switch="*{twoFactorStatus}">
+                                        <div class="badge bg-success" th:text="#{user.2faStatus.ACTIVE}"
+                                             th:case="${T(ch.asit_asso.extract.domain.User.TwoFactorStatus).ACTIVE}">
+                                            {Active}
+                                        </div>
+                                        <div class="badge bg-danger" th:text="#{user.2faStatus.INACTIVE}"
+                                             th:case="${T(ch.asit_asso.extract.domain.User.TwoFactorStatus).INACTIVE}">
+                                            {Inactive}
+                                        </div>
+                                        <div class="badge bg-warning" th:text="#{user.2faStatus.STANDBY}"
+                                             th:case="${T(ch.asit_asso.extract.domain.User.TwoFactorStatus).STANDBY}">
+                                            {Standby}
+                                        </div>
                                     </td>
                                     <td class="center-cell" th:with="canBeDeleted = not *{associatedToProcesses} and *{id} != ${currentUserId} and not *{lastActiveMemberOfProcessGroup}">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"

@@ -16,16 +16,34 @@
  */
 package ch.asit_asso.extract.domain;
 
+import java.io.Serial;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.GregorianCalendar;
+import java.util.List;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
-
-import javax.persistence.*;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
-import java.io.Serial;
-import java.io.Serializable;
-import java.util.*;
 
 
 /**
@@ -149,6 +167,31 @@ public class User implements Serializable {
     @Column(name = "tokenexpire")
     private Calendar tokenExpiration;
 
+    @Column(name = "two_factor_forced")
+    private boolean twoFactorForced;
+
+
+    @Column(name = "two_factor_status")
+    @Enumerated(EnumType.STRING)
+    private TwoFactorStatus twoFactorStatus;
+
+    @Size(max = 100)
+    @Column(name = "two_factor_token")
+    private String twoFactorToken;
+
+
+    @Size(max = 100)
+    @Column(name = "two_factor_standby_token")
+    private String twoFactorStandbyToken;
+
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Collection<RecoveryCode> twoFactorRecoveryCodesCollection;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
+    private Collection<RememberMeToken> rememberMeTokensCollection;
+
+
     /**
      * The request processings that this user can operate.
      */
@@ -176,6 +219,13 @@ public class User implements Serializable {
          * associated to.
          */
         OPERATOR
+    }
+
+
+    public enum TwoFactorStatus {
+        ACTIVE,
+        INACTIVE,
+        STANDBY
     }
 
 
@@ -441,6 +491,36 @@ public class User implements Serializable {
 
 
 
+    public boolean isTwoFactorForced() { return this.twoFactorForced; }
+
+
+
+    public void setTwoFactorForced(final boolean isForced) { this.twoFactorForced = isForced; }
+
+
+
+    public TwoFactorStatus getTwoFactorStatus() { return this.twoFactorStatus; }
+
+
+
+    public void setTwoFactorStatus(final TwoFactorStatus status) { this.twoFactorStatus = status; }
+
+
+
+    public String getTwoFactorToken() { return this.twoFactorToken; }
+
+
+
+    public void setTwoFactorToken(String token) { this.twoFactorToken = token; }
+
+
+
+    public String getTwoFactorStandbyToken() { return this.twoFactorStandbyToken; }
+
+
+
+    public void setTwoFactorStandbyToken(String token) { this.twoFactorStandbyToken = token; }
+
     /**
      * Removes the token that allows this user to change her password.
      *
@@ -520,7 +600,6 @@ public class User implements Serializable {
         return userGroupsCollection;
     }
 
-
     /**
      * Defines the groups that this user is a member of
      *
@@ -528,6 +607,30 @@ public class User implements Serializable {
      */
     public void setUserGroupsCollection(Collection<UserGroup> userGroupsCollection) {
         this.userGroupsCollection = userGroupsCollection;
+    }
+
+
+
+    public Collection<RecoveryCode> getTwoFactorRecoveryCodesCollection() {
+        return this.twoFactorRecoveryCodesCollection;
+    }
+
+
+
+    public void setTwoFactorRecoveryCodesCollection(Collection<RecoveryCode> twoFactorRecoveryCodesCollection) {
+        this.twoFactorRecoveryCodesCollection = twoFactorRecoveryCodesCollection;
+    }
+
+
+
+    public Collection<RememberMeToken> getRememberMeTokensCollection() {
+        return this.rememberMeTokensCollection;
+    }
+
+
+
+    public void setRememberMeTokensCollection(Collection<RememberMeToken> tokensCollection) {
+        this.rememberMeTokensCollection = tokensCollection;
     }
 
 
