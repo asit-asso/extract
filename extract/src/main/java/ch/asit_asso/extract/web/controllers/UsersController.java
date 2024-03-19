@@ -25,7 +25,9 @@ import ch.asit_asso.extract.authentication.twofactor.TwoFactorBackupCodes;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorRememberMe;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.User.UserType;
 import ch.asit_asso.extract.domain.UserGroup;
+import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
@@ -119,6 +121,9 @@ public class UsersController extends BaseController {
     @Autowired
     private UsersRepository usersRepository;
 
+    @Autowired
+    private LdapSettings ldapSettings;
+
 
 
     /**
@@ -168,6 +173,15 @@ public class UsersController extends BaseController {
 
             return UsersController.REDIRECT_TO_LIST;
         }
+
+        if (userModel.getUserType() != UserType.LOCAL) {
+            this.logger.warn("The user {} tried to add a user with a user type different than LOCAL."
+                                     + " The data may have been tampered with, so the operation is denied.", this.getCurrentUserLogin());
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+
+            return UsersController.REDIRECT_TO_LIST;
+        }
+
 
         if (bindingResult.hasErrors()) {
             this.logger.info("Adding the user failed because of invalid data.");
@@ -232,6 +246,12 @@ public class UsersController extends BaseController {
 
         if (domainUser == null || !Objects.equals(domainUser.getLogin(), login)) {
             this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
+
+            return UsersController.REDIRECT_TO_LIST;
+        }
+
+        if (domainUser.getUserType() != UserType.LOCAL) {
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notDeletable", MessageType.ERROR);
 
             return UsersController.REDIRECT_TO_LIST;
         }
@@ -384,6 +404,64 @@ public class UsersController extends BaseController {
 
 
 
+    @PostMapping("{id}/migrate")
+    public final String migrateUserToLdap(final ModelMap model, @PathVariable final int id,
+                                          final RedirectAttributes redirectAttributes) {
+
+        this.logger.debug("Processing the data to migrate a user to LDAP.");
+
+        if (!this.canEditUser(id)) {
+            return REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        final String currentUser = this.getCurrentUserLogin();
+        final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
+                : REDIRECT_TO_HOME;
+
+        if (id == this.usersRepository.getSystemUserId()) {
+            this.logger.warn("The user {} tried to migrate the system user to LDAP.", currentUser);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+//        if (id != userModel.getId()) {
+//            this.logger.warn("The user {} tried to migrate user id {}, but the data was set for user id {}."
+//                                     + " The data may have been tampered with, so the operation is denied.",
+//                             currentUser, id, userModel.getId());
+//            this.addStatusMessage(redirectAttributes, "usersList.errors.user.edit.invalidData", MessageType.ERROR);
+//
+//            return redirectTarget;
+//        }
+
+        this.logger.debug("Fetching the user to migrate.");
+        User domainUser = this.usersRepository.findById(id).orElse(null);
+
+        if (domainUser == null) {
+            this.logger.error("No user found in database with id {}.", id);
+            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notFound", MessageType.ERROR);
+
+            return redirectTarget;
+        }
+
+        domainUser.setUserType(UserType.LDAP);
+        domainUser.setPassword(null);
+
+        domainUser = this.usersRepository.save(domainUser);
+
+        if (domainUser == null) {
+            this.addStatusMessage(model, "userDetails.errors.user.migration.failed", MessageType.ERROR);
+
+            return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+        this.addStatusMessage(redirectAttributes, "usersList.user.migrated", MessageType.SUCCESS);
+
+        return redirectTarget;
+    }
+
+
+
     /**
      * Processes a request to show the view to create a new user.
      *
@@ -483,6 +561,9 @@ public class UsersController extends BaseController {
                 "The redirect attributes must be set if the user to display is not a new one.";
 
         String currentSection = UsersController.CURRENT_SECTION_IDENTIFIER;
+        this.ldapSettings.refresh();
+        this.addJavascriptMessagesAttribute(model);
+        model.addAttribute("isLdapOn", this.ldapSettings.isEnabled());
 
         if (id == null) {
 
@@ -491,6 +572,7 @@ public class UsersController extends BaseController {
             }
 
             model.addAttribute("isOwnAccount", false);
+            model.addAttribute("isLocalUser", true);
             model.addAttribute("isAssociatedToProcesses", false);
             model.addAttribute("userGroups", "");
 
@@ -509,6 +591,7 @@ public class UsersController extends BaseController {
 
             final boolean isCurrentUser = (id == this.getCurrentUserId());
             model.addAttribute("isOwnAccount", isCurrentUser);
+            model.addAttribute("isLocalUser", domainUser.getUserType() == UserType.LOCAL);
             model.addAttribute("isAssociatedToProcesses", domainUser.isAssociatedToProcesses());
             model.addAttribute("userGroups", domainUser.getUserGroupsCollection()
                                                         .stream()

@@ -106,6 +106,15 @@ var LANG_MESSAGES = {
             "message" : "Êtes-vous sûr de vouloir supprimer l'utilisateur \"{0}\" ?"
         }
     },
+    "userDetails": {
+      "migrateConfirm": {
+          "title": "Migration d'un utilisateur vers LDAP",
+          "message": "Êtes vous sûr de vouloir migrer cet utilisateur vers LDAP ?\n\nL'utilisateur devra obligatoirement se connecter avec ses identifiants LDAP\n\nCette action n'est pas réversible.\n\nPar ailleurs, les autres évnetuelles modifications seront perdues.",
+          "alertButtons": {
+              "migrate": "Migrer l'utilisateur"
+          }
+      }
+    },
     "userGroupsList" : {
         "deleteConfirm" : {
             "title" : "Suppression d'un groupe d'utilisateurs",
