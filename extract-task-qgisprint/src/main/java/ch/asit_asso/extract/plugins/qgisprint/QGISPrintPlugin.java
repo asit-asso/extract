@@ -23,19 +23,7 @@ import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
-
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
-
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
@@ -59,23 +47,30 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.jsoup.Jsoup;
 import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.io.WKTReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-import org.locationtech.jts.geom.Geometry;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.io.WKTReader;
-import org.locationtech.jts.io.gml2.GMLWriter;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.*;
-
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
 
 /**
  * DESCRIBES HERE WHAT THE PLUGIN DO (E.G : A plugin that adds an automated remark to a request)
@@ -308,7 +303,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
         pathProjectNode.put("code", this.config.getProperty("paramPathProjectQGIS"));
         pathProjectNode.put("label", this.messages.getString("paramPathProjectQGIS.label"));
         pathProjectNode.put("type", "text");
-        pathProjectNode.put("req", true);
+        pathProjectNode.put("req", false);
         pathProjectNode.put("maxlength", 255);
 
         ObjectNode loginNode = parametersNode.addObject();
@@ -472,12 +467,19 @@ public class QGISPrintPlugin implements ITaskProcessor {
             throws IOException, SAXException, ParserConfigurationException, Exception {
 
         final int httpCode = response.getStatusLine().getStatusCode();
-        final String httpMessage = this.getMessageFromHttpCode(httpCode) + " - " + response.getStatusLine().getReasonPhrase();
+        String httpMessage = this.getMessageFromHttpCode(httpCode);
         this.logger.debug("HTTP GetProjectSettings completed with status code {}.", httpCode);
 
 
         if (httpCode != QGISPrintPlugin.CREATED_HTTP_STATUS_CODE && httpCode != QGISPrintPlugin.SUCCESS_HTTP_STATUS_CODE) {
             this.logger.error("GetProjectSettings has failed with HTTP code {} => return directly output", httpCode);
+            String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+            this.logger.error("Response error is : {}", responseString);
+            if(!responseString.isEmpty()) {
+                String exceptionError = responseString.replaceAll("<.*?>", "");
+                //String exceptionError = Jsoup.parse(responseString).text();
+                httpMessage = httpMessage + " - " + exceptionError;
+            }
             throw new Exception(httpMessage);
             //return null;
         }
