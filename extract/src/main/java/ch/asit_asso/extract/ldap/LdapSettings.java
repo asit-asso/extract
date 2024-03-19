@@ -56,7 +56,7 @@ public class LdapSettings {
     /**
      * The Spring Data object that links the general parameters of the application with the data source.
      */
-    private SystemParametersRepository systemParametersRepository;
+    private final SystemParametersRepository systemParametersRepository;
 
     public enum EncryptionType {
         LDAPS,
@@ -173,7 +173,7 @@ public class LdapSettings {
 
         for (String server : this.servers) {
             Pattern extractionPattern
-                    = Pattern.compile("^(?:ldaps?:\\/\\/)?(?<host>[A-Z0-9_\\-.]+)(?::(?<port>\\d+))?(?<file>\\/.*)?$",
+                    = Pattern.compile("^(?:ldaps?://)?(?<host>[A-Z0-9_\\-.]+)(?::(?<port>\\d+))?(?<file>/.*)?$",
                                       Pattern.CASE_INSENSITIVE);
             Matcher matcher = extractionPattern.matcher(server);
             String host = null;
@@ -315,7 +315,7 @@ public class LdapSettings {
         final String rawSynchronizationFrequencyValue = this.systemParametersRepository.getLdapSynchronizationFrequency();
 
         try {
-            this.setSynchronizationFrequencyHours(Integer.valueOf(rawSynchronizationFrequencyValue));
+            this.setSynchronizationFrequencyHours(Integer.parseInt(rawSynchronizationFrequencyValue));
 
         } catch (NumberFormatException exception) {
             this.logger.error("The LDAP synchronization frequency in the data source is not a valid integer.");

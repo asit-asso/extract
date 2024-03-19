@@ -15,7 +15,6 @@ import javax.net.ssl.X509ExtendedTrustManager;
 import javax.net.ssl.X509TrustManager;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.ldap.LdapSettings;
-import ch.asit_asso.extract.persistence.UsersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
@@ -37,15 +36,12 @@ public class ExtractLdapAuthenticationProvider implements AuthenticationProvider
 
     private final ExtractLdapUserDetailsMapper userDetailsMapper;
     private final LdapSettings ldapSettings;
-    private final UsersRepository usersRepository;
 
     public ExtractLdapAuthenticationProvider(@NotNull LdapSettings ldapSettings,
-                                             @NotNull ExtractLdapUserDetailsMapper ldapUserDetailsMapper,
-                                             @NotNull UsersRepository usersRepository) {
+                                             @NotNull ExtractLdapUserDetailsMapper ldapUserDetailsMapper) {
         this.logger.debug("Instantiating the LDAP authentication provider.");
         this.ldapSettings = ldapSettings;
         this.userDetailsMapper = ldapUserDetailsMapper;
-        this.usersRepository = usersRepository;
     }
 
 
@@ -123,7 +119,7 @@ public class ExtractLdapAuthenticationProvider implements AuthenticationProvider
             return provider.authenticate(authentication);
 
         } catch (AuthenticationException authenticationException) {
-            this.logger.info("Authentication to server %s (%s) failed with an error: {}",
+            this.logger.info("Authentication to server {} ({}) failed with an error: {}",
                              url, domain, authenticationException.getMessage());
             return null;
         }

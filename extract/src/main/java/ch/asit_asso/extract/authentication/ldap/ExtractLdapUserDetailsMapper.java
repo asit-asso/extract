@@ -48,7 +48,7 @@ public class ExtractLdapUserDetailsMapper  implements UserDetailsContextMapper {
                 throw new BadCredentialsException(String.format("User %s is inactive.", username));
             }
 
-            domainUser = this.updateDomainUserObjectFromContext(domainUser, context);
+            this.updateDomainUserObjectFromContext(domainUser, context);
 
         } else {
             this.logger.debug("Creating domain user for {}", username);
