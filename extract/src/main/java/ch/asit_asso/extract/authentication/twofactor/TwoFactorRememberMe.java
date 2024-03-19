@@ -12,23 +12,23 @@ import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.RememberMeToken;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class TwoFactorRememberMe {
     private final Logger logger = LoggerFactory.getLogger(TwoFactorRememberMe.class);
 
-    private final PasswordEncoder encoder;
+    private final Secrets secrets;
 
-    private RememberMeTokenRepository repository;
+    private final RememberMeTokenRepository repository;
 
     private final User user;
 
     public TwoFactorRememberMe(@NotNull User user, @NotNull RememberMeTokenRepository tokenRepository,
-                               @NotNull PasswordEncoder passwordEncoder) {
-        this.encoder = passwordEncoder;
+                               @NotNull Secrets secrets) {
+        this.secrets = secrets;
         this.repository = tokenRepository;
         this.user = user;
     }
@@ -77,15 +77,15 @@ public class TwoFactorRememberMe {
         this.logger.debug("A 2FA remember-me cookie has been found for the user. Checking its validity in the database.");
         return this.repository.getValidTokens(this.user)
                               .stream()
-                              .anyMatch((entry) -> this.encoder.matches(cookieToken.get(),
-                                                                        entry.getToken()));
+                              .anyMatch((entry) -> this.secrets.check(cookieToken.get(),
+                                                                      entry.getToken()));
     }
 
 
 
     private void createEntry(String token) {
         RememberMeToken entry = new RememberMeToken();
-        entry.setToken(this.encoder.encode(token));
+        entry.setToken(this.secrets.hash(token));
         Calendar expiration = Calendar.getInstance();
         expiration.setTime(Date.from(ZonedDateTime.now().plusDays(30).toInstant()));
         entry.setTokenExpiration(expiration);
@@ -98,7 +98,7 @@ public class TwoFactorRememberMe {
     private void expireCookie(HttpServletRequest request, HttpServletResponse response) {
         TwoFactorCookie twoFactorCookie = Arrays.stream(request.getCookies())
                                                 .filter(TwoFactorCookie::isTwoFactorCookie)
-                                                .map((cookie) -> TwoFactorCookie.fromCookie(cookie, this.encoder))
+                                                .map((cookie) -> TwoFactorCookie.fromCookie(cookie, this.secrets))
                                                 .filter((cookie) -> cookie.isCookieUser(this.user.getLogin()))
                                                 .findFirst().orElse(null);
 
@@ -115,7 +115,7 @@ public class TwoFactorRememberMe {
 
         return Arrays.stream(request.getCookies())
                      .filter(TwoFactorCookie::isTwoFactorCookie)
-                     .map((cookie) -> TwoFactorCookie.fromCookie(cookie, this.encoder))
+                     .map((cookie) -> TwoFactorCookie.fromCookie(cookie, this.secrets))
                      .filter((cookie) -> cookie.isCookieUser(this.user.getLogin()))
                      .map(TwoFactorCookie::getToken)
                      .findFirst();
@@ -129,7 +129,7 @@ public class TwoFactorRememberMe {
 
 
     private void setCookie(String token, HttpServletResponse response) {
-        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user.getLogin(), token, this.encoder);
+        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user.getLogin(), token, this.secrets);
         response.addCookie(twoFactorCookie.toCookie());
     }
 

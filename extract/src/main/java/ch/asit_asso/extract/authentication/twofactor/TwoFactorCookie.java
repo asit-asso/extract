@@ -6,8 +6,8 @@ import java.util.regex.Pattern;
 import javax.servlet.http.Cookie;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.utils.Secrets;
 import org.springframework.http.ResponseCookie;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class TwoFactorCookie {
 
@@ -25,25 +25,25 @@ public class TwoFactorCookie {
 
     private final String token;
 
-    private final PasswordEncoder encoder;
+    private final Secrets secrets;
 
-    public TwoFactorCookie(@NotNull User user, @NotNull String token, @NotNull PasswordEncoder encoder) {
-        this(user.getLogin(), token, encoder);
+    public TwoFactorCookie(@NotNull User user, @NotNull String token, @NotNull Secrets secrets) {
+        this(user.getLogin(), token, secrets);
     }
 
-    public TwoFactorCookie(@NotNull String userName, @NotNull String token, @NotNull PasswordEncoder encoder) {
-        this.encoder = encoder;
-        this.userHash = this.encoder.encode(userName);
+    public TwoFactorCookie(@NotNull String userName, @NotNull String token, @NotNull Secrets secrets) {
+        this.secrets = secrets;
+        this.userHash = this.secrets.hash(userName);
         this.token = token;
     }
 
-    private TwoFactorCookie(@NotNull Cookie cookie, @NotNull PasswordEncoder encoder) {
+    private TwoFactorCookie(@NotNull Cookie cookie, @NotNull Secrets secrets) {
 
         if (!TwoFactorCookie.isTwoFactorCookie(cookie)) {
             throw new IllegalArgumentException("The cookie is not a 2FA remember-me cookie.");
         }
 
-        this.encoder = encoder;
+        this.secrets = secrets;
         this.userHash = this.parseUserHashFromCookieName(cookie.getName());
         this.token = cookie.getValue();
     }
@@ -54,13 +54,13 @@ public class TwoFactorCookie {
     }
 
 
-    public static TwoFactorCookie fromCookie(Cookie cookie, PasswordEncoder encoder) {
+    public static TwoFactorCookie fromCookie(Cookie cookie, Secrets secrets) {
 
         if (!TwoFactorCookie.isTwoFactorCookie(cookie)) {
             throw new IllegalArgumentException("Cookie is not a 2FA cookie.");
         }
 
-        return new TwoFactorCookie(cookie, encoder);
+        return new TwoFactorCookie(cookie, secrets);
     }
 
 
@@ -75,7 +75,7 @@ public class TwoFactorCookie {
 
     public boolean isCookieUser(@NotNull String userName) {
 
-        return this.encoder.matches(userName, this.userHash);
+        return this.secrets.check(userName, this.userHash);
     }
 
 

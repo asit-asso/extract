@@ -15,6 +15,7 @@ import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -216,10 +217,10 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    AuthenticationSuccessHandler successHandler(PasswordEncoder passwordEncoder,
+    AuthenticationSuccessHandler successHandler(Secrets secrets,
                                                 RememberMeTokenRepository rememberMeTokenRepository,
                                                 UsersRepository usersRepository) {
-        return new ExtractAuthenticationSuccessHandler(passwordEncoder, rememberMeTokenRepository,
+        return new ExtractAuthenticationSuccessHandler(secrets, rememberMeTokenRepository,
                                                        usersRepository);
     }
 

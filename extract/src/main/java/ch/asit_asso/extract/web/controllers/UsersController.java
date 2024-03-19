@@ -32,16 +32,14 @@ import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.UserModel;
 import ch.asit_asso.extract.web.validators.UserValidator;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.security.crypto.encrypt.BytesEncryptor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -67,12 +65,12 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class UsersController extends BaseController {
 
     /**
-     * The string that identifies the part of the web site that this controller manages.
+     * The string that identifies the part of the website that this controller manages.
      */
     private static final String CURRENT_SECTION_IDENTIFIER = "users";
 
     /**
-     * The string that identifies the part of the web site that this controller manages.
+     * The string that identifies the part of the website that this controller manages.
      */
     private static final String CURRENT_USER_SECTION_IDENTIFIER = "currentUser";
 
@@ -98,36 +96,36 @@ public class UsersController extends BaseController {
      */
     private final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
-    @Autowired
-    private RecoveryCodeRepository backupCodesRepository;
+    private final RecoveryCodeRepository backupCodesRepository;
 
     /**
      * The Spring Security object that allows to hash passwords.
      */
-    @Autowired
-    private BytesEncryptor encryptor;
+    private final Secrets secrets;
 
-    /**
-     * The Spring Security object that allows to hash passwords.
-     */
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final RememberMeTokenRepository rememberMeRepository;
 
-    @Autowired
-    private RememberMeTokenRepository rememberMeRepository;
-
-    @Autowired
-    private TwoFactorService twoFactorService;
+    private final TwoFactorService twoFactorService;
 
     /**
      * The Spring Data repository that links the user data objects to the data source.
      */
-    @Autowired
-    private UsersRepository usersRepository;
+    private final UsersRepository usersRepository;
 
-    @Autowired
-    private LdapSettings ldapSettings;
+    private final LdapSettings ldapSettings;
 
+
+
+    public UsersController(RecoveryCodeRepository codesRepository, Secrets secrets,
+                           RememberMeTokenRepository tokensRepository, TwoFactorService twoFactorService,
+                           UsersRepository usersRepository, LdapSettings ldapSettings) {
+        this.backupCodesRepository = codesRepository;
+        this.secrets = secrets;
+        this.rememberMeRepository = tokensRepository;
+        this.twoFactorService = twoFactorService;
+        this.usersRepository = usersRepository;
+        this.ldapSettings = ldapSettings;
+    }
 
 
     /**
@@ -193,7 +191,7 @@ public class UsersController extends BaseController {
             return this.prepareModelForDetailsView(model, false, null, redirectAttributes);
         }
 
-        User domainUser = userModel.createDomainObject(this.passwordEncoder, this.encryptor, this.twoFactorService);
+        User domainUser = userModel.createDomainObject(this.secrets, this.twoFactorService);
         boolean success;
 
         try {
@@ -366,7 +364,7 @@ public class UsersController extends BaseController {
         boolean displayWizard = this.isEditingCurrentUser(userModel)
                                 && userModel.isTwoFactorForced() && !domainUser.isTwoFactorForced();
 
-        userModel.updateDomainObject(domainUser, this.passwordEncoder, this.encryptor, this.twoFactorService,
+        userModel.updateDomainObject(domainUser, this.secrets, this.twoFactorService,
                                      (userModel.getId() == this.getCurrentUserId()), this.isCurrentUserAdmin());
 
         boolean success;
@@ -376,10 +374,10 @@ public class UsersController extends BaseController {
 
             if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.INACTIVE) {
                 TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
-                                                                             this.passwordEncoder);
+                                                                             this.secrets);
                 rememberMeUser.disable(request, response);
                 TwoFactorBackupCodes backupCodesUser = new TwoFactorBackupCodes(domainUser, this.backupCodesRepository,
-                                                                                this.passwordEncoder);
+                                                                                this.secrets);
                 backupCodesUser.delete();
 
             }
@@ -540,7 +538,7 @@ public class UsersController extends BaseController {
             return redirectTarget;
         }
 
-        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.encryptor,
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
                                                                              this.twoFactorService);
         twoFactorApplication.disable();
 
@@ -610,7 +608,7 @@ public class UsersController extends BaseController {
             return redirectTarget;
         }
 
-        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.encryptor,
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
                                                                              this.twoFactorService);
         twoFactorApplication.enable();
 
@@ -683,7 +681,7 @@ public class UsersController extends BaseController {
             return redirectTarget;
         }
 
-        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.encryptor,
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
                                                                              this.twoFactorService);
         twoFactorApplication.enable();
 
@@ -797,7 +795,7 @@ public class UsersController extends BaseController {
      *                           <code>null</code> if the user
      *                           is a new one
      * @param redirectAttributes the data to pass to the next if a redirection is necessary. <code>null</code> can be
-     *                           passed only if the user to display is a new one (because there won't be a redirection.
+     *                           passed only if the user to display is a new one (because there won't be a redirection).
      * @return the string that identifies the next view
      */
     private String prepareModelForDetailsView(final ModelMap model, final boolean createModel, final Integer id,

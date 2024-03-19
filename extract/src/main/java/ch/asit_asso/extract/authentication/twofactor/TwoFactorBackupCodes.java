@@ -7,10 +7,10 @@ import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.RecoveryCode;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.Base64Utils;
 
 public class TwoFactorBackupCodes {
@@ -18,7 +18,7 @@ public class TwoFactorBackupCodes {
 
     private final Logger logger = LoggerFactory.getLogger(TwoFactorBackupCodes.class);
 
-    private final PasswordEncoder encoder;
+    private final Secrets secrets;
 
     private String[] rawCodesArray;
 
@@ -27,8 +27,8 @@ public class TwoFactorBackupCodes {
     private final User user;
 
     public TwoFactorBackupCodes(@NotNull User user, @NotNull RecoveryCodeRepository recoveryCodeRepository,
-                                @NotNull PasswordEncoder passwordEncoder) {
-        this.encoder = passwordEncoder;
+                                @NotNull Secrets secrets) {
+        this.secrets = secrets;
         this.repository = recoveryCodeRepository;
         this.user = user;
     }
@@ -45,8 +45,8 @@ public class TwoFactorBackupCodes {
 
 
     public void delete() {
-        this.repository.deleteAll(user.getTwoFactorRecoveryCodesCollection());
-        user.setTwoFactorRecoveryCodesCollection(new ArrayList<>());
+        this.repository.deleteAll(this.user.getTwoFactorRecoveryCodesCollection());
+        this.user.setTwoFactorRecoveryCodesCollection(new ArrayList<>());
     }
 
 
@@ -75,7 +75,7 @@ public class TwoFactorBackupCodes {
 
             for (RecoveryCode encodedCode : encodedAnswers) {
 
-                if (this.encoder.matches(code, encodedCode.getToken())) {
+                if (this.secrets.check(code, encodedCode.getToken())) {
                     this.repository.deleteById(encodedCode.getId());
 
                     return true;
@@ -94,7 +94,7 @@ public class TwoFactorBackupCodes {
         for (String rawCode : this.rawCodesArray) {
             RecoveryCode codeObject = new RecoveryCode();
             codeObject.setUser(this.user);
-            codeObject.setToken(this.encoder.encode(rawCode));
+            codeObject.setToken(this.secrets.hash(rawCode));
             objectsCollection.add(codeObject);
         }
 

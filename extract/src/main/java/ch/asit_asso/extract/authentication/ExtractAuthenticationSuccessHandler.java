@@ -26,10 +26,10 @@ import ch.asit_asso.extract.authentication.twofactor.TwoFactorRememberMe;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
@@ -49,7 +49,7 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
      */
     private final Logger logger = LoggerFactory.getLogger(ExtractAuthenticationSuccessHandler.class);
 
-    private final PasswordEncoder passwordEncoder;
+    private final Secrets secrets;
 
     private final RememberMeTokenRepository rememberMeRepository;
 
@@ -57,9 +57,9 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
 
 
 
-    public ExtractAuthenticationSuccessHandler(PasswordEncoder encoder, RememberMeTokenRepository tokenRepository,
+    public ExtractAuthenticationSuccessHandler(Secrets secrets, RememberMeTokenRepository tokenRepository,
                                                UsersRepository usersRepository) {
-        this.passwordEncoder = encoder;
+        this.secrets = secrets;
         this.rememberMeRepository = tokenRepository;
         this.usersRepository = usersRepository;
     }
@@ -87,7 +87,7 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
         String userName = domainUser.getLogin();
         this.logger.debug("Found user {}.", userName);
         TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
-                                                                     this.passwordEncoder);
+                                                                     this.secrets);
         rememberMeUser.cleanUp();
 
         switch (user.getTwoFactorStatus()) {

@@ -300,7 +300,7 @@ public class TaskModel extends PluginItemModel {
         }
 
         domainTask.setPosition(this.getPosition());
-        domainTask.setParametersValues(this.getParametersValues());
+        domainTask.updateParametersValues(this.getParametersValues());
 
         return domainTask;
     }
@@ -322,7 +322,7 @@ public class TaskModel extends PluginItemModel {
 
 
 
-    private final Task saveInDataSource(final TasksRepository taskRepository,
+    private Task saveInDataSource(final TasksRepository taskRepository,
                                         final Process domainProcess, final Task domainTask) {
 
         if (taskRepository == null) {

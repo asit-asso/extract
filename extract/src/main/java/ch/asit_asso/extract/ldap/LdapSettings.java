@@ -9,6 +9,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +37,8 @@ public class LdapSettings {
     private String mailAttribute;
 
     private String operatorsGroup;
+
+    private final Secrets secrets;
 
     private String[] servers;
 
@@ -128,6 +131,19 @@ public class LdapSettings {
 
     public void setMailAttribute(String mailAttribute) {
         this.mailAttribute = mailAttribute;
+    }
+
+    public ZonedDateTime getNextScheduledSynchronizationDate() {
+
+        if (!this.isEnabled() || !this.isSynchronizationEnabled()) {
+            return null;
+        }
+
+        if (this.getLastSynchronizationDate() == null) {
+            return ZonedDateTime.now();
+        }
+
+        return this.getLastSynchronizationDate().plusHours(this.getSynchronizationFrequencyHours());
     }
 
     public String getUserNameAttribute() {
@@ -223,7 +239,7 @@ public class LdapSettings {
     }
 
     public String getSynchronizationPassword() {
-        return this.synchronizationPassword;
+        return this.secrets.decrypt(this.synchronizationPassword);
     }
 
     public void setSynchronizationPassword(String synchronizationPassword) {
@@ -247,13 +263,18 @@ public class LdapSettings {
     }
 
 
-    public LdapSettings(final SystemParametersRepository repository) {
+    public LdapSettings(final SystemParametersRepository repository, final Secrets secrets) {
 
         if (repository == null) {
             throw new IllegalArgumentException("The system parameters repository cannot be null.");
         }
 
+        if (secrets == null) {
+            throw new IllegalArgumentException("The password utility bean cannot be null.");
+        }
+
         this.systemParametersRepository = repository;
+        this.secrets = secrets;
         this.setSettingsFromDataSource();
     }
 

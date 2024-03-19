@@ -22,10 +22,9 @@ import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.domain.User.TwoFactorStatus;
 import ch.asit_asso.extract.domain.User.UserType;
+import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.encrypt.BytesEncryptor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 
 
@@ -36,11 +35,6 @@ import org.springframework.util.StringUtils;
  * @author Yves Grasset
  */
 public class UserModel {
-
-    /**
-     * The string used as a placeholder for the existing password.
-     */
-    private static final String PASSWORD_GENERIC_STRING = "*****";
 
     /**
      * Whether this user can use the application.
@@ -270,8 +264,7 @@ public class UserModel {
      * Obtains the unhashed password for this user.
      * <p>
      * <b>Note:</b> You will only get the real password if a new one has just been defined to update it.
-     * Otherwise, you'll get the get the generic string defined by the
-     * {@link UserModel#PASSWORD_GENERIC_STRING} constant.
+     * Otherwise, you'll get the generic string defined by the {@link Secrets#getGenericPasswordString()} constant.
      *
      * @return the password
      */
@@ -492,19 +485,18 @@ public class UserModel {
     /**
      * Makes a new data object for this user.
      *
-     * @param passwordEncoder the encoder to use to hash the user's password
+     * @param secrets the secrets utility bean to use to hash the user's password
      * @return the created user data object
      */
-    public final User createDomainObject(final PasswordEncoder passwordEncoder, final BytesEncryptor encryptor,
-                                         final TwoFactorService twoFactorService) {
+    public final User createDomainObject(final Secrets secrets, final TwoFactorService twoFactorService) {
 
-        if (passwordEncoder == null) {
-            throw new IllegalArgumentException("The password encoder cannot be null.");
+        if (secrets == null) {
+            throw new IllegalArgumentException("The password utility bean cannot be null.");
         }
 
         User domainUser = new User();
 
-        return this.updateDomainObject(domainUser, passwordEncoder, encryptor, twoFactorService, false, true);
+        return this.updateDomainObject(domainUser, secrets, twoFactorService, false, true);
     }
 
 
@@ -513,21 +505,21 @@ public class UserModel {
      * Reports the modifications to this model to the user data object.
      *
      * @param domainUser         the data object for this user
-     * @param passwordEncoder    the encoder to use to hash the user's password
+     * @param secrets      the password utility bean to use to hash the user's password
      * @param isCurrentUser      <code>true</code> if the user being edited is the currently logged user
      * @param isCurrentUserAdmin <code>true</code> if the currently logged user has administrator privileges
      * @return the updated user data object
      */
-    public final User updateDomainObject(final User domainUser, final PasswordEncoder passwordEncoder,
-                                         final BytesEncryptor encryptor, TwoFactorService twoFactorService,
-                                         boolean isCurrentUser, boolean isCurrentUserAdmin) {
+    public final User updateDomainObject(final User domainUser, final Secrets secrets,
+                                         TwoFactorService twoFactorService, boolean isCurrentUser,
+                                         boolean isCurrentUserAdmin) {
 
         if (domainUser == null) {
             throw new IllegalArgumentException("The user domain object to update cannot be null.");
         }
 
-        if (passwordEncoder == null) {
-            throw new IllegalArgumentException("The password encoder cannot be null.");
+        if (secrets == null) {
+            throw new IllegalArgumentException("The password utility bean cannot be null.");
         }
 
         domainUser.setMailActive(this.isMailActive());
@@ -539,7 +531,7 @@ public class UserModel {
             domainUser.setTwoFactorForced(this.isTwoFactorForced());
 
             if (this.isTwoFactorForced() && domainUser.getTwoFactorStatus() == TwoFactorStatus.INACTIVE) {
-                TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, encryptor,
+                TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, secrets,
                                                                                      twoFactorService);
                 twoFactorApplication.enable();
             }
@@ -554,7 +546,7 @@ public class UserModel {
             domainUser.setName(this.getName());
 
             if (this.isPasswordDefined() && !this.isPasswordGenericString()) {
-                domainUser.setPassword(passwordEncoder.encode(this.getPassword()));
+                domainUser.setPassword(secrets.hash(this.getPassword()));
             }
 
             if (!isCurrentUser) {
@@ -576,7 +568,7 @@ public class UserModel {
      * @return <code>true</code> if the password has not been modified
      */
     private boolean isPasswordGenericString() {
-        return UserModel.PASSWORD_GENERIC_STRING.equals(this.password);
+        return Secrets.isGenericPasswordString(this.password);
     }
 
 
@@ -596,8 +588,8 @@ public class UserModel {
         this.setId(domainUser.getId());
         this.setLogin(domainUser.getLogin());
         this.setName(domainUser.getName());
-        this.setPassword(UserModel.PASSWORD_GENERIC_STRING);
-        this.setPasswordConfirmation(UserModel.PASSWORD_GENERIC_STRING);
+        this.setPassword(Secrets.getGenericPasswordString());
+        this.setPasswordConfirmation(Secrets.getGenericPasswordString());
         this.setProfile(domainUser.getProfile());
         this.setTwoFactorForced(domainUser.isTwoFactorForced());
         this.setTwoFactorStatus(domainUser.getTwoFactorStatus());

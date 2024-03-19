@@ -36,6 +36,7 @@ import javax.persistence.Table;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
+import ch.asit_asso.extract.utils.Secrets;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -221,17 +222,57 @@ public class Task implements Serializable {
             return;
         }
 
-        if (this.parametersValues == null) {
-            this.parametersValues = new HashMap<>();
-        }
-
         final Logger logger = LoggerFactory.getLogger(Task.class);
 
+        if (this.parametersValues == null) {
+            logger.debug("Instantiating new parameter values map.");
+            this.parametersValues = new HashMap<>();
+        } else {
+            logger.debug("Currently defined parameters in domain task : {}", String.join(", ", this.parametersValues.keySet()));
+        }
+
         for (Map.Entry<String, String> parameterData : parametersMap.entrySet()) {
+
             logger.debug("Adding parameter \"{}\" to map.", parameterData.getKey());
             this.parametersValues.put(parameterData.getKey(), parameterData.getValue());
         }
 
+    }
+
+
+
+    public void updateParametersValues(final HashMap<String, String> parametersMap) {
+
+        if (this.parametersValues == null || this.parametersValues.isEmpty()) {
+            this.setParametersValues(parametersMap);
+            return;
+        }
+
+        if (parametersMap == null) {
+            throw new IllegalArgumentException("The parameters map cannot be null.");
+        }
+
+        if (parametersMap.isEmpty()) {
+            return;
+        }
+
+        String[] parametersToDelete = this.parametersValues.keySet().stream()
+                                                           .filter(key -> !parametersMap.containsKey(key))
+                                                           .toArray(String[]::new);
+
+        for (String keyToRemove : parametersToDelete) {
+            this.parametersValues.remove(keyToRemove);
+        }
+
+        for (String keyToUpdate : parametersMap.keySet()) {
+            String newValue = parametersMap.get(keyToUpdate);
+
+            if (Secrets.isGenericPasswordString(newValue)) {
+                continue;
+            }
+
+            this.parametersValues.put(keyToUpdate, newValue);
+        }
     }
 
 
@@ -334,10 +375,10 @@ public class Task implements Serializable {
 
     @Override
     public final int hashCode() {
-        int result = (position != null) ? position : 0;
-        result = 31 * result + ((code != null) ? code.hashCode() : 0);
-        result = 31 * result + ((label != null) ?label.hashCode() : 0);
-        result = 31 * result + ((process != null) ? process.hashCode() : 0);
+        int result = (this.position != null) ? this.position : 0;
+        result = 31 * result + ((this.code != null) ? this.code.hashCode() : 0);
+        result = 31 * result + ((this.label != null) ? this.label.hashCode() : 0);
+        result = 31 * result + ((this.process != null) ? this.process.hashCode() : 0);
         return result;
     }
 
