@@ -52,7 +52,7 @@ public abstract class PluginItemModel {
      * @return an array that contains the parameters
      */
     public final PluginItemModelParameter[] getParameters() {
-        return this.parameters.toArray(new PluginItemModelParameter[]{});
+        return this.parameters.toArray(PluginItemModelParameter[]::new);
     }
 
 
@@ -91,7 +91,7 @@ public abstract class PluginItemModel {
             }
 
             this.logger.debug("Adding parameter \"{}\" with value \"{}\"", parameter.getName(),
-                    (!"pass".equals(parameter.getType())) ? parameter.getValue() : "[hidden]");
+                              parameter.getPrintValue());
             parametersValuesMap.put(parameter.getName(), parameter.getValue().toString());
         }
 
@@ -115,7 +115,7 @@ public abstract class PluginItemModel {
         this.logger.debug("Defining {} parameters.", parametersArray.length);
 
         for (PluginItemModelParameter param : parametersArray) {
-            this.logger.debug("Defining parameter {} => {}.", param.getName(), param.getValue());
+            this.logger.debug("Defining parameter {} => {}.", param.getName(), param.getPrintValue());
         }
         this.parameters.clear();
         this.parameters.addAll(Arrays.asList(parametersArray));
@@ -173,7 +173,8 @@ public abstract class PluginItemModel {
         }
 
         for (PluginItemModelParameter parameter : parametersArray) {
-            this.logger.debug("Adding parameter \"{}\" with value \"{}\".", parameter.getName(), parameter.getValue());
+            this.logger.debug("Adding parameter \"{}\" with value \"{}\".", parameter.getName(),
+                              parameter.getPrintValue());
             this.addParameter(parameter);
         }
     }

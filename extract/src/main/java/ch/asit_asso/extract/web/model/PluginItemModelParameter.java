@@ -17,6 +17,7 @@
 package ch.asit_asso.extract.web.model;
 
 import ch.asit_asso.extract.utils.EmailUtils;
+import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -29,11 +30,6 @@ import org.springframework.util.StringUtils;
  * @author Yves Grasset
  */
 public class PluginItemModelParameter {
-
-    /**
-     * The placeholder used to mask a password value.
-     */
-    private static final String DUMMY_PASSWORD = "*****";
 
     /**
      * The writer to the application logs.
@@ -111,15 +107,15 @@ public class PluginItemModelParameter {
     public PluginItemModelParameter(final String parameterName, final String description, final String valueType,
             final boolean isRequired, final int maximumSize) {
 
-        if (parameterName == null || "".equals(parameterName.trim())) {
+        if (parameterName == null || parameterName.trim().isEmpty()) {
             throw new IllegalArgumentException("The parameter name cannot be null or empty.");
         }
 
-        if (description == null || "".equals(description.trim())) {
+        if (description == null || description.trim().isEmpty()) {
             throw new IllegalArgumentException("The parameter label cannot be null or empty.");
         }
 
-        if (valueType == null || "".equals(valueType.trim())) {
+        if (valueType == null || valueType.trim().isEmpty()) {
             throw new IllegalArgumentException("The parameter type cannot be null or empty.");
         }
 
@@ -147,15 +143,15 @@ public class PluginItemModelParameter {
     public PluginItemModelParameter(final String parameterName, final String description, final String valueType,
             final boolean isRequired, final Integer minimumValue, final Integer maximumValue, final Integer stepValue) {
 
-        if (parameterName == null || "".equals(parameterName.trim())) {
+        if (parameterName == null || parameterName.trim().isEmpty()) {
             throw new IllegalArgumentException("The parameter name cannot be null or empty.");
         }
 
-        if (description == null || "".equals(description.trim())) {
+        if (description == null || description.trim().isEmpty()) {
             throw new IllegalArgumentException("The parameter label cannot be null or empty.");
         }
 
-        if (valueType == null || "".equals(valueType.trim())) {
+        if (valueType == null || valueType.trim().isEmpty()) {
             throw new IllegalArgumentException("The parameter type cannot be null or empty.");
         }
 
@@ -316,6 +312,21 @@ public class PluginItemModelParameter {
 
 
 
+    public final String getPrintValue() {
+
+        if (this.getValue() == null) {
+            return null;
+        }
+
+        if (this.isPasswordType()) {
+            return "[hidden]";
+        }
+
+        return this.getValue().toString();
+    }
+
+
+
     /**
      * Defines the value for this parameter.
      *
@@ -335,25 +346,12 @@ public class PluginItemModelParameter {
     public final boolean isDefined() {
         Object value = this.getValue();
 
-        switch (this.getType()) {
-
-            case "pass":
-                return (!(PluginItemModelParameter.DUMMY_PASSWORD.equals(value)
-                        || (!StringUtils.hasLength((String) value) && this.isRequired())));
-
-            case "email":
-            case "text":
-            case "multitext":
-            case "numeric":
-            case "list_msgs":
-                return (value != null);
-
-            case "boolean":
-                return true;
-
-            default:
-                return false;
-        }
+        return switch (this.getType()) {
+            case "pass" -> (!StringUtils.hasLength((String) value) && this.isRequired());
+            case "email", "text", "multitext", "numeric", "list_msgs" -> (value != null);
+            case "boolean" -> true;
+            default -> false;
+        };
     }
 
 
@@ -365,9 +363,10 @@ public class PluginItemModelParameter {
      * @return <code>true</code> of the given value is OK
      */
     public final boolean validateUpdatedValue(final String updatedValue) {
-        this.logger.debug("Validating value {} for parameter {}", updatedValue, this.getName());
+        this.logger.debug("Validating value {} for parameter {}", (this.isPasswordType()) ? "[hidden]" : updatedValue,
+                          this.getName());
 
-        if (updatedValue == null || !StringUtils.hasLength(updatedValue)) {
+        if (!StringUtils.hasLength(updatedValue)) {
 
             if (this.isRequired()) {
                 throw new IllegalArgumentException("The updated data object cannot be null.");
@@ -401,7 +400,7 @@ public class PluginItemModelParameter {
                         Integer.parseInt(idString);
 
                     } catch (NumberFormatException exception) {
-                        this.logger.error("Could not convert string {} to integer.", exception);
+                        this.logger.error(String.format("Could not convert string %s to integer.", idString), exception);
                         return false;
                     }
                 }
@@ -452,12 +451,13 @@ public class PluginItemModelParameter {
      * @param rawUpdatedValue the new value
      */
     public final void updateValue(final Object rawUpdatedValue) {
-        this.logger.debug("Updating the value of parameter {} : {} -> {}", this.getName(), this.getValue(),
-                rawUpdatedValue);
+        this.logger.debug("Updating the value of parameter {} : {} -> {}", this.getName(), this.getPrintValue(),
+                          (this.isPasswordType()) ? "[hidden]" : rawUpdatedValue);
         String updatedValue = (String) rawUpdatedValue;
 
-        if (!validateUpdatedValue(updatedValue)) {
-            this.logger.info("The value {} is not valid for parameter {}", updatedValue, this.getName());
+        if (!this.validateUpdatedValue(updatedValue)) {
+            this.logger.info("The value {} is not valid for parameter {}",
+                             (this.isPasswordType()) ? "[hidden]" : updatedValue, this.getName());
             throw new IllegalArgumentException("The value is not valid.");
         }
 
@@ -475,7 +475,7 @@ public class PluginItemModelParameter {
             case "pass":
                 this.logger.debug("Updating the password-typed parameter.");
 
-                if (!PluginItemModelParameter.DUMMY_PASSWORD.equals(updatedValue)) {
+                if (!Secrets.isGenericPasswordString(updatedValue)) {
                     this.setValue(updatedValue);
                     this.logger.debug("The password-typed parameter has been updated.");
                 } else {
@@ -579,6 +579,12 @@ public class PluginItemModelParameter {
      */
     public final void setType(final String valueType) {
         this.type = valueType;
+    }
+
+
+
+    private boolean isPasswordType() {
+        return "pass".equals(this.getType());
     }
 
 

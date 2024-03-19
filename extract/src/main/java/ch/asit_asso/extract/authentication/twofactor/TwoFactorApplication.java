@@ -3,17 +3,16 @@ package ch.asit_asso.extract.authentication.twofactor;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.TwoFactorStatus;
+import ch.asit_asso.extract.utils.Secrets;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.security.crypto.codec.Hex;
-import org.springframework.security.crypto.encrypt.BytesEncryptor;
 
 public class TwoFactorApplication {
 
     private final Logger logger = LoggerFactory.getLogger(TwoFactorApplication.class);
 
-    private final BytesEncryptor encryptor;
+    private final Secrets secrets;
 
     private final TwoFactorService service;
 
@@ -25,9 +24,9 @@ public class TwoFactorApplication {
     }
 
 
-    public TwoFactorApplication(@NotNull User user, @NotNull BytesEncryptor bytesEncryptor,
+    public TwoFactorApplication(@NotNull User user, @NotNull Secrets secrets,
                                 @NotNull TwoFactorService twoFactorService) {
-        this.encryptor = bytesEncryptor;
+        this.secrets = secrets;
         this.service = twoFactorService;
         this.user = user;
     }
@@ -77,7 +76,7 @@ public class TwoFactorApplication {
 
         this.user.setTwoFactorStatus(TwoFactorStatus.STANDBY);
         String standbyToken = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-        String encryptedStandbyToken = new String(Hex.encode(this.encryptor.encrypt(standbyToken.getBytes())));
+        String encryptedStandbyToken = this.secrets.encrypt(standbyToken);
         this.user.setTwoFactorStandbyToken(encryptedStandbyToken);
     }
 
@@ -117,7 +116,6 @@ public class TwoFactorApplication {
         this.logger.debug("Getting {} token for user {}", secretType.name(), this.user.getLogin());
         String encryptedToken = (secretType == TokenType.STANDBY) ? this.user.getTwoFactorStandbyToken()
                 : this.user.getTwoFactorToken();
-        byte[] bytes = Hex.decode(encryptedToken);
-        return new String(this.encryptor.decrypt(bytes));
+        return this.secrets.decrypt(encryptedToken);
     }
 }

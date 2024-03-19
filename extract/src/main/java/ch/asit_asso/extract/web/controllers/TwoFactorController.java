@@ -17,6 +17,7 @@ import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.encrypt.BytesEncryptor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -66,11 +65,9 @@ public class TwoFactorController extends BaseController {
 
     private final TwoFactorService twoFactorService;
 
-    private final BytesEncryptor encryptor;
-
-    private final PasswordEncoder encoder;
-
     private final AuthenticationFailureHandler failureHandler;
+
+    private final Secrets secrets;
 
     private final RecoveryCodeRepository recoveryCodeRepository;
 
@@ -78,14 +75,13 @@ public class TwoFactorController extends BaseController {
 
     private final UsersRepository usersRepository;
 
-    public TwoFactorController(TwoFactorService service, BytesEncryptor encryptor, PasswordEncoder passwordEncoder,
+    public TwoFactorController(TwoFactorService service, Secrets secrets,
                                RecoveryCodeRepository recoveryCodeRepository, UsersRepository usersRepository,
                                RememberMeTokenRepository rememberMeTokenRepository, AuthenticationFailureHandler failureHandler) {
 
         this.twoFactorService = service;
-        this.encryptor = encryptor;
-        this.encoder = passwordEncoder;
         this.failureHandler = failureHandler;
+        this.secrets = secrets;
         this.recoveryCodeRepository = recoveryCodeRepository;
         this.rememberMeRepository = rememberMeTokenRepository;
         this.usersRepository = usersRepository;
@@ -138,14 +134,14 @@ public class TwoFactorController extends BaseController {
             User domainUser = this.usersRepository.findById(user.getUserId()).orElseThrow();
             TwoFactorAuthenticationHandler handler = new TwoFactorAuthenticationHandler(null);
             TwoFactorApplication twoFactorApplication
-                    = new TwoFactorApplication(domainUser, this.encryptor, this.twoFactorService);
+                    = new TwoFactorApplication(domainUser, this.secrets, this.twoFactorService);
 
             if (twoFactorApplication.authenticate(code)) {
 
                 if (rememberMe != null) {
                     this.logger.debug("The user asked to be remembered for 2FA authentication for 30 days.");
                     TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
-                                                                                 this.encoder);
+                                                                                 this.secrets);
                     rememberMeUser.enable(response);
                 }
 
@@ -204,7 +200,7 @@ public class TwoFactorController extends BaseController {
             User domainUser = this.usersRepository.findById(user.getUserId()).orElseThrow();
             TwoFactorAuthenticationHandler handler = new TwoFactorAuthenticationHandler(null);
             TwoFactorBackupCodes userBackupCodes = new TwoFactorBackupCodes(domainUser, this.recoveryCodeRepository,
-                                                                            this.encoder);
+                                                                            this.secrets);
 
             if (userBackupCodes.submitCode(code)) {
                 handler.onAuthenticationSuccess(request, response, authentication.getFirst());
@@ -244,7 +240,7 @@ public class TwoFactorController extends BaseController {
             }
 
             TwoFactorApplication twoFactorApplicationUser
-                    = new TwoFactorApplication(user, this.encryptor, this.twoFactorService);
+                    = new TwoFactorApplication(user, this.secrets, this.twoFactorService);
             model.addAttribute("isForced", user.isTwoFactorForced());
             model.addAttribute("token", twoFactorApplicationUser.getStandbyToken());
             model.addAttribute("qrCodeUrl", twoFactorApplicationUser.getQrCodeUrl());
@@ -280,7 +276,7 @@ public class TwoFactorController extends BaseController {
             }
 
             TwoFactorApplication twoFactorApplication
-                    = new TwoFactorApplication(currentUser, this.encryptor, this.twoFactorService);
+                    = new TwoFactorApplication(currentUser, this.secrets, this.twoFactorService);
 
             if (!twoFactorApplication.validateRegistration(code)) {
 
@@ -299,7 +295,7 @@ public class TwoFactorController extends BaseController {
 
             User registeredUser = this.usersRepository.save(currentUser);
             TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(registeredUser, this.rememberMeRepository,
-                                                                         this.encoder);
+                                                                         this.secrets);
             rememberMeUser.disable(request, response);
             this.processRegistrationStep(true, request);
 
@@ -341,7 +337,7 @@ public class TwoFactorController extends BaseController {
                 return BaseController.REDIRECT_TO_ACCESS_DENIED;
             }
 
-            TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.encryptor,
+            TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.secrets,
                                                                                  this.twoFactorService);
             User.TwoFactorStatus newStatus = twoFactorApplication.cancelEnabling();
             domainUser = this.usersRepository.save(domainUser);
@@ -398,7 +394,7 @@ public class TwoFactorController extends BaseController {
 
         User currentUser = this.usersRepository.findById(currentApplicationUser.getUserId()).orElseThrow();
         TwoFactorBackupCodes userBackupCodes = new TwoFactorBackupCodes(currentUser, this.recoveryCodeRepository,
-                                                                        this.encoder);
+                                                                        this.secrets);
         String[] backupCodes = userBackupCodes.generate();
         String fileData = userBackupCodes.toFileData();
 

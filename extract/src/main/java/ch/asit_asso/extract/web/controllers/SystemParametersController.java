@@ -16,19 +16,27 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.util.Optional;
 import javax.validation.Valid;
 import ch.asit_asso.extract.domain.SystemParameter;
+import ch.asit_asso.extract.ldap.LdapPool;
+import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.orchestrator.Orchestrator;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
+import ch.asit_asso.extract.orchestrator.runners.LdapSynchronizationJobRunner;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.SystemParameterModel;
 import ch.asit_asso.extract.web.validators.SystemParameterValidator;
 import ch.asit_asso.extract.web.validators.TimeRangeValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Scope;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -104,21 +112,32 @@ public class SystemParametersController extends BaseController {
      */
     private static final String ON_STRING = "true";
 
-    //@Value("#{messageProperties['parameters.ldap.test.success']}")
-    private String connectionsSuccessMessage = "OK";
+    private final LdapSettings ldapSettings;
 
     /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(SystemParametersController.class);
 
+    private final MessageSource messageSource;
+
+    private final Secrets secrets;
+
     /**
      * The Spring Data repository that links the user data objects to the data source.
      */
     private final SystemParametersRepository systemParametersRepository;
 
-    public SystemParametersController(SystemParametersRepository repository) {
+    private final UsersRepository usersRepository;
+
+    public SystemParametersController(SystemParametersRepository repository, UsersRepository usersRepository,
+                                      LdapSettings ldapSettings, MessageSource messageSource,
+                                      Secrets secrets) {
         this.systemParametersRepository = repository;
+        this.usersRepository = usersRepository;
+        this.ldapSettings = ldapSettings;
+        this.messageSource = messageSource;
+        this.secrets = secrets;
     }
 
     /**
@@ -146,7 +165,7 @@ public class SystemParametersController extends BaseController {
         this.logger.debug("Processing a request to add an orchestrator time range");
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         parameterModel.addTimeRange(new OrchestratorTimeRange());
@@ -170,7 +189,7 @@ public class SystemParametersController extends BaseController {
         this.logger.debug("Processing a request to delete the orchestrator time range at index {}.", rangeIndex);
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         parameterModel.removeTimeRange(rangeIndex);
@@ -197,7 +216,7 @@ public class SystemParametersController extends BaseController {
         this.logger.debug("Processing the data to update parameters.");
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         String[] keys = new String[]{
@@ -278,7 +297,10 @@ public class SystemParametersController extends BaseController {
                         break;
 
                     case LDAP_PASSWORD_KEY:
-                        systemParameter.setValue(parameterModel.getLdapSynchronizationPassword());
+
+                        if (!Secrets.isGenericPasswordString(parameterModel.getLdapSynchronizationPassword())) {
+                            systemParameter.setValue(this.secrets.encrypt(parameterModel.getLdapSynchronizationPassword()));
+                        }
                         break;
 
                     case LDAP_SERVER_NAMES_KEY:
@@ -315,7 +337,7 @@ public class SystemParametersController extends BaseController {
 
                     case SMTP_PASSWORD_KEY:
 
-                        if (!parameterModel.isPasswordGenericString()) {
+                        if (!Secrets.isGenericPasswordString(parameterModel.getSmtpPassword())) {
                             systemParameter.setValue(parameterModel.getSmtpPassword());
                         }
                         break;
@@ -389,65 +411,113 @@ public class SystemParametersController extends BaseController {
     public final String viewPage(final ModelMap model) {
 
         if (!this.isCurrentUserAdmin()) {
-            return REDIRECT_TO_ACCESS_DENIED;
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         SystemParameterModel systemParameterModel = new SystemParameterModel();
-        systemParameterModel.setBasePath(systemParametersRepository.getBasePath());
-        final String displayTempFolderValue = systemParametersRepository.isTempFolderDisplayed();
+        systemParameterModel.setBasePath(this.systemParametersRepository.getBasePath());
+        final String displayTempFolderValue = this.systemParametersRepository.isTempFolderDisplayed();
         systemParameterModel.setDisplayTempFolder(SystemParametersController.ON_STRING.equals(displayTempFolderValue));
-        systemParameterModel.setDashboardFrequency(systemParametersRepository.getDashboardRefreshInterval());
-        systemParameterModel.setLdapAdminsGroup(systemParametersRepository.getLdapAdminsGroup());
-        systemParameterModel.setLdapBaseDn(systemParametersRepository.getLdapBaseDn());
-        final String ldapEnabledValue = systemParametersRepository.isLdapEnabled();
+        systemParameterModel.setDashboardFrequency(this.systemParametersRepository.getDashboardRefreshInterval());
+        systemParameterModel.setLdapAdminsGroup(this.systemParametersRepository.getLdapAdminsGroup());
+        systemParameterModel.setLdapBaseDn(this.systemParametersRepository.getLdapBaseDn());
+        final String ldapEnabledValue = this.systemParametersRepository.isLdapEnabled();
         systemParameterModel.setLdapEnabled(SystemParametersController.ON_STRING.equals(ldapEnabledValue));
-        systemParameterModel.setLdapEncryption(systemParametersRepository.getLdapEncryptionType());
-        systemParameterModel.setLdapOperatorsGroup(systemParametersRepository.getLdapOperatorsGroup());
-        systemParameterModel.setLdapServers(systemParametersRepository.getLdapServers());
-        final String ldapSynchroEnabledValue = systemParametersRepository.isLdapSynchronizationEnabled();
+        systemParameterModel.setLdapEncryption(this.systemParametersRepository.getLdapEncryptionType());
+        systemParameterModel.setLdapOperatorsGroup(this.systemParametersRepository.getLdapOperatorsGroup());
+        systemParameterModel.setLdapServers(this.systemParametersRepository.getLdapServers());
+        final String ldapSynchroEnabledValue = this.systemParametersRepository.isLdapSynchronizationEnabled();
         systemParameterModel.setLdapSynchronizationEnabled(
                 SystemParametersController.ON_STRING.equals(ldapSynchroEnabledValue));
-        systemParameterModel.setLdapSynchronizationFrequency(systemParametersRepository.getLdapSynchronizationFrequency());
-        systemParameterModel.setLdapSynchronizationPassword(systemParametersRepository.getLdapSynchronizationPassword());
-        systemParameterModel.setLdapSynchronizationUser(systemParametersRepository.getLdapSynchronizationUserName());
-        systemParameterModel.setSchedulerFrequency(systemParametersRepository.getSchedulerFrequency());
-        final OrchestratorSettings.SchedulerMode schedulerMode = OrchestratorSettings.SchedulerMode.valueOf(systemParametersRepository.getSchedulerMode());
+        systemParameterModel.setLdapSynchronizationFrequency(this.systemParametersRepository.getLdapSynchronizationFrequency());
+        systemParameterModel.setLdapSynchronizationPassword(Secrets.getGenericPasswordString());
+        systemParameterModel.setLdapSynchronizationUser(this.systemParametersRepository.getLdapSynchronizationUserName());
+        systemParameterModel.setSchedulerFrequency(this.systemParametersRepository.getSchedulerFrequency());
+        final OrchestratorSettings.SchedulerMode schedulerMode
+                = OrchestratorSettings.SchedulerMode.valueOf(this.systemParametersRepository.getSchedulerMode());
         systemParameterModel.setSchedulerMode(schedulerMode);
-        final String rangesString = systemParametersRepository.getSchedulerRanges();
+        final String rangesString = this.systemParametersRepository.getSchedulerRanges();
         systemParameterModel.setSchedulerRanges(OrchestratorTimeRange.fromCollectionJson(rangesString));
-        systemParameterModel.setSmtpFromMail(systemParametersRepository.getSmtpFromMail());
-        systemParameterModel.setSmtpFromName(systemParametersRepository.getSmtpFromName());
-        systemParameterModel.setSmtpPassword(SystemParameterModel.PASSWORD_GENERIC_STRING);
-        systemParameterModel.setSmtpPort(systemParametersRepository.getSmtpPort());
-        systemParameterModel.setSmtpServer(systemParametersRepository.getSmtpServer());
-        systemParameterModel.setSmtpUser(systemParametersRepository.getSmtpUser());
-        systemParameterModel.setSslType(systemParametersRepository.getSmtpSSL());
-        systemParameterModel.setStandbyReminderDays(systemParametersRepository.getStandbyReminderDays());
-        final String mailEnabledValue = systemParametersRepository.isEmailNotificationEnabled();
+        systemParameterModel.setSmtpFromMail(this.systemParametersRepository.getSmtpFromMail());
+        systemParameterModel.setSmtpFromName(this.systemParametersRepository.getSmtpFromName());
+        systemParameterModel.setSmtpPassword(Secrets.getGenericPasswordString());
+        systemParameterModel.setSmtpPort(this.systemParametersRepository.getSmtpPort());
+        systemParameterModel.setSmtpServer(this.systemParametersRepository.getSmtpServer());
+        systemParameterModel.setSmtpUser(this.systemParametersRepository.getSmtpUser());
+        systemParameterModel.setSslType(this.systemParametersRepository.getSmtpSSL());
+        systemParameterModel.setStandbyReminderDays(this.systemParametersRepository.getStandbyReminderDays());
+        final String mailEnabledValue = this.systemParametersRepository.isEmailNotificationEnabled();
         systemParameterModel.setMailEnabled(SystemParametersController.ON_STRING.equals(mailEnabledValue));
-        systemParameterModel.setValidationFocusProperties(systemParametersRepository.getValidationFocusProperties());
+        systemParameterModel.setValidationFocusProperties(this.systemParametersRepository.getValidationFocusProperties());
 
         return this.prepareModelForDetailsView(model, systemParameterModel);
     }
 
 
-//    @PostMapping("testLdap")
-//    @ResponseBody
-//    public String testLdapConnection(@RequestParam("serverUrls") String serverUrlsString,
-//                                     @RequestParam("bases") String basesString,
-//                                     @RequestParam("encryption") String encryptionString,
-//                                     @RequestParam("username") String username, @RequestParam("password") String password) {
-//
-//        LdapPool serversPool = new LdapPool(serverUrlsString.split(";"), basesString.split(";"),
-//                                            EncryptionType.valueOf(encryptionString), username, password);
-//        Optional<String> testResult = serversPool.testConnections();
-//
-//        if (testResult.isPresent()) {
-//            return testResult.get();
-//        }
-//
-//        return this.connectionsSuccessMessage;
-//    }
+    @PostMapping("testLdap")
+    public String testLdapConnection(@ModelAttribute("parameters") final SystemParameterModel parameterModel,
+                                     final ModelMap model) {
+
+        if (!this.isCurrentUserAdmin()) {
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        if (!parameterModel.isLdapEnabled()) {
+            model.addAttribute("ldapTestMessage",
+                               this.messageSource.getMessage("parameters.ldap.test.error.disabled", null,
+                                                             LocaleContextHolder.getLocale()));
+            return this.prepareModelForDetailsView(model, parameterModel);
+        }
+
+        LdapPool serversPool = LdapPool.fromModel(parameterModel);
+        Optional<String> testResult = serversPool.testConnections();
+        model.addAttribute("ldapTestMessage",
+                           testResult.orElse(this.messageSource.getMessage("parameters.ldap.test.success",
+                                                                           null, LocaleContextHolder.getLocale())));
+
+        return this.prepareModelForDetailsView(model, parameterModel);
+    }
+
+
+    @PostMapping("startLdapSynchro")
+    public String startLdapSynchro(@ModelAttribute("parameters") final SystemParameterModel parameterModel,
+                                   final ModelMap model) {
+
+        if (!this.isCurrentUserAdmin()) {
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
+        }
+
+
+        if (!parameterModel.isLdapEnabled()) {
+            model.addAttribute("ldapTestMessage",
+                               this.messageSource.getMessage("parameters.ldap.synchro.error.disabled", null,
+                                                             LocaleContextHolder.getLocale()));
+            return this.prepareModelForDetailsView(model, parameterModel);
+        }
+
+        if (!parameterModel.isLdapSynchronizationEnabled()) {
+            model.addAttribute("ldapTestMessage",
+                               this.messageSource.getMessage("parameters.ldap.synchro.error.synchro.disabled",
+                                                             null, LocaleContextHolder.getLocale()));
+            return this.prepareModelForDetailsView(model, parameterModel);
+        }
+
+        if (LdapSynchronizationJobRunner.isRunning()) {
+            model.addAttribute("ldapTestMessage",
+                               this.messageSource.getMessage("parameters.ldap.synchro.error.running", null,
+                                                             LocaleContextHolder.getLocale()));
+            return this.prepareModelForDetailsView(model, parameterModel);
+        }
+
+        var synchroRunner = new LdapSynchronizationJobRunner(this.usersRepository, this.systemParametersRepository,
+                                                             this.ldapSettings);
+        new Thread(synchroRunner).start();
+
+        model.addAttribute("ldapTestMessage",
+                           this.messageSource.getMessage("parameters.ldap.synchro.success", null,
+                                                         LocaleContextHolder.getLocale()));
+        return this.prepareModelForDetailsView(model, parameterModel);
+    }
 
 
 
