@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<sdi:product xmlns:sdi="http://www.easysdi.org/2011/sdi" 
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+            xsi:schemaLocation="http://www.easysdi.org/2011/sdi/setproductparameters.xsd" 
+            guid="" 
+            xsi:type="sdi:localAndPredefined">
+    <sdi:order></sdi:order>
+    <sdi:state>available</sdi:state>
+    <!-- remark is not mandatory -->
+    <sdi:remark></sdi:remark>
+    <!-- file is posted at same time as XML -->
+    <sdi:storage>local</sdi:storage>
+    <sdi:filename>file.xml</sdi:filename>
+</sdi:product>
