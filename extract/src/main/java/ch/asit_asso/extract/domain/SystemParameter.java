@@ -65,8 +65,10 @@ import jakarta.xml.bind.annotation.XmlRootElement;
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'dashboard_interval'"),
     @NamedQuery(name = "SystemParameter.isEmailNotificationEnabled",
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'mails_enable'"),
+    @NamedQuery(name = "SystemParameter.isTempFolderDisplayed",
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'display_temp_folder'"),
     @NamedQuery(name = "SystemParameter.getValidationFocusProperties",
-                query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'validation_focus_properties'")
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'validation_focus_properties'")
 })
 public class SystemParameter implements Serializable {
 

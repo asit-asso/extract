@@ -73,12 +73,12 @@ public class SystemParametersController extends BaseController {
     /**
      * The parameter value that indicates that the e-mail notifications are disabled.
      */
-    private static final String MAIL_ENABLE_OFF_STRING = "false";
+    private static final String OFF_STRING = "false";
 
     /**
      * The parameter value that indicates that the e-mail notifications are enabled.
      */
-    private static final String MAIL_ENABLE_ON_STRING = "true";
+    private static final String ON_STRING = "true";
 
     /**
      * The writer to the application logs.
@@ -172,7 +172,7 @@ public class SystemParametersController extends BaseController {
             return REDIRECT_TO_ACCESS_DENIED;
         }
 
-        String[] keys = new String[]{SystemParametersRepository.BASE_PATH_KEY,
+        String[] keys = new String[]{SystemParametersRepository.BASE_PATH_KEY, SystemParametersRepository.DISPLAY_TEMP_FOLDER,
             SystemParametersRepository.DASHBOARD_INTERVAL_KEY, SystemParametersRepository.SCHEDULER_FREQUENCY_KEY,
             SystemParametersRepository.SCHEDULER_MODE, SystemParametersRepository.SCHEDULER_RANGES,
             SystemParametersRepository.SMTP_FROM_MAIL_KEY, SystemParametersRepository.SMTP_FROM_NAME_KEY,
@@ -205,6 +205,14 @@ public class SystemParametersController extends BaseController {
                     case SystemParametersRepository.BASE_PATH_KEY:
                         systemParameter.setValue(parameterModel.getBasePath());
                         break;
+
+                    case SystemParametersRepository.DISPLAY_TEMP_FOLDER:
+                        final String displayFolderValue = (parameterModel.isDisplayTempFolder())
+                                ? SystemParametersController.ON_STRING
+                                : SystemParametersController.OFF_STRING;
+                        systemParameter.setValue(displayFolderValue);
+                        break;
+
 
                     case SystemParametersRepository.DASHBOARD_INTERVAL_KEY:
                         systemParameter.setValue(parameterModel.getDashboardFrequency());
@@ -255,8 +263,8 @@ public class SystemParametersController extends BaseController {
 
                     case SystemParametersRepository.ENABLE_MAIL_NOTIFICATIONS:
                         final String mailEnabledValue = (parameterModel.isMailEnabled())
-                                ? SystemParametersController.MAIL_ENABLE_ON_STRING
-                                : SystemParametersController.MAIL_ENABLE_OFF_STRING;
+                                ? SystemParametersController.ON_STRING
+                                : SystemParametersController.OFF_STRING;
                         systemParameter.setValue(mailEnabledValue);
                         break;
 
@@ -307,6 +315,8 @@ public class SystemParametersController extends BaseController {
 
         SystemParameterModel systemParameterModel = new SystemParameterModel();
         systemParameterModel.setBasePath(systemParametersRepository.getBasePath());
+        final String displayTempFolderValue = systemParametersRepository.isTempFolderDisplayed();
+        systemParameterModel.setDisplayTempFolder(SystemParametersController.ON_STRING.equals(displayTempFolderValue));
         systemParameterModel.setDashboardFrequency(systemParametersRepository.getDashboardRefreshInterval());
         systemParameterModel.setSchedulerFrequency(systemParametersRepository.getSchedulerFrequency());
         final OrchestratorSettings.SchedulerMode schedulerMode = OrchestratorSettings.SchedulerMode.valueOf(systemParametersRepository.getSchedulerMode());
@@ -321,7 +331,7 @@ public class SystemParametersController extends BaseController {
         systemParameterModel.setSmtpUser(systemParametersRepository.getSmtpUser());
         systemParameterModel.setSslType(systemParametersRepository.getSmtpSSL());
         final String mailEnabledValue = systemParametersRepository.isEmailNotificationEnabled();
-        systemParameterModel.setMailEnabled(SystemParametersController.MAIL_ENABLE_ON_STRING.equals(mailEnabledValue));
+        systemParameterModel.setMailEnabled(SystemParametersController.ON_STRING.equals(mailEnabledValue));
         systemParameterModel.setValidationFocusProperties(systemParametersRepository.getValidationFocusProperties());
 
         return this.prepareModelForDetailsView(model, systemParameterModel);

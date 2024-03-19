@@ -214,6 +214,9 @@ public class RequestsController extends BaseController {
             model.addAttribute("rejectionMessages", this.getRejectionMessagesTemplates(currentTask));
         }
 
+        model.addAttribute("displayTempFolder",
+                           "true".equals(this.parametersRepository.isTempFolderDisplayed()));
+
         String mapDataFileName = RequestsController.DEFAULT_MAP_DATA_FILE_NAME;
         Resource customMapResource = new ClassPathResource(RequestsController.CUSTOM_MAP_DATA_PATH);
 

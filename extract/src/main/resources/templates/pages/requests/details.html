@@ -405,6 +405,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                     </span>
                                                 </button>
                                             </div>
+                                            <div class="mt-3" th:if="${isAdmin} or ${displayTempFolder}">
+                                                <div class="strong" th:text="#{requestDetails.tempFolder.label}">
+                                                    {Temp folders path:}
+                                                </div>
+                                                <div th:text="${request.outputFolderPath}">{/var/extract/data/my-request/output/}</div>
+                                            </div>
                                         </td>
                                     </tr>
                                 </table>

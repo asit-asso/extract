@@ -57,6 +57,8 @@ public class SystemParameterModel extends PluginItemModel {
      */
     private String dashboardFrequency;
 
+    private boolean displayTempFolder;
+
     /**
      * Whether the application must send e-mail notifications.
      */
@@ -160,6 +162,10 @@ public class SystemParameterModel extends PluginItemModel {
     }
 
 
+    public final boolean isDisplayTempFolder() { return this.displayTempFolder; }
+
+
+    public final void setDisplayTempFolder(final boolean display) { this.displayTempFolder = display; }
 
     /**
      * Gets the delay to wait before a new execution of an orchestrator job.
