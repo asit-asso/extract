@@ -19,15 +19,11 @@ package ch.asit_asso.extract.web.model;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import ch.asit_asso.extract.domain.SystemParameter;
 import ch.asit_asso.extract.email.EmailSettings.SslType;
 import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
-import ch.asit_asso.extract.utils.Secrets;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
@@ -250,48 +246,6 @@ public class SystemParameterModel extends PluginItemModel {
 
 
 
-    public String[] getLdapServersUrls() {
-
-        if (this.getLdapEncryption() == null || this.getLdapServers() == null) {
-            return null;
-        }
-
-        List<String> urlsList = new ArrayList<>();
-
-        for (String server : this.getLdapServers().split(";")) {
-            Pattern extractionPattern
-                    = Pattern.compile("^(?:ldaps?://)?(?<host>[A-Z0-9_\\-.]+)(?::(?<port>\\d+))?(?<file>/.*)?$",
-                                      Pattern.CASE_INSENSITIVE);
-            Matcher matcher = extractionPattern.matcher(server);
-            String host = null;
-            String port = null;
-            String file = null;
-
-            if (matcher.find()) {
-                host = matcher.group("host");
-                port = matcher.group("port");
-                file = matcher.group("file");
-            }
-
-            if (host == null) {
-                this.logger.warn("The server name {} is invalid. Server ignored.", server);
-                continue;
-            }
-
-            if (port == null) {
-                port = (this.getLdapEncryption() == LdapSettings.EncryptionType.STARTTLS) ? LdapSettings.DEFAULT_STARTTLS_PORT
-                                                                                          : LdapSettings.DEFAULT_LDAPS_PORT;
-            }
-
-            urlsList.add(String.format("ldap://%s:%s%s", host, port, Objects.requireNonNullElse(file, "")));
-        }
-
-        return urlsList.toArray(String[]::new);
-    }
-
-
-
-
     public final boolean isLdapSynchronizationEnabled() { return this.ldapSynchronizationEnabled; }
 
 
@@ -464,7 +418,7 @@ public class SystemParameterModel extends PluginItemModel {
 
 
     /**
-     * Gets the password to use to use to authenticate with the mail server.
+     * Gets the password to use to authenticate with the mail server.
      *
      * @return the password
      */
@@ -530,7 +484,7 @@ public class SystemParameterModel extends PluginItemModel {
 
 
     /**
-     * Gets the user name that allows to authenticate with the mail server.
+     * Gets the username that allows to authenticate with the mail server.
      *
      * @return the login, or <code>null</code> if the server does not require authentication
      */
@@ -541,7 +495,7 @@ public class SystemParameterModel extends PluginItemModel {
 
 
     /**
-     * Defines the user name that allows to authenticate with the mail server.
+     * Defines the username that allows to authenticate with the mail server.
      *
      * @param userName the login, or <code>null</code> if the server does not require authentication
      */
@@ -647,18 +601,6 @@ public class SystemParameterModel extends PluginItemModel {
 
     public final void removeTimeRange(final int rangeIndex) {
         this.schedulerRanges.remove(rangeIndex);
-    }
-
-
-
-    /**
-     * Obtains whether the password of this user as defined in the model is the generic placeholder,
-     * meaning that it has not been modified.
-     *
-     * @return <code>true</code> if the password has not been modified
-     */
-    public final boolean isPasswordGenericString() {
-        return Secrets.isGenericPasswordString(this.smtpPassword);
     }
 
 

@@ -469,7 +469,10 @@ public class SystemParametersController extends BaseController {
             return this.prepareModelForDetailsView(model, parameterModel);
         }
 
-        LdapPool serversPool = LdapPool.fromModel(parameterModel);
+        LdapPool serversPool = (Secrets.isGenericPasswordString(parameterModel.getLdapSynchronizationPassword()))
+                               ? LdapPool.fromModel(parameterModel, this.getLdapPasswordFromRepository())
+                               : LdapPool.fromModel(parameterModel);
+
         Optional<String> testResult = serversPool.testConnections();
         model.addAttribute("ldapTestMessage",
                            testResult.orElse(this.messageSource.getMessage("parameters.ldap.test.success",
@@ -517,6 +520,12 @@ public class SystemParametersController extends BaseController {
                            this.messageSource.getMessage("parameters.ldap.synchro.success", null,
                                                          LocaleContextHolder.getLocale()));
         return this.prepareModelForDetailsView(model, parameterModel);
+    }
+
+
+
+    private String getLdapPasswordFromRepository() {
+        return this.secrets.decrypt(this.systemParametersRepository.getLdapSynchronizationPassword());
     }
 
 
