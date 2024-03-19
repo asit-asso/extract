@@ -389,9 +389,10 @@ public class QGISPrintPlugin implements ITaskProcessor {
             this.logger.debug("Request perimeter is {}.", request.getPerimeter());
             this.logger.debug("calling WMS GetProjectSettings from url {}.", baseurl);
 
-            //File qgisProject = new File(pathProject);
-            //if(!qgisProject.exists())
-            //    throw new Exception(String.format(this.messages.getString("plugin.error.project.notexists"), pathProject));
+            /*File qgisProject = new File(pathProject);
+            if(!qgisProject.exists())
+                throw new Exception(String.format(this.messages.getString("plugin.error.project.notexists"), pathProject));
+            */
 
             //get coverage layer
             String coverageLayer = getCoverageLayer(baseurl, templateLayout, pathProject );
@@ -471,14 +472,16 @@ public class QGISPrintPlugin implements ITaskProcessor {
             throws IOException, SAXException, ParserConfigurationException, Exception {
 
         final int httpCode = response.getStatusLine().getStatusCode();
-        final String httpMessage = this.getMessageFromHttpCode(httpCode);
+        final String httpMessage = this.getMessageFromHttpCode(httpCode) + " - " + response.getStatusLine().getReasonPhrase();
         this.logger.debug("HTTP GetProjectSettings completed with status code {}.", httpCode);
 
 
         if (httpCode != QGISPrintPlugin.CREATED_HTTP_STATUS_CODE && httpCode != QGISPrintPlugin.SUCCESS_HTTP_STATUS_CODE) {
             this.logger.error("GetProjectSettings has failed with HTTP code {} => return directly output", httpCode);
-            return null;
+            throw new Exception(httpMessage);
+            //return null;
         }
+
 
         this.logger.debug("HTTP GetProjectSettings was successful. Response was {}.", response);
         final String responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
