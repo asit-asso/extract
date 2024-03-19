@@ -178,7 +178,9 @@ public class SystemParametersController extends BaseController {
             SystemParametersRepository.SMTP_FROM_MAIL_KEY, SystemParametersRepository.SMTP_FROM_NAME_KEY,
             SystemParametersRepository.SMTP_PASSWORD_KEY, SystemParametersRepository.SMTP_PORT_KEY,
             SystemParametersRepository.SMTP_SERVER_KEY, SystemParametersRepository.SMTP_USER_KEY,
-            SystemParametersRepository.SMTP_SSL_KEY, SystemParametersRepository.ENABLE_MAIL_NOTIFICATIONS};
+            SystemParametersRepository.SMTP_SSL_KEY, SystemParametersRepository.ENABLE_MAIL_NOTIFICATIONS,
+            SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY
+        };
 
         if (bindingResult.hasErrors()) {
             this.logger.info("Updating the system parameters failed because of invalid data.");
@@ -258,6 +260,10 @@ public class SystemParametersController extends BaseController {
                         systemParameter.setValue(mailEnabledValue);
                         break;
 
+                    case SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY:
+                        systemParameter.setValue(String.join(",", parameterModel.getValidationFocusProperties()));
+                        break;
+
                     default:
                         throw new Exception(String.format("Unsupported application setting : %s", key));
                 }
@@ -316,6 +322,7 @@ public class SystemParametersController extends BaseController {
         systemParameterModel.setSslType(systemParametersRepository.getSmtpSSL());
         final String mailEnabledValue = systemParametersRepository.isEmailNotificationEnabled();
         systemParameterModel.setMailEnabled(SystemParametersController.MAIL_ENABLE_ON_STRING.equals(mailEnabledValue));
+        systemParameterModel.setValidationFocusProperties(systemParametersRepository.getValidationFocusProperties());
 
         return this.prepareModelForDetailsView(model, systemParameterModel);
     }

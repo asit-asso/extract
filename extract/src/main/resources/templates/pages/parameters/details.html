@@ -389,23 +389,41 @@
                             </div>
                             <div class="card card-default">
                                 <div class="card-header">
-                                    <span th:text="#{parameters.panels.remarks.title}">{Validation messages}</span>
+                                    <span th:text="#{parameters.panels.remarks.title}">{Validation}</span>
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-3">
-                                        <div class="col-xl-12" th:text="#{parameters.remarks.manage.text}">
-                                            {Manage validation messages}
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label">
+                                                <label class="form-label col-form-label"
+                                                       th:text="#{parameters.remarks.properties.label}">
+                                                    {Properties to put in focus}
+                                                </label>
+                                                <select class="select2-container select2-container-multi form-control select2 properties-select"
+                                                        multiple="multiple" data-bs-toggle="tooltip"
+                                                        id="validation-properties-select"
+                                                        th:required="false">
+                                                </select>
+                                                <input type="hidden" th:field="*{validationFocusProperties}" />
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="text-center">
-                                        <a id="manageMessagesButton" class="btn btn-extract-filled"
-                                           th:href="@{'/remarks'}" >
-                                            <i class="fa fa-pencil-square-o"></i>
-                                            <span th:text="#{parameters.remarks.manage.button}" >
-                                                {Manage messages}
-                                            </span>
-                                        </a>
-                                    </p>
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div th:text="#{parameters.remarks.manage.text}" class="mb-3">
+                                                {Manage validation messages}
+                                            </div>
+                                            <p class="text-center">
+                                                <a id="manageMessagesButton" class="btn btn-extract-filled"
+                                                   th:href="@{'/remarks'}" >
+                                                    <i class="fa fa-pencil-square-o"></i>
+                                                    <span th:text="#{parameters.remarks.manage.button}" >
+                                                        {Manage messages}
+                                                    </span>
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
