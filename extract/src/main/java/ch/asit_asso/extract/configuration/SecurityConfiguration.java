@@ -1,36 +1,37 @@
 package ch.asit_asso.extract.configuration;
 
 import java.security.spec.KeySpec;
+import java.util.List;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.SecretKeySpec;
 import ch.asit_asso.extract.authentication.DatabaseUserDetailsService;
 import ch.asit_asso.extract.authentication.ExtractAuthenticationSuccessHandler;
+import ch.asit_asso.extract.authentication.ldap.ExtractLdapAuthenticationProvider;
+import ch.asit_asso.extract.authentication.ldap.ExtractLdapUserDetailsMapper;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorAuthentication;
-import ch.asit_asso.extract.authentication.twofactor.TwoFactorAuthenticationHandler;
-import ch.asit_asso.extract.authentication.twofactor.TwoFactorTrustResolver;
 import ch.asit_asso.extract.domain.User.Profile;
+import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.ProviderManager;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.authorization.AuthorizationManager;
-import org.springframework.security.config.annotation.ObjectPostProcessor;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.encrypt.AesBytesEncryptor;
 import org.springframework.security.crypto.keygen.KeyGenerators;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.Pbkdf2PasswordEncoder;
-import org.springframework.security.web.access.ExceptionTranslationFilter;
+import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.intercept.RequestAuthorizationContext;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -45,20 +46,13 @@ import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
  *
  * @author Yves Grasset
  */
-@Configuration
-public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
+@EnableWebSecurity
+public class SecurityConfiguration {
 
     /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final RememberMeTokenRepository rememberMeTokenRepository;
-
-    /**
-     * The object that links the user data objects with the data source.
-     */
-    private final UsersRepository usersRepository;
 
     @Value("${database.encryption.secret}")
     private String encryptionPassword;
@@ -66,24 +60,20 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Value("${database.encryption.salt}")
     private String encryptionSalt;
 
-    public SecurityConfiguration(RememberMeTokenRepository tokenRepository, UsersRepository usersRepository) {
-        this.rememberMeTokenRepository = tokenRepository;
-        this.usersRepository = usersRepository;
+    public SecurityConfiguration() {
     }
 
 
     /**
      * Sets which URLs are accessible to whom and which ones are used for authentication operations.
      *
-     * @param httpSecurity the Spring Security object that allows to configure the web part of the application
-     *                     security
      * @throws Exception if an error occurred during the configuration
      */
-    @Override
-    protected final void configure(final HttpSecurity httpSecurity) throws Exception {
-
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity httpSecurity, AuthenticationSuccessHandler successHandler,
+                                           DaoAuthenticationProvider daoAuthenticationProvider,
+                                           ExtractLdapAuthenticationProvider ldapAuthenticationProvider) throws Exception {
         this.logger.debug("Configuring the security of the application.");
-        TwoFactorAuthenticationHandler twoFactorAuthenticationHandler = new TwoFactorAuthenticationHandler("/2fa/authenticate");
         httpSecurity.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
                     new AntPathRequestMatcher("/css/**", "GET"),
@@ -120,43 +110,53 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
                 ).hasAuthority(Profile.ADMIN.name())
             )
             .formLogin((form) -> form
-                    //.loginPage("/login")
+                    .loginPage("/login")
                     .failureUrl("/login/error")
                     .permitAll()
                     .defaultSuccessUrl("/")
-                    .successHandler(successHandler())
+                    .successHandler(successHandler)
+                    .loginProcessingUrl("/login")
             )
             .logout().logoutUrl("/login/disconnect").logoutSuccessUrl("/login/disconnect").permitAll()
             .and()
             .exceptionHandling((exceptions) -> exceptions
-                    .withObjectPostProcessor(new ObjectPostProcessor<ExceptionTranslationFilter>() {
-
-                        @Override
-                        public <O extends ExceptionTranslationFilter> O postProcess(O filter) {
-                            filter.setAuthenticationTrustResolver(new TwoFactorTrustResolver());
-                            return filter;
-                        }
-                    })
                     .accessDeniedPage("/forbidden")
-            );
+            )
+            .authenticationManager(new ProviderManager(List.of(daoAuthenticationProvider,
+                                                               ldapAuthenticationProvider)));
 
-        //return httpSecurity.build();
+        return httpSecurity.build();
     }
 
 
 
-    /**
-     * Sets how the authentication is managed at the application level.
-     *
-     * @param authenticationManagerBuilder the Spring Security builder object that allows to configure the
-     *                                     authentication mechanism
-     * @throws Exception if an error occurred during the configuration
-     */
-    @Override
-    public final void configure(final AuthenticationManagerBuilder authenticationManagerBuilder)
-            throws Exception {
-        this.logger.debug("Configuring the user details service.");
-        authenticationManagerBuilder.userDetailsService(userDetailsService()).passwordEncoder(passwordEncoder());
+    @Bean
+    public ExtractLdapUserDetailsMapper ldapUserDetailsMapper(LdapSettings ldapSettings, UsersRepository usersRepository)
+    {
+        ExtractLdapUserDetailsMapper userDetailsMapper = new ExtractLdapUserDetailsMapper(ldapSettings, usersRepository);
+
+        return userDetailsMapper;
+    }
+
+
+
+    @Bean
+    public ExtractLdapAuthenticationProvider ldapAuthenticationProvider(LdapSettings ldapSettings,
+                                                             ExtractLdapUserDetailsMapper ldapUserDetailsMapper,
+                                                             UsersRepository usersRepository) {
+        return new ExtractLdapAuthenticationProvider(ldapSettings, ldapUserDetailsMapper, usersRepository);
+    }
+
+
+
+    @Bean
+    public DaoAuthenticationProvider daoAuthenticationProvider(UserDetailsService daoUserDetailsService,
+                                                               PasswordEncoder passwordEncoder) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(daoUserDetailsService);
+        provider.setPasswordEncoder(passwordEncoder);
+
+        return provider;
     }
 
 
@@ -167,9 +167,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
      *
      * @return the service object
      */
-    @Override
-    public final UserDetailsService userDetailsService() {
-        return new DatabaseUserDetailsService(this.usersRepository);
+    @Bean
+    public UserDetailsService daoUserDetailsService(UsersRepository usersRepository) {
+        return new DatabaseUserDetailsService(usersRepository);
     }
 
 
@@ -198,13 +198,15 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
 
+
     @Bean
     AuthorizationManager<RequestAuthorizationContext> twoFactorAuthorizationManager() {
         return (authentication,
                 context) -> new AuthorizationDecision(authentication.get() instanceof TwoFactorAuthentication);
     }
 
-    // for the second-factor
+
+
     @Bean
     AesBytesEncryptor encryptor() throws Exception {
         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -215,9 +217,11 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     }
 
     @Bean
-    AuthenticationSuccessHandler successHandler() {
-        return new ExtractAuthenticationSuccessHandler(passwordEncoder(), this.rememberMeTokenRepository,
-                                                       this.usersRepository);
+    AuthenticationSuccessHandler successHandler(PasswordEncoder passwordEncoder,
+                                                RememberMeTokenRepository rememberMeTokenRepository,
+                                                UsersRepository usersRepository) {
+        return new ExtractAuthenticationSuccessHandler(passwordEncoder, rememberMeTokenRepository,
+                                                       usersRepository);
     }
 
     @Bean

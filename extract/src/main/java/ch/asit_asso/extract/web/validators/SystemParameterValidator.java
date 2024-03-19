@@ -67,6 +67,10 @@ public class SystemParameterValidator extends BaseValidator {
      */
     private static final int MINIMUM_HTTP_PORT = 0;
 
+    private static final int MAXIMUM_LDAP_SYNCHRO_FREQUENCY = Integer.MAX_VALUE;
+
+    private static final int MINIMUM_LDAP_SYNCHRO_FREQUENCY = 1;
+
     /**
      * The writer to the application logs.
      */
@@ -112,13 +116,28 @@ public class SystemParameterValidator extends BaseValidator {
     public void validate(final Object target, final Errors errors) {
         this.logger.debug("Validating the user model {}.", target);
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "basePath", "parameters.errors.basepath.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapServers", "parameters.errors.ldapServers.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapBaseDn", "parameters.errors.ldapBaseDn.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapAdminsGroup", "parameters.errors.ldapAdminsGroup.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapOperatorsGroup", "parameters.errors.ldapOperatorsGroup.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "smtpFromMail", "parameters.errors.smtpfrommail.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "smtpFromName", "parameters.errors.smtpfromname.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "smtpServer", "parameters.errors.smtpserver.required");
 
         final SystemParameterModel systemParameterModel = (SystemParameterModel) target;
+
         this.validateDashboardFrequency(systemParameterModel.getDashboardFrequency(), errors);
         this.validateSchedulerFrequency(systemParameterModel.getSchedulerFrequency(), errors);
+
+        if (systemParameterModel.getLdapEncryption() == null) {
+            errors.rejectValue("ldapEncryption", "parameters.errors.ldapEncryption.required");
+        }
+
+        if (systemParameterModel.isLdapSynchronizationEnabled()) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchroUser", "parameters.errors.ldapSynchroUser.required");
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchroPassword", "parameters.errors.ldapSynchroUser.required");
+            this.validateLdapSynchronizationFrequency(systemParameterModel.getLdapSynchronizationFrequency(), errors);
+        }
         this.validateSmtpPort(systemParameterModel.getSmtpPort(), errors);
         this.validateStandbyReminderDays(systemParameterModel.getStandbyReminderDays(), errors);
 
@@ -210,6 +229,35 @@ public class SystemParameterValidator extends BaseValidator {
             errors.rejectValue("schedulerFrequency", "parameters.errors.schedulerfrequency.tooLarge",
                     new Object[]{SystemParameterValidator.MAXIMUM_SCHEDULER_FREQUENCY},
                     "parameters.errors.schedulerfrequency.invalid");
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+    private boolean validateLdapSynchronizationFrequency(final String valueString, final Errors errors) {
+
+        if (!this.validateInteger(valueString)) {
+            errors.rejectValue("ldapSynchroFrequency", "parameters.errors.ldapSynchroFrequency.outOfRange",
+                               new Object[]{SystemParameterValidator.MINIMUM_LDAP_SYNCHRO_FREQUENCY,
+                                       SystemParameterValidator.MAXIMUM_LDAP_SYNCHRO_FREQUENCY},
+                               "parameters.errors.ldapSynchroFrequency.invalid");
+            return false;
+        }
+
+        final int frequency = Integer.valueOf(valueString);
+
+        if (frequency < SystemParameterValidator.MINIMUM_LDAP_SYNCHRO_FREQUENCY) {
+            errors.rejectValue("schedulerFrequency", "parameters.errors.ldapSynchroFrequency.notpositive");
+            return false;
+        }
+
+        if (frequency > SystemParameterValidator.MAXIMUM_LDAP_SYNCHRO_FREQUENCY) {
+            errors.rejectValue("schedulerFrequency", "parameters.errors.schedulerfrequency.tooLarge",
+                               new Object[]{SystemParameterValidator.MAXIMUM_LDAP_SYNCHRO_FREQUENCY},
+                               "parameters.errors.ldapSynchroFrequency.invalid");
             return false;
         }
 

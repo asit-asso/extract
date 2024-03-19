@@ -185,6 +185,11 @@ public class User implements Serializable {
     private String twoFactorStandbyToken;
 
 
+    @Column(name = "user_type")
+    @Enumerated(EnumType.STRING)
+    private UserType userType;
+
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Collection<RecoveryCode> twoFactorRecoveryCodesCollection;
 
@@ -226,6 +231,12 @@ public class User implements Serializable {
         ACTIVE,
         INACTIVE,
         STANDBY
+    }
+
+
+    public enum UserType {
+        LDAP,
+        LOCAL
     }
 
 
@@ -520,6 +531,16 @@ public class User implements Serializable {
 
 
     public void setTwoFactorStandbyToken(String token) { this.twoFactorStandbyToken = token; }
+
+
+    public UserType getUserType() {
+        return this.userType;
+    }
+
+
+    public void setUserType(UserType userType) {
+        this.userType = userType;
+    }
 
     /**
      * Removes the token that allows this user to change her password.

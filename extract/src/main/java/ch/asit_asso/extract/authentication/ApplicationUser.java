@@ -20,10 +20,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import ch.asit_asso.extract.domain.RecoveryCode;
-import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
@@ -82,6 +81,8 @@ public class ApplicationUser implements UserDetails {
      */
     private final String userName;
 
+    private final User.UserType userType;
+
 
     //private final Collection<RecoveryCode> recoveryCodes;
 
@@ -108,7 +109,7 @@ public class ApplicationUser implements UserDetails {
         this.twoFactorStatus = domainUser.getTwoFactorStatus();
         this.twoFactorActiveToken = domainUser.getTwoFactorToken();
         this.twoFactorStandbyToken = domainUser.getTwoFactorStandbyToken();
-        //this.recoveryCodes = domainUser.getTwoFactorRecoveryCodesCollection();
+        this.userType = domainUser.getUserType();
         this.rolesList = this.buildRolesList(domainUser);
     }
 
@@ -183,8 +184,9 @@ public class ApplicationUser implements UserDetails {
     public String getTwoFactorActiveToken() { return this.twoFactorActiveToken; }
 
 
+    
+    public User.UserType getUserType() { return this.userType; }
 
-    //public Collection<RecoveryCode> getTwoFactorRecoveryCodes() { return this.recoveryCodes; }
 
 
     public String getTwoFactorStandbyToken() { return twoFactorStandbyToken; }
