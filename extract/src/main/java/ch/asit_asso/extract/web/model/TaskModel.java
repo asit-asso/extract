@@ -16,10 +16,11 @@
  */
 package ch.asit_asso.extract.web.model;
 
+import java.util.Arrays;
 import ch.asit_asso.extract.domain.Process;
+import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.persistence.TasksRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
-import ch.asit_asso.extract.domain.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -300,6 +301,10 @@ public class TaskModel extends PluginItemModel {
         }
 
         domainTask.setPosition(this.getPosition());
+        this.logger.debug("Parameters to update : {}",
+                          String.join(", ",
+                                      Arrays.stream(this.getParameters()).map(PluginItemModelParameter::getName)
+                                            .toList()));
         domainTask.updateParametersValues(this.getParametersValues());
 
         return domainTask;
@@ -309,37 +314,22 @@ public class TaskModel extends PluginItemModel {
 
     public final Task saveInDataSource(final TasksRepository taskRepository,
             final Process domainProcess) {
-        Task domainTask = this.createDomainTask(domainProcess);
+        Task domainTask = taskRepository.findById(this.getId()).orElse(null);
 
-        domainTask = this.saveInDataSource(taskRepository, domainProcess, domainTask);
+        if (domainTask == null) {
+            domainTask = this.createDomainTask(domainProcess);
+
+        } else {
+            this.updateDomainTask(domainTask);
+        }
+
+        domainTask = taskRepository.save(domainTask);
 
         if (domainTask != null) {
             this.setId(domainTask.getId());
         }
 
         return domainTask;
-    }
-
-
-
-    private Task saveInDataSource(final TasksRepository taskRepository,
-                                        final Process domainProcess, final Task domainTask) {
-
-        if (taskRepository == null) {
-            throw new IllegalArgumentException("The task repository cannot be null.");
-        }
-
-        if (domainProcess == null) {
-            throw new IllegalArgumentException("The process domain object cannot be null.");
-        }
-
-        if (domainTask == null) {
-            throw new IllegalArgumentException("The task domain object cannot be null.");
-        }
-
-        this.updateDomainTask(domainTask);
-
-        return taskRepository.save(domainTask);
     }
 
 

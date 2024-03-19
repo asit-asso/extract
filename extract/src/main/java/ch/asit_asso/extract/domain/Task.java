@@ -256,11 +256,13 @@ public class Task implements Serializable {
             return;
         }
 
+        Logger logger = LoggerFactory.getLogger(Task.class);
         String[] parametersToDelete = this.parametersValues.keySet().stream()
                                                            .filter(key -> !parametersMap.containsKey(key))
                                                            .toArray(String[]::new);
 
         for (String keyToRemove : parametersToDelete) {
+            logger.debug("Removing parameter {} from domain object.", keyToRemove);
             this.parametersValues.remove(keyToRemove);
         }
 
@@ -268,9 +270,11 @@ public class Task implements Serializable {
             String newValue = parametersMap.get(keyToUpdate);
 
             if (Secrets.isGenericPasswordString(newValue)) {
+                logger.debug("Parameter {} value is the generic password string, so it won't be updated.", keyToUpdate);
                 continue;
             }
 
+            logger.debug("Updating parameter {}.", keyToUpdate);
             this.parametersValues.put(keyToUpdate, newValue);
         }
     }

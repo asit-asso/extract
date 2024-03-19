@@ -347,7 +347,7 @@ public class PluginItemModelParameter {
         Object value = this.getValue();
 
         return switch (this.getType()) {
-            case "pass" -> (!StringUtils.hasLength((String) value) && this.isRequired());
+            case "pass" -> (StringUtils.hasLength((String) value) || !this.isRequired());
             case "email", "text", "multitext", "numeric", "list_msgs" -> (value != null);
             case "boolean" -> true;
             default -> false;
