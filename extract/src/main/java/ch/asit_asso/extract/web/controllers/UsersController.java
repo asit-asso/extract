@@ -252,12 +252,6 @@ public class UsersController extends BaseController {
             return UsersController.REDIRECT_TO_LIST;
         }
 
-        if (domainUser.getUserType() != UserType.LOCAL) {
-            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notDeletable", MessageType.ERROR);
-
-            return UsersController.REDIRECT_TO_LIST;
-        }
-
         if (domainUser.isAssociatedToProcesses()) {
             this.addStatusMessage(redirectAttributes, "usersList.errors.user.delete.hasProcesses",
                                   MessageType.ERROR);
