@@ -20,6 +20,7 @@ import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
 import ch.asit_asso.extract.utils.EmailUtils;
 import ch.asit_asso.extract.web.model.SystemParameterModel;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +100,7 @@ public class SystemParameterValidator extends BaseValidator {
      * @return <code>true</code> if the type is supported by this validator
      */
     @Override
-    public final boolean supports(final Class<?> type) {
+    public final boolean supports(final @NotNull Class<?> type) {
         return SystemParameterModel.class.equals(type);
     }
 
@@ -113,7 +114,7 @@ public class SystemParameterValidator extends BaseValidator {
      */
     @Override
     @Transactional(readOnly = true)
-    public void validate(final Object target, final Errors errors) {
+    public void validate(final @NotNull Object target, final @NotNull Errors errors) {
         this.logger.debug("Validating the user model {}.", target);
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "basePath", "parameters.errors.basepath.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapServers", "parameters.errors.ldapServers.required");
@@ -180,7 +181,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int frequency = Integer.valueOf(valueString);
+        final int frequency = Integer.parseInt(valueString);
 
         if (frequency < SystemParameterValidator.MINIMUM_DASHBOARD_FREQUENCY) {
             errors.rejectValue("dashboardFrequency", "parameters.errors.dashboardfrequency.tooSmall",
@@ -218,7 +219,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int frequency = Integer.valueOf(valueString);
+        final int frequency = Integer.parseInt(valueString);
 
         if (frequency < SystemParameterValidator.MINIMUM_SCHEDULER_FREQUENCY) {
             errors.rejectValue("schedulerFrequency", "parameters.errors.schedulerfrequency.notpositive");
@@ -247,7 +248,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int frequency = Integer.valueOf(valueString);
+        final int frequency = Integer.parseInt(valueString);
 
         if (frequency < SystemParameterValidator.MINIMUM_LDAP_SYNCHRO_FREQUENCY) {
             errors.rejectValue("schedulerFrequency", "parameters.errors.ldapSynchroFrequency.notpositive");
@@ -280,7 +281,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int port = Integer.valueOf(valueString);
+        final int port = Integer.parseInt(valueString);
 
         if (port < SystemParameterValidator.MINIMUM_HTTP_PORT || port > SystemParameterValidator.MAXIMUM_HTTP_PORT) {
             errors.rejectValue("smtpPort", "parameters.errors.smtpport.outofrange", new Object[]{
@@ -300,7 +301,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int days = Integer.valueOf(valueString);
+        final int days = Integer.parseInt(valueString);
 
         if (days < SystemParameterValidator.MINIMUM_STANDBY_REMINDER_DAYS) {
             errors.rejectValue("smtpPort", "parameters.errors.standbyReminder.negative");

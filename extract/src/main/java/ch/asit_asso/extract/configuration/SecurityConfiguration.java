@@ -133,18 +133,15 @@ public class SecurityConfiguration {
     @Bean
     public ExtractLdapUserDetailsMapper ldapUserDetailsMapper(LdapSettings ldapSettings, UsersRepository usersRepository)
     {
-        ExtractLdapUserDetailsMapper userDetailsMapper = new ExtractLdapUserDetailsMapper(ldapSettings, usersRepository);
-
-        return userDetailsMapper;
+        return new ExtractLdapUserDetailsMapper(ldapSettings, usersRepository);
     }
 
 
 
     @Bean
     public ExtractLdapAuthenticationProvider ldapAuthenticationProvider(LdapSettings ldapSettings,
-                                                             ExtractLdapUserDetailsMapper ldapUserDetailsMapper,
-                                                             UsersRepository usersRepository) {
-        return new ExtractLdapAuthenticationProvider(ldapSettings, ldapUserDetailsMapper, usersRepository);
+                                                             ExtractLdapUserDetailsMapper ldapUserDetailsMapper) {
+        return new ExtractLdapAuthenticationProvider(ldapSettings, ldapUserDetailsMapper);
     }
 
 

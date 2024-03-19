@@ -277,7 +277,7 @@ public class SystemParameterModel extends PluginItemModel {
     public String getLdapSynchronizationUser() { return this.ldapSynchronizationUser; }
 
 
-    public void setLdapSynchronizationUser(String userName) { this.ldapSynchronizationUser = userName; };
+    public void setLdapSynchronizationUser(String userName) { this.ldapSynchronizationUser = userName; }
 
     /**
      * Gets the delay to wait before a new execution of an orchestrator job.

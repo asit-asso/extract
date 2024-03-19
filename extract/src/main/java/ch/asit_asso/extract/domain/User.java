@@ -23,6 +23,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -157,7 +158,7 @@ public class User implements Serializable {
      * A unique string that allows this user to change her password once.
      */
     @Size(max = 50)
-    @Column(name = "tokenpass", nullable = true)
+    @Column(name = "tokenpass")
     private String passwordResetToken;
 
     /**
@@ -664,7 +665,7 @@ public class User implements Serializable {
      * @return <code>true</code> if at least one process is associated to this user
      */
     public final boolean isAssociatedToProcesses() {
-        return this.processesCollection != null && this.processesCollection.size() > 0;
+        return this.processesCollection != null && !this.processesCollection.isEmpty();
     }
 
 
@@ -700,7 +701,7 @@ public class User implements Serializable {
      */
     public final boolean isLastActiveMemberOfProcessGroup() {
 
-        if (this.getUserGroupsCollection().size() == 0) {
+        if (this.getUserGroupsCollection().isEmpty()) {
             return false;
         }
 
@@ -718,7 +719,7 @@ public class User implements Serializable {
 
             for (User groupUser : group.getUsersCollection()) {
 
-                if (groupUser.getId() == this.getId() || !groupUser.isActive()) {
+                if (Objects.equals(groupUser.getId(), this.getId()) || !groupUser.isActive()) {
                     continue;
                 }
 
@@ -748,11 +749,9 @@ public class User implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof User)) {
+        if (!(object instanceof User other)) {
             return false;
         }
-
-        User other = (User) object;
 
         return this.id.equals(other.id);
     }

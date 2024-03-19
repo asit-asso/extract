@@ -16,6 +16,7 @@
  */
 package ch.asit_asso.extract.domain;
 
+import java.io.Serial;
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -96,6 +97,7 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 })
 public class SystemParameter implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -206,11 +208,9 @@ public class SystemParameter implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof SystemParameter)) {
+        if (!(object instanceof SystemParameter other)) {
             return false;
         }
-
-        SystemParameter other = (SystemParameter) object;
 
         return this.key.equals(other.key);
     }
