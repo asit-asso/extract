@@ -16,6 +16,11 @@
  */
 package ch.asit_asso.extract.orchestrator.schedulers;
 
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
@@ -23,6 +28,7 @@ import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.runners.ExportRequestsJobRunner;
 import ch.asit_asso.extract.orchestrator.runners.RequestMatcherJobRunner;
+import ch.asit_asso.extract.orchestrator.runners.RequestNotificationJobRunner;
 import ch.asit_asso.extract.orchestrator.runners.RequestTaskRunner;
 import ch.asit_asso.extract.orchestrator.runners.TaskCompleteListener;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
@@ -34,12 +40,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.config.FixedDelayTask;
 import org.springframework.scheduling.config.ScheduledTask;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 
 
@@ -91,6 +91,8 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      * The recurring job that attempts to match the new requests with a process.
      */
     private ScheduledTask processMatchingScheduledTask;
+
+    private ScheduledTask requestNotificationScheduledTask;
 
     /**
      * A collection of request that have a task currently running.
@@ -182,6 +184,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.scheduleTaskExportJob();
         this.scheduleProcessMatchingJob();
         this.scheduleTasksExecutionManagementJob();
+        this.scheduleRequestNotifierJob();
     }
 
 
@@ -195,6 +198,21 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.unscheduleTaskExportJob();
         this.unscheduleProcessMatchingJob();
         this.unscheduleTaskExecutionManagementJob();
+        this.unscheduleRequestNotifierJob();
+    }
+
+
+
+    /**
+     * Starts the batch process that will export requests results at a given interval.
+     */
+    private void scheduleRequestNotifierJob() {
+        this.logger.debug("Scheduling the request notification job.");
+        final RequestNotificationJobRunner notificationJobRunner = new RequestNotificationJobRunner(
+                this.applicationRepositories, this.emailSettings, this.applicationLangague);
+        final var recurringTask = new FixedDelayTask(notificationJobRunner, this.getSchedulingStepInMilliseconds(), 0);
+        this.requestNotificationScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
+        this.logger.debug("The request notification job is scheduled with a {} second(s) delay.", this.getSchedulingStep());
     }
 
 
@@ -271,12 +289,25 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      */
     private void scheduleTasksExecutionManagementJob() {
         this.logger.debug("Scheduling the requests task execution management job.");
+
+        if (this.requestNotificationScheduledTask == null) {
+            this.logger.debug("The request notification job is not scheduled, so nothing done.");
+            return;
+        }
+
+        this.taskExecutionScheduledTask.cancel();
+        this.logger.debug("The request notification job has been unscheduled.");
+    }
+
+
+    private void unscheduleRequestNotifierJob() {
+        this.logger.debug("Scheduling the requests notification management job.");
         final var recurringTask = new FixedDelayTask(this::manageTaskProcessingJobs,
                                                      this.getSchedulingStepInMilliseconds(), 0);
-        this.taskExecutionScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
+        this.requestNotificationScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
 
-        this.logger.debug("The request task execution management job is scheduled with a {} second(s) delay.",
-                this.getSchedulingStep());
+        this.logger.debug("The request notification job is scheduled with a {} second(s) delay.",
+                          this.getSchedulingStep());
     }
 
 

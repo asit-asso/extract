@@ -226,6 +226,14 @@ public class Request implements Serializable {
     private String externalUrl;
 
     /**
+     * When this order was imported.
+     */
+    @Column(name = "last_reminder")
+    @Temporal(TemporalType.TIMESTAMP)
+    private Calendar lastReminder;
+
+
+    /**
      * The set of tasks attached to this data item order to produce the requested data.
      */
     @JoinColumn(name = "id_process", referencedColumnName = "id_process",
@@ -943,6 +951,12 @@ public class Request implements Serializable {
         this.externalUrl = url;
     }
 
+
+    public Calendar getLastReminder() { return this.lastReminder; }
+
+
+
+    public void setLastReminder(Calendar lastReminder) { this.lastReminder = lastReminder; }
 
 
     /**

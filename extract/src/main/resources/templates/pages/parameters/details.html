@@ -122,6 +122,22 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('standbyReminderDays')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.standbyReminder.label}"
+                                                       class="form-label col-form-label">
+                                                    {Port SMTP}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="number" class="form-control" th:field="*{standbyReminderDays}"
+                                                       th:title="${#fields.hasErrors('standbyReminderDays')} ? ${#fields.errors('standbyReminderDays')[0]}"
+                                                       value="{standbyReminderDays}" min="0" step="1" data-bs-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card card-default">

@@ -179,7 +179,7 @@ public class SystemParametersController extends BaseController {
             SystemParametersRepository.SMTP_PASSWORD_KEY, SystemParametersRepository.SMTP_PORT_KEY,
             SystemParametersRepository.SMTP_SERVER_KEY, SystemParametersRepository.SMTP_USER_KEY,
             SystemParametersRepository.SMTP_SSL_KEY, SystemParametersRepository.ENABLE_MAIL_NOTIFICATIONS,
-            SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY
+            SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY, SystemParametersRepository.STANDBY_REMINDER_DAYS
         };
 
         if (bindingResult.hasErrors()) {
@@ -261,6 +261,10 @@ public class SystemParametersController extends BaseController {
                         systemParameter.setValue(parameterModel.getSslType().name());
                         break;
 
+                    case SystemParametersRepository.STANDBY_REMINDER_DAYS:
+                        systemParameter.setValue(parameterModel.getStandbyReminderDays());
+                        break;
+
                     case SystemParametersRepository.ENABLE_MAIL_NOTIFICATIONS:
                         final String mailEnabledValue = (parameterModel.isMailEnabled())
                                 ? SystemParametersController.ON_STRING
@@ -330,6 +334,7 @@ public class SystemParametersController extends BaseController {
         systemParameterModel.setSmtpServer(systemParametersRepository.getSmtpServer());
         systemParameterModel.setSmtpUser(systemParametersRepository.getSmtpUser());
         systemParameterModel.setSslType(systemParametersRepository.getSmtpSSL());
+        systemParameterModel.setStandbyReminderDays(systemParametersRepository.getStandbyReminderDays());
         final String mailEnabledValue = systemParametersRepository.isEmailNotificationEnabled();
         systemParameterModel.setMailEnabled(SystemParametersController.ON_STRING.equals(mailEnabledValue));
         systemParameterModel.setValidationFocusProperties(systemParametersRepository.getValidationFocusProperties());
