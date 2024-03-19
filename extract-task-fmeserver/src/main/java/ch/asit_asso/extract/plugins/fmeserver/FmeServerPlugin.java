@@ -16,14 +16,6 @@
  */
 package ch.asit_asso.extract.plugins.fmeserver;
 
-import ch.asit_asso.extract.plugins.common.IEmailSettings;
-import ch.asit_asso.extract.plugins.common.ITaskProcessor;
-import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
-import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -37,6 +29,14 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
+import ch.asit_asso.extract.plugins.common.IEmailSettings;
+import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
+import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
@@ -254,7 +254,7 @@ public class FmeServerPlugin implements ITaskProcessor {
         ObjectNode passwordNode = parametersNode.addObject();
         passwordNode.put("code", this.config.getProperty("paramPassword"));
         passwordNode.put("label", this.messages.getString("paramPassword.label"));
-        passwordNode.put("type", "text");
+        passwordNode.put("type", "pass");
         passwordNode.put("req", false);
         passwordNode.put("maxlength", 50);
 
