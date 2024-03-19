@@ -17,11 +17,13 @@
 package ch.asit_asso.extract.authentication;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -122,6 +124,8 @@ public class ApplicationUser implements UserDetails {
      */
     @Override
     public final Collection<? extends GrantedAuthority> getAuthorities() {
+        this.logger.debug("Roles list: {}",
+                          String.join(", ", this.rolesList.stream().map(GrantedAuthority::getAuthority).toList()));
         return Collections.unmodifiableCollection(this.rolesList);
     }
 
@@ -189,28 +193,45 @@ public class ApplicationUser implements UserDetails {
 
 
 
-    public String getTwoFactorStandbyToken() { return twoFactorStandbyToken; }
+    public String getTwoFactorStandbyToken() { return this.twoFactorStandbyToken; }
 
     /**
      * Checks if this user has been granted a given permission.
      *
-     * @param authorityName the string that identifies the permission to check
+     * @param requiredAuthorityName the string that identifies the permission to check
      * @return <code>true</code> if the user has been granted the permission
      */
-    public final boolean hasAuthority(final String authorityName) {
+    public final boolean hasAuthority(final String requiredAuthorityName) {
 
-        if (StringUtils.isBlank(authorityName)) {
+        if (StringUtils.isBlank(requiredAuthorityName)) {
             throw new IllegalArgumentException("The authority to check cannot be empty.");
         }
 
-        for (GrantedAuthority authority : this.getAuthorities()) {
+        return this.getAuthorities().stream()
+                   .map(GrantedAuthority::getAuthority)
+                   .anyMatch(grantedAuthorityName -> grantedAuthorityName.equals(requiredAuthorityName));
+    }
 
-            if (authorityName.equals(authority.getAuthority())) {
-                return true;
-            }
+
+
+    public final <T extends Enum<T>> boolean hasAnyAuthority(final T[] authoritiesEnum) {
+
+        if (ArrayUtils.isEmpty(authoritiesEnum)) {
+            throw new IllegalArgumentException("There must be at least one authority to check.");
         }
 
-        return false;
+        List<String> acceptedAuthoritiesNames = Arrays.stream(authoritiesEnum)
+                                                      .map(Enum::name)
+                                                      .toList();
+
+        List<String> grantedAuthoritiesNames = this.getAuthorities().stream()
+                                                     .map(GrantedAuthority::getAuthority).toList();
+
+        this.logger.debug("Looking for one of [{}] among granted authorities ([{}])",
+                          String.join(", ", acceptedAuthoritiesNames),
+                          String.join(", ", grantedAuthoritiesNames));
+
+        return grantedAuthoritiesNames.stream().anyMatch(acceptedAuthoritiesNames::contains);
     }
 
 
@@ -284,9 +305,13 @@ public class ApplicationUser implements UserDetails {
         }
 
         if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.ACTIVE) {
+            this.logger.debug("User 2FA status is active. Adding the role to access 2FA authentication.");
             list.add(new SimpleGrantedAuthority("CAN_AUTHENTICATE_2FA"));
         } else if (domainUser.isTwoFactorForced() || domainUser.getTwoFactorStatus() == User.TwoFactorStatus.STANDBY) {
+            this.logger.debug("User 2FA status is in standby. Adding the role to access 2FA registrations.");
             list.add(new SimpleGrantedAuthority("CAN_REGISTER_2FA"));
+        } else {
+            this.logger.debug("User 2FA status is inactive. No 2FA role added.");
         }
 
         if (list.isEmpty()) {
