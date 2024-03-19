@@ -1,0 +1,116 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<!--
+Copyright (C) 2017 arx iT
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+-->
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/masterNoNavigation}">
+<head>
+    <title>[[#{application.name}]]&nbsp;&ndash; [[#{2fa.register.page.title}]]</title>
+</head>
+<body>
+<div class="container-fluid">
+    <th:block layout:fragment="content">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="alert alert-dismissible alert-danger" th:if="${errorMessage}">
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"
+                            data-bs-toggle="tooltip"
+                            th:attr="aria-label=#{message.close}" th:title="#{message.close}" title="{Close}">
+                    </button>
+                    <h4 th:text="#{errors.panel.title}">{Error}</h4>
+                    <div th:text="${#messages.msg(errorMessage)}">{Error}</div>
+                </div>
+                <div class="login-card card card-default">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <img src="../static/images/extract_logo.png" th:src="@{/images/extract_logo.png}" />
+                            <span class="login-card-title" th:text="#{2fa.register.body.title}">
+                                        {2FA registration}
+                                    </span>
+                        </h3>
+                    </div>
+                    <div class="card-body card-body-2fa">
+                        <p th:text="#{2fa.register.admin.forced}" th:if="isForced">
+                            {An administrator required this functionality for you}
+                        </p>
+                        <p class="strong" th:text="#{2fa.register.scanCode}">
+                            {Scan QR Code with Google Authenticator}
+                        </p>
+                        <p>
+                            <span th:text="#{2fa.register.application.free}">
+                                {The application can be freely downloaded from the }
+                            </span>
+                            <a href="https://apps.apple.com/us/app/google-authenticator/id388497605"
+                               th:href="#{2fa.register.appStore.link}" th:text="#{2fa.register.appStore.text}">
+                                {App Store}
+                            </a>
+                            <span th:text="#{2fa.register.application.orText}">
+                                { or from the }
+                            </span>
+                            <a href="https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2&hl=en"
+                               th:href="#{2fa.register.playStore.link}" th:text="#{2fa.register.playStore.text}">
+                                {Play Store}
+                            </a>
+                            <span>.</span>
+                        </p>
+                        <div>
+                            <img src="https://monimage.com/monqr.png" th:src="${qrCodeUrl}" />
+                        </div>
+                        <p th:text="#{2fa.register.enterCode}">
+                            {or enter the following code manually in the application}
+                        </p>
+                        <p class="strong" th:text="${token}">
+                            {HP24376382GFJFU67657}
+                        </p>
+                        <form id="registrationForm" th:action="@{/2fa/register}" action="#" method="POST">
+                            <p th:text="#{2fa.register.providedCode}">
+                                {Code provided by Google Authenticator}
+                            </p>
+                            <div class="form-group">
+                                <input type="text" id="registrationCode" name="registrationCode" class="form-control"
+                                       placeholder="XXXXXX" autocomplete="off" autofocus />
+                            </div>
+                            <input type="hidden" id="_csrf" value="${_csrf.token}" />
+                            <div class="button-row" th:unless="${isForced}">
+                                <button type="button" id="cancelRegistrationButton" class="btn btn-extract-white mt-3"
+                                        th:text="#{2fa.register.buttons.cancel.label}">
+                                    {Cancel}
+                                </button>
+                                <button type="submit" class="btn btn-extract-filled mt-3"
+                                        th:text="#{2fa.register.submit.label}" />
+                            </div>
+                            <button type="submit" class="btn btn-extract-filled mt-3"
+                                    th:text="#{2fa.register.submit.label}" th:if="${isForced}" />
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</div>
+<th:block layout:fragment="customScripts">
+    <script type="text/javascript" th:inline="javascript">
+        /*<![CDATA[*/
+        var cancelUrl = /*[[@{/2fa/cancelRegistration}]]*/ 'cancel';
+        /*]]>*/</script>
+    <script type="text/javascript" src="../../static/js/register2fa.js"
+            th:src="@{/js/register2fa.js} + '?v=@@extractVersion@@'"></script>
+
+</th:block>
+</body>
+</html>

@@ -16,10 +16,14 @@
  */
 package ch.asit_asso.extract.web.model;
 
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorApplication;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
+import ch.asit_asso.extract.domain.User.TwoFactorStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.util.StringUtils;
 
@@ -90,6 +94,18 @@ public class UserModel {
     private Profile profile;
 
 
+    private boolean twoFactorForced;
+
+
+    private TwoFactorStatus twoFactorStatus;
+
+
+    private String twoFactorToken;
+
+
+    private String twoFactorStandbyToken;
+
+
 
     /**
      * Creates an instance of this model for a new user.
@@ -99,6 +115,8 @@ public class UserModel {
         this.beingCreated = true;
         this.active = false;
         this.profile = Profile.OPERATOR;
+        this.twoFactorForced = false;
+        this.twoFactorStatus = TwoFactorStatus.INACTIVE;
     }
 
 
@@ -382,6 +400,84 @@ public class UserModel {
     }
 
 
+    public final boolean isTwoFactorForced() { return this.twoFactorForced; }
+
+
+    public void setTwoFactorForced(final boolean isForced) {
+        this.twoFactorForced = isForced;
+    }
+
+    public TwoFactorStatus getTwoFactorStatus() {
+        return twoFactorStatus;
+    }
+
+    public void setTwoFactorStatus(final TwoFactorStatus status) {
+        this.twoFactorStatus = (status != null) ? status : TwoFactorStatus.INACTIVE;
+    }
+
+    public String getTwoFactorToken() { return this.twoFactorToken; }
+
+    public void setTwoFactorToken(String token) { this.twoFactorToken = token; }
+
+    public String getTwoFactorStandbyToken() { return this.twoFactorStandbyToken; }
+
+    public void setTwoFactorStandbyToken(String token) { this.twoFactorStandbyToken = token; }
+
+    public final TwoFactorStatus getNewStatusToSet(TwoFactorStatus originalStatus, TwoFactorStatus requestedStatus,
+                                                   boolean is2faForced) {
+        if (originalStatus == null) {
+            return (is2faForced) ? TwoFactorStatus.STANDBY : TwoFactorStatus.INACTIVE;
+        }
+
+        return switch (originalStatus) {
+
+            case ACTIVE -> {
+
+                    if (requestedStatus != TwoFactorStatus.INACTIVE || !is2faForced) {
+                        yield requestedStatus;
+                    }
+
+                    yield TwoFactorStatus.STANDBY;
+                }
+
+            case INACTIVE -> (requestedStatus == TwoFactorStatus.ACTIVE || is2faForced) ? TwoFactorStatus.STANDBY
+                                                                                        : TwoFactorStatus.INACTIVE;
+            case STANDBY -> (requestedStatus == TwoFactorStatus.INACTIVE && !is2faForced) ? TwoFactorStatus.INACTIVE
+                                                                                          : TwoFactorStatus.STANDBY;
+            default -> originalStatus;
+        };
+    }
+
+
+    public final void processTwoFactorChange(User originalStateUser, boolean isCurrentUserAdmin,
+                                             BytesEncryptor encryptor, TwoFactorService twoFactorService) {
+        TwoFactorStatus oldStatus = originalStateUser.getTwoFactorStatus();
+        TwoFactorStatus requestedStatus = this.getTwoFactorStatus();
+        boolean oldForcedState = originalStateUser.isTwoFactorForced();
+        boolean requestedForcedState = this.isTwoFactorForced();
+        boolean newForcedState = (isCurrentUserAdmin) ? requestedForcedState : oldForcedState;
+        TwoFactorStatus newStatus = getNewStatusToSet(oldStatus, requestedStatus, newForcedState);
+
+        this.logger.debug("Request to switch status from {} to {}. Granted status: {}.",
+                          oldStatus.name(), requestedStatus.name(), newStatus.name());
+        this.logger.debug("Request to switch forced state from {} to {}. Granted state: {}",
+                          oldForcedState, requestedForcedState, newForcedState);
+
+        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(originalStateUser, encryptor,
+                                                                             twoFactorService);
+
+        if (newStatus == TwoFactorStatus.INACTIVE) {
+            twoFactorApplication.disable();
+
+        } else if (newStatus == TwoFactorStatus.STANDBY && oldStatus != TwoFactorStatus.STANDBY) {
+            twoFactorApplication.enable();
+        }
+
+        this.setTwoFactorToken(originalStateUser.getTwoFactorToken());
+        this.setTwoFactorStandbyToken(originalStateUser.getTwoFactorStandbyToken());
+        this.setTwoFactorForced(newForcedState);
+        this.setTwoFactorStatus(newStatus);
+    }
 
     /**
      * Makes a new data object for this user.
@@ -389,7 +485,8 @@ public class UserModel {
      * @param passwordEncoder the encoder to use to hash the user's password
      * @return the created user data object
      */
-    public final User createDomainObject(final PasswordEncoder passwordEncoder) {
+    public final User createDomainObject(final PasswordEncoder passwordEncoder, final BytesEncryptor encryptor,
+                                         final TwoFactorService twoFactorService) {
 
         if (passwordEncoder == null) {
             throw new IllegalArgumentException("The password encoder cannot be null.");
@@ -397,7 +494,7 @@ public class UserModel {
 
         User domainUser = new User();
 
-        return this.updateDomainObject(domainUser, passwordEncoder, false);
+        return this.updateDomainObject(domainUser, passwordEncoder, encryptor, twoFactorService, false, true);
     }
 
 
@@ -405,13 +502,15 @@ public class UserModel {
     /**
      * Reports the modifications to this model to the user data object.
      *
-     * @param domainUser      the data object for this user
-     * @param passwordEncoder the encoder to use to hash the user's password
-     * @param isCurrentUser   <code>true</code> if the user being edited is the currently logged user
+     * @param domainUser         the data object for this user
+     * @param passwordEncoder    the encoder to use to hash the user's password
+     * @param isCurrentUser      <code>true</code> if the user being edited is the currently logged user
+     * @param isCurrentUserAdmin <code>true</code> if the currently logged user has administrator privileges
      * @return the updated user data object
      */
     public final User updateDomainObject(final User domainUser, final PasswordEncoder passwordEncoder,
-            boolean isCurrentUser) {
+                                         final BytesEncryptor encryptor, TwoFactorService twoFactorService,
+                                         boolean isCurrentUser, boolean isCurrentUserAdmin) {
 
         if (domainUser == null) {
             throw new IllegalArgumentException("The user domain object to update cannot be null.");
@@ -425,6 +524,11 @@ public class UserModel {
         domainUser.setEmail(this.getEmail());
         domainUser.setLogin(this.getLogin());
         domainUser.setName(this.getName());
+
+        this.processTwoFactorChange(domainUser, isCurrentUserAdmin, encryptor, twoFactorService);
+        domainUser.setTwoFactorStatus(this.getTwoFactorStatus());
+        domainUser.setTwoFactorForced(this.isTwoFactorForced());
+        this.logger.debug("The new forced status of the domain user is {}.", domainUser.isTwoFactorForced());
 
         if (this.isPasswordDefined() && !this.isPasswordGenericString()) {
             domainUser.setPassword(passwordEncoder.encode(this.getPassword()));
@@ -470,6 +574,10 @@ public class UserModel {
         this.setPassword(UserModel.PASSWORD_GENERIC_STRING);
         this.setPasswordConfirmation(UserModel.PASSWORD_GENERIC_STRING);
         this.setProfile(domainUser.getProfile());
+        this.setTwoFactorForced(domainUser.isTwoFactorForced());
+        this.setTwoFactorStatus(domainUser.getTwoFactorStatus());
+        this.setTwoFactorToken(domainUser.getTwoFactorToken());
+        this.setTwoFactorStandbyToken(domainUser.getTwoFactorStandbyToken());
     }
 
 }

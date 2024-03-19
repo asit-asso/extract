@@ -395,6 +395,15 @@ input[type="file"].hidden-file-upload-control {
     margin-bottom: 0;
 }
 
+.card-body.card-body-2fa {
+    text-align: center;
+    padding: 3rem;
+}
+
+.card-body.card-body-2fa div {
+    margin-bottom: .5rem;
+}
+
 .extract-proc-tasks .col-lg-8 .card .card-body .card .card-body{
     margin-bottom: 0;
 }
@@ -410,6 +419,25 @@ input[type="file"].hidden-file-upload-control {
 
 .form-control {
     padding: 6px 9px;
+}
+
+.card-body.card-body-2fa .form-control {
+    display: inline;
+    text-align: center;
+    width: unset;
+}
+
+.card-body.card-body-2fa .button-row {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: .5rem;
+    justify-content: center;
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+}
+
+.card-body.card-body-2fa .button-row > * {
+    min-width: 7.5rem;
 }
 
 span.form-control-plaintext {

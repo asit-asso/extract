@@ -16,8 +16,18 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.util.Objects;
+import java.util.stream.Collectors;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorBackupCodes;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorRememberMe;
+import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.UserGroup;
+import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
+import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.UserModel;
@@ -26,17 +36,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
+import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.InitBinder;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-
-import javax.validation.Valid;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 
 /**
@@ -79,11 +92,26 @@ public class UsersController extends BaseController {
      */
     private final Logger logger = LoggerFactory.getLogger(UsersController.class);
 
+    @Autowired
+    private RecoveryCodeRepository backupCodesRepository;
+
+    /**
+     * The Spring Security object that allows to hash passwords.
+     */
+    @Autowired
+    private BytesEncryptor encryptor;
+
     /**
      * The Spring Security object that allows to hash passwords.
      */
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private RememberMeTokenRepository rememberMeRepository;
+
+    @Autowired
+    private TwoFactorService twoFactorService;
 
     /**
      * The Spring Data repository that links the user data objects to the data source.
@@ -147,7 +175,7 @@ public class UsersController extends BaseController {
             return this.prepareModelForDetailsView(model, false, null, redirectAttributes);
         }
 
-        User domainUser = userModel.createDomainObject(this.passwordEncoder);
+        User domainUser = userModel.createDomainObject(this.passwordEncoder, this.encryptor, this.twoFactorService);
         boolean success;
 
         try {
@@ -258,8 +286,9 @@ public class UsersController extends BaseController {
      */
     @PostMapping("{id}")
     public final String updateItem(@Valid @ModelAttribute("user") final UserModel userModel,
-            final BindingResult bindingResult, final ModelMap model, @PathVariable final int id,
-            final RedirectAttributes redirectAttributes) {
+                                   final BindingResult bindingResult, final ModelMap model, @PathVariable final int id,
+                                   final RedirectAttributes redirectAttributes, final HttpServletRequest request,
+                                   final HttpServletResponse response) {
         this.logger.debug("Processing the data to update a user.");
 
         if (!this.canEditUser(id)) {
@@ -310,11 +339,26 @@ public class UsersController extends BaseController {
             return redirectTarget;
         }
 
-        userModel.updateDomainObject(domainUser, this.passwordEncoder, (userModel.getId() == this.getCurrentUserId()));
+        userModel.updateDomainObject(domainUser, this.passwordEncoder, this.encryptor, this.twoFactorService,
+                                     (userModel.getId() == this.getCurrentUserId()), this.isCurrentUserAdmin());
+
+        boolean displayWizard = currentUser.equals(userModel.getLogin())
+                && userModel.getTwoFactorStatus() == User.TwoFactorStatus.STANDBY;
+
         boolean success;
 
         try {
             domainUser = this.usersRepository.save(domainUser);
+
+            if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.INACTIVE) {
+                TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
+                                                                             this.passwordEncoder);
+                rememberMeUser.disable(request, response);
+                TwoFactorBackupCodes backupCodesUser = new TwoFactorBackupCodes(domainUser, this.backupCodesRepository,
+                                                                                this.passwordEncoder);
+                backupCodesUser.delete();
+
+            }
             success = (domainUser != null);
 
         } catch (Exception exception) {
@@ -329,6 +373,11 @@ public class UsersController extends BaseController {
         }
 
         this.addStatusMessage(redirectAttributes, "usersList.user.updated", MessageType.SUCCESS);
+
+        if (displayWizard) {
+            request.getSession().setAttribute("2faStep", "REGISTER");
+            return "redirect:/2fa/register";
+        }
 
         return redirectTarget;
     }

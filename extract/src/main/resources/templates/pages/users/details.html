@@ -214,6 +214,66 @@
                                                ? ${#fields.errors('passwordConfirmation')[0]}" />
                                     </div>
                                 </div>
+                                <div class="col-xl-6">
+                                    <input type="hidden" th:field="*{twoFactorStatus}" />
+                                    <div class="form-group form-group-with-label" th:if="${user.beingCreated}">
+                                        <div>
+                                            <label class="form-label"
+                                                   th:text="#{userDetails.fields.2faForced.longLabel}">{Force 2FA usage}</label>
+                                        </div>
+                                        <div class="btn-group" data-bs-toggle="buttons">
+                                            <input type="radio" class="btn-check" th:field="*{twoFactorForced}" value="0" />
+                                            <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                   th:for="twoFactorForced1">
+                                                &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                            </label>
+                                            <input type="radio" class="btn-check" th:field="*{twoFactorForced}" value="1" />
+                                            <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                   th:for="twoFactorForced2">
+                                                &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-with-label" th:unless="${user.beingCreated or (isOwnAccount and user.twoFactorForced)}">
+                                        <div>
+                                            <label class="form-label"
+                                                   th:text="#{userDetails.fields.2fa.label}">{Two-factor authentication}</label>
+                                        </div>
+                                        <div class="row">
+                                            <div class="col-xl-6">
+                                                <div class="form-group form-group-with-label">
+                                                    <div>
+                                                        <label class="form-label"
+                                                               th:text="#{userDetails.fields.2faStatus.label}">{Status}</label>
+                                                    </div>
+                                                    <div class="two-factor-button-container">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-xl-6 force-2fa-usage-block" th:unless="${isOwnAccount}">
+                                                <div class="form-group form-group-with-label">
+                                                    <div>
+                                                        <label class="form-label"
+                                                               th:text="#{userDetails.fields.2faForced.label}">{Force usage}</label>
+                                                    </div>
+                                                    <div class="btn-group" data-bs-toggle="buttons">
+                                                        <input type="radio" class="btn-check" th:field="*{twoFactorForced}" value="0" />
+                                                        <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                               th:for="twoFactorForced1">
+                                                            &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                        </label>
+                                                        <input type="radio" class="btn-check" th:field="*{twoFactorForced}" value="1" />
+                                                        <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                               th:for="twoFactorForced2">
+                                                            &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <input type="hidden" th:field="*{twoFactorForced}" th:if="${isOwnAccount}" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -234,6 +294,34 @@
                     });
 
                     $('#userSaveButton').on('click', submitUserData);
+
+                    var current2faStatus = /*[[${user.twoFactorStatus.name()}]]*/ 'INACTIVE';
+                    var statusStrings = {
+                        "ACTIVE": /*[[#{user.2faStatus.ACTIVE}]]*/ "Active",
+                        "INACTIVE": /*[[#{user.2faStatus.INACTIVE}]]*/ "Inactive",
+                        "STANDBY": /*[[#{user.2faStatus.STANDBY}]]*/ "Standby"
+                    }
+                    var statusActionStrings = {
+                        "ACTIVE": /*[[#{user.2faStatus.action.ACTIVE}]]*/ "Enable",
+                        "INACTIVE": /*[[#{user.2faStatus.action.INACTIVE}]]*/ "Disable",
+                        "STANDBY": /*[[#{user.2faStatus.action.STANDBY}]]*/ "Reset"
+                    }
+
+                    var isBeingCreated = /*[[${user.beingCreated}]]*/ false;
+                    var isOwnAccount = /*[[${isOwnAccount}]]*/ false;
+
+                    if (!isBeingCreated) {
+                        update2faStatusButton(current2faStatus, current2faStatus, statusStrings, statusActionStrings);
+
+                        if (!isOwnAccount) {
+                            $('#profile1').on('click', function () {
+                                processProfileChange(false);
+                            });
+                            $('#profile2').on('click', function () {
+                                processProfileChange(true);
+                            });
+                        }
+                    }
                 });
                 /*]]>*/</script>
         </th:block>

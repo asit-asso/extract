@@ -16,7 +16,6 @@
  */
 package ch.asit_asso.extract.persistence;
 
-import ch.asit_asso.extract.domain.Remark;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -42,6 +41,9 @@ public class ApplicationRepositories {
     @Autowired
     private ProcessesRepository processesRepository;
 
+    @Autowired
+    private RecoveryCodeRepository recoveryCodeRepository;
+
     /**
      * The link between request history record data objects and the data source.
      */
@@ -59,6 +61,9 @@ public class ApplicationRepositories {
      */
     @Autowired
     private RemarkRepository remarksRepository;
+
+    @Autowired
+    private RememberMeTokenRepository rememberMeTokenRepository;
 
     /**
      * The link between rule data objects and the data source.
@@ -105,6 +110,14 @@ public class ApplicationRepositories {
     public final ProcessesRepository getProcessesRepository() {
         return this.processesRepository;
     }
+
+
+
+    public final RecoveryCodeRepository getRecoveryCodeRepository() { return this.recoveryCodeRepository; }
+
+
+
+    public final RememberMeTokenRepository getRememberMeTokenRepository() { return this.rememberMeTokenRepository; }
 
 
 

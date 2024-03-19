@@ -20,12 +20,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import ch.asit_asso.extract.domain.RecoveryCode;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
@@ -62,6 +64,14 @@ public class ApplicationUser implements UserDetails {
      */
     private final List<GrantedAuthority> rolesList;
 
+    private final boolean twoFactorForced;
+
+    private final User.TwoFactorStatus twoFactorStatus;
+
+    private final String twoFactorActiveToken;
+
+    private final String twoFactorStandbyToken;
+
     /**
      * The number that uniquely identifies this user in the application.
      */
@@ -71,6 +81,9 @@ public class ApplicationUser implements UserDetails {
      * The string that uniquely identifies this user in the application.
      */
     private final String userName;
+
+
+    //private final Collection<RecoveryCode> recoveryCodes;
 
 
 
@@ -91,6 +104,11 @@ public class ApplicationUser implements UserDetails {
         this.userName = domainUser.getLogin();
         this.passwordHash = domainUser.getPassword();
         this.isActive = domainUser.isActive();
+        this.twoFactorForced = domainUser.isTwoFactorForced();
+        this.twoFactorStatus = domainUser.getTwoFactorStatus();
+        this.twoFactorActiveToken = domainUser.getTwoFactorToken();
+        this.twoFactorStandbyToken = domainUser.getTwoFactorStandbyToken();
+        //this.recoveryCodes = domainUser.getTwoFactorRecoveryCodesCollection();
         this.rolesList = this.buildRolesList(domainUser);
     }
 
@@ -153,6 +171,23 @@ public class ApplicationUser implements UserDetails {
     }
 
 
+
+    public final boolean isTwoFactorForced() { return this.twoFactorForced; }
+
+
+
+    public final User.TwoFactorStatus getTwoFactorStatus() { return this.twoFactorStatus; }
+
+
+
+    public String getTwoFactorActiveToken() { return this.twoFactorActiveToken; }
+
+
+
+    //public Collection<RecoveryCode> getTwoFactorRecoveryCodes() { return this.recoveryCodes; }
+
+
+    public String getTwoFactorStandbyToken() { return twoFactorStandbyToken; }
 
     /**
      * Checks if this user has been granted a given permission.
@@ -246,11 +281,16 @@ public class ApplicationUser implements UserDetails {
             list.add(new ApplicationUserRole(userProfile));
         }
 
+        if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.ACTIVE) {
+            list.add(new SimpleGrantedAuthority("CAN_AUTHENTICATE_2FA"));
+        } else if (domainUser.isTwoFactorForced() || domainUser.getTwoFactorStatus() == User.TwoFactorStatus.STANDBY) {
+            list.add(new SimpleGrantedAuthority("CAN_REGISTER_2FA"));
+        }
+
         if (list.isEmpty()) {
             this.logger.warn("No profile found for user {}.", userLogin);
         }
 
         return list;
     }
-
 }
