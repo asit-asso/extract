@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ch.asit_asso.extract.web.model;
+package ch.asit_asso.extract.unit.web.model;
 
 import java.util.HashMap;
 import java.util.Map;

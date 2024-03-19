@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package ch.asit_asso.extract.web.model;
+package ch.asit_asso.extract.unit.web.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,17 +26,21 @@ import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Rule;
-import org.junit.Before;
-import org.junit.Test;
+import ch.asit_asso.extract.web.model.ConnectorModel;
+import ch.asit_asso.extract.web.model.RuleModel;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Tag;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
  * @author Yves Grasset
  */
+@Tag("unit")
 public class ConnectorModelTest {
     final static String DEFAULT_IMPORT_MESSAGE = "Dummy connector, could not import";
 
@@ -52,7 +56,7 @@ public class ConnectorModelTest {
 
 
 
-    @Before
+    @BeforeEach
     public void init() {
         this.dummyConnectorPlugin = new DummyConnectorPlugin();
 
