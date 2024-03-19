@@ -4,9 +4,6 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.utils.Secrets;
@@ -41,8 +38,6 @@ public class LdapSettings {
     private final Secrets secrets;
 
     private String[] servers;
-
-    private String[] serversUrls;
 
     private boolean synchronizationEnabled;
 
@@ -106,7 +101,6 @@ public class LdapSettings {
 
     public void setEncryptionType(EncryptionType encryptionType) {
         this.encryptionType = encryptionType;
-        this.updateServersUrls();
     }
 
     public ZonedDateTime getLastSynchronizationDate() {
@@ -166,7 +160,6 @@ public class LdapSettings {
         return this.servers;
     }
 
-    public String[] getServersUrls() { return this.serversUrls; }
 
     public void setServers(@NotNull String serversString) {
         List<String> serversList = new ArrayList<>();
@@ -176,46 +169,6 @@ public class LdapSettings {
         }
 
         this.servers = serversList.toArray(String[]::new);
-        this.updateServersUrls();
-    }
-
-    public void updateServersUrls() {
-
-        if (this.getEncryptionType() == null || this.getServers() == null) {
-            return;
-        }
-
-        List<String> urlsList = new ArrayList<>();
-
-        for (String server : this.servers) {
-            Pattern extractionPattern
-                    = Pattern.compile("^(?:ldaps?://)?(?<host>[A-Z0-9_\\-.]+)(?::(?<port>\\d+))?(?<file>/.*)?$",
-                                      Pattern.CASE_INSENSITIVE);
-            Matcher matcher = extractionPattern.matcher(server);
-            String host = null;
-            String port = null;
-            String file = null;
-
-            if (matcher.find()) {
-                host = matcher.group("host");
-                port = matcher.group("port");
-                file = matcher.group("file");
-            }
-
-            if (host == null) {
-                this.logger.warn("The server name {} is invalid. Server ignored.", server);
-                continue;
-            }
-
-            if (port == null) {
-                port = (this.getEncryptionType() == EncryptionType.STARTTLS) ? LdapSettings.DEFAULT_STARTTLS_PORT
-                                                                             : LdapSettings.DEFAULT_LDAPS_PORT;
-            }
-
-            urlsList.add(String.format("ldap://%s:%s%s", host, port, Objects.requireNonNullElse(file, "")));
-        }
-
-        this.serversUrls = urlsList.toArray(String[]::new);
     }
 
     public void setServers(String[] servers) {

@@ -17,6 +17,7 @@
 package ch.asit_asso.extract.persistence;
 
 import java.util.Collection;
+import java.util.List;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
@@ -32,12 +33,23 @@ import org.springframework.data.repository.query.Param;
  */
 public interface UsersRepository extends PagingAndSortingRepository<User, Integer> {
 
+    int countByEmailIgnoreCase(String email);
+
+
+
+    int countByEmailIgnoreCaseAndLoginNot(String email, String login);
+
+
     /**
      * Obtains all the users that are allowed to log in.
      *
      * @return an array of users
      */
     User[] findAllActiveApplicationUsers();
+
+
+
+    User[] findAllActiveApplicationUsersByUserType(User.UserType userType);
 
 
 
@@ -57,6 +69,10 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
      * @return the user, or <code>null</code> if none was found
      */
     User findByEmailIgnoreCase(String email);
+
+
+
+    User findByEmailIgnoreCaseAndLoginNot(String email, String login);
 
 
 
@@ -102,6 +118,8 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
     User findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(String login, User.UserType userType);
 
 
+    User[] findByActiveTrueAndUserTypeIsAndLoginNotIn(User.UserType userType, List<String> loginsToExclude);
+
 
     /**
      * Obtains an active local user based on the name used to log in.
@@ -111,6 +129,11 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
      */
     default User findLocalActiveUser(String login) {
         return this.findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(login, User.UserType.LOCAL);
+    }
+
+
+    default User[] findLdapActiveUsersNotIn(List<String> loginsToExclude) {
+        return this.findByActiveTrueAndUserTypeIsAndLoginNotIn(User.UserType.LDAP, loginsToExclude);
     }
 
 
