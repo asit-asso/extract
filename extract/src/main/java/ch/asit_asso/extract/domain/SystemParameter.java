@@ -61,6 +61,8 @@ import jakarta.xml.bind.annotation.XmlRootElement;
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'smtp_user'"),
     @NamedQuery(name = "SystemParameter.getSmtpSSL",
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'smtp_ssl'"),
+    @NamedQuery(name = "SystemParameter.getStandbyReminderDays",
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'standby_reminder_days'"),
     @NamedQuery(name = "SystemParameter.getDashboardRefreshInterval",
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'dashboard_interval'"),
     @NamedQuery(name = "SystemParameter.isEmailNotificationEnabled",

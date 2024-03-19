@@ -116,6 +116,9 @@ public class SystemParameterModel extends PluginItemModel {
     private SslType sslType;
 
 
+    private String standbyReminderDays;
+
+
     private String validationFocusProperties;
 
 
@@ -432,6 +435,13 @@ public class SystemParameterModel extends PluginItemModel {
             this.sslType = SslType.valueOf(connectionTypeString);
         }
     }
+
+
+
+    public final String getStandbyReminderDays() { return this.standbyReminderDays; }
+
+
+    public final void setStandbyReminderDays(final String days) { this.standbyReminderDays = days; }
 
 
 

@@ -60,6 +60,8 @@ public class SystemParameterValidator extends BaseValidator {
      */
     private static final int MINIMUM_SCHEDULER_FREQUENCY = 1;
 
+    private static final int MINIMUM_STANDBY_REMINDER_DAYS = 0;
+
     /**
      * The smallest number that is acceptable as an HTTP port.
      */
@@ -118,6 +120,7 @@ public class SystemParameterValidator extends BaseValidator {
         this.validateDashboardFrequency(systemParameterModel.getDashboardFrequency(), errors);
         this.validateSchedulerFrequency(systemParameterModel.getSchedulerFrequency(), errors);
         this.validateSmtpPort(systemParameterModel.getSmtpPort(), errors);
+        this.validateStandbyReminderDays(systemParameterModel.getStandbyReminderDays(), errors);
 
         if (!this.validateEmail(systemParameterModel.getSmtpFromMail())) {
             errors.rejectValue("smtpFromMail", "parameters.errors.smtpfrommail.invalid");
@@ -235,6 +238,24 @@ public class SystemParameterValidator extends BaseValidator {
             errors.rejectValue("smtpPort", "parameters.errors.smtpport.outofrange", new Object[]{
                 SystemParameterValidator.MINIMUM_HTTP_PORT, SystemParameterValidator.MAXIMUM_HTTP_PORT
             }, "parameters.errors.smtpport.invalid");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    private boolean validateStandbyReminderDays(final String valueString, final Errors errors) {
+
+        if (!this.validateInteger(valueString)) {
+            errors.rejectValue("standbyReminderDays", "parameters.errors.standbyReminder.invalid");
+            return false;
+        }
+
+        final int days = Integer.valueOf(valueString);
+
+        if (days < SystemParameterValidator.MINIMUM_STANDBY_REMINDER_DAYS) {
+            errors.rejectValue("smtpPort", "parameters.errors.standbyReminder.negative");
             return false;
         }
 

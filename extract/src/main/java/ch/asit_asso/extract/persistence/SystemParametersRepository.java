@@ -102,6 +102,9 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
     String SMTP_SSL_KEY = "smtp_ssl";
 
 
+    String STANDBY_REMINDER_DAYS = "standby_reminder_days";
+
+
     String VALIDATION_FOCUS_PROPERTIES_KEY = "validation_focus_properties";
 
 
@@ -233,6 +236,9 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      * @return the SSL type
      */
     String getSmtpSSL();
+
+
+    String getStandbyReminderDays();
 
 
 

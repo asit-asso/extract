@@ -111,6 +111,8 @@ class ApplicationParametersInitializer {
      */
     private static final EmailSettings.SslType DEFAULT_SSL_TYPE = EmailSettings.SslType.NONE;
 
+    private static final String DEFAULT_STANDBY_REMINDER_DAYS = "0";
+
     /**
      * The writer to the application logs.
      */
@@ -170,6 +172,8 @@ class ApplicationParametersInitializer {
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_MODE);
         this.ensureParameterInitialized(SystemParametersRepository.SCHEDULER_RANGES,
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_RANGES);
+        this.ensureParameterInitialized(SystemParametersRepository.STANDBY_REMINDER_DAYS,
+                ApplicationParametersInitializer.DEFAULT_STANDBY_REMINDER_DAYS);
         this.ensureParameterInitialized(SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY,
                                         "");
         this.ensureParameterInitialized(SystemParametersRepository.DISPLAY_TEMP_FOLDER,
