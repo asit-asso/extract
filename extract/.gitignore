@@ -1,3 +1,7 @@
 /target/
 /yarn.lock
 /src/main/resources/static/lib/
+/.pnp.cjs
+/.pnp.loader.mjs
+/.yarnrc.yml
+/extract.iml
