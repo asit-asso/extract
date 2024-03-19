@@ -107,13 +107,34 @@ var LANG_MESSAGES = {
         }
     },
     "userDetails": {
-      "migrateConfirm": {
-          "title": "Migration d'un utilisateur vers LDAP",
-          "message": "Êtes vous sûr de vouloir migrer cet utilisateur vers LDAP ?\n\nL'utilisateur devra obligatoirement se connecter avec ses identifiants LDAP\n\nCette action n'est pas réversible.\n\nPar ailleurs, les autres évnetuelles modifications seront perdues.",
-          "alertButtons": {
-              "migrate": "Migrer l'utilisateur"
-          }
-      }
+        "migrateConfirm": {
+            "title": "Migration d'un utilisateur vers LDAP",
+            "message": "Êtes vous sûr de vouloir migrer cet utilisateur vers LDAP ?\n\nL'utilisateur devra obligatoirement se connecter avec ses identifiants LDAP\n\nCette action n'est pas réversible.\n\nPar ailleurs, les éventuelles autres modifications seront perdues.",
+            "alertButtons": {
+                "execute": "Migrer l'utilisateur"
+            }
+        },
+        "disable2faConfirm": {
+            "title": "Désactivation de l'authentification à deux facteurs",
+            "message": "Êtes vous sûr de vouloir désactiver l'authentification à deux facteurs pour cet utilisateur ?\n\nLes éventuelles autres modifications seront perdues.",
+            "alertButtons": {
+                "execute": "Désactiver"
+            }
+        },
+        "enable2faConfirm": {
+            "title": "Activation de l'authentification à deux facteurs",
+            "message": "Êtes vous sûr de vouloir activer l'authentification à deux facteurs pour cet utilisateur ?\n\nLes éventuelles autres modifications seront perdues.",
+            "alertButtons": {
+                "execute": "Activer"
+            }
+        },
+        "reset2faConfirm": {
+            "title": "Réinitialisation de l'authentification à deux facteurs",
+            "message": "Êtes vous sûr de vouloir réinitialiser l'authentification à deux facteurs pour cet utilisateur ?\n\nLes éventuelles autres modifications seront perdues.",
+            "alertButtons": {
+                "execute": "Réinitialiser"
+            }
+        }
     },
     "userGroupsList" : {
         "deleteConfirm" : {

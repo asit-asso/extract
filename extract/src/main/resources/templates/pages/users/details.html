@@ -27,19 +27,30 @@
                     </div>
                     <div>
                         <div class="float-end">
-                            <div id="enable2faButton" class="btn border-secondary text-secondary" th:text="#{userDetails.action.2fa.enable.label}"
-                                 th:if="false and ${user.twoFactorStatus == T(ch.asit_asso.extract.domain.User.TwoFactorStatus).INACTIVE} and not ${user.twoFactorForced} and not ${isOwnAccount} and not ${user.beingCreated}">
-                                {Migrate to LDAP}
-                            </div>
-                            <div id="reset2faButton" class="btn border-secondary text-secondary" th:text="#{userDetails.action.2fa.reset.label}"
-                                 th:if="false and ${isLdapOn} and ${isLocalUser} and not ${isOwnAccount} and not ${user.beingCreated}">
-                                {Migrate to LDAP}
-                            </div>
-                            <div id="disable2faButton" class="btn border-secondary text-secondary" th:text="#{userDetails.action.2fa.disable.label}"
-                                 th:if="false and ${isLdapOn} and ${isLocalUser} and not ${isOwnAccount} and not ${user.beingCreated}">
-                                {Migrate to LDAP}
-                            </div>
-                            <div id="userMigrateButton" class="btn border-secondary text-secondary" th:text="#{userDetails.action.ldap.migration.label}"
+                            <span th:unless="${user.beingCreated}" class="twofactor-action-dropdown">
+                                <div class="btn border-secondary text-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                                    <span th:text="#{userDetails.action.2fa.title}">{Two-factor authentication}</span>
+                                </div>
+                                <ul class="dropdown-menu border-secondary text-secondary" role="menu">
+                                    <li id="enable2faAction" class="dropdown-item" role="menuitem"
+                                        th:if="${!user.twoFactorForced} and ${user.twoFactorStatus == T(ch.asit_asso.extract.domain.User.TwoFactorStatus).INACTIVE}">
+                                        <i class="fa fa-check"></i>
+                                        <span th:text="#{user.2faStatus.action.ACTIVE}">{Enable}</span>
+                                    </li>
+                                    <li id="reset2faAction" class="dropdown-item" role="menuitem"
+                                        th:if="${user.twoFactorStatus != T(ch.asit_asso.extract.domain.User.TwoFactorStatus).INACTIVE}">
+                                        <i class="fa fa-rotate-left"></i>
+                                        <span th:text="#{user.2faStatus.action.STANDBY}">{Reset}</span>
+                                    </li>
+                                    <li id="disable2faAction" class="dropdown-item" role="menuitem"
+                                        th:if="(${!user.twoFactorForced} or ${isAdmin}) and ${user.twoFactorStatus != T(ch.asit_asso.extract.domain.User.TwoFactorStatus).INACTIVE}">
+                                        <i class="fa fa-trash"></i>
+                                        <span th:text="#{user.2faStatus.action.INACTIVE}">{Disable}</span>
+                                    </li>
+                                </ul>
+                            </span>
+                            <div id="userMigrateButton" class="btn border-secondary text-secondary"
+                                 th:text="#{userDetails.action.ldap.migration.label}"
                                     th:if="${isLdapOn} and ${isLocalUser} and not ${isOwnAccount} and not ${user.beingCreated}">
                                 {Migrate to LDAP}
                             </div>
@@ -295,35 +306,40 @@
                                                            th:text="#{userDetails.fields.2faForced.longLabel}">{Force 2FA usage}</label>
                                                 </div>
                                                 <div class="btn-group" data-bs-toggle="buttons">
-                                                    <input type="radio" class="btn-check" th:field="*{twoFactorForced}" value="0" />
+                                                    <input type="radio" class="btn-check" th:field="*{twoFactorForced}"
+                                                           value="0" />
                                                     <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
                                                            th:for="twoFactorForced1">
                                                         &nbsp;<span th:text="#{toggle.no}">{No}</span>
                                                     </label>
-                                                    <input type="radio" class="btn-check" th:field="*{twoFactorForced}" value="1" />
+                                                    <input type="radio" class="btn-check" th:field="*{twoFactorForced}"
+                                                           value="1" />
                                                     <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
                                                            th:for="twoFactorForced2">
                                                         &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
                                                     </label>
                                                 </div>
                                             </div>
-                                            <div class="form-group form-group-with-label" th:unless="${user.beingCreated or (isOwnAccount and user.twoFactorForced)}">
+                                            <div class="form-group form-group-with-label" th:unless="${user.beingCreated}">
                                                 <div>
-                                                    <label class="form-label"
-                                                           th:text="#{userDetails.fields.2fa.label}">{Two-factor authentication}</label>
+                                                    <label class="form-label" th:text="#{userDetails.fields.2fa.label}">
+                                                        {Two-factor authentication}
+                                                    </label>
                                                 </div>
                                                 <div class="row">
                                                     <div class="col-xl-6">
                                                         <div class="form-group form-group-with-label">
                                                             <div>
                                                                 <label class="form-label"
-                                                                       th:text="#{userDetails.fields.2faStatus.label}">{Status}</label>
+                                                                       th:text="#{userDetails.fields.2faStatus.label}">
+                                                                    {Status}
+                                                                </label>
                                                             </div>
-                                                            <div class="two-factor-button-container">
-                                                            </div>
+                                                            <div class="form-control-plaintext"
+                                                                 th:text="${#messages.msg('user.2faStatus.' + user.twoFactorStatus)}"></div>
                                                         </div>
                                                     </div>
-                                                    <div class="col-xl-6 force-2fa-usage-block" th:unless="${isOwnAccount}">
+                                                    <div class="col-xl-6 force-2fa-usage-block" th:if="${isAdmin}">
                                                         <div class="form-group form-group-with-label">
                                                             <div>
                                                                 <label class="form-label"
@@ -342,7 +358,7 @@
                                                                 </label>
                                                             </div>
                                                         </div>
-                                                        <input type="hidden" th:field="*{twoFactorForced}" th:if="${isOwnAccount}" />
+                                                        <input type="hidden" th:field="*{twoFactorForced}" th:unless="${isAdmin}" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -374,26 +390,43 @@
                         submitUserMigrate(migrationTarget);
                     });
 
+                    $('#disable2faAction').on('click', function() {
+                        var actionTarget = /*[[@{|/users/${user.id}/disable2fa|}]]*/ "../users/1/disable2fa";
+
+                        submitDisable2fa(actionTarget);
+                    });
+
+                    $('#enable2faAction').on('click', function() {
+                        var actionTarget = /*[[@{|/users/${user.id}/enable2fa|}]]*/ "../users/1/enable2fa";
+
+                        submitEnable2fa(actionTarget);
+                    });
+
+                    $('#reset2faAction').on('click', function() {
+                        var actionTarget = /*[[@{|/users/${user.id}/reset2fa|}]]*/ "../users/1/reset2fa";
+
+                        submitReset2fa(actionTarget);
+                    });
 
                     $('#userSaveButton').on('click', submitUserData);
 
-                    var current2faStatus = /*[[${user.twoFactorStatus.name()}]]*/ 'INACTIVE';
-                    var statusStrings = {
-                        "ACTIVE": /*[[#{user.2faStatus.ACTIVE}]]*/ "Active",
-                        "INACTIVE": /*[[#{user.2faStatus.INACTIVE}]]*/ "Inactive",
-                        "STANDBY": /*[[#{user.2faStatus.STANDBY}]]*/ "Standby"
-                    }
-                    var statusActionStrings = {
-                        "ACTIVE": /*[[#{user.2faStatus.action.ACTIVE}]]*/ "Enable",
-                        "INACTIVE": /*[[#{user.2faStatus.action.INACTIVE}]]*/ "Disable",
-                        "STANDBY": /*[[#{user.2faStatus.action.STANDBY}]]*/ "Reset"
-                    }
+                    // var current2faStatus = /*[[${user.twoFactorStatus.name()}]]*/ 'INACTIVE';
+                    // var statusStrings = {
+                    //     "ACTIVE": /*[[#{user.2faStatus.ACTIVE}]]*/ "Active",
+                    //     "INACTIVE": /*[[#{user.2faStatus.INACTIVE}]]*/ "Inactive",
+                    //     "STANDBY": /*[[#{user.2faStatus.STANDBY}]]*/ "Standby"
+                    // }
+                    // var statusActionStrings = {
+                    //     "ACTIVE": /*[[#{user.2faStatus.action.ACTIVE}]]*/ "Enable",
+                    //     "INACTIVE": /*[[#{user.2faStatus.action.INACTIVE}]]*/ "Disable",
+                    //     "STANDBY": /*[[#{user.2faStatus.action.STANDBY}]]*/ "Reset"
+                    // }
 
                     var isBeingCreated = /*[[${user.beingCreated}]]*/ false;
                     var isOwnAccount = /*[[${isOwnAccount}]]*/ false;
 
                     if (!isBeingCreated) {
-                        update2faStatusButton(current2faStatus, current2faStatus, statusStrings, statusActionStrings);
+                        // update2faStatusButton(current2faStatus, current2faStatus, statusStrings, statusActionStrings);
 
                         if (!isOwnAccount) {
                             $('#profile1').on('click', function () {

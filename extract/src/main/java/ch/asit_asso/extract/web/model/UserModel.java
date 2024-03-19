@@ -414,7 +414,7 @@ public class UserModel {
     }
 
     public TwoFactorStatus getTwoFactorStatus() {
-        return twoFactorStatus;
+        return this.twoFactorStatus;
     }
 
     public void setTwoFactorStatus(final TwoFactorStatus status) {
@@ -433,61 +433,61 @@ public class UserModel {
 
     public void setUserType(UserType userType) { this.userType = userType; }
 
-    public final TwoFactorStatus getNewStatusToSet(TwoFactorStatus originalStatus, TwoFactorStatus requestedStatus,
-                                                   boolean is2faForced) {
-        if (originalStatus == null) {
-            return (is2faForced) ? TwoFactorStatus.STANDBY : TwoFactorStatus.INACTIVE;
-        }
+//    public final TwoFactorStatus getNewStatusToSet(TwoFactorStatus originalStatus, TwoFactorStatus requestedStatus,
+//                                                   boolean is2faForced) {
+//        if (originalStatus == null) {
+//            return (is2faForced) ? TwoFactorStatus.STANDBY : TwoFactorStatus.INACTIVE;
+//        }
+//
+//        return switch (originalStatus) {
+//
+//            case ACTIVE -> {
+//
+//                    if (requestedStatus != TwoFactorStatus.INACTIVE || !is2faForced) {
+//                        yield requestedStatus;
+//                    }
+//
+//                    yield TwoFactorStatus.STANDBY;
+//                }
+//
+//            case INACTIVE -> (requestedStatus == TwoFactorStatus.ACTIVE || is2faForced) ? TwoFactorStatus.STANDBY
+//                                                                                        : TwoFactorStatus.INACTIVE;
+//            case STANDBY -> (requestedStatus == TwoFactorStatus.INACTIVE && !is2faForced) ? TwoFactorStatus.INACTIVE
+//                                                                                          : TwoFactorStatus.STANDBY;
+//            default -> originalStatus;
+//        };
+//    }
 
-        return switch (originalStatus) {
 
-            case ACTIVE -> {
-
-                    if (requestedStatus != TwoFactorStatus.INACTIVE || !is2faForced) {
-                        yield requestedStatus;
-                    }
-
-                    yield TwoFactorStatus.STANDBY;
-                }
-
-            case INACTIVE -> (requestedStatus == TwoFactorStatus.ACTIVE || is2faForced) ? TwoFactorStatus.STANDBY
-                                                                                        : TwoFactorStatus.INACTIVE;
-            case STANDBY -> (requestedStatus == TwoFactorStatus.INACTIVE && !is2faForced) ? TwoFactorStatus.INACTIVE
-                                                                                          : TwoFactorStatus.STANDBY;
-            default -> originalStatus;
-        };
-    }
-
-
-    public final void processTwoFactorChange(User originalStateUser, boolean isCurrentUserAdmin,
-                                             BytesEncryptor encryptor, TwoFactorService twoFactorService) {
-        TwoFactorStatus oldStatus = originalStateUser.getTwoFactorStatus();
-        TwoFactorStatus requestedStatus = this.getTwoFactorStatus();
-        boolean oldForcedState = originalStateUser.isTwoFactorForced();
-        boolean requestedForcedState = this.isTwoFactorForced();
-        boolean newForcedState = (isCurrentUserAdmin) ? requestedForcedState : oldForcedState;
-        TwoFactorStatus newStatus = getNewStatusToSet(oldStatus, requestedStatus, newForcedState);
-
-        this.logger.debug("Request to switch status from {} to {}. Granted status: {}.",
-                          oldStatus.name(), requestedStatus.name(), newStatus.name());
-        this.logger.debug("Request to switch forced state from {} to {}. Granted state: {}",
-                          oldForcedState, requestedForcedState, newForcedState);
-
-        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(originalStateUser, encryptor,
-                                                                             twoFactorService);
-
-        if (newStatus == TwoFactorStatus.INACTIVE) {
-            twoFactorApplication.disable();
-
-        } else if (newStatus == TwoFactorStatus.STANDBY && oldStatus != TwoFactorStatus.STANDBY) {
-            twoFactorApplication.enable();
-        }
-
-        this.setTwoFactorToken(originalStateUser.getTwoFactorToken());
-        this.setTwoFactorStandbyToken(originalStateUser.getTwoFactorStandbyToken());
-        this.setTwoFactorForced(newForcedState);
-        this.setTwoFactorStatus(newStatus);
-    }
+//    public final void processTwoFactorChange(User originalStateUser, boolean isCurrentUserAdmin,
+//                                             BytesEncryptor encryptor, TwoFactorService twoFactorService) {
+//        TwoFactorStatus oldStatus = originalStateUser.getTwoFactorStatus();
+//        TwoFactorStatus requestedStatus = this.getTwoFactorStatus();
+//        boolean oldForcedState = originalStateUser.isTwoFactorForced();
+//        boolean requestedForcedState = this.isTwoFactorForced();
+//        boolean newForcedState = (isCurrentUserAdmin) ? requestedForcedState : oldForcedState;
+//        TwoFactorStatus newStatus = getNewStatusToSet(oldStatus, requestedStatus, newForcedState);
+//
+//        this.logger.debug("Request to switch status from {} to {}. Granted status: {}.",
+//                          (oldStatus != null) ? oldStatus.name() : "null", requestedStatus.name(), newStatus.name());
+//        this.logger.debug("Request to switch forced state from {} to {}. Granted state: {}",
+//                          oldForcedState, requestedForcedState, newForcedState);
+//
+//        TwoFactorApplication twoFactorApplication = new TwoFactorApplication(originalStateUser, encryptor,
+//                                                                             twoFactorService);
+//
+//        if (newStatus == TwoFactorStatus.INACTIVE) {
+//            twoFactorApplication.disable();
+//
+//        } else if (newStatus == TwoFactorStatus.STANDBY && oldStatus != TwoFactorStatus.STANDBY) {
+//            twoFactorApplication.enable();
+//        }
+//
+//        this.setTwoFactorToken(originalStateUser.getTwoFactorToken());
+//        this.setTwoFactorStandbyToken(originalStateUser.getTwoFactorStandbyToken());
+//        this.setTwoFactorForced(newForcedState);
+//        this.setTwoFactorStatus(newStatus);
+//    }
 
     /**
      * Makes a new data object for this user.
@@ -532,9 +532,19 @@ public class UserModel {
 
         domainUser.setMailActive(this.isMailActive());
 
-        this.processTwoFactorChange(domainUser, isCurrentUserAdmin, encryptor, twoFactorService);
-        domainUser.setTwoFactorStatus(this.getTwoFactorStatus());
-        domainUser.setTwoFactorForced(this.isTwoFactorForced());
+        //this.processTwoFactorChange(domainUser, isCurrentUserAdmin, encryptor, twoFactorService);
+        //domainUser.setTwoFactorStatus(this.getTwoFactorStatus());
+
+        if (isCurrentUserAdmin) {
+            domainUser.setTwoFactorForced(this.isTwoFactorForced());
+
+            if (this.isTwoFactorForced() && domainUser.getTwoFactorStatus() == TwoFactorStatus.INACTIVE) {
+                TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, encryptor,
+                                                                                     twoFactorService);
+                twoFactorApplication.enable();
+            }
+        }
+
         this.logger.debug("The new forced status of the domain user is {}.", domainUser.isTwoFactorForced());
 
 

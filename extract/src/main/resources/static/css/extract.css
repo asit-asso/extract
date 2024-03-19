@@ -341,6 +341,10 @@ a.connector-state:hover, .dropdown-item a:hover {
     background-color: #fbd3d3;
 }
 
+.twofactor-action-dropdown li.dropdown-item i {
+    margin-right: 10px;
+}
+
 .dataTables_info {
     margin-left: 10px;
 }
@@ -772,7 +776,7 @@ table.list-table.files-list-table {
     display:none;
 }
 .popover-content {
-    padding: 0px 0px;
+    padding: 0 0;
 }
 .popover {
     max-width: 650px;
@@ -825,11 +829,11 @@ table.list-table.files-list-table {
     border-bottom:solid black 1.5pt;
     border-right:none;
     background:#E5E5E5;
-    padding:0cm 5.4pt 0cm 5.4pt;
+    padding:0 5.4pt 0 5.4pt;
 }
 
 .popover .popover-table .popover-table-header > p {
-    margin: 3.0pt 2.85pt 3.0pt 0cm;
+    margin: 3.0pt 2.85pt 3.0pt 0;
     font-weight: bold;
 }
 
@@ -1078,7 +1082,12 @@ tr.request-row:hover > td {
 
 /********** IDs **********/
 
+#alertModal .modal-title {
+    font-size: 1.2rem;
+}
+
 #alertModal .modal-body {
+    white-space: pre-line;
     padding: 10px;
 }
 
