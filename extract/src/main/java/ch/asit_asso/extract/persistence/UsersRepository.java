@@ -86,6 +86,10 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
 
 
 
+    User findByEmailIgnoreCaseAndActiveTrueAndUserTypeIs(String email, User.UserType userType);
+
+
+
     /**
      * Obtains the active user that is registered with a given e-mail address, but only if its number
      * identifier is not a given one.
@@ -130,6 +134,18 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
     default User findLocalActiveUser(String login) {
         return this.findByLoginIgnoreCaseAndActiveTrueAndUserTypeIs(login, User.UserType.LOCAL);
     }
+
+
+    /**
+     * Obtains an active local user based on the name used to log in.
+     *
+     * @param email the user e-mail address
+     * @return the user, or <code>null</code> if none was found
+     */
+    default User findLocalActiveUserByEmail(String email) {
+        return this.findByEmailIgnoreCaseAndActiveTrueAndUserTypeIs(email, User.UserType.LOCAL);
+    }
+
 
 
     default User[] findLdapActiveUsersNotIn(List<String> loginsToExclude) {
