@@ -49,21 +49,23 @@ public class QGISPrintPluginTest {
     private static final String TEMPLATE_LAYOUT_PARAMETER_NAME_PROPERTY = "paramTemplateLayout";
     private static final String QGIS_PATH_PARAMETER_NAME_PROPERTY = "paramPathProjectQGIS";
     private static final String LAYERS_PARAMETER_NAME_PROPERTY = "paramLayers";
-    private static final String LIMIT_ENTITIES_PARAMETER_NAME_PROPERTY = "paramLimitEntities";
+    private static final String LOGIN_PARAMETER_NAME_PROPERTY = "paramLogin";
+    private static final String PASSWORD_PARAMETER_NAME_PROPERTY = "paramPassword";
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
     private static final String PARAMETER_CODE_NAME = "QGISPRINT";
     private static final String PARAMETER_LABEL_NAME = "label";
     private static final String PARAMETER_MAX_LENGTH_NAME = "maxlength";
     private static final String PARAMETER_REQUIRED_NAME = "req";
     private static final String PARAMETER_TYPE_NAME = "type";
-    private static final int PARAMETERS_NUMBER = 8;
+    private static final int PARAMETERS_NUMBER = 5;
 
     //private static final String TEST_QGIS_URL = "https://prod21-demo1.arxit.com/ASITVD/GetProjectSettings.xml";
     private static final String TEST_QGIS_URL = "http://p22.arxit.lan";
     private static final String TEST_INSTANCE_LANGUAGE = "fr";
     private static final String TEST_QGIS_PATH = "/etc/qgisserver/world.qgs";
     private static final String TEST_LAYERS = "countries";
-
+    private static final String TEST_LOGIN = "fkr";
+    private static final String TEST_PASSWORD = "Spirale71";
     private static final String LIMIT = "10";
     private static final String TEST_TEMPLATE_LAYOUT = "myplan";
 
@@ -103,8 +105,10 @@ public class QGISPrintPluginTest {
                 = this.configuration.getProperty(QGISPrintPluginTest.QGIS_PATH_PARAMETER_NAME_PROPERTY);
         final String layers
                 = this.configuration.getProperty(QGISPrintPluginTest.LAYERS_PARAMETER_NAME_PROPERTY);
-        final String limiteEntities
-                = this.configuration.getProperty(QGISPrintPluginTest.LIMIT_ENTITIES_PARAMETER_NAME_PROPERTY);
+        final String login
+                = this.configuration.getProperty(QGISPrintPluginTest.LOGIN_PARAMETER_NAME_PROPERTY);
+        final String password
+                = this.configuration.getProperty(QGISPrintPluginTest.PASSWORD_PARAMETER_NAME_PROPERTY);
 
         this.requiredParametersCodes = new String[]{qgisUrlCode, templateLayoutCode, pathQGIS};
 
@@ -113,7 +117,8 @@ public class QGISPrintPluginTest {
         this.testParameters.put(templateLayoutCode, QGISPrintPluginTest.TEST_TEMPLATE_LAYOUT);
         this.testParameters.put(pathQGIS, QGISPrintPluginTest.TEST_QGIS_PATH);
         this.testParameters.put(layers, QGISPrintPluginTest.TEST_LAYERS);
-        this.testParameters.put(limiteEntities, QGISPrintPluginTest.LIMIT);
+        this.testParameters.put(login, QGISPrintPluginTest.TEST_LOGIN);
+        this.testParameters.put(password, QGISPrintPluginTest.TEST_PASSWORD);
     }
 
 
