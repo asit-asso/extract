@@ -48,6 +48,8 @@ class ApplicationParametersInitializer {
      */
     private static final String DEFAULT_DASHBOARD_INTERVAL = "20";
 
+    private static final String DEFAULT_DISPLAY_TEMP_FOLDER = "false";
+
     /**
      * The default value for the parameter indicating whether the application must send e-mail
      * notifications. Possible values are "true" or "false".
@@ -170,6 +172,8 @@ class ApplicationParametersInitializer {
                 ApplicationParametersInitializer.DEFAULT_SCHEDULER_RANGES);
         this.ensureParameterInitialized(SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY,
                                         "");
+        this.ensureParameterInitialized(SystemParametersRepository.DISPLAY_TEMP_FOLDER,
+                                        ApplicationParametersInitializer.DEFAULT_DISPLAY_TEMP_FOLDER);
 
     }
 

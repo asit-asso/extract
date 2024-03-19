@@ -368,6 +368,10 @@ public class RequestModel {
 
 
 
+    public final String getOutputFolderPath() { return this.outputFolderPath.toString(); }
+
+
+
     /**
      * Obtains the identifying string of the third party on behalf of which this order was placed.
      *

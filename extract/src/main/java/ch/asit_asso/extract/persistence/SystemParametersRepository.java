@@ -38,6 +38,8 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      */
     String DASHBOARD_INTERVAL_KEY = "dashboard_interval";
 
+    String DISPLAY_TEMP_FOLDER = "display_temp_folder";
+
     /**
      * The string that identifying the parameter that defines whether the application must send e-mail
      * notifications.
@@ -240,6 +242,10 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      * @return <code>"true"</code> if the notifications are enabled
      */
     String isEmailNotificationEnabled();
+
+
+
+    String isTempFolderDisplayed();
 
 
 

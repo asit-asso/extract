@@ -67,6 +67,31 @@
                                     <div class="row">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('displayTempFolder')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.basepath.display.label}"
+                                                       class="form-label col-form-label">
+                                                    {Display temp folder to operators}
+                                                </label>
+                                            </div>
+                                            <div class="btn-group" data-bs-toggle="buttons">
+                                                <input type="radio" class="btn-check" th:field="*{displayTempFolder}"
+                                                       value="0" />
+                                                <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                       th:for="displayTempFolder1">
+                                                    &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                </label>
+                                                <input type="radio" class="btn-check" th:field="*{displayTempFolder}"
+                                                       value="1" />
+                                                <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                       th:for="displayTempFolder2">
+                                                    &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('schedulerFrequency')} ? 'has-error'">
                                                 <label th:text="#{parameters.fields.orchestrationfrequency.label}"
                                                        class="form-label col-form-label">
