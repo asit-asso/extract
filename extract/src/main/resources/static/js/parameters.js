@@ -52,6 +52,20 @@ function showSynchroFields() {
     $(".synchro-field-row").removeClass("d-none");
 }
 
+// function testLdap() {
+//     $.ajax(_ldapTestUrl, {
+//         cache : false,
+//         method: 'POST',
+//         error : function() {
+//             alert('ERROR - Could not test the LDAP connection.');
+//         },
+//         success : function(data) {
+//
+//             alert(data);
+//         }
+//     })
+// }
+
 $(function() {
     $(".properties-select.select2").select2({
         multiple:true,

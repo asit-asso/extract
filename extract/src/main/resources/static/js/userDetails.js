@@ -10,6 +10,16 @@ function submitUserData() {
     $('#userForm').submit();
 }
 
+function submitUserMigrate(url) {
+    var deleteConfirmTexts = LANG_MESSAGES.userDetails.migrateConfirm;
+    var alertButtonsTexts = LANG_MESSAGES.generic.alertButtons;
+    var confirmedCallback = function() {
+        $('#userForm').attr('action', url);
+        $('#userForm').submit();
+    };
+    showConfirm(deleteConfirmTexts.title, deleteConfirmTexts.message, confirmedCallback, null, deleteConfirmTexts.alertButtons.migrate, alertButtonsTexts.cancel);
+}
+
 function processProfileChange(switchToAdmin) {
     $('.force-2fa-usage-block').toggle(!switchToAdmin);
 }

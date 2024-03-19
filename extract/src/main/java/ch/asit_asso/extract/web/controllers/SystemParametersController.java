@@ -41,7 +41,32 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import static ch.asit_asso.extract.persistence.SystemParametersRepository.*;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.BASE_PATH_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.DASHBOARD_INTERVAL_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.DISPLAY_TEMP_FOLDER;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.ENABLE_LDAP_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.ENABLE_MAIL_NOTIFICATIONS;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_ADMINS_GROUP_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_BASE_DN_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_ENABLE_SYNCHRO_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_ENCRYPTION_TYPE_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_OPERATORS_GROUP_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_PASSWORD_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_SERVER_NAMES_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_SYNCHRO_HOURS_FREQUENCY_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.LDAP_USER_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SCHEDULER_FREQUENCY_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SCHEDULER_MODE;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SCHEDULER_RANGES;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_FROM_MAIL_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_FROM_NAME_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_PASSWORD_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_PORT_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_SERVER_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_SSL_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.SMTP_USER_KEY;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.STANDBY_REMINDER_DAYS;
+import static ch.asit_asso.extract.persistence.SystemParametersRepository.VALIDATION_FOCUS_PROPERTIES_KEY;
 
 
 /**
@@ -78,6 +103,9 @@ public class SystemParametersController extends BaseController {
      * The parameter value that indicates that the e-mail notifications are enabled.
      */
     private static final String ON_STRING = "true";
+
+    //@Value("#{messageProperties['parameters.ldap.test.success']}")
+    private String connectionsSuccessMessage = "OK";
 
     /**
      * The writer to the application logs.
@@ -401,6 +429,25 @@ public class SystemParametersController extends BaseController {
 
         return this.prepareModelForDetailsView(model, systemParameterModel);
     }
+
+
+//    @PostMapping("testLdap")
+//    @ResponseBody
+//    public String testLdapConnection(@RequestParam("serverUrls") String serverUrlsString,
+//                                     @RequestParam("bases") String basesString,
+//                                     @RequestParam("encryption") String encryptionString,
+//                                     @RequestParam("username") String username, @RequestParam("password") String password) {
+//
+//        LdapPool serversPool = new LdapPool(serverUrlsString.split(";"), basesString.split(";"),
+//                                            EncryptionType.valueOf(encryptionString), username, password);
+//        Optional<String> testResult = serversPool.testConnections();
+//
+//        if (testResult.isPresent()) {
+//            return testResult.get();
+//        }
+//
+//        return this.connectionsSuccessMessage;
+//    }
 
 
 

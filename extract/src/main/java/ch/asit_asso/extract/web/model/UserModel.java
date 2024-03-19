@@ -21,6 +21,7 @@ import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.domain.User.TwoFactorStatus;
+import ch.asit_asso.extract.domain.User.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
@@ -107,6 +108,10 @@ public class UserModel {
 
 
 
+    private UserType userType;
+
+
+
     /**
      * Creates an instance of this model for a new user.
      */
@@ -117,6 +122,7 @@ public class UserModel {
         this.profile = Profile.OPERATOR;
         this.twoFactorForced = false;
         this.twoFactorStatus = TwoFactorStatus.INACTIVE;
+        this.userType = UserType.LOCAL;
     }
 
 
@@ -423,6 +429,10 @@ public class UserModel {
 
     public void setTwoFactorStandbyToken(String token) { this.twoFactorStandbyToken = token; }
 
+    public UserType getUserType() { return this.userType; }
+
+    public void setUserType(UserType userType) { this.userType = userType; }
+
     public final TwoFactorStatus getNewStatusToSet(TwoFactorStatus originalStatus, TwoFactorStatus requestedStatus,
                                                    boolean is2faForced) {
         if (originalStatus == null) {
@@ -521,22 +531,27 @@ public class UserModel {
         }
 
         domainUser.setMailActive(this.isMailActive());
-        domainUser.setEmail(this.getEmail());
-        domainUser.setLogin(this.getLogin());
-        domainUser.setName(this.getName());
 
         this.processTwoFactorChange(domainUser, isCurrentUserAdmin, encryptor, twoFactorService);
         domainUser.setTwoFactorStatus(this.getTwoFactorStatus());
         domainUser.setTwoFactorForced(this.isTwoFactorForced());
         this.logger.debug("The new forced status of the domain user is {}.", domainUser.isTwoFactorForced());
 
-        if (this.isPasswordDefined() && !this.isPasswordGenericString()) {
-            domainUser.setPassword(passwordEncoder.encode(this.getPassword()));
-        }
 
-        if (!isCurrentUser) {
-            domainUser.setActive(this.isActive());
-            domainUser.setProfile(this.getProfile());
+        if (domainUser.getUserType() == UserType.LOCAL) {
+            domainUser.setEmail(this.getEmail());
+            domainUser.setLogin(this.getLogin());
+            domainUser.setName(this.getName());
+
+            if (this.isPasswordDefined() && !this.isPasswordGenericString()) {
+                domainUser.setPassword(passwordEncoder.encode(this.getPassword()));
+            }
+
+            if (!isCurrentUser) {
+                domainUser.setActive(this.isActive());
+                domainUser.setProfile(this.getProfile());
+            }
+
         }
 
         return domainUser;
@@ -578,6 +593,7 @@ public class UserModel {
         this.setTwoFactorStatus(domainUser.getTwoFactorStatus());
         this.setTwoFactorToken(domainUser.getTwoFactorToken());
         this.setTwoFactorStandbyToken(domainUser.getTwoFactorStandbyToken());
+        this.setUserType(domainUser.getUserType());
     }
 
 }
