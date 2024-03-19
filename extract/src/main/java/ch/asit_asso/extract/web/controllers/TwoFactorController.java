@@ -4,6 +4,7 @@ import java.io.IOException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 import javax.transaction.Transactional;
 import ch.asit_asso.extract.authentication.ApplicationUser;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorApplication;
@@ -21,7 +22,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.encrypt.BytesEncryptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,17 +45,11 @@ public class TwoFactorController extends BaseController {
 
     private static final String CONFIRMATION_VIEW = "2fa/confirm";
 
-//    private static final String QR_CODE_PREFIX = "https://chart.googleapis.com/chart?chs=200x200&chld=M%%7C0&cht=qr&chl=";
-//
-//    private static final String QR_CODE_DATA_FORMAT = "otpauth://totp/Extract:%s?secret=%s&issuer=Extract";
-
     private static final String RECOVERY_VIEW = "2fa/recovery";
 
     private static final String REDIRECT_TO_AUTHENTICATE_VIEW = "redirect:/2fa/authenticate";
 
     private static final String REDIRECT_TO_CONFIRMATION_VIEW = "redirect:/2fa/confirm";
-
-//    private static final String REDIRECT_TO_RECOVERY_VIEW = "redirect:/2fa/recovery";
 
     private static final String REDIRECT_TO_REGISTER_VIEW = "redirect:/2fa/register";
 
@@ -232,7 +229,7 @@ public class TwoFactorController extends BaseController {
             if (!this.isRegistrationAllowed(request)) {
                 this.logger.warn("User {} attempted to display the 2FA registration wizard outside of the allowed workflow.",
                                  applicationUser.getUsername());
-                return REDIRECT_TO_ACCESS_DENIED;
+                return BaseController.REDIRECT_TO_ACCESS_DENIED;
             }
 
             this.logger.debug("Application user is {} (ID: {})", applicationUser.getUsername(),
@@ -270,7 +267,7 @@ public class TwoFactorController extends BaseController {
             if (!this.isRegistrationAllowed(request)) {
                 this.logger.warn("User {} attempted to submit a 2FA registration outside of the allowed workflow.",
                                  currentApplicationUser.getUsername());
-                return REDIRECT_TO_ACCESS_DENIED;
+                return BaseController.REDIRECT_TO_ACCESS_DENIED;
             }
 
             User currentUser = this.usersRepository.findById(currentApplicationUser.getUserId()).orElseThrow();
@@ -326,7 +323,7 @@ public class TwoFactorController extends BaseController {
             if (!this.isRegistrationAllowed(request)) {
                 this.logger.warn("User {} attempted to submit a 2FA registration outside of the allowed workflow.",
                                  currentApplicationUser.getUsername());
-                return REDIRECT_TO_ACCESS_DENIED;
+                return BaseController.REDIRECT_TO_ACCESS_DENIED;
             }
 
             this.logger.debug("Registration cancellation was requested by user {}", currentApplicationUser.getUserId());
@@ -347,30 +344,39 @@ public class TwoFactorController extends BaseController {
             TwoFactorApplication twoFactorApplication = new TwoFactorApplication(domainUser, this.encryptor,
                                                                                  this.twoFactorService);
             User.TwoFactorStatus newStatus = twoFactorApplication.cancelEnabling();
-            this.usersRepository.save(domainUser);
+            domainUser = this.usersRepository.save(domainUser);
             this.processRegistrationStep(false, request);
 
-            if (newStatus == User.TwoFactorStatus.INACTIVE) {
+            HttpSession currentSession = request.getSession();
 
-                if (!this.isCurrentUserAuthenticated()) {
-                    TwoFactorAuthenticationHandler handler = new TwoFactorAuthenticationHandler(null);
-                    TwoFactorAuthentication twoFactorAuthentication = (TwoFactorAuthentication) authentication;
-                    SecurityContextHolder.getContext().setAuthentication(twoFactorAuthentication.getFirst());
-                    handler.onAuthenticationSuccess(request, response, twoFactorAuthentication.getFirst());
 
-                    return null;
+            if ("AUTHENTICATION".equals(currentSession.getAttribute("2faProcess"))) {
+                currentSession.removeAttribute("2faProcess");
+
+                String nextUrl;
+                Authentication baseAuthentication;
+
+                if (newStatus == User.TwoFactorStatus.INACTIVE) {
+                    nextUrl = null;
+                    baseAuthentication = ((TwoFactorAuthentication) authentication).getFirst();
+                } else {
+                    nextUrl = String.format("/%s", TwoFactorController.AUTHENTICATE_VIEW);
+                    ApplicationUser refreshedUser = new ApplicationUser(domainUser);
+                    baseAuthentication = new UsernamePasswordAuthenticationToken(refreshedUser, domainUser.getPassword(),
+                                                                                 refreshedUser.getAuthorities());
+                    this.logger.debug("Refreshed user authorities : [{}]", String.join(", ",
+                              baseAuthentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList()));
                 }
 
-            } else {
+                TwoFactorAuthenticationHandler handler = new TwoFactorAuthenticationHandler(nextUrl);
+                SecurityContextHolder.getContext().setAuthentication(baseAuthentication);
+                handler.onAuthenticationSuccess(request, response, baseAuthentication);
 
-                if (!this.isCurrentUserAuthenticated()) {
-                    this.logger.debug("User is redirected to the 2FA authentication page.");
-
-                    return TwoFactorController.REDIRECT_TO_AUTHENTICATE_VIEW;
-                }
+                return nextUrl;
             }
 
-            return (this.isCurrentUserAdmin()) ? TwoFactorController.REDIRECT_TO_USERS_LIST : REDIRECT_TO_HOME;
+            return (this.isCurrentUserAdmin()) ? TwoFactorController.REDIRECT_TO_USERS_LIST
+                                               : BaseController.REDIRECT_TO_HOME;
         }
 
         this.logger.warn("Cancellation of the 2FA registration submitted by a user that wasn't authenticated with the login form.");
@@ -385,8 +391,9 @@ public class TwoFactorController extends BaseController {
         ApplicationUser currentApplicationUser = (ApplicationUser) authentication.getPrincipal();
 
         if (!this.isConfirmationAllowed(request)) {
-            this.logger.warn("User {} attempted to display the 2FA registration confimation outside of the allowed workflow.",
+            this.logger.warn("User {} attempted to display the 2FA registration confirmation outside of the allowed workflow.",
                              currentApplicationUser.getUsername());
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
         }
 
         User currentUser = this.usersRepository.findById(currentApplicationUser.getUserId()).orElseThrow();
@@ -406,22 +413,25 @@ public class TwoFactorController extends BaseController {
     public String processConfirmation(Authentication authentication, HttpServletRequest request,
                                       HttpServletResponse response) throws Exception {
 
-        if (this.isCurrentUserAuthenticated()) {
-            return (this.isCurrentUserAdmin()) ? TwoFactorController.REDIRECT_TO_USERS_LIST : REDIRECT_TO_HOME;
-        }
-
-
-        if (!this.isRegistrationAllowed(request)) {
-            this.logger.warn("User {} attempted to submit a 2FA registration outside of the allowed workflow.",
+        if (!this.isConfirmationAllowed(request)) {
+            this.logger.warn("User {} attempted to submit a 2FA confirmation outside of the allowed workflow.",
                              this.getCurrentUserLogin());
-            return REDIRECT_TO_ACCESS_DENIED;
+            return BaseController.REDIRECT_TO_ACCESS_DENIED;
         }
 
+        HttpSession currentSession = request.getSession();
         this.processConfirmationStep(request);
 
-        new TwoFactorAuthenticationHandler(null).onAuthenticationSuccess(request, response,
-                                                                         ((TwoFactorAuthentication) authentication).getFirst());
-        return null;
+        if ("AUTHENTICATION".equals(currentSession.getAttribute("2faProcess"))) {
+            //if (this.isCurrentUserApplicationUser() && this.isCurrentUserAuthenticated()) {
+            new TwoFactorAuthenticationHandler(null)
+                    .onAuthenticationSuccess(request, response, ((TwoFactorAuthentication) authentication).getFirst());
+
+            return BaseController.REDIRECT_TO_HOME;
+        }
+
+        return (this.isCurrentUserAdmin()) ? TwoFactorController.REDIRECT_TO_USERS_LIST
+                                           : BaseController.REDIRECT_TO_HOME;
     }
 
 

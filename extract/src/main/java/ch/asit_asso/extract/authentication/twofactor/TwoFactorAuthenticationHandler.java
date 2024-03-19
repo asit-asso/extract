@@ -48,7 +48,8 @@ public class TwoFactorAuthenticationHandler extends SavedRequestAwareAuthenticat
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         this.logger.debug("Authentication success, saving state.");
-        saveTwoFactorAuthentication(request, response, authentication);
+        this.logger.debug("Authentication object passed is of type {}", authentication.getClass().getCanonicalName());
+        this.saveTwoFactorAuthentication(request, response, authentication);
     }
 
     private void saveTwoFactorAuthentication(HttpServletRequest request, HttpServletResponse response,

@@ -31,7 +31,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
 import org.springframework.security.web.savedrequest.HttpSessionRequestCache;
 import org.springframework.stereotype.Component;
@@ -101,8 +100,12 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
             case STANDBY -> {
                 this.logger.debug("2FA for user {} is in standby. Processing to the 2FA registration page.", userName);
                 request.getSession().setAttribute("2faStep", "REGISTER");
-                new SimpleUrlAuthenticationSuccessHandler("/2fa/register")
+                request.getSession().setAttribute("2faProcess", "AUTHENTICATION");
+//                new SimpleUrlAuthenticationSuccessHandler("/2fa/register")
+//                        .onAuthenticationSuccess(request, response, authentication);
+                new TwoFactorAuthenticationHandler("/2fa/register")
                         .onAuthenticationSuccess(request, response, authentication);
+
             }
 
             case ACTIVE -> {

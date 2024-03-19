@@ -52,7 +52,7 @@ public class SecurityConfiguration {
     /**
      * The writer to the application logs.
      */
-    private final Logger logger = LoggerFactory.getLogger(getClass());
+    private final Logger logger = LoggerFactory.getLogger(SecurityConfiguration.class);
 
     @Value("${database.encryption.secret}")
     private String encryptionPassword;
@@ -89,7 +89,9 @@ public class SecurityConfiguration {
                 .requestMatchers(new AntPathRequestMatcher("/2fa/authenticate"),
                                  new AntPathRequestMatcher("/2fa/recovery")).hasAuthority("CAN_AUTHENTICATE_2FA")
                 .requestMatchers(new AntPathRequestMatcher("/2fa/register"),
-                                 new AntPathRequestMatcher("/2fa/confirm")).permitAll()
+                                 new AntPathRequestMatcher("/js/register2fa.js"),
+                                 new AntPathRequestMatcher("/2fa/cancelRegistration"),
+                                 new AntPathRequestMatcher("/2fa/confirm")).authenticated()
                 .requestMatchers(new AntPathRequestMatcher("/passwordReset/request", "POST")).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/passwordReset/reset")).hasAuthority("CAN_RESET_PASSWORD")
                 .antMatchers(HttpMethod.GET,
