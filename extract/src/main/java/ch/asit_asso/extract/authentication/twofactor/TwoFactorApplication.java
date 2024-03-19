@@ -2,6 +2,7 @@ package ch.asit_asso.extract.authentication.twofactor;
 
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.User.TwoFactorStatus;
 import com.j256.twofactorauth.TimeBasedOneTimePasswordUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,17 +41,17 @@ public class TwoFactorApplication {
 
 
 
-    public User.TwoFactorStatus cancelEnabling() {
+    public TwoFactorStatus cancelEnabling() {
         this.user.setTwoFactorStandbyToken(null);
-        User.TwoFactorStatus newStatus;
+        TwoFactorStatus newStatus;
 
         if (this.user.getTwoFactorToken() == null) {
             this.logger.debug("2FA registration canceled. No active 2FA token for the user so 2FA status returned to INACTIVE.");
-            newStatus = User.TwoFactorStatus.INACTIVE;
+            newStatus = TwoFactorStatus.INACTIVE;
 
         } else {
             this.logger.debug("2FA registration canceled. There is an active 2FA token for the user so 2FA status returned to ACTIVE.");
-            newStatus = User.TwoFactorStatus.ACTIVE;
+            newStatus = TwoFactorStatus.ACTIVE;
         }
 
         this.user.setTwoFactorStatus(newStatus);
@@ -59,15 +60,24 @@ public class TwoFactorApplication {
 
 
     public void disable() {
+        assert this.user.getTwoFactorStatus() != TwoFactorStatus.INACTIVE
+                : "Two-factor authentication must be enabled before disabling it.";
+
+        this.user.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
         this.user.setTwoFactorToken(null);
         this.user.setTwoFactorStandbyToken(null);
+        this.user.setTwoFactorForced(false);
     }
 
 
 
     public void enable() {
+        assert this.user.getTwoFactorStatus() == TwoFactorStatus.INACTIVE
+                : "Can only enable two-factor authentication if it isn't already active";
+
+        this.user.setTwoFactorStatus(TwoFactorStatus.STANDBY);
         String standbyToken = TimeBasedOneTimePasswordUtil.generateBase32Secret();
-        String encryptedStandbyToken = new String(Hex.encode(encryptor.encrypt(standbyToken.getBytes())));
+        String encryptedStandbyToken = new String(Hex.encode(this.encryptor.encrypt(standbyToken.getBytes())));
         this.user.setTwoFactorStandbyToken(encryptedStandbyToken);
     }
 
@@ -96,7 +106,7 @@ public class TwoFactorApplication {
 
         this.user.setTwoFactorToken(this.user.getTwoFactorStandbyToken());
         this.user.setTwoFactorStandbyToken(null);
-        this.user.setTwoFactorStatus(User.TwoFactorStatus.ACTIVE);
+        this.user.setTwoFactorStatus(TwoFactorStatus.ACTIVE);
 
         return true;
     }
@@ -104,7 +114,7 @@ public class TwoFactorApplication {
 
 
     private String getToken(TokenType secretType) {
-        this.logger.debug("Getting {} token for user {}", secretType.name(), user.getLogin());
+        this.logger.debug("Getting {} token for user {}", secretType.name(), this.user.getLogin());
         String encryptedToken = (secretType == TokenType.STANDBY) ? this.user.getTwoFactorStandbyToken()
                 : this.user.getTwoFactorToken();
         byte[] bytes = Hex.decode(encryptedToken);
