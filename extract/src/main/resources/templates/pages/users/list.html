@@ -88,7 +88,7 @@
                                             {Standby}
                                         </div>
                                     </td>
-                                    <td class="center-cell" th:with="canBeDeleted = ${isLocalUser} and not *{associatedToProcesses} and *{id} != ${currentUserId} and not *{lastActiveMemberOfProcessGroup}">
+                                    <td class="center-cell" th:with="canBeDeleted = not *{associatedToProcesses} and *{id} != ${currentUserId} and not *{lastActiveMemberOfProcessGroup}">
                                         <button id="deleteButton-1" th:id="'deleteButton-' + *{id}" class="btn btn-sm"
                                                 data-bs-toggle="tooltip"
                                                 th:classappend="${canBeDeleted} ? 'btn-danger delete-button' : 'disabled delete-button-inactive'"
@@ -96,7 +96,7 @@
                                                             + (canBeDeleted ? 'active'
                                                             : 'inactive.' + ((user.id == currentUserId) ? 'currentUser'
                                                                           : ((user.associatedToProcesses) ? 'hasProcesses'
-                                                                          : ((user.lastActiveMemberOfProcessGroup) ? 'lastActiveMember' : 'notLocalAccount'))))
+                                                                          : 'lastActiveMember')))
                                                             + '.tooltip')}">
                                             <span class="fa fa-remove fa-fw"></span>
                                         </button>
