@@ -49,20 +49,22 @@ public class QGISPrintPluginTest {
     private static final String TEMPLATE_LAYOUT_PARAMETER_NAME_PROPERTY = "paramTemplateLayout";
     private static final String QGIS_PATH_PARAMETER_NAME_PROPERTY = "paramPathProjectQGIS";
     private static final String LAYERS_PARAMETER_NAME_PROPERTY = "paramLayers";
+    private static final String LIMIT_ENTITIES_PARAMETER_NAME_PROPERTY = "paramLimitEntities";
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
     private static final String PARAMETER_CODE_NAME = "QGISPRINT";
     private static final String PARAMETER_LABEL_NAME = "label";
     private static final String PARAMETER_MAX_LENGTH_NAME = "maxlength";
     private static final String PARAMETER_REQUIRED_NAME = "req";
     private static final String PARAMETER_TYPE_NAME = "type";
-    private static final int PARAMETERS_NUMBER = 3;
+    private static final int PARAMETERS_NUMBER = 8;
 
     //private static final String TEST_QGIS_URL = "https://prod21-demo1.arxit.com/ASITVD/GetProjectSettings.xml";
-    private static final String TEST_QGIS_URL = "http://localhost:8380";
+    private static final String TEST_QGIS_URL = "http://p22.arxit.lan";
     private static final String TEST_INSTANCE_LANGUAGE = "fr";
     private static final String TEST_QGIS_PATH = "/etc/qgisserver/world.qgs";
     private static final String TEST_LAYERS = "countries";
 
+    private static final String LIMIT = "10";
     private static final String TEST_TEMPLATE_LAYOUT = "myplan";
 
     private static final String TEST_URL_GET_PROJECT_SETTINGS = "...";
@@ -101,6 +103,8 @@ public class QGISPrintPluginTest {
                 = this.configuration.getProperty(QGISPrintPluginTest.QGIS_PATH_PARAMETER_NAME_PROPERTY);
         final String layers
                 = this.configuration.getProperty(QGISPrintPluginTest.LAYERS_PARAMETER_NAME_PROPERTY);
+        final String limiteEntities
+                = this.configuration.getProperty(QGISPrintPluginTest.LIMIT_ENTITIES_PARAMETER_NAME_PROPERTY);
 
         this.requiredParametersCodes = new String[]{qgisUrlCode, templateLayoutCode, pathQGIS};
 
@@ -109,6 +113,7 @@ public class QGISPrintPluginTest {
         this.testParameters.put(templateLayoutCode, QGISPrintPluginTest.TEST_TEMPLATE_LAYOUT);
         this.testParameters.put(pathQGIS, QGISPrintPluginTest.TEST_QGIS_PATH);
         this.testParameters.put(layers, QGISPrintPluginTest.TEST_LAYERS);
+        this.testParameters.put(limiteEntities, QGISPrintPluginTest.LIMIT);
     }
 
 
@@ -278,6 +283,7 @@ public class QGISPrintPluginTest {
         QGISPrintRequest pluginRequest = new QGISPrintRequest();
         pluginRequest.setFolderOut("/var/extract/orders");
         pluginRequest.setProductGuid("cf419a79-13d5");
+        pluginRequest.setPerimeter("POLYGON((6.448008826017048 46.55990536924183,6.920106602414769 46.56124431272321,6.917946995512395 46.379519066609355,6.468224626928717 46.37835458395662,6.448008826017048 46.55990536924183))");
         QGISPrintPlugin plugin = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE,
                 this.testParameters);
 
