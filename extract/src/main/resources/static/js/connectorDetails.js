@@ -112,24 +112,27 @@ $(function() {
     $("#popup-over-rulehelp .popover-body").load(ruleHelpHref);
     
     //Initialize help window for rule
-    document.querySelectorAll('#rulesTable .helplink').forEach(popover => {
-        new bootstrap.Popover(popover, {
-            html: true,
-            container: 'body',
-            trigger: 'manual',
-            placement: 'auto',
-            title: function () {
-                var content = $(this).attr('data-popover-content');
-                var popupHeader = $(content).children('.popover-heading').clone();
-                return $(popupHeader).wrapAll('<div/>').parent().html();
-            },
-            content: function () {
-                var content = $(this).attr('data-popover-content');
-                var popupBody = $(content).children('.popover-body').clone();
-                return popupBody.wrapAll('<div/>').parent().html();
-            }
-        });
-        $(popover).on('click', function (evt) {
+    const popoverLinks = document.querySelectorAll('#rulesTable .helplink');
+
+    [...popoverLinks].map(popoverElement => new bootstrap.Popover(popoverElement, {
+        html: true,
+        container: 'body',
+        trigger: 'manual',
+        placement: 'auto',
+        title: function (triggerElement) {
+            var content = $(triggerElement).attr('data-popover-content');
+            var popupHeader = $(content).children('.popover-heading').clone();
+            return $(popupHeader).wrapAll('<div/>').parent().html();
+        },
+        content: function (triggerElement) {
+            var content = $(triggerElement).attr('data-popover-content');
+            var popupBody = $(content).children('.popover-body').clone();
+            return popupBody.wrapAll('<div/>').parent().html();
+        }
+    }));
+
+    popoverLinks.forEach(popoverElement => {
+        $(popoverElement).on('click', function (evt) {
             evt.preventDefault();
             evt.stopPropagation();
             const thisPopup = bootstrap.Popover.getOrCreateInstance(this);
@@ -141,6 +144,7 @@ $(function() {
             }
         });
     });
+
     // Fermeture de la popup au clic sur la croix
    $(document).on("click",".popup-header .img-close", function() {
        $('#rulesTable .helplink').popover('hide');

@@ -18,16 +18,21 @@ jobs:
             - name: Install NodeJS
               uses: actions/setup-node@v3
               with:
-                  node-version: 18
+                  node-version: 20
                   cache: 'npm'
                   cache-dependency-path: extract/package.json
                   
+            - name: Enable Corepack
+              run: corepack enable
+              working-directory: /home/runner/work/extract/extract/extract
+              
             - name: Install Yarn
-              run: npm install --global yarn
+              run: yarn set version stable
+              working-directory: /home/runner/work/extract/extract/extract
             
             - name: Install JavaScript dependencies
-              run: yarn install
-              working-directory: /home/runner/work/extract/extract/extract          
+              run: install_dependencies.sh
+              working-directory: /home/runner/work/extract/extract/extract
                   
             - name: Build the code
               run: mvn -q package -DskipTests=true --batch-mode

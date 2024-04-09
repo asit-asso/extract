@@ -1,25 +1,23 @@
 {
     "dependencies": {
-        "bootstrap": "twbs/bootstrap#5.2.2",
-        "bootstrap-datepicker": "1.9.0",
-        "datatables.net": "DataTables/Dist-DataTables#1.11.5",
-        "datatables.net-bs5": "DataTables/Dist-DataTables-Bootstrap5#1.11.3",
-        "font-awesome": "FortAwesome/Font-Awesome#4.7.0",
-        "jquery": "jquery/jquery-dist#3.6.0",
-        "jquery-ui": "1.13.1",
-        "ol-layerswitcher": "3.8.3",
-        "openlayers": "4.6.5",
-        "@popperjs/core": "^2.11.6",
-        "proj4": "2.8.0",
-        "select2": "ivaynberg/select2#4.0.9",
-        "timepicker": "1.13.18"
-    },
-    "engines": {
-        "yarn": ">= 1.0.0"
+        "@popperjs/core": "2.11.8",
+        "bootstrap": "5.3.3",
+        "bootstrap-datepicker": "1.10.0",
+        "datatables.net": "2.0.3",
+        "datatables.net-bs5": "2.0.3",
+        "font-awesome": "4.7.0",
+        "jquery": "3.7.1",
+        "jquery-ui": "1.13.2",
+        "ol": "9.1.0",
+        "ol-layerswitcher": "4.1.1",
+        "proj4": "2.11.0",
+        "select2": "4.1.0-rc.0",
+        "timepicker": "1.14.1"
     },
     "eslintConfig": {
         "env": {
             "es6": true
         }
-    }
+    },
+    "packageManager": "yarn@3.6.3"
 }
