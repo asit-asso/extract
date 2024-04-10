@@ -135,8 +135,8 @@ public class SystemParameterValidator extends BaseValidator {
         }
 
         if (systemParameterModel.isLdapSynchronizationEnabled()) {
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchroUser", "parameters.errors.ldapSynchroUser.required");
-            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchroPassword", "parameters.errors.ldapSynchroUser.required");
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchronizationUser", "parameters.errors.ldapSynchroUser.required");
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchronizationPassword", "parameters.errors.ldapSynchroUser.required");
             this.validateLdapSynchronizationFrequency(systemParameterModel.getLdapSynchronizationFrequency(), errors);
         }
         this.validateSmtpPort(systemParameterModel.getSmtpPort(), errors);
