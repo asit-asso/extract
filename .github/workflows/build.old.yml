@@ -1,0 +1,110 @@
+name: build-extract-actions
+run-name: Building Extract after push by ${{ github.actor }}
+on: [push]
+jobs:
+    build-extract:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download the code
+              uses: actions/checkout@v3
+              
+            - name: Install JDK 17
+              uses: actions/setup-java@v3
+              with:
+                  distribution: 'temurin'
+                  java-version: '17'
+                  cache: maven
+                  
+            - name: Install NodeJS
+              uses: actions/setup-node@v3
+              with:
+                  node-version: 18
+                  cache: 'npm'
+                  cache-dependency-path: extract/package.json
+                  
+            - name: Install Yarn
+              run: npm install --global yarn
+            
+            - name: Install JavaScript dependencies
+              run: yarn install
+              working-directory: /home/runner/work/extract/extract/extract          
+                  
+            - name: Build the code
+              run: mvn -q package -DskipTests=true --batch-mode
+              
+            - name: Upload artifact for deployment job
+              uses: actions/upload-artifact@v3
+              with:
+                  name: java-app
+                  path: '/home/runner/work/extract/extract/extract/target/*.war'
+
+    test-extract:
+        needs: build-extract
+        runs-on: ubuntu-latest
+        steps:
+             - name: Download the code
+               uses: actions/checkout@v3
+               
+             - name: Install JDK 17
+               uses: actions/setup-java@v3
+               with:
+                   distribution: 'temurin'
+                   java-version: '17'
+                   cache: maven
+                   
+             - name: Install Chromium (for functional tests)
+               uses: browser-actions/setup-chrome@v1
+               
+             - name: Download artifact generated in build job
+               uses: actions/download-artifact@v3
+               with:
+                   name: java-app
+                   path: /tmp
+                   
+             - name: Rename artifact file to version-agnostic name
+               run: mv /tmp/extract*.war /tmp/extract.war
+               
+             - name: Create local Extract folders
+               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/extract/orders
+               
+             - name: Give all permissions on Extract log folder
+               run: chmod 0777 /tmp/log/extract
+               
+             - name: Running Docker Compose file with test containers (for functional tests)
+               uses: isbang/compose-action@v1.5.0
+               with:
+                   compose-file: "./docker-compose-test.yaml"
+                   up-flags: "--wait"
+                   
+             - name: Execute unit tests
+               run: mvn -q test -Punit-tests --batch-mode --fail-at-end
+               
+             - name: Execute integration tests
+               run: mvn -q verify -Pintegration-tests --batch-mode
+               
+             - name: Wait on Extract application deployment
+               uses: iFaxity/wait-on-action@v1.1.0
+               with:
+                   resource: http://localhost:8080/extract/login
+                   interval: 5000
+                   timeout: 150000
+                   verbose: true
+                   
+             - name: Execute functional tests
+               run: mvn -q verify -Pfunctional-tests --batch-mode
+               
+             - name: Change Extract log permissions (so we can upload them)
+               if: always()
+               run: sudo chmod a+r *.log
+               working-directory: /tmp/log/extract
+               
+             - name: Upload Extract logs
+               if: always()
+               uses: actions/upload-artifact@v3
+               with:
+                  name: extract-logs
+                  path: /tmp/log/extract/
+                  
+            # - name: "Publish test results"
+            #    if: success() || failure()
+            #    uses: scacap/action-surefire-report@v1

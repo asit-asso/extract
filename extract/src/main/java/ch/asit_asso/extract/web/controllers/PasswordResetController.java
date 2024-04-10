@@ -16,28 +16,26 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import java.util.Arrays;
 import java.util.GregorianCalendar;
+import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
-
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.PasswordResetEmail;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.EmailUtils;
-import org.apache.commons.lang3.StringUtils;
-import ch.asit_asso.extract.domain.User;
-import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message.MessageType;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
@@ -87,8 +85,7 @@ public class PasswordResetController extends BaseController {
     /**
      * The object that contains the configuration objects required to create and send e-mail messages.
      */
-    @Autowired
-    private EmailSettings emailSettings;
+    private final EmailSettings emailSettings;
 
     /**
      * The writer to the application logs.
@@ -98,15 +95,21 @@ public class PasswordResetController extends BaseController {
     /**
      * The Spring Security object that allows to hash passwords to store them in the data source.
      */
-    @Autowired
-    private PasswordEncoder passwordEncoder;
+    private final Secrets secrets;
 
     /**
      * The Spring Data repository that links the user data objects with the data source.
      */
-    @Autowired
-    private UsersRepository usersRepository;
+    private final UsersRepository usersRepository;
 
+
+
+    public PasswordResetController(EmailSettings emailSettings, Secrets secrets,
+                                   UsersRepository usersRepository) {
+        this.emailSettings = emailSettings;
+        this.secrets = secrets;
+        this.usersRepository = usersRepository;
+    }
 
 
     /**
@@ -245,6 +248,7 @@ public class PasswordResetController extends BaseController {
     private User addPasswordResetToken(final User user) {
         assert user != null : "The user cannot be null.";
         assert user.isActive() : "A password reset token cannot be added to an inactive user.";
+        assert user.getUserType() == User.UserType.LOCAL : "A password reset token can only be added to a local user.";
 
         this.logger.debug("Setting the user properties to allow a password reset.");
         user.setPasswordResetInfo(this.getNewToken());
@@ -322,6 +326,16 @@ public class PasswordResetController extends BaseController {
                     MessageType.ERROR, request.getSession());
         }
 
+        if (tokenUser.getUserType() != User.UserType.LOCAL) {
+            this.logger.warn("The user {} with IP address {} submitted password reset data for a non-local user.",
+                             currentUserLogin, this.getRemoteIpAddress(request));
+            tokenUser.cleanPasswordResetToken();
+            this.usersRepository.save(tokenUser);
+
+            return this.terminateSession(redirectAttributes, "passwordResetForm.errors.token.invalid",
+                                         MessageType.ERROR, request.getSession());
+        }
+
         return null;
     }
 
@@ -339,9 +353,9 @@ public class PasswordResetController extends BaseController {
             throw new IllegalStateException("User does not qualify for a password reset authentication.");
         }
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getLogin(), null,
-                Arrays.asList(new SimpleGrantedAuthority(PasswordResetController.PASSWORD_RESET_AUTHORITY))
-        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                user.getLogin(), null,
+                List.of(new SimpleGrantedAuthority(PasswordResetController.PASSWORD_RESET_AUTHORITY)));
         SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
@@ -360,11 +374,11 @@ public class PasswordResetController extends BaseController {
             return "passwordResetDemand.errors.email.invalid";
         }
 
-        User user = this.usersRepository.findByEmailIgnoreCaseAndActiveTrue(email);
+        User user = this.usersRepository.findLocalActiveUserByEmail(email);
 
         if (user == null) {
             this.logger.warn("A password reset request has been submitted for the e-mail address {}, but it does not"
-                    + " match any active user.", email);
+                    + " match any active local user.", email);
             return "passwordResetDemand.errors.user.notFound";
         }
 
@@ -442,7 +456,7 @@ public class PasswordResetController extends BaseController {
                 String.format("The password must be at least %d characters long.",
                         PasswordResetController.PASSWORD_MINIMUM_SIZE);
 
-        user.setPassword(this.passwordEncoder.encode(password));
+        user.setPassword(this.secrets.hash(password));
         user.cleanPasswordResetToken();
 
         return this.usersRepository.save(user);

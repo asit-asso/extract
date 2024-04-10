@@ -109,6 +109,7 @@ public class UnmatchedRequestEmail extends Email {
         Context model = new Context();
         model.setVariable("connectorName", request.getConnector().getName());
         model.setVariable("productLabel", request.getProductLabel());
+        model.setVariable("orderLabel", request.getOrderLabel());
 
         try {
             model.setVariable("dashboardItemUrl", this.getAbsoluteUrl(String.format("/requests/%d",

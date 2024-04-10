@@ -17,14 +17,14 @@
 package ch.asit_asso.extract.initializers;
 
 import java.util.Locale;
-import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.utils.Secrets;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
-import org.springframework.security.crypto.password.PasswordEncoder;
 
 
 
@@ -60,7 +60,7 @@ public class UsersInitializer {
     /**
      * The Spring Security object that allows to hash passwords.
      */
-    private final PasswordEncoder passwordEncoder;
+    private final Secrets secrets;
 
     /**
      * The object that links the user data objects with the data source.
@@ -73,18 +73,18 @@ public class UsersInitializer {
      * Creates a new instance of the initializer.
      *
      * @param usersRepository        the object that links the user data objects with the data source
-     * @param encoder                the Spring Security object used by the application to hash passwords
+     * @param secrets          the password utility bean used by the application to hash passwords
      * @param localizedStringsSource the access to the application messages in the user's language
      */
-    public UsersInitializer(final UsersRepository usersRepository, final PasswordEncoder encoder,
+    public UsersInitializer(final UsersRepository usersRepository, final Secrets secrets,
             final MessageSource localizedStringsSource) {
 
         if (usersRepository == null) {
             throw new IllegalArgumentException("The users repository cannot be null.");
         }
 
-        if (encoder == null) {
-            throw new IllegalArgumentException("The password encoder cannot be null.");
+        if (secrets == null) {
+            throw new IllegalArgumentException("The password utility bean cannot be null.");
         }
 
         if (localizedStringsSource == null) {
@@ -92,7 +92,7 @@ public class UsersInitializer {
         }
 
         this.messageSource = localizedStringsSource;
-        this.passwordEncoder = encoder;
+        this.secrets = secrets;
         this.repository = usersRepository;
     }
 
@@ -145,7 +145,7 @@ public class UsersInitializer {
         adminUser.setActive(true);
         adminUser.setLogin("admin");
         adminUser.setName(this.getMessageString(UsersInitializer.ADMIN_USER_NAME_KEY));
-        adminUser.setPassword(this.passwordEncoder.encode("motdepasse21"));
+        adminUser.setPassword(this.secrets.hash("motdepasse21"));
         adminUser.setProfile(Profile.ADMIN);
         adminUser.setEmail("monadmin@monmail.com");
 
@@ -165,7 +165,7 @@ public class UsersInitializer {
         operatorUser.setActive(true);
         operatorUser.setLogin("operator");
         operatorUser.setName("Operator");
-        operatorUser.setPassword(this.passwordEncoder.encode("motdepasse21"));
+        operatorUser.setPassword(this.secrets.hash("motdepasse21"));
         operatorUser.setProfile(Profile.OPERATOR);
         operatorUser.setEmail("monoperateur@monmail.com");
 
