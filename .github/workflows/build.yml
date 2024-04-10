@@ -37,6 +37,10 @@ jobs:
             - name: Make dependencies script executable
               run: chmod +x install_dependencies.sh
               working-directory: /home/runner/work/extract/extract/extract
+              
+            - name: Allow mutable Yarn installs
+              run: yarn config set enableImmutableInstalls false
+              working-directory: /home/runner/work/extract/extract/extract
 
             - name: Install JavaScript dependencies
               run: ./install_dependencies.sh
