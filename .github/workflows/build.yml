@@ -23,7 +23,7 @@ jobs:
                   cache-dependency-path: extract/package.json
             
             - name: Create folder for Yarn executable
-              run: mkdir -p .yarn/releases
+              run: mkdir -p /home/runner/work/extract/extract/extract/.yarn/releases
               working-directory: /home/runner/work/extract/extract/extract            
             
             - name: Enable Corepack
