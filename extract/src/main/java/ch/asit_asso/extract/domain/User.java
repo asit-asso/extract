@@ -42,6 +42,7 @@ import javax.persistence.TemporalType;
 import javax.persistence.UniqueConstraint;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import ch.asit_asso.extract.ldap.LdapUser;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
@@ -86,6 +87,7 @@ public class User implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;
+
 
     /**
      * The string that identifies the user associated to the application background tasks.
@@ -763,4 +765,21 @@ public class User implements Serializable {
         return String.format("ch.asit_asso.extract.User[ idUser=%d ]", this.id);
     }
 
+
+
+
+    public static final User fromLdap(LdapUser ldapUser) {
+        User domainUser = new User();
+        domainUser.setLogin(ldapUser.getLogin());
+        domainUser.setMailActive(false);
+        domainUser.setTwoFactorForced(false);
+        domainUser.setTwoFactorStatus(User.TwoFactorStatus.INACTIVE);
+        domainUser.setUserType(User.UserType.LDAP);
+        domainUser.setActive(ldapUser.isActive());
+        domainUser.setEmail(ldapUser.getEmail());
+        domainUser.setName(ldapUser.getName());
+        domainUser.setProfile(ldapUser.getRole());
+
+        return domainUser;
+    }
 }

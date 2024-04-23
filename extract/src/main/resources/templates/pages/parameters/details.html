@@ -459,7 +459,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapServers')} ? 'has-error'">
@@ -477,7 +477,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label">
                                                 <div>
@@ -499,7 +499,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapBaseDn')} ? 'has-error'">
@@ -517,7 +517,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapAdminsGroup')} ? 'has-error'">
@@ -533,7 +533,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapOperatorsGroup')} ? 'has-error'">
@@ -549,7 +549,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label">
                                                 <div>
@@ -575,7 +575,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row synchro-field-row" th:classappend="*{ldapSynchronizationEnabled} ? '' : 'd-none'">
+                                    <div class="row ldap-field-row synchro-field-row"
+                                         th:classappend="*{ldapEnabled} and *{ldapSynchronizationEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapSynchronizationUser')} ? 'has-error'">
@@ -592,7 +593,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row synchro-field-row" th:classappend="*{ldapSynchronizationEnabled} ? '' : 'd-none'">
+                                    <div class="row ldap-field-row synchro-field-row"
+                                         th:classappend="*{ldapEnabled} and *{ldapSynchronizationEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapSynchronizationPassword')} ? 'has-error'">
@@ -610,7 +612,8 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row synchro-field-row" th:classappend="*{ldapSynchronizationEnabled} ? '' : 'd-none'">
+                                    <div class="row ldap-field-row synchro-field-row"
+                                         th:classappend="*{ldapEnabled} and *{ldapSynchronizationEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('ldapSynchronizationFrequency')} ? 'has-error'">
@@ -630,7 +633,7 @@
                                                     <div class="col-xl-8">
                                                         <button id="ldapSynchroStartButton" class="btn btn-extract-white"
                                                                 th:text="#{parameters.buttons.ldapSynchroStart.label}"
-                                                                type="button">
+                                                                type="button" th:href="@{/parameters/startLdapSynchro}">
                                                             {Synchronize now}
                                                         </button>
                                                     </div>
@@ -638,10 +641,11 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row mt-3">
+                                    <div class="row ldap-field-row mt-3" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
                                         <div class="col-xl-12">
                                             <button id="ldapConnectionTestButton" class="btn btn-extract-filled"
                                                     th:text="#{parameters.buttons.ldapConnectionTest.label}"
+                                                    th:href="@{/parameters/testLdap}"
                                                     type="button">
                                                 {Test connection}
                                             </button>
@@ -691,7 +695,7 @@
                         </div>
                     </div>
                 </form>
-
+                <div th:replace="fragments/alert :: alertModal"></div>
             </div>
         </div>
         <th:block layout:fragment="customScripts">
@@ -702,23 +706,41 @@
             <script type="text/javascript" th:inline="javascript">
                 /*<![CDATA[*/
                 $(function() {
-                    $('#parametersCancelButton').on('click', function() {
+                    $('#parametersCancelButton').on('click', function () {
                         var pageUrl = /*[[@{'/parameters'}]]*/ "../parameters";
                         location.replace(pageUrl);
                     });
                     $('#parametersSaveButton').on('click', submitParametersData);
                     $('#addRangeButton').on('click', addOrchestratorTimeRange);
                     $('.delete-range-button').on('click', removeOrchestratorTimeRange);
-                    $('#ldapSynchronizationEnabled1').on('click', function() {
+                    $('#ldapSynchronizationEnabled1').on('click', function () {
                         hideSynchroFields();
                     });
-                    $('#ldapSynchronizationEnabled2').on('click', function() {
+                    $('#ldapSynchronizationEnabled2').on('click', function () {
                         showSynchroFields();
                     });
+                    $('#ldapEnabled1').on('click', function() {
+                        hideLdapFields();
+                    });
+                    $('#ldapEnabled2').on('click', function() {
+                        showLdapFields();
+                    });
+
+                    $('#ldapConnectionTestButton').on('click', testLdap);
+
+                    $('#ldapSynchroStartButton').on('click', startSynchro);
 
                     loadTimePickers();
-                    isSynchroEnabledString = /*[[${parameters.ldapSynchroEnabled}}*/ 'false';
-                    updateSynchroFieldsDisplay(isSynchroEnabledString == 'true');
+                    var isLdapEnabled = /*[[${parameters.ldapEnabled}]]*/ false;
+                    var isSynchroEnabled = /*[[${parameters.ldapSynchronizationEnabled}]]*/ false;
+                    updateSynchroFieldsDisplay(isLdapEnabled, isSynchroEnabled);
+                });
+                /*]]>*/</script>
+            <script type="text/javascript" th:inline="javascript" th:unless="${#strings.isEmpty(ldapTestMessage)}">
+                /*<![CDATA[*/
+                $(function() {
+                    var message = /*[[${ldapTestMessage}]]*/ '';
+                    showAlert('Test LDAP', message);
                 });
                 /*]]>*/</script>
         </th:block>

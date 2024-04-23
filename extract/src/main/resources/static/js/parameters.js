@@ -33,13 +33,28 @@ function removeOrchestratorTimeRange() {
     $("#parametersForm").submit();
 }
 
-function updateSynchroFieldsDisplay(isSynchroEnabled) {
+function updateSynchroFieldsDisplay(isLdapEnabled, isSynchroEnabled) {
 
-    if (isSynchroEnabled) {
-        showSynchroFields();
+    if (isLdapEnabled) {
+        showLdapFields();
+
+        if (isSynchroEnabled) {
+            showSynchroFields();
+
+        } else {
+            hideSynchroFields();
+        }
 
     } else {
-        hideSynchroFields();
+
+        if (isSynchroEnabled) {
+            showSynchroFields();
+
+        } else {
+            hideSynchroFields();
+        }
+
+        hideLdapFields();
     }
 }
 
@@ -47,24 +62,29 @@ function hideSynchroFields() {
     $(".synchro-field-row").addClass("d-none");
 }
 
+function hideLdapFields() {
+    $(".ldap-field-row").addClass("d-none");
+}
+
+
+function showLdapFields() {
+    $(".ldap-field-row").removeClass("d-none");
+}
+
 
 function showSynchroFields() {
     $(".synchro-field-row").removeClass("d-none");
 }
 
-// function testLdap() {
-//     $.ajax(_ldapTestUrl, {
-//         cache : false,
-//         method: 'POST',
-//         error : function() {
-//             alert('ERROR - Could not test the LDAP connection.');
-//         },
-//         success : function(data) {
-//
-//             alert(data);
-//         }
-//     })
-// }
+function startSynchro() {
+    $('#parametersForm').attr('action', $(this).attr('href'));
+    $('#parametersForm').submit();
+}
+
+function testLdap() {
+    $('#parametersForm').attr('action', $(this).attr('href'));
+    $('#parametersForm').submit();
+}
 
 $(function() {
     $(".properties-select.select2").select2({

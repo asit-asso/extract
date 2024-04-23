@@ -17,7 +17,9 @@
 package ch.asit_asso.extract.orchestrator;
 
 import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
+import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.orchestrator.schedulers.ImportJobsScheduler;
+import ch.asit_asso.extract.orchestrator.schedulers.ManagementTasksScheduler;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +55,7 @@ public final class Orchestrator {
     /**
      * The locale of the language that the application displays messages in.
      */
-    private String applicationLangague;
+    private String applicationLanguage;
 
     /**
      * Whether the background tasks related to the connectors are defined.
@@ -79,6 +81,12 @@ public final class Orchestrator {
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(Orchestrator.class);
+
+    private LdapSettings ldapSettings;
+
+    private boolean managementMonitoringScheduled;
+
+    private ManagementTasksScheduler managementScheduler;
 
     private boolean monitoringScheduled;
 
@@ -136,20 +144,11 @@ public final class Orchestrator {
 
     public WorkingState getWorkingState() {
 
-        switch (this.settings.getMode()) {
-
-            case OFF:
-                return WorkingState.STOPPED;
-
-            case ON:
-                return WorkingState.RUNNING;
-
-            case RANGES:
-                return this.isMonitoringScheduled() ? WorkingState.RUNNING : WorkingState.SCHEDULED_STOP;
-
-            default:
-                throw new IllegalStateException("Unsupported orcehstrator running mode.");
-        }
+        return switch (this.settings.getMode()) {
+            case OFF -> WorkingState.STOPPED;
+            case ON -> WorkingState.RUNNING;
+            case RANGES -> this.isMonitoringScheduled() ? WorkingState.RUNNING : WorkingState.SCHEDULED_STOP;
+        };
     }
 
 
@@ -165,7 +164,7 @@ public final class Orchestrator {
             throw new IllegalArgumentException("The application language code cannot be null.");
         }
 
-        this.applicationLangague = languageCode;
+        this.applicationLanguage = languageCode;
     }
 
 
@@ -198,6 +197,17 @@ public final class Orchestrator {
         }
 
         this.emailSettings = settings;
+    }
+
+
+
+    public void setLdapSettings(final LdapSettings ldapSettings) {
+
+        if (ldapSettings == null) {
+            throw new IllegalArgumentException("The LDAP settings object cannot be null.");
+        }
+
+        this.ldapSettings = ldapSettings;
     }
 
 
@@ -286,7 +296,7 @@ public final class Orchestrator {
      *                       <code>true</code>, then the orchestrator must be properly initialized
      */
     public synchronized void updateSettingsFromDataSource(final boolean rescheduleJobs) {
-        this.logger.debug("Updating the orcehstrator settings with the value in the data source.");
+        this.logger.debug("Updating the orchestrator settings with the value in the data source.");
 
         if (this.repositories == null) {
             throw new IllegalStateException("The application repositories are not configured.");
@@ -310,10 +320,9 @@ public final class Orchestrator {
      */
     public boolean isInitialized() {
 
-        return /*this.jobSchedulerComponents != null*/ this.taskRegistrar != null && this.repositories != null
-                && this.connectorPlugins != null
-                && this.taskPlugins != null && this.emailSettings != null && this.settings != null
-                && StringUtils.isNotBlank(this.applicationLangague);
+        return this.taskRegistrar != null && this.repositories != null && this.connectorPlugins != null
+               && this.taskPlugins != null && this.emailSettings != null  && this.ldapSettings != null
+               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage);
     }
 
 
@@ -336,7 +345,7 @@ public final class Orchestrator {
             final ApplicationRepositories applicationRepositories,
             final ConnectorDiscovererWrapper connectorPluginsDiscoverer,
             final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final EmailSettings smtpSettings,
-            final OrchestratorSettings orchestratorSettings) {
+            final LdapSettings ldapSettings, final OrchestratorSettings orchestratorSettings) {
 
         this.logger.debug("Initializing the orchestrator components.");
         this.setTaskRegistrar(registrar);
@@ -345,6 +354,7 @@ public final class Orchestrator {
         this.setConnectorPlugins(connectorPluginsDiscoverer);
         this.setTaskPlugins(taskPluginsDiscoverer);
         this.setEmailSettings(smtpSettings);
+        this.setLdapSettings(ldapSettings);
         this.setOrchestratorSettings(orchestratorSettings);
 
         return this.isInitialized();
@@ -368,6 +378,7 @@ public final class Orchestrator {
 
         this.scheduleConnectorsMonitoring();
         this.scheduleRequestsMonitoring();
+        this.scheduleManagementMonitoring();
         this.setMonitoringScheduled(true);
     }
 
@@ -385,6 +396,7 @@ public final class Orchestrator {
 
         this.unscheduleConnectorsMonitoring();
         this.unscheduleRequestsMonitoring();
+        this.unscheduleManagementMonitoring();
         this.logger.info("The monitoring jobs have been unscheduled.");
         this.setMonitoringScheduled(false);
     }
@@ -496,7 +508,7 @@ public final class Orchestrator {
         }
 
         this.importsScheduler = new ImportJobsScheduler(this.taskRegistrar, this.repositories, this.connectorPlugins,
-                this.emailSettings, this.applicationLangague, this.settings);
+                                                        this.emailSettings, this.applicationLanguage, this.settings);
         this.importsScheduler.scheduleJobs();
 
         this.setConnectorsMonitoringScheduled(true);
@@ -521,6 +533,39 @@ public final class Orchestrator {
     }
 
 
+    private synchronized void scheduleManagementMonitoring() {
+        assert this.isInitialized() : "The orchestrator components are not initialized";
+
+        this.logger.debug("Attempting to configure the management monitoring task");
+
+        if (this.isManagementMonitoringScheduled()) {
+            this.logger.debug("The management monitoring tasks are already scheduled.");
+            return;
+        }
+
+        this.managementScheduler = new ManagementTasksScheduler(this.taskRegistrar, this.repositories, this.ldapSettings,
+                                                                this.settings);
+        this.managementScheduler.scheduleJobs();
+
+        this.setManagementMonitoringScheduled(true);
+    }
+
+
+
+    private synchronized void unscheduleManagementMonitoring() {
+        this.logger.debug("Unscheduling the management monitoring tasks.");
+
+        if (!this.isManagementMonitoringScheduled() || this.managementScheduler == null) {
+            this.logger.debug("The management monitoring tasks are not scheduled, so nothing done.");
+            return;
+        }
+
+        this.managementScheduler.unscheduleJobs();
+        this.setManagementMonitoringScheduled(false);
+        this.logger.debug("The management monitoring tasks have been unscheduled.");
+    }
+
+
 
     /**
      * Instantiates and starts the background processes related to the requests state.
@@ -536,8 +581,8 @@ public final class Orchestrator {
         }
 
         this.requestsScheduler = new RequestsProcessingScheduler(this.taskRegistrar,
-                this.repositories, this.connectorPlugins, this.taskPlugins, this.emailSettings,
-                this.applicationLangague, this.settings);
+                                                                 this.repositories, this.connectorPlugins, this.taskPlugins, this.emailSettings,
+                                                                 this.applicationLanguage, this.settings);
         this.requestsScheduler.scheduleJobs();
 
         this.setRequestsMonitoringScheduled(true);
@@ -582,6 +627,18 @@ public final class Orchestrator {
      */
     private synchronized void setConnectorsMonitoringScheduled(final boolean isConnectorsMonitoringScheduled) {
         this.connectorsMonitoringScheduled = isConnectorsMonitoringScheduled;
+    }
+
+
+
+    private synchronized boolean isManagementMonitoringScheduled() {
+        return this.managementMonitoringScheduled;
+    }
+
+
+
+    private synchronized void setManagementMonitoringScheduled(final boolean isScheduled) {
+        this.managementMonitoringScheduled = isScheduled;
     }
 
 
