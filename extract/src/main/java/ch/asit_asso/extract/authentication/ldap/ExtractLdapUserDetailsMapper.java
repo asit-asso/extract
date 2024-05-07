@@ -67,33 +67,8 @@ public class ExtractLdapUserDetailsMapper  implements UserDetailsContextMapper {
     public void mapUserToContext(UserDetails user, DirContextAdapter ctx) {
         throw new UnsupportedOperationException("Context cannot be modified from the application.");
     }
-//
-//
-//    private User.Profile getProfileFromContext(DirContextOperations userData, String username) {
-//        List<Attribute> attributesList = ListUtils.castList(Attribute.class, Collections.list(userData.getAttributes().getAll()));
-//        this.logger.debug("Attributes found : {}",
-//                          String.join(", ", attributesList.stream().map(Attribute::getID).toList()));
-//        String[] membershipsArray = userData.getStringAttributes("memberOf");
-//
-//        if (membershipsArray == null || membershipsArray.length == 0) {
-//            this.logger.debug("User {} doesn't belong to any group.", username);
-//            throw new BadCredentialsException(String.format("Could not map user %s to any application role.", username));
-//        }
-//
-//        List<String> membershipsList = List.of(membershipsArray);
-//        this.logger.debug("User is a member of the following groups:\n{}", String.join("\n", membershipsList));
-//
-//        if (membershipsList.contains(this.ldapSettings.getAdminsGroup())) {
-//            return User.Profile.ADMIN;
-//        }
-//
-//        if (membershipsList.contains(this.ldapSettings.getOperatorsGroup())) {
-//            return User.Profile.OPERATOR;
-//        }
-//
-//        this.logger.debug("All searches for an application role to map user {} to failed.", username);
-//        throw new BadCredentialsException(String.format("Could not map user %s to any application role.", username));
-//    }
+
+
 
     private User createDomainUserObject(DirContextOperations context) {
         this.logger.debug("Creating user account.");
@@ -107,6 +82,7 @@ public class ExtractLdapUserDetailsMapper  implements UserDetailsContextMapper {
 
         return domainUser;
     }
+
 
 
     private User getApplicationUser(String username, DirContextOperations context) {
@@ -166,44 +142,5 @@ public class ExtractLdapUserDetailsMapper  implements UserDetailsContextMapper {
         LdapUser ldapUser = attributesMapper.mapFromAttributes(context.getAttributes());
 
         return LdapUtils.updateFromLdap(domainUser, ldapUser, this.usersRepository);
-
-//
-//        try {
-//            this.logger.debug("Setting null password.");
-//            domainUser.setPassword(null);
-//
-//            this.logger.debug("Setting name.");
-//            domainUser.setName(context.getStringAttribute(this.ldapSettings.getUserNameAttribute()));
-//
-//            this.logger.debug("Setting e-mail.");
-//            String contextEmail = context.getStringAttribute(this.ldapSettings.getMailAttribute());
-//
-//            this.logger.debug("Checking if e-mail is taken.");
-//
-//            if (EmailUtils.isAddressInUse(contextEmail, domainUser, this.usersRepository)) {
-//
-//                if (domainUser.getId() == null) {
-//                    this.logger.info("Could not create LDAP user {} because another user uses the e-mail address {}.",
-//                                     domainUser.getLogin(), contextEmail);
-//                    throw new BadCredentialsException("Another user already uses the same e-mail address");
-//                }
-//
-//                this.logger.warn(
-//                        "Another account already uses the e-mail address {}. The address for account {} has not been updated.",
-//                        contextEmail, domainUser.getLogin());
-//
-//            } else {
-//                domainUser.setEmail(contextEmail);
-//            }
-//
-//            this.logger.debug("Setting profile");
-//            domainUser.setProfile(this.getProfileFromContext(context, domainUser.getLogin()));
-//
-//            return domainUser;
-//
-//        } catch (Exception exception) {
-//            this.logger.error("An error occurred when the user properties were updated.", exception);
-//            throw new BadCredentialsException("Login procedure failed.");
-//        }
     }
 }
