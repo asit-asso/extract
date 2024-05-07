@@ -47,7 +47,7 @@ jobs:
               working-directory: /home/runner/work/extract/extract/extract
                   
             - name: Build the code
-              run: mvn -q package -DskipTests=true --batch-mode
+              run: mvn -q clean package -X -e -DskipTests=true --batch-mode
               
             - name: Upload artifact for deployment job
               uses: actions/upload-artifact@v3
