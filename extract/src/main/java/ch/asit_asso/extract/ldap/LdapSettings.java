@@ -1,6 +1,7 @@
 package ch.asit_asso.extract.ldap;
 
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -137,7 +138,9 @@ public class LdapSettings {
             return ZonedDateTime.now();
         }
 
-        return this.getLastSynchronizationDate().plusHours(this.getSynchronizationFrequencyHours());
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        ZonedDateTime nextExecution = this.getLastSynchronizationDate().plusHours(this.getSynchronizationFrequencyHours());
+        return nextExecution;
     }
 
     public String getUserNameAttribute() {
@@ -246,6 +249,7 @@ public class LdapSettings {
 
 
     public void refresh() {
+        this.logger.debug("Reloading the LDAP settings from the data source.");
         this.setSettingsFromDataSource();
     }
 

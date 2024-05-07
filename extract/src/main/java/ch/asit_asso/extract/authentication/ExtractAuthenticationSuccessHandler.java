@@ -101,8 +101,6 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
                 this.logger.debug("2FA for user {} is in standby. Processing to the 2FA registration page.", userName);
                 request.getSession().setAttribute("2faStep", "REGISTER");
                 request.getSession().setAttribute("2faProcess", "AUTHENTICATION");
-//                new SimpleUrlAuthenticationSuccessHandler("/2fa/register")
-//                        .onAuthenticationSuccess(request, response, authentication);
                 new TwoFactorAuthenticationHandler("/2fa/register")
                         .onAuthenticationSuccess(request, response, authentication);
 

@@ -1,33 +1,42 @@
 package ch.asit_asso.extract.integration.taskplugins;
 
+import java.io.File;
+import java.io.FileFilter;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.plugins.TaskProcessorsDiscoverer;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
-import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
+import ch.asit_asso.extract.plugins.implementation.TaskProcessorRequest;
+import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.SystemUtils;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
-//@ContextConfiguration(classes = { ApplicationConfiguration.class })
-//@WebAppConfiguration
-//@ExtendWith(SpringExtension.class)
-//@SpringBootTest(classes = ExtractApplication.class)
-//@AutoConfigureTestDatabase(connection = EmbeddedDatabaseConnection.DERBY)
-//@TestPropertySource(properties={
-//        "spring.jpa.hibernate.ddl-auto=create",
-//        "spring.jpa.database-platform=org.hibernate.dialect.DerbyTenSevenDialect"
-//})
 @Tag("integration")
 public class FmeDesktopIntegrationTest {
 
+    public static final String EXPECTED_SUCCESS_MESSAGE = "OK";
+
+    public static final String EXPECTED_SUCCESS_ERROR_CODE = "";
+
+    public static final ITaskProcessorResult.Status EXPECTED_SUCCESS_STATUS = ITaskProcessorResult.Status.SUCCESS;
+
+    public static final String EXPECTED_FR_NO_FILES_MESSAGE = "Le répertoire sortie est vide ou n'existe pas.";
+
+    public static final ITaskProcessorResult.Status EXPECTED_ERROR_STATUS = ITaskProcessorResult.Status.ERROR;
+
     private Request testRequest;
 
-    //@Autowired
-    private TaskProcessorDiscovererWrapper taskPluginDiscoverer;
-
-    private ITaskProcessor fmeDesktopPlugin;
+    private static ITaskProcessor fmeDesktopPlugin;
 
     private static final String APPLICATION_LANGUAGE = "fr";
 
@@ -37,15 +46,17 @@ public class FmeDesktopIntegrationTest {
 
     private static final String DATA_FOLDERS_BASE_PATH = "/var/extract/orders";
 
-    private static final String SUCCESS_WORKSPACE = "/home/arxit/fme/my_workspace.fmw";
+    private static final String SUCCESS_WORKSPACE = "src/test/java/ch/asit_asso/extract/integration/taskplugins/my_workspace.fmw";
 
-    private static final String FAILING_WORKSPACE = "/home/arxit/fme/my_workspace_fails.fmw";
+    private static final String FAILING_WORKSPACE = "src/test/java/ch/asit_asso/extract/integration/taskplugins/my_workspace_fails.fmw";
 
-    private static final String NO_FILES_WORKSPACE = "/home/arxit/fme/my_workspace_nofiles.fmw";
+    private static final String NO_FILES_WORKSPACE = "src/test/java/ch/asit_asso/extract/integration/taskplugins/my_workspace_nofiles.fmw";
 
-    private static final String FME_MOCK_LINUX = "./FmeDesktopTest";
+    private static final String FME_MOCK_LINUX = "src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest";
 
-    private static final String FME_MOCK_WINDOWS = "/FmeDesktopTestWindows";
+    private static final String FME_MOCK_WINDOWS = "src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTestWindows";
+
+    private static final String INPUT_FOLDER = "5f258673-e743-475f-93a4-f466f6be3031/input";
 
     private static final String NUM_INSTANCES = "1";
 
@@ -74,95 +85,144 @@ public class FmeDesktopIntegrationTest {
             + " 46.24479663917551,7.008860662659381 46.24516646719812,7.008784739864421"
             + " 46.24533934577381,7.008802763251656 46.245519329293245))";
 
+    public static final String PLUGIN_FILE_NAME_FILTER = "extract-task-fmedesktop-*.jar";
+
     public static final String PRODUCT_GUID = "a8405d50-f712-4e3e-96b2-a5452cf4e03e";
 
     public static final int REQUEST_ID = 1;
 
+    public static final Request.Status REQUEST_STATUS = Request.Status.ONGOING;
+
+    public static final String TASK_PLUGINS_FOLDER_PATH = "src/main/resources/task_processors";
+
+
+    @BeforeAll
+    public static void initialize() {
+        FmeDesktopIntegrationTest.configurePlugin();
+    }
+
 
     @BeforeEach
     public final void setUp() {
-//        this.testRequest = new Request();
-//        this.testRequest.setFolderOut(FmeDesktopIntegrationTest.OUTPUT_FOLDER);
-//        this.testRequest.setClientGuid(FmeDesktopIntegrationTest.CLIENT_GUID);
-//        this.testRequest.setOrderLabel(FmeDesktopIntegrationTest.ORDER_LABEL);
-//        this.testRequest.setOrganismGuid(FmeDesktopIntegrationTest.ORGANISM_GUID);
-//        this.testRequest.setParameters(FmeDesktopIntegrationTest.PARAMETERS_JSON);
-//        this.testRequest.setPerimeter(FmeDesktopIntegrationTest.PERIMETER_POLYGON);
-//        this.testRequest.setProductGuid(FmeDesktopIntegrationTest.PRODUCT_GUID);
-//        this.testRequest.setId(FmeDesktopIntegrationTest.REQUEST_ID);
-//
-//        this.plugin_parameters = new HashMap<>();
-//
-//        if (SystemUtils.IS_OS_WINDOWS) {
-//            this.plugin_parameters.put("pathFME", FmeDesktopIntegrationTest.FME_MOCK_WINDOWS);
-//
-//        } else {
-//            this.plugin_parameters.put("pathFME", FmeDesktopIntegrationTest.FME_MOCK_LINUX);
-//        }
-//
-//        this.plugin_parameters.put("instances", FmeDesktopIntegrationTest.NUM_INSTANCES);
-//
-//        this.fmeDesktopPlugin = this.taskPluginDiscoverer.getTaskProcessor(FmeDesktopIntegrationTest.PLUGIN_CODE);
+        this.configureRequest();
+        this.configurePluginParameters();
     }
+
+
+
+    private static void configurePlugin() {
+        TaskProcessorsDiscoverer taskPluginDiscoverer = TaskProcessorsDiscoverer.getInstance();
+        taskPluginDiscoverer.setApplicationLanguage(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE);
+
+        File pluginDir = new File(FmeDesktopIntegrationTest.TASK_PLUGINS_FOLDER_PATH);
+        FileFilter fileFilter = new WildcardFileFilter(FmeDesktopIntegrationTest.PLUGIN_FILE_NAME_FILTER);
+        File[] foundPluginFiles = pluginDir.listFiles(fileFilter);
+
+        if (ArrayUtils.isEmpty(foundPluginFiles)) {
+            throw new RuntimeException("FME Desktop plugin JAR not found.");
+        }
+
+        URL pluginUrl;
+
+        try {
+            pluginUrl = new URL(String.format("jar:file:%s!/", foundPluginFiles[0].getAbsolutePath()));
+
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+
+        taskPluginDiscoverer.setJarUrls(new URL[] { pluginUrl });
+        FmeDesktopIntegrationTest.fmeDesktopPlugin =
+                taskPluginDiscoverer.getTaskProcessor(FmeDesktopIntegrationTest.PLUGIN_CODE);
+    }
+
+
+
+    private void configurePluginParameters() {
+        this.plugin_parameters = new HashMap<>();
+
+        String mockExecutableFilePath;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            mockExecutableFilePath = FmeDesktopIntegrationTest.FME_MOCK_WINDOWS;
+
+        } else {
+            mockExecutableFilePath = FmeDesktopIntegrationTest.FME_MOCK_LINUX;
+        }
+
+        this.plugin_parameters.put("pathFME", new File(mockExecutableFilePath).getAbsolutePath());
+        this.plugin_parameters.put("instances", FmeDesktopIntegrationTest.NUM_INSTANCES);
+    }
+
+
+
+    private void configureRequest() {
+        this.testRequest = new Request();
+        this.testRequest.setFolderIn(FmeDesktopIntegrationTest.INPUT_FOLDER);
+        this.testRequest.setFolderOut(FmeDesktopIntegrationTest.OUTPUT_FOLDER);
+        this.testRequest.setClientGuid(FmeDesktopIntegrationTest.CLIENT_GUID);
+        this.testRequest.setOrderLabel(FmeDesktopIntegrationTest.ORDER_LABEL);
+        this.testRequest.setOrganismGuid(FmeDesktopIntegrationTest.ORGANISM_GUID);
+        this.testRequest.setParameters(FmeDesktopIntegrationTest.PARAMETERS_JSON);
+        this.testRequest.setPerimeter(FmeDesktopIntegrationTest.PERIMETER_POLYGON);
+        this.testRequest.setProductGuid(FmeDesktopIntegrationTest.PRODUCT_GUID);
+        this.testRequest.setStatus(FmeDesktopIntegrationTest.REQUEST_STATUS);
+        this.testRequest.setId(FmeDesktopIntegrationTest.REQUEST_ID);
+    }
+
+
 
     @Test
     public final void testParameters() {
-//        this.plugin_parameters.put("path", FmeDesktopIntegrationTest.SUCCESS_WORKSPACE);
-//
-//        final ITaskProcessor pluginInstance
-//                = this.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
-//                                                    this.plugin_parameters);
-//
-//        final TaskProcessorRequest taskProcessorRequest
-//                = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
-//        final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
-//
-//        assertEquals("OK", pluginResult.getMessage());
-//        assertEquals("", pluginResult.getErrorCode());
-//        assertEquals(ITaskProcessorResult.Status.SUCCESS, pluginResult.getStatus());
-        boolean success = true;
-        assertTrue(success);
+        this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.SUCCESS_WORKSPACE).getAbsolutePath());
+
+        final ITaskProcessor pluginInstance
+                = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
+                                                                         this.plugin_parameters);
+
+        final TaskProcessorRequest taskProcessorRequest
+                = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
+        final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
+
+        assertEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_MESSAGE, pluginResult.getMessage());
+        assertEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_ERROR_CODE, pluginResult.getErrorCode());
+        assertEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_STATUS, pluginResult.getStatus());
     }
 
 
 
     @Test
     public final void testReturnNoFiles() {
-//        this.plugin_parameters.put("path", FmeDesktopIntegrationTest.NO_FILES_WORKSPACE);
-//
-//        final ITaskProcessor pluginInstance
-//                = this.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
-//                                                    this.plugin_parameters);
-//
-//        final TaskProcessorRequest taskProcessorRequest
-//                = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
-//        final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
-//
-//        assertEquals("Le répertoire sortie est vide ou n'existe pas.", pluginResult.getMessage());
-//        assertNotEquals("", pluginResult.getErrorCode());
-//        assertEquals(ITaskProcessorResult.Status.ERROR, pluginResult.getStatus());
-        boolean success = true;
-        assertTrue(success);
+        this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.NO_FILES_WORKSPACE).getAbsolutePath());
+
+        final ITaskProcessor pluginInstance
+                = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
+                                                                         this.plugin_parameters);
+
+        final TaskProcessorRequest taskProcessorRequest
+                = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
+        final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
+
+        assertEquals(FmeDesktopIntegrationTest.EXPECTED_FR_NO_FILES_MESSAGE, pluginResult.getMessage());
+        assertNotEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_ERROR_CODE, pluginResult.getErrorCode());
+        assertEquals(FmeDesktopIntegrationTest.EXPECTED_ERROR_STATUS, pluginResult.getStatus());
     }
 
 
 
     @Test
     public final void testReturnError() {
-//        this.plugin_parameters.put("path", FmeDesktopIntegrationTest.FAILING_WORKSPACE);
-//
-//        final ITaskProcessor pluginInstance
-//                = this.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
-//                                                    this.plugin_parameters);
-//
-//        final TaskProcessorRequest taskProcessorRequest
-//                = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
-//        final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
-//
-//        assertNotEquals("", pluginResult.getMessage());
-//        assertNotEquals("", pluginResult.getErrorCode());
-//        assertEquals(ITaskProcessorResult.Status.ERROR, pluginResult.getStatus());
-        boolean success = true;
-        assertTrue(success);
+        this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.FAILING_WORKSPACE).getAbsolutePath());
+
+        final ITaskProcessor pluginInstance
+                = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
+                                                                         this.plugin_parameters);
+
+        final TaskProcessorRequest taskProcessorRequest
+                = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
+        final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
+
+        assertNotEquals("", pluginResult.getMessage());
+        assertNotEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_ERROR_CODE, pluginResult.getErrorCode());
+        assertEquals(FmeDesktopIntegrationTest.EXPECTED_ERROR_STATUS, pluginResult.getStatus());
     }
 }

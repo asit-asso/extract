@@ -17,7 +17,7 @@ public class LdapUsersCollection extends HashSet<LdapUser> {
     public boolean add(LdapUser userToAdd) {
 
         if (userToAdd == null) {
-            return false;
+            throw new IllegalArgumentException("The user to add cannot be null.");
         }
 
         if (!this.contains(userToAdd)) {
@@ -40,6 +40,11 @@ public class LdapUsersCollection extends HashSet<LdapUser> {
         boolean hasChanged = false;
 
         for (LdapUser newUser : usersToAdd) {
+
+            if (newUser == null) {
+                continue;
+            }
+
             hasChanged |= this.add(newUser);
         }
 
