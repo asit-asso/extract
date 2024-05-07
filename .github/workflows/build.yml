@@ -47,10 +47,10 @@ jobs:
               working-directory: /home/runner/work/extract/extract/extract
                   
             - name: Build the code
-              run: mvn -q clean package -X -e -DskipTests=true --batch-mode
+              run: mvn -q package -DskipTests=true --batch-mode
               
             - name: Upload artifact for deployment job
-              uses: actions/upload-artifact@v3
+              uses: actions/upload-artifact@v4
               with:
                   name: java-app
                   path: '/home/runner/work/extract/extract/extract/target/*.war'
@@ -73,7 +73,7 @@ jobs:
                uses: browser-actions/setup-chrome@v1
                
              - name: Download artifact generated in build job
-               uses: actions/download-artifact@v3
+               uses: actions/download-artifact@v4
                with:
                    name: java-app
                    path: /tmp
