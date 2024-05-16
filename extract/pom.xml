@@ -44,6 +44,7 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <configEnvironment>dev-linux</configEnvironment>
     </properties>
 
     <dependencies>
@@ -176,13 +177,11 @@
             <artifactId>gson</artifactId>
             <version>2.10.1</version>
         </dependency>
-        <!--
-                <dependency>
-                    <groupId>commons-validator</groupId>
-                    <artifactId>commons-validator</artifactId>
-                    <version>1.7</version>
-                </dependency>
-        -->
+        <dependency>
+            <groupId>commons-validator</groupId>
+            <artifactId>commons-validator</artifactId>
+            <version>1.8.0</version>
+        </dependency>
         <dependency>
             <groupId>org.locationtech.jts</groupId>
             <artifactId>jts-core</artifactId>
@@ -306,6 +305,17 @@
 
     <build>
         <finalName>${project.artifactId}##${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <excludes>
+                    <exclude>application*.properties</exclude>
+                    <exclude>logback-spring*.xml</exclude>
+                    <exclude>static/lib/.bin/**</exclude>
+                    <exclude>static/lib/**/.bin/**</exclude>
+                </excludes>
+            </resource>
+        </resources>
         <pluginManagement>
             <plugins>
                 <plugin>
@@ -323,6 +333,30 @@
             </plugins>
         </pluginManagement>
         <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <condition property="configFilePart" value=".${configEnvironment}" else="">
+                                    <not>
+                                        <equals arg1="${configEnvironment}" arg2="default"/>
+                                    </not>
+                                </condition>
+                                <copy file="src/main/resources/application${configFilePart}.properties"
+                                      tofile="${project.build.outputDirectory}/application.properties"/>
+                                <copy file="src/main/resources/logback-spring${configFilePart}.xml"
+                                      tofile="${project.build.outputDirectory}/logback-spring.xml"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>properties-maven-plugin</artifactId>
