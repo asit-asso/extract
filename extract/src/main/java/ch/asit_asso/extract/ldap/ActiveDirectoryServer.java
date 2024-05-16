@@ -1,10 +1,7 @@
 package ch.asit_asso.extract.ldap;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import javax.validation.constraints.NotNull;
+import org.apache.commons.validator.routines.DomainValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
@@ -14,9 +11,6 @@ import org.springframework.security.ldap.authentication.ad.ActiveDirectoryLdapAu
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
 public class ActiveDirectoryServer extends LdapServer {
-
-    private static final Pattern ACTIVE_DIRECTORY_DOMAIN_PATTERN
-            = Pattern.compile("^(?:((?!-)[a-z0-9-]+(?!-))\\.)+([a-z]{3,6})$", Pattern.CASE_INSENSITIVE);
 
     private static final int MAXIMUM_DOMAIN_BYTES = 64;
 
@@ -54,7 +48,7 @@ public class ActiveDirectoryServer extends LdapServer {
 
 
     public static boolean isDomain(@NotNull String base) {
-        return ActiveDirectoryServer.ACTIVE_DIRECTORY_DOMAIN_PATTERN.asMatchPredicate().test(base)
+        return DomainValidator.getInstance().isValid(base)
                && base.getBytes().length <= ActiveDirectoryServer.MAXIMUM_DOMAIN_BYTES;
     }
 
@@ -91,24 +85,28 @@ public class ActiveDirectoryServer extends LdapServer {
 
 
     private static String[] getDomainParts(@NotNull String domain) {
-        Matcher domainMatcher = ActiveDirectoryServer.ACTIVE_DIRECTORY_DOMAIN_PATTERN.matcher(domain);
+        assert DomainValidator.getInstance().isValid(domain) : "The domain is not valid.";
 
-        if (!domainMatcher.matches() || domainMatcher.groupCount() < 1) {
-            throw new IllegalArgumentException("The string is not a valid domain name.");
-        }
+//        Matcher domainMatcher = ActiveDirectoryServer.ACTIVE_DIRECTORY_DOMAIN_PATTERN.matcher(domain);
+//
+//        if (!domainMatcher.matches() || domainMatcher.groupCount() < 1) {
+//            throw new IllegalArgumentException("The string is not a valid domain name.");
+//        }
+//
+//        List<String> parts = new ArrayList<>();
+//
+//        for (int groupIndex = 1; groupIndex <= domainMatcher.groupCount(); groupIndex++) {
+//            String group = domainMatcher.group(groupIndex);
+//
+//            if (group == null) {
+//                continue;
+//            }
+//
+//            parts.add(group);
+//        }
+//
+//        return parts.toArray(String[]::new);
 
-        List<String> parts = new ArrayList<>();
-
-        for (int groupIndex = 1; groupIndex <= domainMatcher.groupCount(); groupIndex++) {
-            String group = domainMatcher.group(groupIndex);
-
-            if (group == null) {
-                continue;
-            }
-
-            parts.add(group);
-        }
-
-        return parts.toArray(String[]::new);
+        return domain.split("\\.");
     }
 }

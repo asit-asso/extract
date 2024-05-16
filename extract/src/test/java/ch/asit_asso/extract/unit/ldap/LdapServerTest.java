@@ -18,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LdapServerTest extends MockEnabledTest {
-    private static final String DOMAIN_BASE = "example.com";
-    private static final String EXPECTED_BASE_FOR_DOMAIN = "DC=example,DC=com";
+    private static final String DOMAIN_BASE = "example.ch";
+    private static final String EXPECTED_BASE_FOR_DOMAIN = "DC=example,DC=ch";
     private static final String INVALID_URL = "ldap%server&test";
-    private static final String LDAP_BASE = "OU=Users,DC=example,DC=com";
-    private static final String LDAP_URL = "ldap://monserveur.com";
+    private static final String LDAP_BASE = "OU=Users,DC=example,DC=ch";
+    private static final String LDAP_URL = "ldap://monserveur.ch";
 
     @Mock
     private static LdapSettings settings;
@@ -54,10 +54,9 @@ class LdapServerTest extends MockEnabledTest {
     @Test
     @DisplayName("Creating an instance with an invalid URL")
     void buildInvalid() {
-        assertThrows(NoSuchElementException.class, () -> {
-            LdapServer.build(LdapServerTest.INVALID_URL, LdapServerTest.LDAP_BASE, EncryptionType.STARTTLS,
-                             null, null, LdapServerTest.settings);
-        });
+        assertThrows(NoSuchElementException.class, () ->
+                LdapServer.build(LdapServerTest.INVALID_URL, LdapServerTest.LDAP_BASE, EncryptionType.STARTTLS,
+                                 null, null, LdapServerTest.settings));
     }
 
 
