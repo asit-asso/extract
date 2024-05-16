@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * @author Yves Grasset
  */
 public class QGISPrintPluginTest {
-    private static final String CONFIG_FILE_PATH = "/plugins/qgisprint/properties/config.properties";
+    private static final String CONFIG_FILE_PATH = "plugins/qgisprint/properties/config.properties";
     private static final String DESCRIPTION_STRING_IDENTIFIER = "plugin.description";
     private static final String EXPECTED_ICON_CLASS = "fa-file-pdf-o";
     private static final String EXPECTED_PLUGIN_CODE = "QGISPRINT";
@@ -51,26 +51,22 @@ public class QGISPrintPluginTest {
     private static final String LAYERS_PARAMETER_NAME_PROPERTY = "paramLayers";
     private static final String LOGIN_PARAMETER_NAME_PROPERTY = "paramLogin";
     private static final String PASSWORD_PARAMETER_NAME_PROPERTY = "paramPassword";
+    private static final String CRS_PARAMETER_NAME_PROPERTY = "paramCRS";
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
-    private static final String PARAMETER_CODE_NAME = "QGISPRINT";
+    private static final String PARAMETER_CODE_NAME = "code";
     private static final String PARAMETER_LABEL_NAME = "label";
-    private static final String PARAMETER_MAX_LENGTH_NAME = "maxlength";
     private static final String PARAMETER_REQUIRED_NAME = "req";
     private static final String PARAMETER_TYPE_NAME = "type";
-    private static final int PARAMETERS_NUMBER = 5;
+    private static final int PARAMETERS_NUMBER = 7;
 
-    //private static final String TEST_QGIS_URL = "https://prod21-demo1.arxit.com/ASITVD/GetProjectSettings.xml";
     private static final String TEST_QGIS_URL = "http://p22.arxit.lan";
     private static final String TEST_INSTANCE_LANGUAGE = "fr";
     private static final String TEST_QGIS_PATH = "/etc/qgisserver/world.qgs";
     private static final String TEST_LAYERS = "countries";
     private static final String TEST_LOGIN = "fkr";
     private static final String TEST_PASSWORD = "Spirale71";
-    private static final String LIMIT = "10";
     private static final String TEST_TEMPLATE_LAYOUT = "myplan";
 
-    private static final String TEST_URL_GET_PROJECT_SETTINGS = "...";
-    private static final String TEST_URL_GET_FEATURES = "...";
     private static final String[] VALID_PARAMETER_TYPES = new String[]{"email", "pass", "multitext", "text", "numeric"};
 
     /**
@@ -78,10 +74,9 @@ public class QGISPrintPluginTest {
      */
     private final Logger logger = LoggerFactory.getLogger(QGISPrintPluginTest.class);
 
-    private PluginConfiguration configuration;
     private LocalizedMessages messages;
     private ObjectMapper parameterMapper;
-    private String[] requiredParametersCodes;
+    private String[] expectedParametersCodes;
     private Map<String, String> testParameters;
 
 
@@ -93,24 +88,29 @@ public class QGISPrintPluginTest {
 
     @BeforeEach
     public final void setUp() {
-        this.configuration = new PluginConfiguration(QGISPrintPluginTest.CONFIG_FILE_PATH);
+
+        PluginConfiguration configuration = new PluginConfiguration(QGISPrintPluginTest.CONFIG_FILE_PATH);
         this.messages = new LocalizedMessages(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
         this.parameterMapper = new ObjectMapper();
 
         final String qgisUrlCode
-                = this.configuration.getProperty(QGISPrintPluginTest.QGIS_URL_PARAMETER_NAME_PROPERTY);
+                = configuration.getProperty(QGISPrintPluginTest.QGIS_URL_PARAMETER_NAME_PROPERTY);
         final String templateLayoutCode
-                = this.configuration.getProperty(QGISPrintPluginTest.TEMPLATE_LAYOUT_PARAMETER_NAME_PROPERTY);
+                = configuration.getProperty(QGISPrintPluginTest.TEMPLATE_LAYOUT_PARAMETER_NAME_PROPERTY);
         final String pathQGIS
-                = this.configuration.getProperty(QGISPrintPluginTest.QGIS_PATH_PARAMETER_NAME_PROPERTY);
+                = configuration.getProperty(QGISPrintPluginTest.QGIS_PATH_PARAMETER_NAME_PROPERTY);
         final String layers
-                = this.configuration.getProperty(QGISPrintPluginTest.LAYERS_PARAMETER_NAME_PROPERTY);
+                = configuration.getProperty(QGISPrintPluginTest.LAYERS_PARAMETER_NAME_PROPERTY);
         final String login
-                = this.configuration.getProperty(QGISPrintPluginTest.LOGIN_PARAMETER_NAME_PROPERTY);
+                = configuration.getProperty(QGISPrintPluginTest.LOGIN_PARAMETER_NAME_PROPERTY);
         final String password
-                = this.configuration.getProperty(QGISPrintPluginTest.PASSWORD_PARAMETER_NAME_PROPERTY);
+                = configuration.getProperty(QGISPrintPluginTest.PASSWORD_PARAMETER_NAME_PROPERTY);
+        final String crs
+                = configuration.getProperty(QGISPrintPluginTest.CRS_PARAMETER_NAME_PROPERTY);
 
-        this.requiredParametersCodes = new String[]{qgisUrlCode, templateLayoutCode, pathQGIS};
+        this.expectedParametersCodes = new String[] {
+                qgisUrlCode, templateLayoutCode, pathQGIS, layers, login,password, crs
+        };
 
         this.testParameters = new HashMap<>();
         this.testParameters.put(qgisUrlCode, QGISPrintPluginTest.TEST_QGIS_URL);
@@ -157,7 +157,7 @@ public class QGISPrintPluginTest {
     public final void testGetLabel() {
         System.out.println("getLabel");
         QGISPrintPlugin instance = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
-        String expectedLabel = this.messages.getString(LABEL_STRING_IDENTIFIER);
+        String expectedLabel = this.messages.getString(QGISPrintPluginTest.LABEL_STRING_IDENTIFIER);
         String result = instance.getLabel();
         Assertions.assertEquals(expectedLabel, result);
     }
@@ -237,7 +237,7 @@ public class QGISPrintPluginTest {
 
         Assertions.assertNotNull(parametersArray);
         Assertions.assertEquals(QGISPrintPluginTest.PARAMETERS_NUMBER, parametersArray.size());
-        List<String> requiredCodes = new ArrayList<>(Arrays.asList(requiredParametersCodes));
+        List<String> requiredCodes = new ArrayList<>(Arrays.asList(this.expectedParametersCodes));
 
         for (int parameterIndex = 0; parameterIndex < parametersArray.size(); parameterIndex++) {
             JsonNode parameterData = parametersArray.get(parameterIndex);
