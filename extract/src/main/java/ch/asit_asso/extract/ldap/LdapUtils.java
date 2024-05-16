@@ -1,8 +1,10 @@
 package ch.asit_asso.extract.ldap;
 
+import java.util.Objects;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.EmailUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +17,13 @@ public final class LdapUtils {
 
 
     // TODO Find a better place
-    public static boolean updateFromLdap(User domainUser, LdapUser ldapUser, UsersRepository usersRepository) {
+    public static boolean updateFromLdap(@NotNull User domainUser, @NotNull LdapUser ldapUser,
+                                         @NotNull UsersRepository usersRepository) {
+
+        if (!Objects.equals(domainUser.getLogin(), ldapUser.getLogin())) {
+            throw new IllegalArgumentException("The provided LDAP user and domain user do not match.");
+        }
+
         boolean isModified = false;
 
         if (!ldapUser.getEmail().equalsIgnoreCase(domainUser.getEmail())) {

@@ -35,13 +35,13 @@ public class Secrets {
 
 
 
-    public final boolean check(String input, String hash) {
+    public boolean check(String input, String hash) {
         return this.encoder.matches(input, hash);
     }
 
 
 
-    public final String decrypt(String encryptedValue) {
+    public String decrypt(String encryptedValue) {
 
         if (encryptedValue == null) {
             throw new IllegalArgumentException("The value to decrypt cannot be null.");
@@ -52,7 +52,7 @@ public class Secrets {
 
 
 
-    public final String encrypt(String clearValue) {
+    public String encrypt(String clearValue) {
 
         if (clearValue == null) {
             throw new IllegalArgumentException("The value to encrypt cannot be null.");
@@ -62,7 +62,7 @@ public class Secrets {
     }
 
 
-    public final String hash(String clearValue) {
+    public String hash(String clearValue) {
 
         if (clearValue == null) {
             throw new IllegalArgumentException("The value to hash cannot be null.");

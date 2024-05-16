@@ -55,6 +55,10 @@ public abstract class LdapServer {
 
 
 
+    public String getBase() { return this.base; }
+
+
+
     public String getUrl() {
         return this.url;
     }
@@ -186,7 +190,7 @@ public abstract class LdapServer {
 
 
 
-    protected boolean isAnonymous() {
+    public boolean isAnonymous() {
         return StringUtils.isEmpty(this.username) || StringUtils.isEmpty(this.password);
     }
 }

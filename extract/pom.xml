@@ -253,6 +253,9 @@
                         <configuration>
                             <skipTests>false</skipTests>
                             <includes>ch.asit_asso.extract.unit.**.*Test</includes>
+                            <classpathDependencyExcludes>
+                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
+                            </classpathDependencyExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -271,6 +274,9 @@
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
+                            <classpathDependencyExcludes>
+                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
+                            </classpathDependencyExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -289,6 +295,9 @@
                             <includes>
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>
                             </includes>
+                            <classpathDependencyExcludes>
+                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
+                            </classpathDependencyExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
