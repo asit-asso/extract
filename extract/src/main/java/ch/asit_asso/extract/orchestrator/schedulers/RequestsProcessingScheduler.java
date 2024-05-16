@@ -51,16 +51,6 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 public class RequestsProcessingScheduler extends JobScheduler implements TaskCompleteListener<Integer> {
 
     /**
-     * The string that identifies the threads launched to execute a task for a request.
-     */
-    private static final String REQUEST_TASK_THREAD_NAME_PREFIX = "TaskForRequest";
-
-    /**
-     * The string that separates the thread type from the request identifier in thread names.
-     */
-    private static final String REQUEST_TASK_THREAD_NAME_SEPARATOR = ":";
-
-    /**
      * The locale of the language that the application displays messages in.
      */
     private final String applicationLangague;
@@ -84,8 +74,6 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(RequestsProcessingScheduler.class);
-
-    private final OrchestratorSettings orchestratorSettings;
 
     /**
      * The recurring job that attempts to match the new requests with a process.
@@ -169,8 +157,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
         this.taskExecutorService = Executors.newCachedThreadPool();
-        this.orchestratorSettings = orchestratorSettings;
-        this.setSchedulingStep(this.orchestratorSettings.getFrequency());
+        this.setSchedulingStep(orchestratorSettings.getFrequency());
     }
 
 
@@ -197,8 +184,189 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.logger.debug("Unscheduling the requests processing jobs.");
         this.unscheduleTaskExportJob();
         this.unscheduleProcessMatchingJob();
-        this.unscheduleTaskExecutionManagementJob();
+        this.unscheduleTasksExecutionManagementJob();
         this.unscheduleRequestNotifierJob();
+    }
+
+
+
+    /**
+     * Registers that a task is currently in execution for a given request.
+     *
+     * @param requestId the identifier of the request to register
+     */
+    private synchronized void addRunningRequestToList(final int requestId) {
+        assert requestId > 0 : "The request identifier must be greater than 0.";
+        assert !this.requestsWithRunningTask.contains(requestId) : "The request is already in the list.";
+
+        this.requestsWithRunningTask.add(requestId);
+    }
+
+
+
+    /**
+     * Verifies that an ongoing request is in a state that is coherent with its history records.
+     *
+     * @param request the ongoing request
+     * @return the status that the request should have based on its history
+     */
+    private Request.Status checkOngoingRequestHistory(final Request request) {
+        assert request != null : "The request cannot be null";
+        assert request.getStatus() == Request.Status.ONGOING : "The request must be ongoing.";
+
+        final RequestHistoryRepository historyRepository = this.applicationRepositories.getRequestHistoryRepository();
+        final List<RequestHistoryRecord> recordsList = historyRepository.findByRequestOrderByStepDesc(request);
+
+        if (recordsList.isEmpty()) {
+            return Request.Status.ONGOING;
+        }
+
+        final RequestHistoryRecord lastRecord = recordsList.get(0);
+
+        if (lastRecord.getStatus() == RequestHistoryRecord.Status.ONGOING) {
+            this.logger.warn("The processing of request {} has been interrupted. The status has thus been set to "
+                             + "ERROR.", request.getId());
+            lastRecord.setToError(this.emailSettings.getMessageString("errors.task.interrupted"));
+            historyRepository.save(lastRecord);
+
+            return Request.Status.ERROR;
+        }
+
+        return Request.Status.ONGOING;
+    }
+
+
+
+    /**
+     * Checks if task job is already in execution for a given request.
+     *
+     * @param requestId the identifier of the request to check
+     * @return <code>true</code> if a task is currently running
+     */
+    private synchronized boolean isRequestTaskRunning(final int requestId) {
+        return this.requestsWithRunningTask.contains(requestId);
+    }
+
+
+
+    /**
+     * Starts the tasks required to process the ongoing requests.
+     */
+    private void manageTaskProcessingJobs() {
+        final RequestsRepository requestsRepository = this.applicationRepositories.getRequestsRepository();
+        final List<Request> ongoingRequests = requestsRepository.findByStatus(Request.Status.ONGOING);
+        final int requestsNumber = ongoingRequests.size();
+        this.logger.debug("Found {} ongoing request{}.", requestsNumber, (requestsNumber > 1) ? "s" : "");
+
+        for (Request request : ongoingRequests) {
+            this.processOnGoingRequest(request);
+        }
+    }
+
+
+
+    /**
+     * Tells this scheduler that a task job is finished.
+     *
+     * @param requestId the identifier of the request for which a task has completed
+     */
+    @Override
+    public final void notifyTaskCompletion(final Integer requestId) {
+
+        if (requestId == null || requestId < 0) {
+            this.logger.debug("The request processing scheduler has been notified of the completion of a task with an"
+                              + " invalid request identifier: {}", requestId);
+            return;
+        }
+
+        this.logger.debug("The task for request {} completed.", requestId);
+
+        if (!this.isRequestTaskRunning(requestId)) {
+            this.logger.warn("The request processing scheduler has been notified of the completion of a task for"
+                             + " request {}, but this request is not currently registered as running a task.", requestId);
+            return;
+        }
+
+        this.removeRunningRequestFromList(requestId);
+        this.logger.debug("Request {} removed from those with a running task.", requestId);
+    }
+
+
+
+    /**
+     * Start an asynchronous task job if the given request requires one.
+     *
+     * @param request the request
+     */
+    private void processOnGoingRequest(final Request request) {
+
+        try {
+            final int requestId = request.getId();
+            this.logger.debug("Processing request {} (ID : {}).", request.getProductLabel(), requestId);
+
+            if (this.isRequestTaskRunning(requestId)) {
+                this.logger.debug("A task is already running for the request {}. Waiting for completion.",
+                                  request.getId());
+                return;
+            }
+
+            this.logger.debug("Checking the status of the last task for the request.");
+            final Request.Status historyStatus = this.checkOngoingRequestHistory(request);
+
+            if (historyStatus != Request.Status.ONGOING) {
+                request.setStatus(historyStatus);
+                this.applicationRepositories.getRequestsRepository().save(request);
+                this.logger.warn("The status for request {} (ONGOING) was inconsistent with its last history entry. "
+                                 + "It is now set to {}.", requestId, historyStatus);
+                return;
+            }
+
+            this.logger.debug("Request can proceed to the next task.");
+
+            RequestTaskRunner taskRunner = new RequestTaskRunner(request, this.applicationRepositories,
+                                                                 this.taskPluginDiscoverer, this.emailSettings,
+                                                                 this.applicationLangague);
+            taskRunner.subscribeToCompletionNotification(this);
+            this.logger.debug("Created the task runner.");
+            this.taskExecutorService.submit(taskRunner);
+            this.logger.debug("Task runner submitted.");
+            this.addRunningRequestToList(requestId);
+            this.logger.debug("Request {} added to the currently running tasks list.", requestId);
+
+        } catch (Exception exception) {
+            this.logger.error("Could not launch the next task for request {}.", request.getId(), exception);
+        }
+    }
+
+
+
+    /**
+     * Registers that no task is running anymore for a given request.
+     *
+     * @param requestId the identifier of the request
+     */
+    private synchronized void removeRunningRequestFromList(final int requestId) {
+        assert requestId > 0 : "The request identifier must be greater than 0.";
+
+        this.requestsWithRunningTask.remove(requestId);
+    }
+
+
+
+    /**
+     * Starts the batch process that will attempt to match the freshly imported requests with a task
+     * process.
+     */
+    private void scheduleProcessMatchingJob() {
+        this.logger.debug("Scheduling the request process matching job.");
+        final RequestMatcherJobRunner requestMatcherJobRunner
+                = new RequestMatcherJobRunner(/*this.getJobRunnerComponents(),*/this.applicationRepositories,
+                                                                                this.emailSettings);
+        final var recurringTask = new FixedDelayTask(requestMatcherJobRunner,
+                                                     this.getSchedulingStepInMilliseconds(), 0);
+        this.processMatchingScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
+        this.logger.debug("The request process matching job is scheduled with a {} second(s) delay.",
+                          this.getSchedulingStep());
     }
 
 
@@ -233,36 +401,32 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
 
 
     /**
-     * Stops the recurrence of the job that processes the requests that are ready to be exported.
+     * Starts the batch process that will run the tasks required to process the ongoing requests.
      */
-    private void unscheduleTaskExportJob() {
-        this.logger.debug("Unscheduling the request export job.");
+    private void scheduleTasksExecutionManagementJob() {
+        this.logger.debug("Scheduling the request task execution job.");
+        final var recurringTask = new FixedDelayTask(this::manageTaskProcessingJobs,
+                                                     this.getSchedulingStepInMilliseconds(), 0);
+        this.taskExecutionScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
 
-        if (this.taskExportScheduledTask == null) {
-            this.logger.debug("The task export job is not scheduled, so nothing done.");
-            return;
-        }
-
-        this.taskExportScheduledTask.cancel();
-        this.logger.debug("The task export job has been unscheduled.");
+        this.logger.debug("The request task execution management job is scheduled with a {} second(s) delay.",
+                          this.getSchedulingStep());
     }
 
 
 
     /**
-     * Starts the batch process that will attempt to match the freshly imported requests with a task
-     * process.
+     * Stops the thread pool that is used to execute the requests tasks.
      */
-    private void scheduleProcessMatchingJob() {
-        this.logger.debug("Scheduling the request process matching job.");
-        final RequestMatcherJobRunner requestMatcherJobRunner
-                = new RequestMatcherJobRunner(/*this.getJobRunnerComponents(),*/this.applicationRepositories,
-                        this.emailSettings);
-        final var recurringTask = new FixedDelayTask(requestMatcherJobRunner,
-                this.getSchedulingStepInMilliseconds(), 0);
-        this.processMatchingScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
-        this.logger.debug("The request process matching job is scheduled with a {} second(s) delay.",
-                this.getSchedulingStep());
+    private void shutdownTaskExecutionPool() {
+        this.logger.debug("Forcing the shutdown of the thread pool that executes requests tasks.");
+        int unexecutedTasksNumber = this.taskExecutorService.shutdownNow().size();
+        this.logger.info("The requests tasks execution thread pool has been shut down.");
+
+        if (unexecutedTasksNumber > 0) {
+            this.logger.info("{} task{} could not have been run before the thread pool was shut down.",
+                             unexecutedTasksNumber, (unexecutedTasksNumber > 1) ? "s" : "");
+        }
     }
 
 
@@ -284,30 +448,33 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
 
 
 
-    /**
-     * Starts the batch process that will run the tasks required to process the ongoing requests.
-     */
-    private void scheduleTasksExecutionManagementJob() {
-        this.logger.debug("Scheduling the requests task execution management job.");
+    private void unscheduleRequestNotifierJob() {
+        this.logger.debug("Unscheduling the request notification job.");
 
         if (this.requestNotificationScheduledTask == null) {
             this.logger.debug("The request notification job is not scheduled, so nothing done.");
             return;
         }
 
-        this.taskExecutionScheduledTask.cancel();
+        this.requestNotificationScheduledTask.cancel();
         this.logger.debug("The request notification job has been unscheduled.");
     }
 
 
-    private void unscheduleRequestNotifierJob() {
-        this.logger.debug("Scheduling the requests notification management job.");
-        final var recurringTask = new FixedDelayTask(this::manageTaskProcessingJobs,
-                                                     this.getSchedulingStepInMilliseconds(), 0);
-        this.requestNotificationScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
 
-        this.logger.debug("The request notification job is scheduled with a {} second(s) delay.",
-                          this.getSchedulingStep());
+    /**
+     * Stops the recurrence of the job that processes the requests that are ready to be exported.
+     */
+    private void unscheduleTaskExportJob() {
+        this.logger.debug("Unscheduling the request export job.");
+
+        if (this.taskExportScheduledTask == null) {
+            this.logger.debug("The task export job is not scheduled, so nothing done.");
+            return;
+        }
+
+        this.taskExportScheduledTask.cancel();
+        this.logger.debug("The task export job has been unscheduled.");
     }
 
 
@@ -315,7 +482,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
     /**
      * Stops the recurrence of the process that executes the tasks of the on-going requests.
      */
-    private void unscheduleTaskExecutionManagementJob() {
+    private void unscheduleTasksExecutionManagementJob() {
         this.logger.debug("Unscheduling the requests task execution management job.");
 
         if (this.taskExecutionScheduledTask == null) {
@@ -327,189 +494,4 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.logger.debug("The request task execution management job has been unscheduled.");
         this.shutdownTaskExecutionPool();
     }
-
-
-
-    /**
-     * Stops the thread pool that is used to execute the requests tasks.
-     */
-    private void shutdownTaskExecutionPool() {
-        this.logger.debug("Forcing the shutdown of the thread pool that executes requests tasks.");
-        int unexecutedTasksNumber = this.taskExecutorService.shutdownNow().size();
-        this.logger.info("The requests tasks execution thread pool has been shut down.");
-
-        if (unexecutedTasksNumber > 0) {
-            this.logger.info("{} task{} could not have been run before the thread pool was shut down.",
-                    unexecutedTasksNumber, (unexecutedTasksNumber > 1) ? "s" : "");
-        }
-    }
-
-
-
-    /**
-     * Starts the tasks required to process the ongoing requests.
-     */
-    private void manageTaskProcessingJobs() {
-        final RequestsRepository requestsRepository = this.applicationRepositories.getRequestsRepository();
-        final List<Request> ongoingRequests = requestsRepository.findByStatus(Request.Status.ONGOING);
-        final int requestsNumber = ongoingRequests.size();
-        this.logger.debug("Found {} ongoing request{}.", requestsNumber, (requestsNumber > 1) ? "s" : "");
-
-        for (Request request : ongoingRequests) {
-            this.processOnGoingRequest(request);
-        }
-    }
-
-
-
-    /**
-     * Start an asynchronous task job if the given request requires one.
-     *
-     * @param request the request
-     */
-    private void processOnGoingRequest(final Request request) {
-
-        try {
-            final int requestId = request.getId();
-            this.logger.debug("Processing request {} (ID : {}).", request.getProductLabel(), requestId);
-
-            if (this.isRequestTaskRunning(requestId)) {
-                this.logger.debug("A task is already running for the request {}. Waiting for completion.",
-                        request.getId());
-                return;
-            }
-
-            this.logger.debug("Checking the status of the last task for the request.");
-            final Request.Status historyStatus = this.checkOngoingRequestHistory(request);
-
-            if (historyStatus != Request.Status.ONGOING) {
-                request.setStatus(historyStatus);
-                this.applicationRepositories.getRequestsRepository().save(request);
-                this.logger.warn("The status for request {} (ONGOING) was inconsistent with its last history entry. "
-                        + "It is now set to {}.", requestId, historyStatus);
-                return;
-            }
-
-            this.logger.debug("Request can proceed to the next task.");
-
-            final String threadName = String.format("%s%s%d",
-                    RequestsProcessingScheduler.REQUEST_TASK_THREAD_NAME_PREFIX,
-                    RequestsProcessingScheduler.REQUEST_TASK_THREAD_NAME_SEPARATOR, requestId);
-            RequestTaskRunner taskRunner = new RequestTaskRunner(request, this.applicationRepositories,
-                    this.taskPluginDiscoverer, this.emailSettings, this.applicationLangague);
-            taskRunner.subscribeToCompletionNotification(this);
-            this.logger.debug("Created the task runner.");
-            this.taskExecutorService.submit(taskRunner);
-            this.logger.debug("Task runner submitted.");
-            this.addRunningRequestToList(requestId);
-            this.logger.debug("Request {} added to the currently running tasks list.", requestId);
-
-        } catch (Exception exception) {
-            this.logger.error("Could not launch the next task for request {}.", request.getId(), exception);
-        }
-    }
-
-
-
-    /**
-     * Checks if task job is already in execution for a given request.
-     *
-     * @param requestId the identifier of the request to check
-     * @return <code>true</code> if a task is currently running
-     */
-    private synchronized boolean isRequestTaskRunning(final int requestId) {
-        return this.requestsWithRunningTask.contains(requestId);
-    }
-
-
-
-    /**
-     * Registers that a task is currently in execution for a given request.
-     *
-     * @param requestId the identifier of the request to register
-     */
-    private synchronized void addRunningRequestToList(final int requestId) {
-        assert requestId > 0 : "The request identifier must be greater than 0.";
-        assert !this.requestsWithRunningTask.contains(requestId) : "The request is already in the list.";
-
-        this.requestsWithRunningTask.add(requestId);
-    }
-
-
-
-    /**
-     * Registers that no task is running anymore for a given request.
-     *
-     * @param requestId the identifier of the request
-     */
-    private synchronized void removeRunningRequestFromList(final int requestId) {
-        assert requestId > 0 : "The request identifier must be greater than 0.";
-
-        this.requestsWithRunningTask.remove(requestId);
-    }
-
-
-
-    /**
-     * Verifies that an ongoing request is in a state that is coherent with its history records.
-     *
-     * @param request the ongoing request
-     * @return the status that the request should have based on its history
-     */
-    private Request.Status checkOngoingRequestHistory(final Request request) {
-        assert request != null : "The request cannot be null";
-        assert request.getStatus() == Request.Status.ONGOING : "The request must be ongoing.";
-
-        final RequestHistoryRepository historyRepository = this.applicationRepositories.getRequestHistoryRepository();
-        final List<RequestHistoryRecord> recordsList = historyRepository.findByRequestOrderByStepDesc(request);
-
-        if (recordsList.isEmpty()) {
-            return Request.Status.ONGOING;
-        }
-
-        final RequestHistoryRecord lastRecord = recordsList.get(0);
-
-        switch (lastRecord.getStatus()) {
-
-            case ONGOING:
-                this.logger.warn("The processing of request {} has been interrupted. The status has thus been set to "
-                        + "ERROR.", request.getId());
-                lastRecord.setToError(this.emailSettings.getMessageString("errors.task.interrupted"));
-                historyRepository.save(lastRecord);
-
-                return Request.Status.ERROR;
-
-            default:
-                return Request.Status.ONGOING;
-        }
-
-    }
-
-
-
-    /**
-     * Tells this scheduler that a task job is finished.
-     *
-     * @param requestId the identifier of the request for which a task has completed
-     */
-    @Override
-    public final void notifyTaskCompletion(final Integer requestId) {
-
-        if (requestId == null || requestId < 0) {
-            this.logger.debug("The request processing scheduler has been notified of the completion of a task with an"
-                    + " invalid request identifier: {}", requestId);
-        }
-
-        this.logger.debug("The task for request {} completed.", requestId);
-
-        if (!this.isRequestTaskRunning(requestId)) {
-            this.logger.warn("The request processing scheduler has been notified of the completion of a task for"
-                    + " request {}, but this request is not currently registered as running a task.", requestId);
-            return;
-        }
-
-        this.removeRunningRequestFromList(requestId);
-        this.logger.debug("Request {} removed from those with a running task.", requestId);
-    }
-
 }
