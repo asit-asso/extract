@@ -69,6 +69,13 @@ function hideLdapFields() {
 
 function showLdapFields() {
     $(".ldap-field-row").removeClass("d-none");
+
+     if ($('input[name="ldapSynchronizationEnabled"]:checked').val() == "1") {
+         showSynchroFields();
+
+     } else {
+         hideSynchroFields();
+     }
 }
 
 

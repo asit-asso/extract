@@ -2,6 +2,7 @@ package ch.asit_asso.extract.ldap;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.ldap.LdapSettings.EncryptionType;
@@ -12,6 +13,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 
 public class LdapPool {
+
+    public static final String NO_VALID_SERVER_RESULT = "NO_VALID_SERVER";
 
     private final List<LdapServer> serversList;
 
@@ -55,6 +58,11 @@ public class LdapPool {
     public Optional<String> testConnections() {
         this.logger.debug("Testing pool connections");
 
+        if (this.serversList.isEmpty()) {
+            this.logger.warn("No valid LDAP server. Connection unsuccessful.");
+            return Optional.of(LdapPool.NO_VALID_SERVER_RESULT);
+        }
+
         for (LdapServer server : this.serversList) {
             Optional<String> result = server.testConnection();
 
@@ -76,7 +84,7 @@ public class LdapPool {
 
 
 
-    public static LdapPool fromModel(SystemParameterModel parameterModel, String synchroPassword) {
+    public static LdapPool fromModel(SystemParameterModel parameterModel, @NotNull String synchroPassword) {
 
             String username = (parameterModel.isLdapSynchronizationEnabled())
                               ? parameterModel.getLdapSynchronizationUser()
@@ -126,7 +134,13 @@ public class LdapPool {
 
             for (String base : bases) {
                 this.logger.debug("Adding a server with info {} and base {} to the pool.", server, base);
-                list.add(LdapServer.build(server, base, encryption, user, password, settings));
+
+                try {
+                    list.add(LdapServer.build(server, base, encryption, user, password, settings));
+
+                } catch (NoSuchElementException exception) {
+                    this.logger.error(String.format("The url %s is not valid. Server is ignored.", server), exception);
+                }
             }
         }
 
