@@ -35,8 +35,15 @@ function initializeMap() {
             });
             options.attributions = 'géodonnées © Etat de Vaud & © contributeurs OpenStreetMap';
 
+            const attribution = new ol.control.Attribution({
+                collapsible: true,
+                collapsed: true
+            });
+
+
             resolve(new ol.Map({
-                layers : [
+                controls: ol.control.defaults.defaults({attribution: false}).extend([attribution]),
+                ayers : [
                     new ol.layer.Tile({
                         source: new ol.source.WMTS(options),
                         title: 'Fond ASIT VD - couleur',

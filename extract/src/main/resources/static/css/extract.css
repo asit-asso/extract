@@ -35,24 +35,25 @@ p {
     margin-bottom: 0.875rem;
 }
 
-tbody > tr.error > td,
-tbody > tr.error > th {
+table.dataTable > tbody > tr.error > td,
+table.dataTable > tbody > tr.error > th {
     background-color: #fbd3d3;
 }
 
-tbody > tr.finished > td,
-tbody > tr.finished > th,
-tbody > tr.rejected > td,
-tbody > tr.rejected > th {
+table.dataTable > tbody > tr.finished > td,
+table.dataTable > tbody > tr.finished > th,
+table.dataTable > tbody > tr.rejected > td,
+table.dataTable > tbody > tr.rejected > th {
     background-color: #fff;
 }
-tbody > tr.running > td,
-tbody > tr.running > th {
+
+table.dataTable > tbody > tr.running > td,
+table.dataTable > tbody > tr.running > th {
     background-color: #dbfbd3;
 }
 
-tbody > tr.standby > td,
-tbody > tr.standby > th {
+table.dataTable > tbody > tr.standby > td,
+table.dataTable > tbody > tr.standby > th {
     background-color: #ffe8b3;
 }
 

@@ -6,3 +6,4 @@
 /.yarnrc.yml
 /extract.iml
 /.yarn/
+/package-lock.json
