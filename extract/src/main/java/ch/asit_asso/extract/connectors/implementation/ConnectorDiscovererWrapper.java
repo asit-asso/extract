@@ -11,6 +11,7 @@ import javax.servlet.ServletContext;
 
 import ch.asit_asso.extract.connectors.ConnectorDiscoverer;
 import ch.asit_asso.extract.connectors.common.IConnector;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -93,7 +94,7 @@ public class ConnectorDiscovererWrapper implements ServletContextAware {
      * @param context The current servlet context
      */
     @Override
-    public final void setServletContext(final ServletContext context) {
+    public final void setServletContext(final @NotNull ServletContext context) {
         this.logger.debug("Setting the servlet context.");
         this.servletContext = new WeakReference<>(context);
     }
@@ -104,7 +105,7 @@ public class ConnectorDiscovererWrapper implements ServletContextAware {
      *
      * @return the current connector discoverer
      */
-    private ConnectorDiscoverer getConnectorDiscoverer() {
+    private synchronized ConnectorDiscoverer getConnectorDiscoverer() {
 
         if (this.connectorDiscoverer == null) {
             this.logger.debug("Instantiating the connector discoverer.");
@@ -132,7 +133,18 @@ public class ConnectorDiscovererWrapper implements ServletContextAware {
      */
     private URL[] getJarUrls() {
         this.logger.debug("Assembling an array of connectors JAR URLs.");
-        WebApplicationContext webAppContext = WebApplicationContextUtils.getWebApplicationContext(servletContext.get());
+        ServletContext context = this.servletContext.get();
+
+        if (context == null) {
+            return null;
+        }
+
+        WebApplicationContext webAppContext = WebApplicationContextUtils.getWebApplicationContext(context);
+
+        if (webAppContext == null) {
+            return null;
+        }
+
         Resource[] jarResources;
 
         try {

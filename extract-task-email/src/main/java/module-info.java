@@ -9,10 +9,9 @@ module ch.asit_asso.extract.plugins.email {
 
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
-    //requires commons.validator;
     requires java.mail;
     requires org.apache.commons.io;
     requires org.apache.commons.lang3;
     requires org.slf4j;
-    //requires ch.qos.logback.classic;
+    requires org.apache.commons.validator;
 }

@@ -29,6 +29,7 @@ import javax.servlet.ServletContext;
 
 import ch.asit_asso.extract.plugins.TaskProcessorsDiscoverer;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -141,7 +142,7 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
      * @param servletContextInfo The current servlet context
      */
     @Override
-    public final void setServletContext(final ServletContext servletContextInfo) {
+    public final void setServletContext(final @NotNull ServletContext servletContextInfo) {
         this.logger.debug("Setting the servlet context.");
         this.servletContext = new WeakReference<>(servletContextInfo);
     }
@@ -154,7 +155,7 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
      *
      * @return the current task processor discoverer
      */
-    private TaskProcessorsDiscoverer getTaskProcessorDiscoverer() {
+    private synchronized TaskProcessorsDiscoverer getTaskProcessorDiscoverer() {
 
         if (this.taskProcessorDiscoverer == null) {
             this.logger.debug("Instantiating the task processor discoverer.");
@@ -183,8 +184,18 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
      */
     private URL[] getJarUrls() {
         this.logger.debug("Assembling an array of task processors JAR URLs.");
+        ServletContext context = this.servletContext.get();
 
-        WebApplicationContext webAppContext = WebApplicationContextUtils.getWebApplicationContext(servletContext.get());
+        if (context == null) {
+            return null;
+        }
+
+        WebApplicationContext webAppContext = WebApplicationContextUtils.getWebApplicationContext(context);
+
+        if (webAppContext == null) {
+            return null;
+        }
+        
         Resource[] jarResources;
 
         try {

@@ -469,14 +469,49 @@ public class SystemParametersController extends BaseController {
             return this.prepareModelForDetailsView(model, parameterModel);
         }
 
-        LdapPool serversPool = (Secrets.isGenericPasswordString(parameterModel.getLdapSynchronizationPassword()))
-                               ? LdapPool.fromModel(parameterModel, this.getLdapPasswordFromRepository())
-                               : LdapPool.fromModel(parameterModel);
+        LdapPool serversPool;
+
+        if (parameterModel.isLdapSynchronizationEnabled()
+                                && Secrets.isGenericPasswordString(parameterModel.getLdapSynchronizationPassword())) {
+
+            try {
+                String password = this.getLdapPasswordFromRepository();
+                serversPool = LdapPool.fromModel(parameterModel, password);
+
+            } catch (IllegalArgumentException exception) {
+                this.logger.error("Impossible de décrypter le mot de passe.");
+                model.addAttribute("ldapTestMessage",
+                                   this.messageSource.getMessage("parameters.ldap.test.badCredentials",
+                                                                 null, LocaleContextHolder.getLocale()));
+
+                return this.prepareModelForDetailsView(model, parameterModel);
+            }
+
+        } else {
+            serversPool = LdapPool.fromModel(parameterModel);
+        }
 
         Optional<String> testResult = serversPool.testConnections();
+        String messageKey;
+
+        if (testResult.isEmpty()) {
+            messageKey = "parameters.ldap.test.success";
+
+        } else {
+            String resultString = testResult.get();
+
+            if (LdapPool.NO_VALID_SERVER_RESULT.equals(resultString)) {
+                messageKey = "parameters.ldap.test.noServer";
+
+            } else {
+                this.logger.info("The LDAP connection test failed with the following message:\n{}", resultString);
+                messageKey = "parameters.ldap.test.failure";
+            }
+        }
+
         model.addAttribute("ldapTestMessage",
-                           testResult.orElse(this.messageSource.getMessage("parameters.ldap.test.success",
-                                                                           null, LocaleContextHolder.getLocale())));
+                           this.messageSource.getMessage(messageKey,null, LocaleContextHolder.getLocale()));
+
 
         return this.prepareModelForDetailsView(model, parameterModel);
     }
@@ -525,7 +560,7 @@ public class SystemParametersController extends BaseController {
 
 
     private String getLdapPasswordFromRepository() {
-        return this.secrets.decrypt(this.systemParametersRepository.getLdapSynchronizationPassword());
+         return this.secrets.decrypt(this.systemParametersRepository.getLdapSynchronizationPassword());
     }
 
 

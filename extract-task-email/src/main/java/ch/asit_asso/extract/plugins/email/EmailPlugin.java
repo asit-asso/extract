@@ -23,7 +23,6 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import javax.mail.internet.AddressException;
-import javax.mail.internet.InternetAddress;
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
@@ -34,6 +33,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,7 +91,7 @@ public class EmailPlugin implements ITaskProcessor {
     /**
      * The strings that this plugin can send to the user in the language of the user interface.
      */
-    private LocalizedMessages messages;
+    private final LocalizedMessages messages;
 
     /**
      * The settings for the execution of this task.
@@ -101,7 +101,7 @@ public class EmailPlugin implements ITaskProcessor {
     /**
      * The general settings for this plugin.
      */
-    private PluginConfiguration config;
+    private final PluginConfiguration config;
 
 
 
@@ -237,7 +237,7 @@ public class EmailPlugin implements ITaskProcessor {
             return mapper.writeValueAsString(parametersNode);
 
         } catch (JsonProcessingException exception) {
-            logger.error("An error occurred when the parameters were converted to JSON.", exception);
+            this.logger.error("An error occurred when the parameters were converted to JSON.", exception);
             return null;
         }
     }
@@ -286,7 +286,7 @@ public class EmailPlugin implements ITaskProcessor {
             }
 
         } catch (Exception e) {
-            this.logger.error("The Plugin Email has failed", e.getMessage());
+            this.logger.error("The Plugin Email has failed", e);
             resultMessage = String.format(this.messages.getString("email.executing.failedWithMessage"), e.getMessage());
         }
 
@@ -406,31 +406,14 @@ public class EmailPlugin implements ITaskProcessor {
             }
         }
 
-        return addressesList.toArray(new String[addressesList.size()]);
+        return addressesList.toArray(String[]::new);
     }
 
 
 
     private boolean isEmailAddressValid(final String address) {
-//        EmailValidator validator = EmailValidator.getInstance();
-//
-//        if (validator.isValid(address)) {
-//            return true;
-//        }
-//
-//        return false;
 
-        // Version temporaire le temps que la faille due aux dépendances d'Apache Commons Validator soit corrigée
-        // (prévu pour la v2.0 de cette librairie)
-        try {
-            InternetAddress emailAddr = new InternetAddress(address);
-            emailAddr.validate();
-
-        } catch (AddressException ex) {
-            return false;
-        }
-
-        return true;
+        return EmailValidator.getInstance().isValid(address);
     }
 
 

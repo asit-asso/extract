@@ -12,7 +12,7 @@ class ActiveDirectoryServerTest {
     private static final String[] INVALID_DOMAINS = new String[] {
           "example.c",
           "-mon-domaine.ch",
-          //"titi-.toto",
+          "titi-.toto",
           "mon_dom@ine,invalide!.net",
           "l'autre(domaine)invalide?.info",
           "faux&invalide.domain",
@@ -23,8 +23,7 @@ class ActiveDirectoryServerTest {
 
     private static final String[] VALID_DOMAINS = new String[] {
             "example.com",
-            //"mon-domaine.ch",
-            //"hindidomain.xn--11b5bs3a9aj6g",
+            "mon-domaine.ch",
             "3333-22222.net",
             "news.info",
             "MoNdOmAiNeVaLiDe.CoM"
@@ -34,7 +33,7 @@ class ActiveDirectoryServerTest {
     @DisplayName("Test invalid domain string")
     void isDomainInvalid() {
 
-        for (String invalidDomain : INVALID_DOMAINS) {
+        for (String invalidDomain : ActiveDirectoryServerTest.INVALID_DOMAINS) {
             Assertions.assertFalse(ActiveDirectoryServer.isDomain(invalidDomain),
                                    String.format("The domain %s is invalid but was accepted.", invalidDomain));
         }
@@ -45,7 +44,7 @@ class ActiveDirectoryServerTest {
     @Test
     @DisplayName("Test valid domain string")
     void isDomainValid() {
-        for (String validDomain : VALID_DOMAINS) {
+        for (String validDomain : ActiveDirectoryServerTest.VALID_DOMAINS) {
             assertTrue(ActiveDirectoryServer.isDomain(validDomain),
                        String.format("The domain %s is valid but was refused.", validDomain));
         }

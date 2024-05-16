@@ -11,7 +11,6 @@ module ch.asit_asso.extract.core {
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires com.google.gson;
-    //requires commons.validator;
     requires jakarta.mail;
     requires jakarta.xml.bind;
     requires java.scripting;
@@ -47,7 +46,10 @@ module ch.asit_asso.extract.core {
     requires thymeleaf.spring5;
     requires thymeleaf;
     requires java.persistence;
-    requires aerogear.otp.java;
-    requires two.factor.auth;
     requires org.jetbrains.annotations;
+    requires java.desktop;
+    requires micrometer.core;
+    requires com.google.zxing;
+    requires com.google.zxing.javase;
+    requires org.apache.commons.validator;
 }

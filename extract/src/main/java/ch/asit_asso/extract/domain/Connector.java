@@ -20,7 +20,7 @@ import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.Map.Entry;
+import java.util.Objects;
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,14 +35,15 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
-
+import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
 import ch.asit_asso.extract.persistence.RequestsRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
-import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
 import org.hibernate.annotations.SortNatural;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -243,8 +244,46 @@ public class Connector implements Serializable {
             this.connectorParametersValues = new HashMap<>();
         }
 
-        for (Entry<String, String> parameterData : parametersValues.entrySet()) {
-            this.connectorParametersValues.put(parameterData.getKey(), parameterData.getValue());
+        this.connectorParametersValues.putAll(parametersValues);
+    }
+
+
+
+    public void updateConnectorParametersValues(final HashMap<String, String> parametersMap) {
+
+        if (this.connectorParametersValues == null || this.connectorParametersValues.isEmpty()) {
+            this.setConnectorParametersValues(parametersMap);
+            return;
+        }
+
+        if (parametersMap == null) {
+            throw new IllegalArgumentException("The parameters map cannot be null.");
+        }
+
+        if (parametersMap.isEmpty()) {
+            return;
+        }
+
+        Logger logger = LoggerFactory.getLogger(Connector.class);
+        String[] parametersToDelete = this.connectorParametersValues.keySet().stream()
+                                                           .filter(key -> !parametersMap.containsKey(key))
+                                                           .toArray(String[]::new);
+
+        for (String keyToRemove : parametersToDelete) {
+            logger.debug("Removing parameter {} from domain object.", keyToRemove);
+            this.connectorParametersValues.remove(keyToRemove);
+        }
+
+        for (String keyToUpdate : parametersMap.keySet()) {
+            String newValue = parametersMap.get(keyToUpdate);
+
+            if (Secrets.isGenericPasswordString(newValue)) {
+                logger.debug("Parameter {} value is the generic password string, so it won't be updated.", keyToUpdate);
+                continue;
+            }
+
+            logger.debug("Updating parameter {}.", keyToUpdate);
+            this.connectorParametersValues.put(keyToUpdate, newValue);
         }
     }
 
@@ -368,11 +407,7 @@ public class Connector implements Serializable {
      */
     public Integer getMaximumRetries() {
 
-        if (this.maximumRetries == null) {
-            return 0;
-        }
-
-        return this.maximumRetries;
+        return Objects.requireNonNullElse(this.maximumRetries, 0);
     }
 
 
@@ -498,7 +533,7 @@ public class Connector implements Serializable {
     @Override
     public final int hashCode() {
         int hash = 0;
-        hash += (id != null ? id.hashCode() : 0);
+        hash += (this.id != null ? this.id.hashCode() : 0);
         return hash;
     }
 
@@ -507,11 +542,10 @@ public class Connector implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof Connector)) {
+        if (!(object instanceof Connector other)) {
             return false;
         }
 
-        final Connector other = (Connector) object;
         return this.id.equals(other.id);
     }
 
