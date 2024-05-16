@@ -124,11 +124,5 @@ public class TwoFactorCookie {
         }
 
         return nameMatcher.group(1);
-        //return cookieName.substring(TwoFactorCookie.COOKIE_NAME_PREFIX.length() + 1);
     }
-
-
-//    private String buildCookieValue() {
-//        return String.format(TwoFactorCookie.VALUE_STRING_FORMAT, this.userHash, token);
-//    }
 }

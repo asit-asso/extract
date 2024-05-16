@@ -36,13 +36,7 @@ public class TwoFactorAuthenticationHandler extends SavedRequestAwareAuthenticat
         }
     }
 
-//    @Override
-//    public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
-//                                        AuthenticationException exception) throws IOException, ServletException {
-//        Authentication anonymous = new AnonymousAuthenticationToken("key", "anonymousUser",
-//                                                                    AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
-//        saveTwoFactorAuthentication(request, response, new TwoFactorAuthentication(anonymous));
-//    }
+
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -51,6 +45,8 @@ public class TwoFactorAuthenticationHandler extends SavedRequestAwareAuthenticat
         this.logger.debug("Authentication object passed is of type {}", authentication.getClass().getCanonicalName());
         this.saveTwoFactorAuthentication(request, response, authentication);
     }
+
+
 
     private void saveTwoFactorAuthentication(HttpServletRequest request, HttpServletResponse response,
                                              Authentication authentication) throws IOException, ServletException {
@@ -67,6 +63,7 @@ public class TwoFactorAuthenticationHandler extends SavedRequestAwareAuthenticat
         SecurityContextHolder.getContext().setAuthentication(authentication);
         this.goToApplication(request, response, authentication);
     }
+
 
 
     private void goToApplication(HttpServletRequest request, HttpServletResponse response, Authentication authentication)
