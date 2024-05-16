@@ -47,6 +47,8 @@ public class TwoFactorApplicationTest extends MockEnabledTest {
                 (Answer<String>) invocationOnMock -> invocationOnMock.getArgument(0)
         );
 
+        Mockito.doCallRealMethod().when(this.service).generateSecret();
+
         this.application = new TwoFactorApplication(this.user, this.secrets, this.service);
     }
 

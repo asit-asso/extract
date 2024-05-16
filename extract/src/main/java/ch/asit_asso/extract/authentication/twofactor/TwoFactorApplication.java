@@ -95,7 +95,6 @@ public class TwoFactorApplication {
                 : "Can only enable two-factor authentication if it isn't already active";
 
         this.user.setTwoFactorStatus(TwoFactorStatus.STANDBY);
-        //String standbyToken = TimeBasedOneTimePasswordUtil.generateBase32Secret();
         String standbyToken = this.service.generateSecret();
         String encryptedStandbyToken = this.secrets.encrypt(standbyToken);
         this.user.setTwoFactorStandbyToken(encryptedStandbyToken);
