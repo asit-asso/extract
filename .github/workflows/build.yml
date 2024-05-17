@@ -76,7 +76,7 @@ jobs:
                uses: actions/download-artifact@v4
                with:
                    name: java-app
-                   path: /tmp/extract.war
+                   path: /tmp/
                    
              #- name: Rename artifact file to version-agnostic name
              #  run: mv /tmp/extract*.war /tmp/extract.war

@@ -20,7 +20,7 @@ services:
             mailhog:
                 condition: service_started
         volumes:
-            - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
+            - /tmp/extract##2.1-BETA2.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
             - /tmp/extract:/var/extract
         environment:
@@ -31,7 +31,7 @@ services:
             test: "curl --output /dev/null --fail --silent --head localhost:8080/extract/login"
             interval: 10s
             timeout: 10s
-            retries: 100
+            retries: 30
 
     mailhog:
         image: mailhog/mailhog
