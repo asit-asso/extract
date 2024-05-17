@@ -120,7 +120,7 @@ jobs:
                uses: actions/upload-artifact@v3
                with:
                   name: tomcat-logs
-                  path: /tmp/log/extract/
+                  path: /tmp/log/tomcat/
 
              - name: Change Extract log permissions (so we can upload them)
                if: always()
