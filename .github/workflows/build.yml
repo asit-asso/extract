@@ -112,7 +112,7 @@ jobs:
                
              - name: Change Tomcat log permissions (so we can upload them)
                if: always()
-               run: sudo chmod a+r *.log
+               run: sudo chmod a+r *.*
                working-directory: /tmp/log/tomcat
 
              - name: Upload Tomcat logs
