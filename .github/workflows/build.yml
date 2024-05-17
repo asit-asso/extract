@@ -82,7 +82,7 @@ jobs:
              #  run: mv /tmp/extract*.war /tmp/extract.war
                
              - name: Create local Extract folders
-               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/extract/orders
+               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders
                
              - name: Give all permissions on Extract log folder
                run: chmod 0777 /tmp/log/extract
@@ -110,6 +110,18 @@ jobs:
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
                
+             - name: Change Tomcat log permissions (so we can upload them)
+               if: always()
+               run: sudo chmod a+r *.log
+               working-directory: /tmp/log/tomcat
+
+             - name: Upload Tomcat logs
+               if: always()
+               uses: actions/upload-artifact@v3
+               with:
+                  name: tomcat-logs
+                  path: /tmp/log/extract/
+
              - name: Change Extract log permissions (so we can upload them)
                if: always()
                run: sudo chmod a+r *.log
