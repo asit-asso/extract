@@ -28,7 +28,7 @@ services:
         ports:
             - "8080:8080"
         healthcheck:
-            test: "curl --output /dev/null --fail --silent --head localhost:8080/extract/login"
+            test: curl --fail http://localhost:8080/extract || exit 1
             interval: 10s
             timeout: 10s
             retries: 30
