@@ -19,6 +19,8 @@ package ch.asit_asso.extract.initializers;
 import java.util.Locale;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
+import ch.asit_asso.extract.domain.User.TwoFactorStatus;
+import ch.asit_asso.extract.domain.User.UserType;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.Secrets;
 import org.apache.commons.lang3.StringUtils;
@@ -128,6 +130,11 @@ public class UsersInitializer {
         systemUser.setName(this.getMessageString(UsersInitializer.SYSTEM_USER_NAME_KEY));
         systemUser.setPassword(".|}@;;bJXY5-#Fu$a}hNtpQ{");
         systemUser.setEmail("system@monmail.com");
+        systemUser.setMailActive(false);
+        systemUser.setUserType(UserType.LOCAL);
+        systemUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
+        systemUser.setTwoFactorForced(false);
+
 
         this.repository.save(systemUser);
         this.logger.info("The system user has been created.");
@@ -147,7 +154,11 @@ public class UsersInitializer {
         adminUser.setName(this.getMessageString(UsersInitializer.ADMIN_USER_NAME_KEY));
         adminUser.setPassword(this.secrets.hash("motdepasse21"));
         adminUser.setProfile(Profile.ADMIN);
+        adminUser.setUserType(UserType.LOCAL);
         adminUser.setEmail("monadmin@monmail.com");
+        adminUser.setMailActive(false);
+        adminUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
+        adminUser.setTwoFactorForced(false);
 
         this.repository.save(adminUser);
         this.logger.info("The default administrator has been created. Please log in and change its password.");
@@ -167,7 +178,11 @@ public class UsersInitializer {
         operatorUser.setName("Operator");
         operatorUser.setPassword(this.secrets.hash("motdepasse21"));
         operatorUser.setProfile(Profile.OPERATOR);
+        operatorUser.setUserType(UserType.LOCAL);
         operatorUser.setEmail("monoperateur@monmail.com");
+        operatorUser.setMailActive(false);
+        operatorUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
+        operatorUser.setTwoFactorForced(false);
 
         this.repository.save(operatorUser);
         this.logger.info("The default operator has been created. Please log in  with an administrator user and change"
