@@ -32,7 +32,7 @@ services:
             test: curl --fail http://localhost:8080/extract || exit 1
             interval: 10s
             timeout: 10s
-            retries: 30
+            retries: 15
 
     mailhog:
         image: mailhog/mailhog
