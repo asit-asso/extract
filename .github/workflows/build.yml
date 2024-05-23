@@ -117,7 +117,7 @@ jobs:
 
              - name: Upload Tomcat logs
                if: always()
-               uses: actions/upload-artifact@v3
+               uses: actions/upload-artifact@v4
                with:
                   name: tomcat-logs
                   path: /tmp/log/tomcat/
@@ -129,7 +129,7 @@ jobs:
                
              - name: Upload Extract logs
                if: always()
-               uses: actions/upload-artifact@v3
+               uses: actions/upload-artifact@v4
                with:
                   name: extract-logs
                   path: /tmp/log/extract/
