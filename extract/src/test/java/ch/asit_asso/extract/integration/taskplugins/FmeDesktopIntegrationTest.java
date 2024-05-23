@@ -48,7 +48,7 @@ public class FmeDesktopIntegrationTest {
 
     private HashMap<String, String> plugin_parameters;
 
-    private static final String DATA_FOLDERS_BASE_PATH = "/var/extract/orders";
+    private static final String DATA_FOLDERS_BASE_PATH = "/tmp/extract/orders"; // TODO Trouver un moyen de paramétrer ?
 
     private static final String SUCCESS_WORKSPACE = "src/test/java/ch/asit_asso/extract/integration/taskplugins/my_workspace.fmw";
 
