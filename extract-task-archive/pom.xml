@@ -55,14 +55,6 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.14.0</version>
         </dependency>
-<!--
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.4.5</version>
-            <scope>runtime</scope>
-        </dependency>
--->
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -167,10 +159,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <!--
                     <outputDirectory>../extract/src/main/resources/task_processors</outputDirectory>
-                    -->
-                    <outputDirectory>../../core/src/main/resources/task_processors</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>

@@ -166,10 +166,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.2.0</version>
                 <configuration>
-                    <!--
                     <outputDirectory>../extract/src/main/resources/task_processors</outputDirectory>
-                    -->
-                    <outputDirectory>../../core/src/main/resources/task_processors</outputDirectory>
                 </configuration>
             </plugin>
         </plugins>
