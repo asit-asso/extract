@@ -82,10 +82,13 @@ jobs:
              #  run: mv /tmp/extract*.war /tmp/extract.war
                
              - name: Create local Extract folders
-               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders
+               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders                       
                
              - name: Give all permissions on Extract log folder
                run: chmod 0777 /tmp/log/extract
+
+             - name: Give all permissions on Extract order folders (to create data during tests)
+               run: chmod 0777 /tmp/extract/orders
                
              - name: Running Docker Compose file with test containers (for functional tests)
                uses: hoverkraft-tech/compose-action@v1.5.1
