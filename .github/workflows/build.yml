@@ -90,6 +90,9 @@ jobs:
              - name: Give all permissions on Extract order folders (to create data during tests)
                run: chmod 0777 /tmp/extract/orders
                
+             - name: Make FME Desktop dummy executable (for integration tests)
+               run: chmod +x /home/runner/work/extract/extract/extract/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest
+               
              - name: Running Docker Compose file with test containers (for functional tests)
                uses: hoverkraft-tech/compose-action@v1.5.1
                with:
