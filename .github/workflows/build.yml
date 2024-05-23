@@ -110,17 +110,17 @@ jobs:
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
                
-             - name: Change Tomcat log permissions (so we can upload them)
-               if: always()
-               run: sudo chmod a+r *.*
-               working-directory: /tmp/log/tomcat
+             # - name: Change Tomcat log permissions (so we can upload them)
+               # if: always()
+               # run: sudo chmod a+r *.*
+               # working-directory: /tmp/log/tomcat
 
-             - name: Upload Tomcat logs
-               if: always()
-               uses: actions/upload-artifact@v4
-               with:
-                  name: tomcat-logs
-                  path: /tmp/log/tomcat/
+             # - name: Upload Tomcat logs
+               # if: always()
+               # uses: actions/upload-artifact@v4
+               # with:
+                  # name: tomcat-logs
+                  # path: /tmp/log/tomcat/
 
              - name: Change Extract log permissions (so we can upload them)
                if: always()
