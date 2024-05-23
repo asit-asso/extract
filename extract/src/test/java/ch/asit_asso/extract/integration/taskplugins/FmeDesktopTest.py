@@ -1,3 +1,15 @@
+# IMPORTANT : En cas de modification, ce script doit être recompilé en un exécutable indépendant, au minimum pour Linux
+# dans un fichier appelé FmeDesktopTest, sans quoi les tests d'intégration GitHub Actions échoueront.
+#
+# Pour ce faire, il faut installer PyInstaller (si ce n'est déjà fait) avec la commande suivante :
+#
+# pip install pyinstaller
+#
+# Pour générer l'exécutable, ouvrir une ligne de commande dans le répertoire contenant ce fichier et exécuter la
+# commande suivante :
+#
+# pyinstaller --onefile --distpath . FmeDesktopTest.py
+
 import json
 import os
 
@@ -183,8 +195,8 @@ if __name__ == "__main__":
     # Writes a dummy result file in the output folder, unless instructed not to do so (to test script success
     # with no result)
     if not Path(fme_script_name).stem.endswith("_nofiles"):
-        output_file = open(os.path.join(output_folder_path, "dummy.txt"))
-        output_file.write("Dummy result file content.");
+        output_file = open(os.path.join(output_folder_path, "dummy.txt"), "w")
+        output_file.write("Dummy result file content.")
         output_file.close()
 
     sys.exit(0)

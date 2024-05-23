@@ -6,3 +6,5 @@
 /extract.iml
 /.yarn/
 /package-lock.json
+/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest.spec
+/src/test/java/ch/asit_asso/extract/integration/taskplugins/build/

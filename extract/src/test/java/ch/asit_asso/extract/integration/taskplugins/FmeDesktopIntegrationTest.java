@@ -2,17 +2,21 @@ package ch.asit_asso.extract.integration.taskplugins;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.plugins.TaskProcessorsDiscoverer;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorRequest;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -30,7 +34,7 @@ public class FmeDesktopIntegrationTest {
 
     public static final ITaskProcessorResult.Status EXPECTED_SUCCESS_STATUS = ITaskProcessorResult.Status.SUCCESS;
 
-    public static final String EXPECTED_FR_NO_FILES_MESSAGE = "Le répertoire sortie est vide ou n'existe pas.";
+    public static final String EXPECTED_FR_NO_FILES_MESSAGE = "L’extraction FME n’a généré aucun fichier.";
 
     public static final ITaskProcessorResult.Status EXPECTED_ERROR_STATUS = ITaskProcessorResult.Status.ERROR;
 
@@ -56,11 +60,11 @@ public class FmeDesktopIntegrationTest {
 
     private static final String FME_MOCK_WINDOWS = "src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTestWindows";
 
-    private static final String INPUT_FOLDER = "5f258673-e743-475f-93a4-f466f6be3031/input";
+    private static final String INPUT_FOLDER_NAME = "input";
 
     private static final String NUM_INSTANCES = "1";
 
-    private static final String OUTPUT_FOLDER = "5f258673-e743-475f-93a4-f466f6be3031/output";
+    private static final String OUTPUT_FOLDER_NAME = "output";
 
     private static final String CLIENT_GUID = "4b01553d-9766-4014-9166-3f00f58adfc7";
 
@@ -114,8 +118,10 @@ public class FmeDesktopIntegrationTest {
         TaskProcessorsDiscoverer taskPluginDiscoverer = TaskProcessorsDiscoverer.getInstance();
         taskPluginDiscoverer.setApplicationLanguage(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE);
 
-        File pluginDir = new File(FmeDesktopIntegrationTest.TASK_PLUGINS_FOLDER_PATH);
-        FileFilter fileFilter = new WildcardFileFilter(FmeDesktopIntegrationTest.PLUGIN_FILE_NAME_FILTER);
+        File pluginDir = new File(Paths.get(FmeDesktopIntegrationTest.TASK_PLUGINS_FOLDER_PATH).toAbsolutePath().toString());
+        FileFilter fileFilter = WildcardFileFilter.builder()
+                                                  .setWildcards(FmeDesktopIntegrationTest.PLUGIN_FILE_NAME_FILTER)
+                                                  .get();
         File[] foundPluginFiles = pluginDir.listFiles(fileFilter);
 
         if (ArrayUtils.isEmpty(foundPluginFiles)) {
@@ -125,6 +131,7 @@ public class FmeDesktopIntegrationTest {
         URL pluginUrl;
 
         try {
+            assert foundPluginFiles != null;
             pluginUrl = new URL(String.format("jar:file:%s!/", foundPluginFiles[0].getAbsolutePath()));
 
         } catch (MalformedURLException e) {
@@ -157,8 +164,6 @@ public class FmeDesktopIntegrationTest {
 
     private void configureRequest() {
         this.testRequest = new Request();
-        this.testRequest.setFolderIn(FmeDesktopIntegrationTest.INPUT_FOLDER);
-        this.testRequest.setFolderOut(FmeDesktopIntegrationTest.OUTPUT_FOLDER);
         this.testRequest.setClientGuid(FmeDesktopIntegrationTest.CLIENT_GUID);
         this.testRequest.setOrderLabel(FmeDesktopIntegrationTest.ORDER_LABEL);
         this.testRequest.setOrganismGuid(FmeDesktopIntegrationTest.ORGANISM_GUID);
@@ -172,15 +177,18 @@ public class FmeDesktopIntegrationTest {
 
 
     @Test
-    public final void testParameters() {
+    public final void testParameters() throws IOException {
+        final String orderFolderName = "testFmeDesktopParameters";
+        this.testRequest.setFolderIn(Paths.get(orderFolderName, FmeDesktopIntegrationTest.INPUT_FOLDER_NAME).toString());
+        this.testRequest.setFolderOut(Paths.get(orderFolderName, FmeDesktopIntegrationTest.OUTPUT_FOLDER_NAME).toString());
+        this.setUpRequestFolders();
         this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.SUCCESS_WORKSPACE).getAbsolutePath());
-
         final ITaskProcessor pluginInstance
                 = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
                                                                          this.plugin_parameters);
-
         final TaskProcessorRequest taskProcessorRequest
                 = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
+
         final ITaskProcessorResult pluginResult = pluginInstance.execute(taskProcessorRequest, null);
 
         assertEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_MESSAGE, pluginResult.getMessage());
@@ -191,12 +199,18 @@ public class FmeDesktopIntegrationTest {
 
 
     @Test
-    public final void testReturnNoFiles() {
+    public final void testReturnNoFiles() throws IOException {
+        final String orderFolderName = "testFmeDesktopNoFiles";
+        this.testRequest.setFolderIn(Paths.get(orderFolderName, FmeDesktopIntegrationTest.INPUT_FOLDER_NAME).toString());
+        this.testRequest.setFolderOut(Paths.get(orderFolderName, FmeDesktopIntegrationTest.OUTPUT_FOLDER_NAME).toString());
+        this.setUpRequestFolders();
+
         this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.NO_FILES_WORKSPACE).getAbsolutePath());
 
         final ITaskProcessor pluginInstance
-                = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
-                                                                         this.plugin_parameters);
+                = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(
+                FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
+                this.plugin_parameters);
 
         final TaskProcessorRequest taskProcessorRequest
                 = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
@@ -210,12 +224,15 @@ public class FmeDesktopIntegrationTest {
 
 
     @Test
-    public final void testReturnError() {
-        this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.FAILING_WORKSPACE).getAbsolutePath());
+    public final void testReturnError() throws IOException {
+        final String orderFolderName = "testFmeDesktopError";
+        this.testRequest.setFolderIn(Paths.get(orderFolderName, FmeDesktopIntegrationTest.INPUT_FOLDER_NAME).toString());
+        this.testRequest.setFolderOut(Paths.get(orderFolderName, FmeDesktopIntegrationTest.OUTPUT_FOLDER_NAME).toString());
+        this.setUpRequestFolders();
 
-        final ITaskProcessor pluginInstance
-                = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(FmeDesktopIntegrationTest.APPLICATION_LANGUAGE,
-                                                                         this.plugin_parameters);
+        this.plugin_parameters.put("path", new File(FmeDesktopIntegrationTest.FAILING_WORKSPACE).getAbsolutePath());
+        final ITaskProcessor pluginInstance = FmeDesktopIntegrationTest.fmeDesktopPlugin.newInstance(
+                FmeDesktopIntegrationTest.APPLICATION_LANGUAGE, this.plugin_parameters);
 
         final TaskProcessorRequest taskProcessorRequest
                 = new TaskProcessorRequest(this.testRequest, FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH);
@@ -224,5 +241,43 @@ public class FmeDesktopIntegrationTest {
         assertNotEquals("", pluginResult.getMessage());
         assertNotEquals(FmeDesktopIntegrationTest.EXPECTED_SUCCESS_ERROR_CODE, pluginResult.getErrorCode());
         assertEquals(FmeDesktopIntegrationTest.EXPECTED_ERROR_STATUS, pluginResult.getStatus());
+    }
+
+
+
+    private void setUpRequestFolders() throws IOException {
+        File inputDirectory = new File(FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH, this.testRequest.getFolderIn());
+        File outputDirectory = new File(FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH, this.testRequest.getFolderOut());
+
+        if (inputDirectory.exists()) {
+            throw new IllegalStateException("The request input folder already exists.");
+        }
+
+        if (outputDirectory.exists()) {
+            throw new IllegalStateException("The request output folder already exists.");
+        }
+
+        FileUtils.createParentDirectories(inputDirectory);
+        inputDirectory.mkdir();
+        FileUtils.createParentDirectories(outputDirectory);
+        outputDirectory.mkdir();
+    }
+
+
+
+    @AfterEach
+    public void tearUp() throws IOException {
+        File requestBaseFolder = new File(FmeDesktopIntegrationTest.DATA_FOLDERS_BASE_PATH,
+                                            this.testRequest.getFolderOut()).getParentFile();
+
+        if (requestBaseFolder == null || !requestBaseFolder.exists()) {
+            return;
+        }
+
+        if (!requestBaseFolder.isDirectory()) {
+            throw new IllegalStateException("The request output folder is not a directory");
+        }
+
+        FileUtils.deleteDirectory(requestBaseFolder);
     }
 }
