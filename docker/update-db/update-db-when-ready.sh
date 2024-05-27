@@ -9,3 +9,5 @@ if [ -f /create_test_data.sql ]; then
 fi
 
 echo "Done"
+
+tail -f /dev/null
