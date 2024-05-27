@@ -1,5 +1,3 @@
-version: '3'
-
 volumes:
     extract_db_data:
 
@@ -7,11 +5,11 @@ services:
     pgsql:
         image: postgres:12-alpine
         volumes:
-            - extract_db_data:/var/lib/postgresql/data
+            - /var/extract-docker/extract_db_data:/var/lib/postgresql/data
         environment:
             - POSTGRES_DB=extract
             - POSTGRES_USER=extractuser
-            - POSTGRES_PASSYORD=demopassword
+            - POSTGRES_PASSWORD=demopassword
         ports:
             - "5432:5432"
 
@@ -19,18 +17,41 @@ services:
         build: ./docker/tomcat
         container_name: tomcat
         depends_on:
-            - pgsql
+            pgsql:
+                condition: service_started
+            mailhog:
+                condition: service_started
         volumes:
-            - ./extract/target/:/usr/local/tomcat/webapps/
+            - /var/extract-docker:/var/extract
+            - /var/log/extract-docker:/var/log/extract
+            - /var/log/tomcat-docker:/usr/local/tomcat/logs
+            - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
         environment:
-            - JAVA_OPTS=-Xms1G -Xmx1G -Duser.language=fr -Duser.region=CH
+            - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH -Dcom.sun.jndi.ldap.connect.pool.timeout=20000
         ports:
             - "8080:8080"
+        healthcheck:
+            test: curl --fail http://localhost:8080/extract || exit 1
+            interval: 10s
+            timeout: 10s
+            retries: 15
+
+
+    mailhog:
+        image: mailhog/mailhog
+        tty: true
+        ports:
+            - "1025:1025"
+            - "8025:8025"
+        volumes:
+            - ./docker/mailhog:/home/mailhog/conf
+        entrypoint: MailHog -auth-file=/home/mailhog/conf/auth-users
 
     update_db_on_start:
         build: ./docker/update-db
         depends_on:
-            - tomcat
+            tomcat:
+                condition: service_healthy
         volumes:
             - ./sql/update_db.sql:/update_db.sql
         environment:
@@ -38,3 +59,28 @@ services:
             - PGDB=extract
             - PGUSER=extractuser
             - PGPASSWORD=demopassword
+
+    openldap:
+        image: osixia/openldap:1.5.0
+        container_name: openldap
+        volumes:
+            - /var/openldap/storage/ldap_db:/var/lib/ldap
+            - /var/openldap/ldap_config:/etc/ldap/slapd.d
+        environment:
+            - LDAP_ORGANISATION=Extract
+            - LDAP_DOMAIN=extract.org
+            - LDAP_ADMIN_PASSWORD=monsecretadmin
+            - LDAP_CONFIG_PASSWORD=monsecretconfig
+            - LDAP_RFC2307BIS_SCHEMA=true
+            - LDAP_REMOVE_CONFIG_AFTER_SETUP=true
+            - LDAP_TLS_VERIFY_CLIENT=try
+        ports:
+            - "389:389"
+            - "636:636"
+
+    ldap-ad:
+        build: ./docker/ldap-ad
+        volumes:
+            - ./docker/ldap-ad/users.ldif:/ldap/users.ldif
+        ports:
+            - "10389:10389"

@@ -20,10 +20,9 @@ services:
             mailhog:
                 condition: service_started
         volumes:
-            - /tmp/extract##2.1-BETA2.war:/usr/local/tomcat/webapps/extract.war
+            - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
             - /tmp/extract:/var/extract
-            - /tmp/log/tomcat:/usr/local/tomcat/logs
         environment:
             - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
         ports:
