@@ -1,6 +1,9 @@
 name: build-extract-actions
 run-name: Testing Extract after push by ${{ github.actor }}
-on: [push]
+on: 
+    pull_request:
+        types: [opened, reopened]
+        
 jobs:
     build-extract:
         runs-on: ubuntu-latest
@@ -144,12 +147,12 @@ jobs:
                    path: "**/failsafe-reports/TEST-*.functional.*.xml"
                    reporter: "java-junit"
                  
-             # - name: change tomcat log permissions (so we can upload them)
+             # - name: Change tomcat log permissions (so we can upload them)
                # if: always()
                # run: sudo chmod a+r *.*
                # working-directory: /tmp/log/tomcat
 
-             # - name: upload tomcat logs
+             # - name: Upload tomcat logs
                # if: always()
                # uses: actions/upload-artifact@v4
                # with:
