@@ -1,5 +1,5 @@
 name: build-extract-actions
-run-name: Testing Extract after push by ${{ github.actor }}
+run-name: Testing Extract after pull request by ${{ github.actor }}
 on: 
     pull_request:
         types: [opened, reopened]
