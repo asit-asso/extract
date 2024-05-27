@@ -120,30 +120,14 @@ jobs:
                # if: success() || failure()
                # uses: scacap/action-surefire-report@v1
                
-             - name: "Publish unit test results"
+             - name: "Publish test results"
                uses: dorny/test-reporter@v1
                if: success() || failure()
                with:
-                   name: "Unit tests"
-                   path: "**/surefire-reports/surefire-summary-unit.xml"
+                   name: "Test report"
+                   path: "**/surefire-reports/TEST-*.xml, **/failsafe-reports/TEST-*.xml"
                    reporter: "java-junit"
                  
-             - name: "Publish integration test results"
-               uses: dorny/test-reporter@v1
-               if: success() || failure()
-               with:
-                   name: "Integration tests"
-                   path: "**/failsafe-reports/failsafe-summary-integration.xml"
-                   reporter: "java-junit"
-                 
-             - name: "Publish functional test results"
-               uses: dorny/test-reporter@v1
-               if: success() || failure()
-               with:
-                   name: "Functional tests"
-                   path: "**/failsafe-reports/failsafe-summary-functional.xml"
-                   reporter: "java-junit"
-                   
              # - name: change tomcat log permissions (so we can upload them)
                # if: always()
                # run: sudo chmod a+r *.*
