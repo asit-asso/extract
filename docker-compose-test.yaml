@@ -22,7 +22,7 @@ services:
         volumes:
             - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
-            - /tmp/log/extract:/usr/local/tomcat/logs
+            - /tmp/log/tomcat:/usr/local/tomcat/logs
             - /tmp/extract:/var/extract
         environment:
             - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
