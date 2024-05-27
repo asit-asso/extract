@@ -9,7 +9,7 @@ RUN apk add --update \
 ENTRYPOINT []
 
 # Copy scripts
-COPY update-db-when-ready.sh update-db-when-ready.sh
-RUN chmod +x wait-for-web.sh update-db-when-ready.sh
+COPY update-db-when-ready.sh
+RUN chmod +x update-db-when-ready.sh
 
 CMD /update-db-when-ready.sh
