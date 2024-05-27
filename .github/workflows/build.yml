@@ -78,8 +78,8 @@ jobs:
                    name: java-app
                    path: /tmp/
                    
-             #- name: Rename artifact file to version-agnostic name
-             #  run: mv /tmp/extract*.war /tmp/extract.war
+             - name: Rename artifact file to version-agnostic name
+               run: mv /tmp/extract*.war /tmp/extract.war
                
              - name: Create local Extract folders
                run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders                       
