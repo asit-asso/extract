@@ -1,5 +1,5 @@
 name: build-extract-actions
-run-name: Building Extract after push by ${{ github.actor }}
+run-name: Testing Extract after push by ${{ github.actor }}
 on: [push]
 jobs:
     build-extract:
@@ -115,6 +115,10 @@ jobs:
                    
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode
+                  
+             - name: "Publish test results"
+               if: success() || failure()
+               uses: scacap/action-surefire-report@v1
                
              # - name: change tomcat log permissions (so we can upload them)
                # if: always()
@@ -139,7 +143,3 @@ jobs:
                # with:
                   # name: extract-logs
                   # path: /tmp/log/extract/
-                  
-            - name: "Publish test results"
-               if: success() || failure()
-               uses: scacap/action-surefire-report@v1
