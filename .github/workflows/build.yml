@@ -140,6 +140,6 @@ jobs:
                   # name: extract-logs
                   # path: /tmp/log/extract/
                   
-            # - name: "Publish test results"
-            #    if: success() || failure()
-            #    uses: scacap/action-surefire-report@v1
+            - name: "Publish test results"
+               if: success() || failure()
+               uses: scacap/action-surefire-report@v1
