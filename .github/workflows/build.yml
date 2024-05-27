@@ -124,9 +124,9 @@ jobs:
                uses: dorny/test-reporter@v1
                if: success() || failure()
                with:
-                 name: Tests JUnit    
-                 path: **/surefire-reports/TEST-*.xml
-                 reporter: java-junit
+                   name: Tests JUnit    
+                   path: **/surefire-reports/TEST-*.xml
+                   reporter: java-junit
                  
              # - name: change tomcat log permissions (so we can upload them)
                # if: always()
