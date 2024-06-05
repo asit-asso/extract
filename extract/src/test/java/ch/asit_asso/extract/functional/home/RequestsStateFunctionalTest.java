@@ -1,8 +1,8 @@
 package ch.asit_asso.extract.functional.home;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-import ch.qos.logback.classic.Level;
 import ch.asit_asso.extract.functional.pages.HomePage;
 import ch.asit_asso.extract.functional.pages.LoginPage;
 import ch.asit_asso.extract.functional.pages.RequestDetailsPage;
@@ -10,7 +10,6 @@ import ch.asit_asso.extract.functional.pages.components.CurrentRequestsTableComp
 import ch.asit_asso.extract.functional.pages.components.FinishedRequestsTableComponent;
 import ch.asit_asso.extract.functional.pages.components.RequestTableRowComponent;
 import ch.asit_asso.extract.functional.pages.enums.RequestState;
-import ch.qos.logback.classic.Logger;
 import io.github.bonigarcia.wdm.WebDriverManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -21,7 +20,6 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -46,8 +44,7 @@ public class RequestsStateFunctionalTest {
 
     @BeforeAll
     public static void setupClass() {
-        WebDriverManager.chromedriver().disableTracing().setup();
-        ((Logger) LoggerFactory.getLogger(org.slf4j.Logger.ROOT_LOGGER_NAME)).setLevel(Level.INFO);
+        WebDriverManager.chromedriver().setup();
     }
 
     @BeforeEach
@@ -63,16 +60,15 @@ public class RequestsStateFunctionalTest {
                         "--headless",
                         "--remote-allow-origins=*",
                         "--disable-logging",
-                        "--log-level=3"
+                        "--log-level=OFF"
                 )
         );
 
         this.driver = new ChromeDriver(options);
         this.driver.get(RequestsStateFunctionalTest.APPLICATION_URL);
         this.driver.manage().window().maximize();
-        this.driver.manage().timeouts().implicitlyWait(120, TimeUnit.MILLISECONDS);
-//        this.driver = new FirefoxDriver();
-        LoginPage loginPage = new LoginPage(driver);
+        this.driver.manage().timeouts().implicitlyWait(Duration.of(120, ChronoUnit.MILLIS));
+        LoginPage loginPage = new LoginPage(this.driver);
         this.homePage = loginPage.loginAs(RequestsStateFunctionalTest.ADMIN_USERNAME,
                                           RequestsStateFunctionalTest.ADMIN_PASSWORD);
     }
