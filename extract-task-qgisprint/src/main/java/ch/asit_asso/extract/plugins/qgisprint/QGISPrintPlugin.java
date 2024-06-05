@@ -16,10 +16,32 @@
  */
 package ch.asit_asso.extract.plugins.qgisprint;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.StringReader;
+import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.Map;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
+import ch.asit_asso.extract.plugins.qgisprint.utils.QgisUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -47,7 +69,6 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.jsoup.Jsoup;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.Geometry;
 import org.locationtech.jts.io.WKTReader;
@@ -57,20 +78,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.xpath.*;
-import java.io.*;
-import java.net.URI;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Paths;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Map;
 
 /**
  * DESCRIBES HERE WHAT THE PLUGIN DO (E.G : A plugin that adds an automated remark to a request)
@@ -201,8 +208,8 @@ public class QGISPrintPlugin implements ITaskProcessor {
     /**
      * Returns a new task processor instance with the provided settings.
      *
-     * @param language the locale code of the language to display the messages in
-     * @param inputs   the parameters for this task
+     * @param language      the locale code of the language to display the messages in
+     * @param taskSettings   the parameters for this task
      * @return the new task processor instance
      */
     @Override
@@ -548,8 +555,8 @@ public class QGISPrintPlugin implements ITaskProcessor {
     /**
      * Creates the content of the HTTP request with the perimeter request on body
      *
-     * @param exportXml  the XML document that describes the result of the request processing
-     * @param resultFile the file that contains the generated data for the request
+     * @param xml           the XML document that describes the result of the request processing
+     * @param resultFile    the file that contains the generated data for the request
      * @return the HTTP entity to export
      */
     private HttpEntity createHttpEntity(final String xml, final File resultFile) {
@@ -647,12 +654,13 @@ public class QGISPrintPlugin implements ITaskProcessor {
                 String.format(this.config.getProperty("getFeature.xpath.gmlId"), coverageLayer));
         ArrayList<String> ids = new ArrayList<String>();
 
-        for (int i = 0; i < idsList.getLength(); i++) {
-            ids.add(idsList.item(i).getTextContent());
+        for (int itemIndex = 0; itemIndex < idsList.getLength(); itemIndex++) {
+            String id = QgisUtils.getIdFromGmlIdString(idsList.item(itemIndex).getTextContent());
+            this.logger.debug("Id to add is \"{}\"", id);
+            ids.add(id);
         }
 
         return ids;
-
     }
 
     /**
