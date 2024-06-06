@@ -83,7 +83,7 @@ jobs:
                    path: /tmp/
                    
              - name: Rename artifact file to version-agnostic name
-               run: mv /tmp/extract*.war /tmp/extract.war
+               run: find /tmp -maxdepth 1 -type f -name extract*.war | xargs -I {} mv {} /tmp/extract.war
                
              - name: Create local Extract folders
                run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders                       
