@@ -1,9 +1,8 @@
 name: build-extract-actions
 run-name: Testing Extract after pull request by ${{ github.actor }}
 on: 
-    [push]
-    #pull_request:
-    #    types: [opened, reopened]
+    pull_request:
+        types: [opened, reopened]
         
 jobs:
     build-extract:
