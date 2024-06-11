@@ -373,10 +373,9 @@ public class QGISPrintPlugin implements ITaskProcessor {
             final String pathProject = this.inputs.get(this.config.getProperty("paramPathProjectQGIS"));
             final String login = this.inputs.get(this.config.getProperty("paramLogin"));
             this.login = login;
-            this.logger.debug("login is" + login + " / " + this.login);
+            this.logger.debug("login is {}", this.login);
             final String password = this.inputs.get(this.config.getProperty("paramPassword"));
             this.password = password;
-            this.logger.debug("password is : " + password + " / " + this.password);
             final String layers = this.inputs.get(this.config.getProperty("paramLayers"));
             final String productId = request.getProductGuid();
             String crs = this.inputs.get(this.config.getProperty("paramCRS"));
