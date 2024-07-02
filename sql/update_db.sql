@@ -61,9 +61,33 @@ DROP INDEX IF EXISTS idx_processes_users_user;
 CREATE INDEX idx_processes_users_user
   ON processes_users (id_user);
 
+-- RECOVERY_CODES Table
+
+ALTER TABLE recovery_codes
+DROP CONSTRAINT IF EXISTS fk_recovery_codes_user;
+
+ALTER TABLE recovery_codes
+    ADD CONSTRAINT fk_recovery_codes_user FOREIGN KEY (id_user)
+        REFERENCES users (id_user) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE;
+
 -- REMARKS Table
 
 ALTER TABLE remarks ALTER COLUMN content TYPE TEXT;
+
+-- REMEMBERME_TOKENS Table
+
+-- Correction mauvais nommage v2.1 Beta
+ALTER TABLE remember_me_tokens
+DROP CONSTRAINT IF EXISTS fk_recovery_codes_user;
+
+ALTER TABLE remember_me_tokens
+DROP CONSTRAINT IF EXISTS fk_rememberme_user;
+
+ALTER TABLE remember_me_tokens
+    ADD CONSTRAINT fk_rememberme_user FOREIGN KEY (id_user)
+        REFERENCES users (id_user) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE;
 
 -- REQUESTS Table
 
@@ -87,6 +111,12 @@ ALTER TABLE requests ALTER COLUMN p_parameters TYPE TEXT;
 ALTER TABLE requests ALTER COLUMN p_perimeter TYPE TEXT;
 ALTER TABLE requests ALTER COLUMN p_tiersguid TYPE VARCHAR (255) COLLATE pg_catalog."default";
 ALTER TABLE requests ALTER COLUMN p_tiersdetails TYPE VARCHAR (4000) COLLATE pg_catalog."default";
+
+UPDATE requests r SET last_reminder = (
+    SELECT MAX(rh.end_date)
+    FROM request_history rh
+    WHERE rh.id_request = r.id_request
+) WHERE r.status = 'STANDBY' AND r.last_reminder IS NULL;
 
 -- REQUEST_HISTORY Table
 
@@ -152,6 +182,9 @@ UPDATE tasks
 
 UPDATE users SET mailactive = FALSE WHERE login = 'system';
 UPDATE users SET mailactive = true WHERE mailactive IS NULL;
+UPDATE users SET two_factor_forced = false WHERE two_factor_forced IS NULL;
+UPDATE users SET two_factor_status = 'INACTIVE' WHERE two_factor_status IS NULL;
+UPDATE users SET user_type = 'LOCAL' WHERE user_type IS NULL;
 
 -- USERS_USERGROUPS Table
 

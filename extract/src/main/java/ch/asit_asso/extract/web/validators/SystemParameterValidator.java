@@ -20,6 +20,7 @@ import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
 import ch.asit_asso.extract.utils.EmailUtils;
 import ch.asit_asso.extract.web.model.SystemParameterModel;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,10 +61,16 @@ public class SystemParameterValidator extends BaseValidator {
      */
     private static final int MINIMUM_SCHEDULER_FREQUENCY = 1;
 
+    private static final int MINIMUM_STANDBY_REMINDER_DAYS = 0;
+
     /**
      * The smallest number that is acceptable as an HTTP port.
      */
     private static final int MINIMUM_HTTP_PORT = 0;
+
+    private static final int MAXIMUM_LDAP_SYNCHRO_FREQUENCY = Integer.MAX_VALUE;
+
+    private static final int MINIMUM_LDAP_SYNCHRO_FREQUENCY = 1;
 
     /**
      * The writer to the application logs.
@@ -93,7 +100,7 @@ public class SystemParameterValidator extends BaseValidator {
      * @return <code>true</code> if the type is supported by this validator
      */
     @Override
-    public final boolean supports(final Class<?> type) {
+    public final boolean supports(final @NotNull Class<?> type) {
         return SystemParameterModel.class.equals(type);
     }
 
@@ -107,17 +114,33 @@ public class SystemParameterValidator extends BaseValidator {
      */
     @Override
     @Transactional(readOnly = true)
-    public void validate(final Object target, final Errors errors) {
+    public void validate(final @NotNull Object target, final @NotNull Errors errors) {
         this.logger.debug("Validating the user model {}.", target);
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "basePath", "parameters.errors.basepath.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapServers", "parameters.errors.ldapServers.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapBaseDn", "parameters.errors.ldapBaseDn.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapAdminsGroup", "parameters.errors.ldapAdminsGroup.required");
+        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapOperatorsGroup", "parameters.errors.ldapOperatorsGroup.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "smtpFromMail", "parameters.errors.smtpfrommail.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "smtpFromName", "parameters.errors.smtpfromname.required");
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "smtpServer", "parameters.errors.smtpserver.required");
 
         final SystemParameterModel systemParameterModel = (SystemParameterModel) target;
+
         this.validateDashboardFrequency(systemParameterModel.getDashboardFrequency(), errors);
         this.validateSchedulerFrequency(systemParameterModel.getSchedulerFrequency(), errors);
+
+        if (systemParameterModel.getLdapEncryption() == null) {
+            errors.rejectValue("ldapEncryption", "parameters.errors.ldapEncryption.required");
+        }
+
+        if (systemParameterModel.isLdapSynchronizationEnabled()) {
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchronizationUser", "parameters.errors.ldapSynchroUser.required");
+            ValidationUtils.rejectIfEmptyOrWhitespace(errors, "ldapSynchronizationPassword", "parameters.errors.ldapSynchroUser.required");
+            this.validateLdapSynchronizationFrequency(systemParameterModel.getLdapSynchronizationFrequency(), errors);
+        }
         this.validateSmtpPort(systemParameterModel.getSmtpPort(), errors);
+        this.validateStandbyReminderDays(systemParameterModel.getStandbyReminderDays(), errors);
 
         if (!this.validateEmail(systemParameterModel.getSmtpFromMail())) {
             errors.rejectValue("smtpFromMail", "parameters.errors.smtpfrommail.invalid");
@@ -158,7 +181,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int frequency = Integer.valueOf(valueString);
+        final int frequency = Integer.parseInt(valueString);
 
         if (frequency < SystemParameterValidator.MINIMUM_DASHBOARD_FREQUENCY) {
             errors.rejectValue("dashboardFrequency", "parameters.errors.dashboardfrequency.tooSmall",
@@ -196,7 +219,7 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int frequency = Integer.valueOf(valueString);
+        final int frequency = Integer.parseInt(valueString);
 
         if (frequency < SystemParameterValidator.MINIMUM_SCHEDULER_FREQUENCY) {
             errors.rejectValue("schedulerFrequency", "parameters.errors.schedulerfrequency.notpositive");
@@ -207,6 +230,35 @@ public class SystemParameterValidator extends BaseValidator {
             errors.rejectValue("schedulerFrequency", "parameters.errors.schedulerfrequency.tooLarge",
                     new Object[]{SystemParameterValidator.MAXIMUM_SCHEDULER_FREQUENCY},
                     "parameters.errors.schedulerfrequency.invalid");
+            return false;
+        }
+
+        return true;
+    }
+
+
+
+    private boolean validateLdapSynchronizationFrequency(final String valueString, final Errors errors) {
+
+        if (!this.validateInteger(valueString)) {
+            errors.rejectValue("ldapSynchroFrequency", "parameters.errors.ldapSynchroFrequency.outOfRange",
+                               new Object[]{SystemParameterValidator.MINIMUM_LDAP_SYNCHRO_FREQUENCY,
+                                       SystemParameterValidator.MAXIMUM_LDAP_SYNCHRO_FREQUENCY},
+                               "parameters.errors.ldapSynchroFrequency.invalid");
+            return false;
+        }
+
+        final int frequency = Integer.parseInt(valueString);
+
+        if (frequency < SystemParameterValidator.MINIMUM_LDAP_SYNCHRO_FREQUENCY) {
+            errors.rejectValue("schedulerFrequency", "parameters.errors.ldapSynchroFrequency.notpositive");
+            return false;
+        }
+
+        if (frequency > SystemParameterValidator.MAXIMUM_LDAP_SYNCHRO_FREQUENCY) {
+            errors.rejectValue("schedulerFrequency", "parameters.errors.schedulerfrequency.tooLarge",
+                               new Object[]{SystemParameterValidator.MAXIMUM_LDAP_SYNCHRO_FREQUENCY},
+                               "parameters.errors.ldapSynchroFrequency.invalid");
             return false;
         }
 
@@ -229,12 +281,30 @@ public class SystemParameterValidator extends BaseValidator {
             return false;
         }
 
-        final int port = Integer.valueOf(valueString);
+        final int port = Integer.parseInt(valueString);
 
         if (port < SystemParameterValidator.MINIMUM_HTTP_PORT || port > SystemParameterValidator.MAXIMUM_HTTP_PORT) {
             errors.rejectValue("smtpPort", "parameters.errors.smtpport.outofrange", new Object[]{
                 SystemParameterValidator.MINIMUM_HTTP_PORT, SystemParameterValidator.MAXIMUM_HTTP_PORT
             }, "parameters.errors.smtpport.invalid");
+            return false;
+        }
+
+        return true;
+    }
+
+
+    private boolean validateStandbyReminderDays(final String valueString, final Errors errors) {
+
+        if (!this.validateInteger(valueString)) {
+            errors.rejectValue("standbyReminderDays", "parameters.errors.standbyReminder.invalid");
+            return false;
+        }
+
+        final int days = Integer.parseInt(valueString);
+
+        if (days < SystemParameterValidator.MINIMUM_STANDBY_REMINDER_DAYS) {
+            errors.rejectValue("smtpPort", "parameters.errors.standbyReminder.negative");
             return false;
         }
 

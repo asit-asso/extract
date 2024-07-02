@@ -31,5 +31,5 @@
     <!-- The default value is 10240 kbytes, even when not added to context.xml.
     So increase it high enough, until the problem disappears, for example set it to
     a value 5 times as high: 51200. -->
-    <Resources cacheMaxSize="51200"/>
+    <Resources cacheMaxSize="102400"/>
 </Context>

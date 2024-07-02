@@ -24,8 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             [[#{application.name}]]&nbsp;&ndash; [[${#messages.msg('requestDetails.page.title', request.label)}]]
         </title>
         <th:block layout:fragment="additionalStyleIncludes">
-            <link rel="stylesheet" href="../../static/lib/openlayers/dist/ol.css"
-                  th:href="@{'/lib/openlayers/dist/ol.css'} + '?v=@@openLayersLibVersion@@'" type="text/css" />
+            <link rel="stylesheet" href="../../static/lib/ol/ol.css"
+                  th:href="@{'/lib/ol/ol.css'} + '?v=@@openLayersLibVersion@@'" type="text/css" />
             <link rel="stylesheet" href="../../static/lib/ol-layerswitcher/src/ol-layerswitcher.css"
                   th:href="@{'/lib/ol-layerswitcher/src/ol-layerswitcher.css'} + '?v=@@layerSwitcherLibVersion@@'"
                   type="text/css" />
@@ -51,10 +51,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </h1>
                         <div th:object="${request.connector}">
                             <span th:text="#{requestDetails.connector.label}">{Connector:}</span>&nbsp;
-                            <a href="connectors/id" th:if="${isAdmin}" th:text="*{name}" th:href="@{'/connectors/' + *{id}}">
+                            <a href="connectors/id" th:if="${isAdmin}" th:text="*{name}" th:href="@{'/connectors/' + *{id}}"
+                                th:unless="${request.connector} == null">
                                 {My connector}
                             </a>
-                            <span th:unless="${isAdmin}" th:text="*{name}"></span>
+                            <span th:unless="${isAdmin} or ${request.connector} == null" th:text="*{name}"></span>
+                            <i th:if="${request.connector} == null" th:text="#{requestDetails.connector.deleted}">
+                                {(Deleted)}
+                            </i>
                         </div>
                     </div>
                 </div>
@@ -77,36 +81,36 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 <div>
                     <h3 th:with="processString = ${hasProcess} ? ${request.processName} : #{requestDetails.process.none}"
                         th:text="${#messages.msg('requestDetails.process.title', processString)}"></h3>
-                    <div class="progress split process-progress" th:if="${hasProcess}">
+                    <div class="progress split process-progress" th:if="${hasProcess}" role="progressbar">
                         <th:block th:each="historyItem, historyStats : ${request.processHistory}"
                                   th:object="${request.processHistory[__${historyStats.index}__]}" th:switch="*{status}"
                                   th:with="label = ${#strings.startsWith(#object.taskLabel, '##')}
                                   ? ${#messages.msg(#strings.substringAfter(#object.taskLabel, '##'))}
                                   : *{taskLabel}, size = ${historyStats.size}">
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).ERROR}"
-                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|"
                                  class="progress-bar bg-danger">
                                 <i class="fa fa-warning"></i>
                                 <span th:text="${label}"></span>
 
                             </div>
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).FINISHED}"
-                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|"
                                  class="progress-bar progress-bar-done">
                                 <span th:text="${label}"></span>
 
                             </div>
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).ONGOING}"
-                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|"
                                  class="progress-bar progress-bar-current progress-bar-striped">
                                 <span th:text="${label}"></span>
                             </div>
                             <div th:case="${T(ch.asit_asso.extract.domain.RequestHistoryRecord.Status).STANDBY}"
-                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
+                                 th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|"
                                  class="progress-bar progress-bar-standby">
                                 <span th:text="${label}"></span>
                             </div>
-                            <div th:case="*" th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|" role="progressbar"
+                            <div th:case="*" th:style="|width: calc((100% - ${size - 1} * 30px) / ${size})|"
                                  class="progress-bar progress-bar-todo">
                                 <span th:text="${label}"></span>
                             </div>
@@ -256,6 +260,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             {Plugin message : Please validate data}
                         </p>
                     </div>
+                    <div class="card card-body validation-parameters-card"
+                         th:unless="${request.validationFocusParameters} == null or ${#maps.isEmpty(request.validationFocusParameters)}">
+                        <div class="mb-2" th:each="parameter : ${request.validationFocusParameters}" th:object="${parameter}">
+                            <div class="strong" th:text="*{key}">{KEY}</div>
+                            <div th:text="*{value}">{Value}</div>
+                        </div>
+                    </div>
                     <div class="row">
                         <div class="col-xl-5 current-step-action">
                             <h3 class="current-step-action-title" th:text="#{requestDetails.currentStep.validate.title}">{Validate}</h3>
@@ -393,6 +404,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                         {Download all files…}
                                                     </span>
                                                 </button>
+                                            </div>
+                                            <div class="mt-3" th:if="${isAdmin} or ${displayTempFolder}">
+                                                <div class="strong" th:text="#{requestDetails.tempFolder.label}">
+                                                    {Temp folders path:}
+                                                </div>
+                                                <div th:text="${request.outputFolderPath}">{/var/extract/data/my-request/output/}</div>
                                             </div>
                                         </td>
                                     </tr>
@@ -552,11 +569,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             </div>
         </div>
         <th:block layout:fragment="additionalScriptIncludes">
-            <script src="https://cdn.polyfill.io/v2/polyfill.min.js?features=Promise,fetch,requestAnimationFrame,Element.prototype.classList,URL&amp;flags=gated"></script>
             <script type="text/javascript" src="../../static/lib/proj4/dist/proj4.js"
             th:src="@{/lib/proj4/dist/proj4.js} + '?v=@@proj4LibVersion@@'"></script>
-            <script type="text/javascript" src="../../static/lib/openlayers/dist/ol.js"
-            th:src="@{'/lib/openlayers/dist/ol.js'} + '?v=@@openLayersLibVersion@@'"></script>
+            <script type="text/javascript" src="../../static/lib/ol/dist/ol.js"
+            th:src="@{'/lib/ol/dist/ol.js'} + '?v=@@openLayersLibVersion@@'"></script>
             <script type="text/javascript" src="../../static/lib/ol-layerswitcher/dist/ol-layerswitcher.js"
             th:src="@{'/lib/ol-layerswitcher/dist/ol-layerswitcher.js'} + '?v=@@layerSwitcherLibVersion@@'"></script>
         </th:block>

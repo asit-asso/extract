@@ -16,45 +16,72 @@
  */
 package ch.asit_asso.extract.plugins.fmedesktop;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.junit.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.util.*;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 
 /**
- *
  * @author Yves Grasset
  */
 public class FmeDesktopPluginTest {
     private static final String CONFIG_FILE_PATH = "plugins/fme/properties/configFME.properties";
+
     private static final String DESCRIPTION_STRING_IDENTIFIER = "plugin.description";
+
     private static final String EXPECTED_ICON_CLASS = "fa-cogs";
+
     private static final String EXPECTED_PLUGIN_CODE = "FME2017";
+
     private static final String FME_PATH_PARAMETER_NAME_PROPERTY = "paramPathFME";
+
     private static final String HELP_FILE_NAME = "fmeDesktopHelp.html";
+
     private static final String INSTANCES_PARAMETER_NAME_PROPERTY = "paramInstances";
+
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
+
     private static final String PARAMETER_CODE_NAME = "code";
+
     private static final String PARAMETER_LABEL_NAME = "label";
-    private static final String PARAMETER_MAX_LENGTH_NAME = "maxlength";
+
     private static final String PARAMETER_REQUIRED_NAME = "req";
+
     private static final String PARAMETER_TYPE_NAME = "type";
+
     private static final int PARAMETERS_NUMBER = 3;
+
     private static final String SCRIPT_PATH_PARAMETER_NAME_PROPERTY = "paramPath";
+
     private static final String TEST_FME_PATH = "";
+
     private static final String TEST_INSTANCE_LANGUAGE = "fr";
+
     private static final String TEST_INSTANCES = "3";
+
     private static final String TEST_SCRIPT_PATH = "";
-    private static final String[] VALID_PARAMETER_TYPES = new String[]{"email", "pass", "multitext", "text", "numeric"};
+
+    private static final String[] VALID_PARAMETER_TYPES = new String[] {"email", "pass", "multitext", "text",
+                                                                        "numeric"};
 
     /**
      * The writer to the application logs.
@@ -62,31 +89,24 @@ public class FmeDesktopPluginTest {
     private final Logger logger = LoggerFactory.getLogger(FmeDesktopPluginTest.class);
 
     private PluginConfiguration configuration;
+
     private LocalizedMessages messages;
+
     private ObjectMapper parameterMapper;
+
     private String[] requiredParametersCodes;
+
     private Map<String, String> testParameters;
 
 
 
     public FmeDesktopPluginTest() {
+
     }
 
 
 
-    @BeforeClass
-    public static final void setUpClass() {
-    }
-
-
-
-    @AfterClass
-    public static final void tearDownClass() {
-    }
-
-
-
-    @Before
+    @BeforeEach
     public final void setUp() {
         this.configuration = new PluginConfiguration(FmeDesktopPluginTest.CONFIG_FILE_PATH);
         this.messages = new LocalizedMessages(FmeDesktopPluginTest.TEST_INSTANCE_LANGUAGE);
@@ -99,7 +119,7 @@ public class FmeDesktopPluginTest {
         final String instancesCode
                 = this.configuration.getProperty(FmeDesktopPluginTest.INSTANCES_PARAMETER_NAME_PROPERTY);
 
-        this.requiredParametersCodes = new String[]{fmePathCode, scriptPathCode, instancesCode};
+        this.requiredParametersCodes = new String[] {fmePathCode, scriptPathCode, instancesCode};
 
         this.testParameters = new HashMap<>();
         this.testParameters.put(fmePathCode, FmeDesktopPluginTest.TEST_FME_PATH);
@@ -109,21 +129,17 @@ public class FmeDesktopPluginTest {
 
 
 
-    @After
-    public final void tearDown() {
-    }
-
-
-
     /**
      * Test of newInstance method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Create a new instance without parameter values")
     public final void testNewInstanceWithoutParameters() {
-        System.out.println("newInstance without parameters");
         FmeDesktopPlugin instance = new FmeDesktopPlugin();
+
         FmeDesktopPlugin result = instance.newInstance(FmeDesktopPluginTest.TEST_INSTANCE_LANGUAGE);
-        Assert.assertNotSame(instance, result);
+
+        assertNotSame(instance, result);
     }
 
 
@@ -132,12 +148,14 @@ public class FmeDesktopPluginTest {
      * Test of newInstance method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Create a new instance with parameter values")
     public final void testNewInstanceWithParameters() {
-        System.out.println("newInstance with parameters");
         FmeDesktopPlugin instance = new FmeDesktopPlugin();
+
         FmeDesktopPlugin result = instance.newInstance(FmeDesktopPluginTest.TEST_INSTANCE_LANGUAGE,
-                this.testParameters);
-        Assert.assertNotSame(instance, result);
+                                                       this.testParameters);
+
+        assertNotSame(instance, result);
     }
 
 
@@ -146,12 +164,14 @@ public class FmeDesktopPluginTest {
      * Test of getLabel method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Check the plugin label")
     public final void testGetLabel() {
-        System.out.println("getLabel");
         FmeDesktopPlugin instance = new FmeDesktopPlugin(FmeDesktopPluginTest.TEST_INSTANCE_LANGUAGE);
         String expectedLabel = this.messages.getString(LABEL_STRING_IDENTIFIER);
+
         String result = instance.getLabel();
-        Assert.assertEquals(expectedLabel, result);
+
+        assertEquals(expectedLabel, result);
     }
 
 
@@ -160,11 +180,13 @@ public class FmeDesktopPluginTest {
      * Test of getCode method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Check the plugin identifier")
     public final void testGetCode() {
-        System.out.println("getCode");
         FmeDesktopPlugin instance = new FmeDesktopPlugin();
+
         String result = instance.getCode();
-        Assert.assertEquals(FmeDesktopPluginTest.EXPECTED_PLUGIN_CODE, result);
+
+        assertEquals(FmeDesktopPluginTest.EXPECTED_PLUGIN_CODE, result);
     }
 
 
@@ -173,12 +195,13 @@ public class FmeDesktopPluginTest {
      * Test of getDescription method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Check the plugin description")
     public final void testGetDescription() {
-        System.out.println("getDescription");
         FmeDesktopPlugin instance = new FmeDesktopPlugin(FmeDesktopPluginTest.TEST_INSTANCE_LANGUAGE);
         String expectedDescription = this.messages.getString(FmeDesktopPluginTest.DESCRIPTION_STRING_IDENTIFIER);
         String result = instance.getDescription();
-        Assert.assertEquals(expectedDescription, result);
+
+        assertEquals(expectedDescription, result);
     }
 
 
@@ -187,12 +210,14 @@ public class FmeDesktopPluginTest {
      * Test of getHelp method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Check the help file name")
     public final void testGetHelp() {
-        System.out.println("getHelp");
         FmeDesktopPlugin instance = new FmeDesktopPlugin(FmeDesktopPluginTest.TEST_INSTANCE_LANGUAGE);
         String expectedHelp = this.messages.getFileContent(FmeDesktopPluginTest.HELP_FILE_NAME);
+
         String result = instance.getHelp();
-        Assert.assertEquals(expectedHelp, result);
+
+        assertEquals(expectedHelp, result);
     }
 
 
@@ -201,11 +226,13 @@ public class FmeDesktopPluginTest {
      * Test of getPictoClass method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Check the plugin pictogram")
     public final void testGetPictoClass() {
-        System.out.println("getPictoClass");
         FmeDesktopPlugin instance = new FmeDesktopPlugin();
+
         String result = instance.getPictoClass();
-        Assert.assertEquals(FmeDesktopPluginTest.EXPECTED_ICON_CLASS, result);
+
+        assertEquals(FmeDesktopPluginTest.EXPECTED_ICON_CLASS, result);
     }
 
 
@@ -214,8 +241,8 @@ public class FmeDesktopPluginTest {
      * Test of getParams method, of class FmeDesktopPlugin.
      */
     @Test
+    @DisplayName("Check the plugin parameters")
     public final void testGetParams() {
-        System.out.println("getParams");
         FmeDesktopPlugin instance = new FmeDesktopPlugin();
         ArrayNode parametersArray = null;
 
@@ -224,49 +251,50 @@ public class FmeDesktopPluginTest {
 
         } catch (IOException exception) {
             this.logger.error("An error occurred when the parameters JSON was parsed.", exception);
-            Assert.fail("Could not parse the parameters JSON string.");
+            fail("Could not parse the parameters JSON string.");
         }
 
-        Assert.assertNotNull(parametersArray);
-        Assert.assertEquals(FmeDesktopPluginTest.PARAMETERS_NUMBER, parametersArray.size());
+        assertNotNull(parametersArray);
+        assertEquals(FmeDesktopPluginTest.PARAMETERS_NUMBER, parametersArray.size());
         List<String> requiredCodes = new ArrayList<>(Arrays.asList(requiredParametersCodes));
 
         for (int parameterIndex = 0; parameterIndex < parametersArray.size(); parameterIndex++) {
             JsonNode parameterData = parametersArray.get(parameterIndex);
-            Assert.assertTrue(String.format("The parameter #%d does not have a code property", parameterIndex),
-                    parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_CODE_NAME));
+            assertTrue(parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_CODE_NAME),
+                                  String.format("The parameter #%d does not have a code property", parameterIndex));
             String parameterCode = parameterData.get(FmeDesktopPluginTest.PARAMETER_CODE_NAME).textValue();
-            Assert.assertTrue(String.format("The code for parameter #%d is null or blank", parameterIndex),
-                    StringUtils.isNotBlank(parameterCode));
-            Assert.assertTrue(
-                    String.format("The parameter code %s is not expected or has already been defined.", parameterCode),
-                    requiredCodes.indexOf(parameterCode) >= 0
+            assertTrue(StringUtils.isNotBlank(parameterCode),
+                                  String.format("The code for parameter #%d is null or blank", parameterIndex));
+            assertTrue(requiredCodes.contains(parameterCode),
+                                  String.format("The parameter code %s is not expected or has already been defined.",
+                                                parameterCode)
             );
             requiredCodes.remove(parameterCode);
 
-            Assert.assertTrue(String.format("The parameter %s does not have a label property", parameterCode),
-                    parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_LABEL_NAME));
+            assertTrue(parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_LABEL_NAME),
+                                  String.format("The parameter %s does not have a label property", parameterCode));
             String label = parameterData.get(FmeDesktopPluginTest.PARAMETER_LABEL_NAME).textValue();
-            Assert.assertTrue(String.format("The label for parameter %s is null or blank.", parameterCode),
-                    StringUtils.isNotBlank(label));
+            assertTrue(StringUtils.isNotBlank(label),
+                                  String.format("The label for parameter %s is null or blank.", parameterCode));
 
-            Assert.assertTrue(String.format("The parameter %s does not have a type property", parameterCode),
-                    parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_TYPE_NAME));
+            assertTrue(parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_TYPE_NAME),
+                                  String.format("The parameter %s does not have a type property", parameterCode));
             String parameterType = parameterData.get(FmeDesktopPluginTest.PARAMETER_TYPE_NAME).textValue();
-            Assert.assertTrue(String.format("The type for parameter %s is invalid.", parameterCode),
-                    StringUtils.isNotBlank(label)
-                    && ArrayUtils.contains(FmeDesktopPluginTest.VALID_PARAMETER_TYPES, parameterType));
+            assertTrue(StringUtils.isNotBlank(label)
+                                  && ArrayUtils.contains(FmeDesktopPluginTest.VALID_PARAMETER_TYPES,
+                                                         parameterType),
+                                  String.format("The type for parameter %s is invalid.", parameterCode));
 
-            Assert.assertTrue(String.format("The parameter %s does not have a required property", parameterCode),
-                    parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_REQUIRED_NAME));
-            Assert.assertTrue(String.format("The required field for the parameter %s is not a boolean", parameterCode),
-                    parameterData.get(FmeDesktopPluginTest.PARAMETER_REQUIRED_NAME).isBoolean());
+            assertTrue(parameterData.hasNonNull(FmeDesktopPluginTest.PARAMETER_REQUIRED_NAME),
+                                  String.format("The parameter %s does not have a required property", parameterCode));
+            assertTrue(parameterData.get(FmeDesktopPluginTest.PARAMETER_REQUIRED_NAME).isBoolean(),
+                                  String.format("The required field for the parameter %s is not a boolean",
+                                                parameterCode));
         }
 
-        Assert.assertTrue(
-                String.format("The following parameters are missing: %s", StringUtils.join(requiredCodes, ", ")),
-                requiredCodes.isEmpty()
-        );
+        assertTrue(requiredCodes.isEmpty(),
+                              String.format("The following parameters are missing: %s",
+                                            StringUtils.join(requiredCodes, ", ")));
     }
 
 

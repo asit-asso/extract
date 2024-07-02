@@ -1,0 +1,12 @@
+docker network create qnetwork
+
+docker rm -f reverseAuthContainer
+
+docker build -t reverseauth:0.5 .
+
+
+docker run --name reverseAuthContainer -p 80:80 --network qnetwork -v D:/Mandats/ASITVD/ReverseProxy/nginx.conf:/etc/nginx/nginx.conf:ro -d reverseauth:0.5
+
+
+docker run --detach --volume=D:/Mandats/ASITVD/ReverseProxy/project:/etc/qgisserver --network qnetwork -e QGIS_PROJECT_FILE=/etc/qgisserver/world.qgs --name qgisserver camptocamp/qgis-server 
+docker run --detach --volume=D:/Mandats/ASITVD/ReverseProxy/project:/etc/qgisserver --network qnetwork -e --name qgisserver camptocamp/qgis-server 

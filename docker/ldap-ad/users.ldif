@@ -1,0 +1,162 @@
+#########################################################
+# MICROSOFT SCHEMA for sAMAccountName and memberOf
+# these two attributes are not defined in Apache Directory Server
+#########################################################
+
+dn: cn=microsoft, ou=schema
+objectclass: metaSchema
+objectclass: top
+cn: microsoft
+
+dn: ou=attributetypes, cn=microsoft, ou=schema
+objectclass: organizationalUnit
+objectclass: top
+ou: attributetypes
+
+dn: m-oid=1.2.840.113556.1.4.221, ou=attributetypes, cn=microsoft, ou=schema
+objectclass: metaAttributeType
+objectclass: metaTop
+objectclass: top
+m-oid: 1.2.840.113556.1.4.221
+m-name: sAMAccountName
+m-equality: caseIgnoreMatch
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+m-singleValue: TRUE
+
+dn: m-oid=1.2.840.113556.1.4.222, ou=attributetypes, cn=microsoft, ou=schema
+objectclass: metaAttributeType
+objectclass: metaTop
+objectclass: top
+m-oid: 1.2.840.113556.1.4.222
+m-name: memberOf
+m-equality: caseIgnoreMatch
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+m-singleValue: FALSE
+
+dn: m-oid=1.2.840.113556.1.4.223, ou=attributetypes, cn=microsoft, ou=schema
+objectclass: metaAttributeType
+objectclass: metaTop
+objectclass: top
+m-oid: 1.2.840.113556.1.4.223
+m-name: objectCategory
+m-equality: caseIgnoreMatch
+m-syntax: 1.3.6.1.4.1.1466.115.121.1.15
+m-singleValue: TRUE
+
+dn: ou=objectclasses, cn=microsoft, ou=schema
+objectclass: organizationalUnit
+objectclass: top
+ou: objectClasses
+
+dn: m-oid=1.2.840.113556.1.5.6, ou=objectclasses, cn=microsoft, ou=schema
+objectclass: metaObjectClass
+objectclass: metaTop
+objectclass: top
+m-oid: 1.2.840.113556.1.5.6
+m-name: simulatedMicrosoftSecurityPrincipal
+m-supObjectClass: top
+m-typeObjectClass: AUXILIARY
+m-must: sAMAccountName
+m-may: memberOf
+m-must: objectCategory
+
+############
+# Domain
+############
+dn: dc=extract,dc=org
+dc: extract
+objectClass: top
+objectClass: domain
+
+dn: ou=users,dc=extract,dc=org
+objectClass: organizationalUnit
+objectClass: top
+ou: users
+
+dn: uid=ldap_admin,ou=users,dc=extract,dc=org
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: simulatedMicrosoftSecurityPrincipal
+objectCategory: User
+cn: Administrateur LDAP
+sn: ldap_admin
+uid: ldap_admin
+sAMAccountName: ldap_admin
+userPassword: extract_ldap_admin
+mail: ldap_admin@extract.org
+memberOf: cn=extract_admin,ou=roles,dc=extract,dc=org
+
+dn: uid=jlo,ou=users,dc=extract,dc=org
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: simulatedMicrosoftSecurityPrincipal
+objectCategory: User
+cn: Julien Longchamp
+sn: jlo
+uid: jlo
+sAMAccountName: jlo
+userPassword: extract_jlo
+mail: jlo@arxit.com
+memberOf: cn=extract_admin,ou=roles,dc=extract,dc=org
+
+dn: uid=ygr,ou=users,dc=extract,dc=org
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: simulatedMicrosoftSecurityPrincipal
+objectCategory: User
+cn: Yves Grasset
+sn: ygr
+uid: ygr
+sAMAccountName: ygr
+userPassword: extract_ygr
+mail: ygr@arxit.com
+memberOf: cn=extract_operators,ou=roles,dc=extract,dc=org
+
+dn: uid=ldap_operator,ou=users,dc=extract,dc=org
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: simulatedMicrosoftSecurityPrincipal
+objectCategory: User
+cn: Opérateur LDAP
+sn: ldap_operator
+uid: ldap_operator
+sAMAccountName: ldap_operator
+userPassword: extract_ldap_operator
+mail: ldap_operator@extract.org
+memberOf: cn=extract_operators,ou=roles,dc=extract,dc=org
+
+
+dn: uid=jpp,ou=users,dc=extract,dc=org
+objectClass: top
+objectClass: person
+objectClass: inetOrgPerson
+objectClass: simulatedMicrosoftSecurityPrincipal
+objectCategory: User
+cn: Jean-Paul Padbol
+sn: jpp
+uid: jpp
+sAMAccountName: jpp
+userPassword: extract_jpp
+
+dn: ou=roles,dc=extract,dc=org
+objectclass: top
+objectclass: organizationalUnit
+ou: roles
+
+dn: cn=extract_admin,ou=roles,dc=extract,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: extract_admin
+member: uid=ldap_admin,ou=users,dc=extract,dc=org
+member: uid=jlo,ou=users,dc=extract,dc=org
+
+dn: cn=extract_operators,ou=roles,dc=extract,dc=org
+objectClass: top
+objectClass: groupOfNames
+cn: extract_operators
+member: uid=ygr,ou=users,dc=extract,dc=org
+member: uid=ldap_operator,ou=users,dc=extract,dc=org

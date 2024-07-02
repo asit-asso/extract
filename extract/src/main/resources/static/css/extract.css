@@ -35,24 +35,25 @@ p {
     margin-bottom: 0.875rem;
 }
 
-tbody > tr.error > td,
-tbody > tr.error > th {
+table.dataTable > tbody > tr.error > td,
+table.dataTable > tbody > tr.error > th {
     background-color: #fbd3d3;
 }
 
-tbody > tr.finished > td,
-tbody > tr.finished > th,
-tbody > tr.rejected > td,
-tbody > tr.rejected > th {
+table.dataTable > tbody > tr.finished > td,
+table.dataTable > tbody > tr.finished > th,
+table.dataTable > tbody > tr.rejected > td,
+table.dataTable > tbody > tr.rejected > th {
     background-color: #fff;
 }
-tbody > tr.running > td,
-tbody > tr.running > th {
+
+table.dataTable > tbody > tr.running > td,
+table.dataTable > tbody > tr.running > th {
     background-color: #dbfbd3;
 }
 
-tbody > tr.standby > td,
-tbody > tr.standby > th {
+table.dataTable > tbody > tr.standby > td,
+table.dataTable > tbody > tr.standby > th {
     background-color: #ffe8b3;
 }
 
@@ -297,8 +298,12 @@ a.btn-extract-filled:visited {
     margin-bottom: 40px;
 }
 
+.current-step-standby .current-step-title {
+    margin-bottom: 20px;
+}
+
 .connector-name {
-    color: gray;
+    color: #808080;
     font-style: italic;
 }
 
@@ -335,6 +340,10 @@ a.connector-state:hover, .dropdown-item a:hover {
 .connector-state.connector-state-error {
     border-left-color: #a94442;
     background-color: #fbd3d3;
+}
+
+.twofactor-action-dropdown li.dropdown-item i {
+    margin-right: 10px;
 }
 
 .dataTables_info {
@@ -395,6 +404,15 @@ input[type="file"].hidden-file-upload-control {
     margin-bottom: 0;
 }
 
+.card-body.card-body-2fa {
+    text-align: center;
+    padding: 3rem;
+}
+
+.card-body.card-body-2fa div {
+    margin-bottom: .5rem;
+}
+
 .extract-proc-tasks .col-lg-8 .card .card-body .card .card-body{
     margin-bottom: 0;
 }
@@ -410,6 +428,25 @@ input[type="file"].hidden-file-upload-control {
 
 .form-control {
     padding: 6px 9px;
+}
+
+.card-body.card-body-2fa .form-control {
+    display: inline;
+    text-align: center;
+    width: unset;
+}
+
+.card-body.card-body-2fa .button-row {
+    display: flex;
+    flex-flow: row nowrap;
+    gap: .5rem;
+    justify-content: center;
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+}
+
+.card-body.card-body-2fa .button-row > * {
+    min-width: 7.5rem;
 }
 
 span.form-control-plaintext {
@@ -595,7 +632,7 @@ table.list-table.files-list-table {
 .navbar-light .navbar-nav > .nav-item > a.nav-link.active:hover,
 .navbar-light .navbar-nav > .nav-item > .active > a.nav-link.active:focus {
     color: white;
-    background-color: gray;
+    background-color: #808080;
 }
 
 .page-header {
@@ -740,7 +777,7 @@ table.list-table.files-list-table {
     display:none;
 }
 .popover-content {
-    padding: 0px 0px;
+    padding: 0 0;
 }
 .popover {
     max-width: 650px;
@@ -793,11 +830,11 @@ table.list-table.files-list-table {
     border-bottom:solid black 1.5pt;
     border-right:none;
     background:#E5E5E5;
-    padding:0cm 5.4pt 0cm 5.4pt;
+    padding:0 5.4pt 0 5.4pt;
 }
 
 .popover .popover-table .popover-table-header > p {
-    margin: 3.0pt 2.85pt 3.0pt 0cm;
+    margin: 3.0pt 2.85pt 3.0pt 0;
     font-weight: bold;
 }
 
@@ -847,7 +884,7 @@ table.list-table.files-list-table {
 .popover .popover-table .popover-table-data {
     vertical-align:top;
     border:none;
-    border-bottom:solid gray 1.0pt;
+    border-bottom:solid #808080 1.0pt;
     padding:0 5.4pt 0 5.4pt;
 }
 
@@ -870,6 +907,16 @@ table.list-table.files-list-table {
 
 .popover .rule-title {
     margin-left: 15px;
+}
+
+.properties-select + .select2 .select2-selection__choice {
+    background-color: #3ab872;
+    border-color: #3ab872;
+    color: #fff;
+}
+
+.properties-select + .select2 .select2-selection__choice__remove {
+    color: #fff;
 }
 
 a.request-link {
@@ -920,6 +967,11 @@ tr.request-row:hover > td {
     background-color: #f5f5f5;
 }
 
+.validation-parameters-card {
+    background-color: #ffb200;
+    margin-bottom: 20px;
+}
+
 /***** Specific CSS for processes tasks ****/
 .chosed-task{
     border-color: #4cae4c;
@@ -967,7 +1019,7 @@ tr.request-row:hover > td {
 }
 
 .available-task:hover .card-heading{
-    background-color: gray;
+    background-color: #808080;
 }
 
 .available-task .card-heading{
@@ -1031,7 +1083,12 @@ tr.request-row:hover > td {
 
 /********** IDs **********/
 
+#alertModal .modal-title {
+    font-size: 1.2rem;
+}
+
 #alertModal .modal-body {
+    white-space: pre-line;
     padding: 10px;
 }
 

@@ -67,6 +67,31 @@
                                     <div class="row">
                                         <div class="col-xl-12">
                                             <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('displayTempFolder')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.basepath.display.label}"
+                                                       class="form-label col-form-label">
+                                                    {Display temp folder to operators}
+                                                </label>
+                                            </div>
+                                            <div class="btn-group" data-bs-toggle="buttons">
+                                                <input type="radio" class="btn-check" th:field="*{displayTempFolder}"
+                                                       value="0" />
+                                                <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                       th:for="displayTempFolder1">
+                                                    &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                </label>
+                                                <input type="radio" class="btn-check" th:field="*{displayTempFolder}"
+                                                       value="1" />
+                                                <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                       th:for="displayTempFolder2">
+                                                    &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
                                                  th:classappend="${#fields.hasErrors('schedulerFrequency')} ? 'has-error'">
                                                 <label th:text="#{parameters.fields.orchestrationfrequency.label}"
                                                        class="form-label col-form-label">
@@ -94,6 +119,22 @@
                                                        th:title="${#fields.hasErrors('dashboardFrequency')}
                                                        ? ${#fields.errors('dashboardFrequency')[0]}"
                                                        th:field="*{dashboardFrequency}" value="20" step="1" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('standbyReminderDays')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.standbyReminder.label}"
+                                                       class="form-label col-form-label">
+                                                    {Port SMTP}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="number" class="form-control" th:field="*{standbyReminderDays}"
+                                                       th:title="${#fields.hasErrors('standbyReminderDays')} ? ${#fields.errors('standbyReminderDays')[0]}"
+                                                       value="{standbyReminderDays}" min="0" step="1" data-bs-toggle="tooltip" />
                                             </div>
                                         </div>
                                     </div>
@@ -209,35 +250,6 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="card card-default">
-                                <div class="card-header">
-                                    <span th:text="#{parameters.panels.about.title}">{About Extract}</span>
-                                </div>
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-xl-12">
-                                            <p>
-                                                <span th:text="#{parameters.about.text.project}"></span>
-                                                <br />
-                                                <span th:text="#{parameters.about.text.more}">{More details:}</span>
-                                                <span> </span>
-                                                <a href="https://github.com/asit-asso/extract/" target="_blank"
-                                                   th:text="#{parameters.about.link.text}">
-                                                    {Documentation and code}
-                                                </a>
-                                            </p>
-                                            <p>
-                                                <span th:text="#{parameters.about.version}">{Installed version:}</span>
-                                                &nbsp;
-                                                <span>@@extractVersion@@</span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- card containing smtp parameters -->
-                        <div class="col-xl-6">
                             <div class="card card-default">
                                 <div class="card-header">
                                     <span th:text="#{parameters.panels.serveursmtp.title}">{Serveur SMTP}</span>
@@ -389,29 +401,301 @@
                             </div>
                             <div class="card card-default">
                                 <div class="card-header">
-                                    <span th:text="#{parameters.panels.remarks.title}">{Validation messages}</span>
+                                    <span th:text="#{parameters.panels.about.title}">{About Extract}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <p>
+                                                <span th:text="#{parameters.about.text.project}"></span>
+                                                <br />
+                                                <span th:text="#{parameters.about.text.more}">{More details:}</span>
+                                                <span> </span>
+                                                <a href="https://github.com/asit-asso/extract/" target="_blank"
+                                                   th:text="#{parameters.about.link.text}">
+                                                    {Documentation and code}
+                                                </a>
+                                            </p>
+                                            <p>
+                                                <span th:text="#{parameters.about.version}">{Installed version:}</span>
+                                                &nbsp;
+                                                <span>@@extractVersion@@</span>
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- card containing smtp parameters -->
+                        <div class="col-xl-6">
+                            <div class="card card-default">
+                                <div class="card-header">
+                                    <span th:text="#{parameters.panels.ldap.title}">{LDAP Authentication}</span>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label th:text="#{parameters.fields.ldapEnabled.label}"
+                                                           class="form-label col-form-label">
+                                                        {Enable LDAP authentication}
+                                                    </label>
+                                                </div>
+                                                <div class="btn-group" data-bs-toggle="buttons">
+                                                    <input type="radio" class="btn-check" th:field="*{ldapEnabled}"
+                                                           value="0" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                           th:for="ldapEnabled1">
+                                                        &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                    </label>
+                                                    <input type="radio" class="btn-check" th:field="*{ldapEnabled}"
+                                                           value="1" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                           th:for="ldapEnabled2">
+                                                        &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapServers')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapServers.label}"
+                                                       class="form-label col-form-label">
+                                                    {Serveur SMTP}
+                                                </label>
+                                                <span class="mandatory" th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{ldapServers}"
+                                                       th:title="${#fields.hasErrors('ldapServers')} ? ${#fields.errors('ldapServers')[0]}"
+                                                       value="{ldapServers}" maxlength="255" data-bs-toggle="tooltip" />
+                                                <p class="parameter-remark" th:text="#{parameters.fields.ldapServers.remark}">
+                                                    {If several entries, separate with commas}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label th:text="#{parameters.fields.ldapEncryption.label}"
+                                                           class="form-label col-form-label">{Encryption type}</label>
+                                                </div>
+                                                <div class="btn-group" data-bs-toggle="buttons">
+                                                    <th:block th:each="encryptionTypeItem, encryptionTypeStats : ${T(ch.asit_asso.extract.ldap.LdapSettings.EncryptionType).values()}">
+                                                        <input type="radio" class="btn-check" th:field="*{ldapEncryption}"
+                                                               th:value="${encryptionTypeItem}" />
+                                                        <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                               th:for="|ldapEncryption${encryptionTypeStats.count}|">
+                                                            <span th:text="${#messages.msg('ldap.encryptionType.' + encryptionTypeItem)}">
+                                                                {None}
+                                                            </span>
+                                                        </label>
+                                                    </th:block>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapBaseDn')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapBaseDn.label}"
+                                                       class="form-label col-form-label">
+                                                    {Serveur SMTP}
+                                                </label>
+                                                <span class="mandatory" th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{ldapBaseDn}"
+                                                       th:title="${#fields.hasErrors('ldapBaseDn')} ? ${#fields.errors('ldapBaseDn')[0]}"
+                                                       value="{ldapServers}" maxlength="255" data-bs-toggle="tooltip" />
+                                                <p class="parameter-remark" th:text="#{parameters.fields.ldapBaseDn.remark}">
+                                                    {If several entries, separate with commas}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapAdminsGroup')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapAdminsGroup.label}"
+                                                       class="form-label col-form-label">
+                                                    {LDAP query to display administrators}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <textarea class="form-control" style="resize:vertical"
+                                                          th:field="*{ldapAdminsGroup}" data-bs-toggle="tooltip"
+                                                          th:title="${#fields.hasErrors('ldapAdminsGroup')} ? ${#fields.errors('ldapAdminsGroup')[0]}"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapOperatorsGroup')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapOperatorsGroup.label}"
+                                                       class="form-label col-form-label">
+                                                    {LDAP query to display operators}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <textarea class="form-control" style="resize:vertical"
+                                                          th:field="*{ldapOperatorsGroup}" data-bs-toggle="tooltip"
+                                                          th:title="${#fields.hasErrors('ldapOperatorsGroup')} ? ${#fields.errors('ldapOperatorsGroup')[0]}"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label th:text="#{parameters.fields.ldapSynchroEnabled.label}"
+                                                           class="form-label col-form-label">
+                                                        {Enable LDAP accounts synchronization}
+                                                    </label>
+                                                </div>
+                                                <div class="btn-group" data-bs-toggle="buttons">
+                                                    <input type="radio" class="btn-check" th:field="*{ldapSynchronizationEnabled}"
+                                                           value="0" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
+                                                           th:for="ldapSynchronizationEnabled1">
+                                                        &nbsp;<span th:text="#{toggle.no}">{No}</span>
+                                                    </label>
+                                                    <input type="radio" class="btn-check" th:field="*{ldapSynchronizationEnabled}"
+                                                           value="1" />
+                                                    <label class="form-label btn btn-sm btn-toggle btn-toggle-yes"
+                                                           th:for="ldapSynchronizationEnabled2">
+                                                        &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
+                                                    </label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row synchro-field-row"
+                                         th:classappend="*{ldapEnabled} and *{ldapSynchronizationEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapSynchronizationUser')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapSynchroUser.label}"
+                                                       class="form-label col-form-label">
+                                                    {Utilisateur LDAP}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="text" class="form-control" th:field="*{ldapSynchronizationUser}"
+                                                       th:title="${#fields.hasErrors('ldapSynchronizationUser')}
+                                                       ? ${#fields.errors('ldapSynchronizationUser')[0]}" autocomplete="off"
+                                                       th:value="*{ldapSynchronizationUser}" maxlength="255" data-bs-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row synchro-field-row"
+                                         th:classappend="*{ldapEnabled} and *{ldapSynchronizationEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapSynchronizationPassword')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapSynchroPassword.label}"
+                                                       class="form-label col-form-label">
+                                                    {Mot de passe LDAP}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <input type="password" id="ldapSynchroPassword" name="ldapSynchronizationPassword"
+                                                       class="form-control" th:value="*{ldapSynchronizationPassword}"
+                                                       th:title="${#fields.hasErrors('ldapSynchronizationPassword')}
+                                                       ? ${#fields.errors('ldapSynchronizationPassword')[0]}" autocomplete="off"
+                                                       maxlength="255" data-bs-toggle="tooltip" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row synchro-field-row"
+                                         th:classappend="*{ldapEnabled} and *{ldapSynchronizationEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label"
+                                                 th:classappend="${#fields.hasErrors('ldapSynchronizationFrequency')} ? 'has-error'">
+                                                <label th:text="#{parameters.fields.ldapSynchroFrequency.label}"
+                                                       class="form-label col-form-label">
+                                                    {Fréquence de synchronisation avec LDAP, en heures}
+                                                </label>
+                                                <span class="mandatory" data-bs-toggle="tooltip"
+                                                      th:title="#{field.mandatory.tooltip}"></span>
+                                                <div class="row">
+                                                    <div class="col-xl-4">
+                                                        <input type="number" class="form-control" th:field="*{ldapSynchronizationFrequency}"
+                                                               th:title="${#fields.hasErrors('ldapSynchronizationFrequency')} ? ${#fields.errors('ldapSynchronizationFrequency')[0]}"
+                                                               value="{ldapSynchronizationFrequency}" maxlength="255" data-bs-toggle="tooltip"
+                                                               min="1" step="1" />
+                                                    </div>
+                                                    <div class="col-xl-8">
+                                                        <button id="ldapSynchroStartButton" class="btn btn-extract-white"
+                                                                th:text="#{parameters.buttons.ldapSynchroStart.label}"
+                                                                type="button" th:href="@{/parameters/startLdapSynchro}">
+                                                            {Synchronize now}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row ldap-field-row mt-3" th:classappend="*{ldapEnabled} ? '' : 'd-none'">
+                                        <div class="col-xl-12">
+                                            <button id="ldapConnectionTestButton" class="btn btn-extract-filled"
+                                                    th:text="#{parameters.buttons.ldapConnectionTest.label}"
+                                                    th:href="@{/parameters/testLdap}"
+                                                    type="button">
+                                                {Test connection}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card card-default">
+                                <div class="card-header">
+                                    <span th:text="#{parameters.panels.remarks.title}">{Validation}</span>
                                 </div>
                                 <div class="card-body">
                                     <div class="row mb-3">
-                                        <div class="col-xl-12" th:text="#{parameters.remarks.manage.text}">
-                                            {Manage validation messages}
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label">
+                                                <label class="form-label col-form-label"
+                                                       th:text="#{parameters.remarks.properties.label}">
+                                                    {Properties to put in focus}
+                                                </label>
+                                                <select class="select2-container select2-container-multi form-control select2 properties-select"
+                                                        multiple="multiple" data-bs-toggle="tooltip"
+                                                        id="validation-properties-select"
+                                                        th:required="false">
+                                                </select>
+                                                <input type="hidden" th:field="*{validationFocusProperties}" />
+                                            </div>
                                         </div>
                                     </div>
-                                    <p class="text-center">
-                                        <a id="manageMessagesButton" class="btn btn-extract-filled"
-                                           th:href="@{'/remarks'}" >
-                                            <i class="fa fa-pencil-square-o"></i>
-                                            <span th:text="#{parameters.remarks.manage.button}" >
-                                                {Manage messages}
-                                            </span>
-                                        </a>
-                                    </p>
+                                    <div class="row">
+                                        <div class="col-xl-12">
+                                            <div th:text="#{parameters.remarks.manage.text}" class="mb-3">
+                                                {Manage validation messages}
+                                            </div>
+                                            <p class="text-center">
+                                                <a id="manageMessagesButton" class="btn btn-extract-filled"
+                                                   th:href="@{'/remarks'}" >
+                                                    <i class="fa fa-pencil-square-o"></i>
+                                                    <span th:text="#{parameters.remarks.manage.button}" >
+                                                        {Manage messages}
+                                                    </span>
+                                                </a>
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </form>
-
+                <div th:replace="fragments/alert :: alertModal"></div>
             </div>
         </div>
         <th:block layout:fragment="customScripts">
@@ -422,15 +706,41 @@
             <script type="text/javascript" th:inline="javascript">
                 /*<![CDATA[*/
                 $(function() {
-                    $('#parametersCancelButton').on('click', function() {
+                    $('#parametersCancelButton').on('click', function () {
                         var pageUrl = /*[[@{'/parameters'}]]*/ "../parameters";
                         location.replace(pageUrl);
                     });
                     $('#parametersSaveButton').on('click', submitParametersData);
                     $('#addRangeButton').on('click', addOrchestratorTimeRange);
                     $('.delete-range-button').on('click', removeOrchestratorTimeRange);
+                    $('#ldapSynchronizationEnabled1').on('click', function () {
+                        hideSynchroFields();
+                    });
+                    $('#ldapSynchronizationEnabled2').on('click', function () {
+                        showSynchroFields();
+                    });
+                    $('#ldapEnabled1').on('click', function() {
+                        hideLdapFields();
+                    });
+                    $('#ldapEnabled2').on('click', function() {
+                        showLdapFields();
+                    });
+
+                    $('#ldapConnectionTestButton').on('click', testLdap);
+
+                    $('#ldapSynchroStartButton').on('click', startSynchro);
 
                     loadTimePickers();
+                    var isLdapEnabled = /*[[${parameters.ldapEnabled}]]*/ false;
+                    var isSynchroEnabled = /*[[${parameters.ldapSynchronizationEnabled}]]*/ false;
+                    updateSynchroFieldsDisplay(isLdapEnabled, isSynchroEnabled);
+                });
+                /*]]>*/</script>
+            <script type="text/javascript" th:inline="javascript" th:unless="${#strings.isEmpty(ldapTestMessage)}">
+                /*<![CDATA[*/
+                $(function() {
+                    var message = /*[[${ldapTestMessage}]]*/ '';
+                    showAlert('Test LDAP', message);
                 });
                 /*]]>*/</script>
         </th:block>

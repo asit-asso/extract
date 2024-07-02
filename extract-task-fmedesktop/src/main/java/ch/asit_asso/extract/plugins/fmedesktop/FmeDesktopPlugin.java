@@ -281,6 +281,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
                     resultStatus = FmeDesktopResult.Status.SUCCESS;
                     resultErrorCode = "";
                     resultMessage = this.messages.getString("fmeresult.message.success");
+
                 } else {
                     this.logger.debug("Result folder is empty or not exists");
                     resultMessage = this.messages.getString("fmeresult.error.folderout.empty");

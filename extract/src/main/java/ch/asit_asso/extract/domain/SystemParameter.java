@@ -16,6 +16,7 @@
  */
 package ch.asit_asso.extract.domain;
 
+import java.io.Serial;
 import java.io.Serializable;
 import javax.persistence.Basic;
 import javax.persistence.Column;
@@ -41,6 +42,24 @@ import jakarta.xml.bind.annotation.XmlRootElement;
 @NamedQueries({
     @NamedQuery(name = "SystemParameter.getBasePath",
             query = "SELECT s.value FROM SystemParameter s where s.key = 'base_path'"),
+	@NamedQuery(name = "SystemParameter.getLdapAdminsGroup",
+	    	query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_admins_group'"),
+	@NamedQuery(name = "SystemParameter.getLdapBaseDn",
+		    query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_base_dn'"),
+	@NamedQuery(name = "SystemParameter.getLdapEncryptionType",
+    		query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_encryption_type'"),
+	@NamedQuery(name = "SystemParameter.getLdapLastSynchronizationDate",
+	    	query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_last_synchro'"),
+	@NamedQuery(name = "SystemParameter.getLdapServers",
+    		query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_servers'"),
+	@NamedQuery(name = "SystemParameter.getLdapOperatorsGroup",
+	    	query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_operators_group'"),
+	@NamedQuery(name = "SystemParameter.getLdapSynchronizationFrequency",
+    		query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_synchro_freq'"),
+	@NamedQuery(name = "SystemParameter.getLdapSynchronizationPassword",
+    		query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_password'"),
+	@NamedQuery(name = "SystemParameter.getLdapSynchronizationUserName",
+    		query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_user'"),
     @NamedQuery(name = "SystemParameter.getSchedulerFrequency",
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'freq_scheduler_sec'"),
     @NamedQuery(name = "SystemParameter.getSchedulerMode",
@@ -61,13 +80,24 @@ import jakarta.xml.bind.annotation.XmlRootElement;
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'smtp_user'"),
     @NamedQuery(name = "SystemParameter.getSmtpSSL",
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'smtp_ssl'"),
+    @NamedQuery(name = "SystemParameter.getStandbyReminderDays",
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'standby_reminder_days'"),
     @NamedQuery(name = "SystemParameter.getDashboardRefreshInterval",
             query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'dashboard_interval'"),
     @NamedQuery(name = "SystemParameter.isEmailNotificationEnabled",
-            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'mails_enable'")
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'mails_enable'"),
+    @NamedQuery(name = "SystemParameter.isLdapEnabled",
+            query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_on'"),
+    @NamedQuery(name = "SystemParameter.isLdapSynchronizationEnabled",
+            query = "SELECT s.value FROM SystemParameter s where s.key = 'ldap_synchro_on'"),
+    @NamedQuery(name = "SystemParameter.isTempFolderDisplayed",
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'display_temp_folder'"),
+    @NamedQuery(name = "SystemParameter.getValidationFocusProperties",
+            query = "SELECT s.value FROM SystemParameter s WHERE s.key = 'validation_focus_properties'")
 })
 public class SystemParameter implements Serializable {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /**
@@ -178,11 +208,9 @@ public class SystemParameter implements Serializable {
     @Override
     public final boolean equals(final Object object) {
 
-        if (object == null || !(object instanceof SystemParameter)) {
+        if (!(object instanceof SystemParameter other)) {
             return false;
         }
-
-        SystemParameter other = (SystemParameter) object;
 
         return this.key.equals(other.key);
     }

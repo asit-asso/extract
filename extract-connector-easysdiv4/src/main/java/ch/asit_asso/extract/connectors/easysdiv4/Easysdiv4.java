@@ -702,8 +702,7 @@ public class Easysdiv4 implements IConnector {
             try (final CloseableHttpResponse response = client.execute(httpPost, clientContext)) {
                 final int statusCode = response.getStatusLine().getStatusCode();
                 this.logger.info("The export request returned with the HTTP status {}.", statusCode);
-                System.out.println("response = " + response);
-
+                
                 return this.parseExportResponse(response);
             }
         }

@@ -21,7 +21,6 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,6 +29,7 @@ import javax.servlet.ServletContext;
 
 import ch.asit_asso.extract.plugins.TaskProcessorsDiscoverer;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
@@ -92,17 +92,10 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
         Map<String, ITaskProcessor> taskProcessors = this.getTaskProcessorDiscoverer().getTaskProcessors();
 
         //Sorted by label
-        List<Map.Entry<String, ITaskProcessor>> values = new ArrayList(taskProcessors.entrySet());
+        List<Map.Entry<String, ITaskProcessor>> values = new ArrayList<>(taskProcessors.entrySet());
         Comparator<Map.Entry<String, ITaskProcessor>> tcComparator
-                = new Comparator<Map.Entry<String, ITaskProcessor>>() {
-            @Override
-            public int compare(final Map.Entry<String, ITaskProcessor> entry1,
-                    final Map.Entry<String, ITaskProcessor> entry2) {
-                return entry1.getValue().getLabel().compareTo(entry2.getValue().getLabel());
-            }
-
-        };
-        Collections.sort(values, tcComparator);
+                = Comparator.comparing(entry -> entry.getValue().getLabel());
+        values.sort(tcComparator);
         taskProcessors = new LinkedHashMap<>();
 
         for (Map.Entry<String, ITaskProcessor> entry : values) {
@@ -149,7 +142,7 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
      * @param servletContextInfo The current servlet context
      */
     @Override
-    public final void setServletContext(final ServletContext servletContextInfo) {
+    public final void setServletContext(final @NotNull ServletContext servletContextInfo) {
         this.logger.debug("Setting the servlet context.");
         this.servletContext = new WeakReference<>(servletContextInfo);
     }
@@ -162,7 +155,7 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
      *
      * @return the current task processor discoverer
      */
-    private TaskProcessorsDiscoverer getTaskProcessorDiscoverer() {
+    private synchronized TaskProcessorsDiscoverer getTaskProcessorDiscoverer() {
 
         if (this.taskProcessorDiscoverer == null) {
             this.logger.debug("Instantiating the task processor discoverer.");
@@ -191,8 +184,18 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
      */
     private URL[] getJarUrls() {
         this.logger.debug("Assembling an array of task processors JAR URLs.");
+        ServletContext context = this.servletContext.get();
 
-        WebApplicationContext webAppContext = WebApplicationContextUtils.getWebApplicationContext(servletContext.get());
+        if (context == null) {
+            return null;
+        }
+
+        WebApplicationContext webAppContext = WebApplicationContextUtils.getWebApplicationContext(context);
+
+        if (webAppContext == null) {
+            return null;
+        }
+        
         Resource[] jarResources;
 
         try {

@@ -124,7 +124,7 @@ public class ConnectorModel extends PluginItemModel {
      * @return <code>true</code> if this connector is enabled
      */
     public final boolean isActive() {
-        return active;
+        return this.active;
     }
 
 
@@ -548,7 +548,7 @@ public class ConnectorModel extends PluginItemModel {
         domainConnector.setImportFrequency(this.getImportFrequency());
         domainConnector.setName(this.getName());
         domainConnector.setMaximumRetries(this.getMaximumRetries());
-        domainConnector.setConnectorParametersValues(this.getParametersValues());
+        domainConnector.updateConnectorParametersValues(this.getParametersValues());
 
     }
 

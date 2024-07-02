@@ -18,8 +18,13 @@
 function initializeMap() {
     
     return new Promise(function(resolve, reject) {
+        const attribution = new ol.control.Attribution({
+            collapsible: true,
+            collapsed: true
+        });
 
         resolve(new ol.Map({
+            controls: ol.control.defaults.defaults({attribution: false}).extend([attribution]),
             layers : [
                 new ol.layer.Tile({
                     source: new ol.source.OSM(),

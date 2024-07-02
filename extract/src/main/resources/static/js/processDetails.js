@@ -120,26 +120,41 @@ $(function() {
         content : $(this).attr("content")
     });*/
 
+    const popoverLinks = document.querySelectorAll('.helplink');
 
-
-    document.querySelectorAll('.helplink').forEach(popover => {
-        new bootstrap.Popover(popover, {
+    // [...popupLinks].map(popover => new bootstrap.Popover(popover, {
+    //     html: true,
+    //     container: 'body',
+    //     placement: 'auto',
+    //     title: function (triggerElement) {
+    //         const content = $(triggerElement).attr('href');
+    //         console.log("Content element", content);
+    //         const popupHeader = $(content).children('.popover-heading').clone();
+    //         console.log("Popup header", popupHeader);
+    //         console.log("Header HTML", $(popupHeader).wrapAll('<div/>').parent().html());
+    //         return $(popupHeader).wrapAll('<div/>').parent().html();
+    //     },
+    //     content: 'Test <b>test</b>'
+    // }));
+    [...popoverLinks].map(popoverElement => new bootstrap.Popover(popoverElement, {
             html: true,
             container: 'body',
             trigger: 'manual',
             placement: 'auto',
-            title: function () {
-                var content = $(this).attr('href');
-                var popupHeader = $(content).children('.popover-heading').clone();
+            title: function (triggerElement) {
+                const content = $(triggerElement).attr('href');
+                const popupHeader = $(content).children('.popover-heading').clone();
                 return $(popupHeader).wrapAll('<div/>').parent().html();
             },
-            content: function () {
-                var content = $(this).attr('href');
-                var popupBody = $(content).children('.popover-body').clone();
+            content: function (triggerElement) {
+                const content = $(triggerElement).attr('href');
+                const popupBody = $(content).children('.popover-body').clone();
                 return popupBody.wrapAll('<div/>').parent().html();
             }
-        });
-        $(popover).on('click', function(evt) {
+    }));
+
+    popoverLinks.forEach(popoverElement => {
+        $(popoverElement).on('click', function(evt) {
             evt.preventDefault();
             evt.stopPropagation();
             const thisPopup = bootstrap.Popover.getOrCreateInstance(this);
@@ -147,6 +162,7 @@ $(function() {
             $('.helplink').popover('hide');
 
             if (!isThisPopupShown) {
+                console.log(thisPopup);
                 thisPopup.show();
             }
         });
@@ -154,7 +170,7 @@ $(function() {
 
     $(document).on("click",".popup-header .img-close", function() {
        $('.helplink').popover('hide');
-   });
+    });
    
     if(readOnly == "false") {
         //Gestion du drag and drop pour reordonner les tâches d'un process

@@ -38,11 +38,37 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      */
     String DASHBOARD_INTERVAL_KEY = "dashboard_interval";
 
+    String DISPLAY_TEMP_FOLDER = "display_temp_folder";
+
     /**
      * The string that identifying the parameter that defines whether the application must send e-mail
      * notifications.
      */
     String ENABLE_MAIL_NOTIFICATIONS = "mails_enable";
+
+    String ENABLE_LDAP_KEY = "ldap_on";
+
+    String LDAP_ADMINS_GROUP_KEY = "ldap_admins_group";
+
+    String LDAP_BASE_DN_KEY = "ldap_base_dn";
+
+    String LDAP_ENABLE_SYNCHRO_KEY = "ldap_synchro_on";
+
+    String LDAP_ENCRYPTION_TYPE_KEY = "ldap_encryption_type";
+
+    String LDAP_LAST_SYNCHRO_DATE_KEY = "ldap_last_synchro";
+
+    String LDAP_OPERATORS_GROUP_KEY = "ldap_operators_group";
+
+    String LDAP_PASSWORD_KEY = "ldap_password";
+
+    String LDAP_SERVER_NAMES_KEY = "ldap_servers";
+
+    String LDAP_SYNCHRO_HOURS_FREQUENCY_KEY = "ldap_synchro_freq";
+
+    String LDAP_USER_KEY = "ldap_user";
+
+
 
     /**
      * The string that identifying the parameter that defines whether the orchestrator shall run.
@@ -100,6 +126,12 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
     String SMTP_SSL_KEY = "smtp_ssl";
 
 
+    String STANDBY_REMINDER_DAYS = "standby_reminder_days";
+
+
+    String VALIDATION_FOCUS_PROPERTIES_KEY = "validation_focus_properties";
+
+
 
     /**
      * Checks if an application setting has been set with a given key.
@@ -136,6 +168,50 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      * @return a string containing the interval in seconds
      */
     String getDashboardRefreshInterval();
+
+
+
+    String getLdapAdminsGroup();
+
+
+
+    String getLdapBaseDn();
+
+
+
+    String getLdapEncryptionType();
+
+
+
+    String getLdapLastSynchronizationDate();
+
+
+
+    String getLdapServers();
+
+
+
+    String getLdapOperatorsGroup();
+
+
+
+    String getLdapSynchronizationFrequency();
+
+
+
+    String getLdapSynchronizationPassword();
+
+
+
+    String getLdapSynchronizationUserName();
+
+
+
+    String isLdapEnabled();
+
+
+
+    String isLdapSynchronizationEnabled();
 
 
 
@@ -230,6 +306,9 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
     String getSmtpSSL();
 
 
+    String getStandbyReminderDays();
+
+
 
     /**
      * Gets the value that defines whether the application must send e-mail notifications.
@@ -237,5 +316,13 @@ public interface SystemParametersRepository extends CrudRepository<SystemParamet
      * @return <code>"true"</code> if the notifications are enabled
      */
     String isEmailNotificationEnabled();
+
+
+
+    String isTempFolderDisplayed();
+
+
+
+    String getValidationFocusProperties();
 
 }
