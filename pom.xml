@@ -8,7 +8,7 @@
     <name>extract-base</name>
     
     <scm>
-        <connection>scm:git:https://github.com/asitvd/extract.git</connection>
+        <connection>scm:git:https://github.com/asit-asso/extract.git</connection>
     </scm>
      
     <build>
