@@ -44,7 +44,7 @@ public class RememberMeToken {
     private Integer id;
 
     @JoinColumn(name = "id_user", referencedColumnName = "id_user",
-            foreignKey = @ForeignKey(name = "FK_RECOVERY_CODES_USER")
+            foreignKey = @ForeignKey(name = "FK_REMEMBERME_USER")
     )
     @ManyToOne
     private User user;

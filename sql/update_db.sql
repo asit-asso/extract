@@ -61,9 +61,33 @@ DROP INDEX IF EXISTS idx_processes_users_user;
 CREATE INDEX idx_processes_users_user
   ON processes_users (id_user);
 
+-- RECOVERY_CODES Table
+
+ALTER TABLE recovery_codes
+DROP CONSTRAINT IF EXISTS fk_recovery_codes_user;
+
+ALTER TABLE recovery_codes
+    ADD CONSTRAINT fk_recovery_codes_user FOREIGN KEY (id_user)
+        REFERENCES users (id_user) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE;
+
 -- REMARKS Table
 
 ALTER TABLE remarks ALTER COLUMN content TYPE TEXT;
+
+-- REMEMBERME_TOKENS Table
+
+-- Correction mauvais nommage v2.1 Beta
+ALTER TABLE remember_me_tokens
+DROP CONSTRAINT IF EXISTS fk_recovery_codes_user;
+
+ALTER TABLE remember_me_tokens
+DROP CONSTRAINT IF EXISTS fk_rememberme_user;
+
+ALTER TABLE remember_me_tokens
+    ADD CONSTRAINT fk_rememberme_user FOREIGN KEY (id_user)
+        REFERENCES users (id_user) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE;
 
 -- REQUESTS Table
 
