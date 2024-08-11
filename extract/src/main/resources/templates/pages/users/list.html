@@ -58,15 +58,15 @@
                                         </div>
                                     </td>
                                     <td>
+                                        <div class="badge bg-secondary" th:text="${#messages.msg('user.type.' + user.userType)}">
+                                            {Local}
+                                        </div>
+                                    </td>
+                                    <td>
                                         <div class="badge bg-success" th:text="#{usersList.table.item.active}"
                                              th:if="*{active}">{Active}</div>
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.inactive}"
                                              th:unless="*{active}">{Inactive}</div>
-                                    </td>
-                                    <td>
-                                        <div class="badge bg-secondary" th:text="${#messages.msg('user.type.' + user.userType)}">
-                                            {Local}
-                                        </div>
                                     </td>
                                     <td>
                                         <div class="badge bg-success" th:text="#{usersList.table.item.mailActive}"
