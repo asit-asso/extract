@@ -16,16 +16,16 @@
  */
 package ch.asit_asso.extract.orchestrator;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
+import ch.asit_asso.extract.utils.DateTimeUtils;
+import ch.asit_asso.extract.web.model.json.PublicField;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonView;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
-import java.util.List;
-import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
-import ch.asit_asso.extract.utils.DateTimeUtils;
-import ch.asit_asso.extract.web.model.json.PublicField;
 import org.joda.time.DateTime;
 
 
@@ -85,8 +85,9 @@ public class OrchestratorTimeRange {
      * @return the endTime
      */
     public final String getEndTime() {
-        return endTime;
+        return this.endTime;
     }
+
 
 
 
@@ -108,7 +109,7 @@ public class OrchestratorTimeRange {
      * @return the startDayIndex
      */
     public final int getStartDayIndex() {
-        return startDayIndex;
+        return this.startDayIndex;
     }
 
 
@@ -132,7 +133,7 @@ public class OrchestratorTimeRange {
      * @return the startTime
      */
     public final String getStartTime() {
-        return startTime;
+        return this.startTime;
     }
 
 
@@ -143,7 +144,7 @@ public class OrchestratorTimeRange {
     public final void setStartTime(String newStartTime) {
 
         if (StringUtils.isBlank(newStartTime) || !DateTimeUtils.isTimeStringValid(newStartTime, true)) {
-            throw new IllegalArgumentException("The end time is not a valid time string with the format HH:mm.");
+            throw new IllegalArgumentException("The start time is not a valid time string with the format HH:mm.");
         }
 
         this.startTime = newStartTime;
@@ -176,7 +177,7 @@ public class OrchestratorTimeRange {
         ObjectMapper mapper = new ObjectMapper();
 
         try {
-            return mapper.readValue(rangeCollectionJson, new TypeReference<List<OrchestratorTimeRange>>() {
+            return mapper.readValue(rangeCollectionJson, new TypeReference<>() {
             });
 
         } catch (IOException ex) {
@@ -190,11 +191,9 @@ public class OrchestratorTimeRange {
     @Override
     public final boolean equals(Object object) {
 
-        if (object == null || !(object instanceof OrchestratorTimeRange)) {
+        if (!(object instanceof OrchestratorTimeRange other)) {
             return false;
         }
-
-        OrchestratorTimeRange other = (OrchestratorTimeRange) object;
 
         return this.startDayIndex == other.startDayIndex && this.endDayIndex == other.endDayIndex
                 && this.startTime.equals(other.startTime) && this.endTime.equals(other.endTime);
@@ -236,11 +235,7 @@ public class OrchestratorTimeRange {
             return false;
         }
 
-        if (!DateTimeUtils.isTimeStringValid(this.endTime, true)) {
-            return false;
-        }
-
-        return true;
+        return DateTimeUtils.isTimeStringValid(this.endTime, true);
     }
 
 
@@ -264,8 +259,8 @@ public class OrchestratorTimeRange {
 
 
     private boolean fitsTimeRange(final DateTime dateTime) {
-        return DateTimeUtils.compareWithTimeString(dateTime, startTime) >= 0
-                && DateTimeUtils.compareWithTimeString(dateTime, endTime) <= 0;
+        return DateTimeUtils.compareWithTimeString(dateTime, this.startTime) >= 0
+                && DateTimeUtils.compareWithTimeString(dateTime, this.endTime) <= 0;
     }
 
 }

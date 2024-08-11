@@ -17,12 +17,14 @@
 package ch.asit_asso.extract.utils;
 
 import java.util.Calendar;
-
 import org.joda.time.DateTime;
+import org.joda.time.Duration;
 import org.joda.time.Period;
+import org.joda.time.PeriodType;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
+import org.joda.time.format.PeriodFormatter;
+import org.joda.time.format.PeriodFormatterBuilder;
 
 
 /**
@@ -31,6 +33,17 @@ import org.joda.time.format.DateTimeFormatter;
  * @author Yves Grasset
  */
 public abstract class DateTimeUtils {
+
+    public static final PeriodFormatterBuilder TIME_STRING_BUILDER = new PeriodFormatterBuilder().printZeroIfSupported()
+                                                                                                 .minimumPrintedDigits(2)
+                                                                                                 .appendHours()
+                                                                                                 .appendSeparator(":")
+                                                                                                 .appendMinutes();
+
+    public static final PeriodFormatter TIME_STRING_FORMATTER = DateTimeUtils.TIME_STRING_BUILDER.toFormatter();
+
+    public static final int SECONDS_IN_A_DAY = 3600 * 24;
+
 
     public enum DaysOfWeek {
         MONDAY,
@@ -44,7 +57,7 @@ public abstract class DateTimeUtils {
 
 
 
-    public static final int compareWithTimeString(final DateTime time, final String timeString) {
+    public static int compareWithTimeString(final DateTime time, final String timeString) {
 
         if (time == null) {
             throw new IllegalArgumentException("The time to compare cannot be null.");
@@ -54,69 +67,56 @@ public abstract class DateTimeUtils {
             throw new IllegalArgumentException("The time string to compare the date to is invalid.");
         }
 
-        final int timeHour = time.getHourOfDay();
-        final String[] timeStringComponents = timeString.split(":");
-        final int timeStringHour = Integer.valueOf(timeStringComponents[0]);
+        final long timeStringSeconds = DateTimeUtils.timeStringToSeconds(timeString);
+        final long dateTimeSeconds = time.getSecondOfDay();
 
-        if (timeHour < timeStringHour) {
-            return -1;
-        }
-
-        if (timeHour > timeStringHour) {
-            return 1;
-        }
-
-        final int timeMinutes = time.getMinuteOfHour();
-        final int timeStringMinutes = Integer.valueOf(timeStringComponents[1]);
-
-        if (timeMinutes < timeStringMinutes) {
-            return -1;
-        }
-
-        if (timeMinutes > timeStringMinutes) {
-            return 1;
-        }
-
-        return 0;
+        return Long.compare(dateTimeSeconds, timeStringSeconds);
     }
 
 
 
-    public static final int compareTimeStrings(final String timeString1, final String timeString2) {
+    public static int compareTimeStrings(final String timeString1, final String timeString2) {
+        final long seconds1 = DateTimeUtils.timeStringToSeconds(timeString1);
+        final long seconds2 = DateTimeUtils.timeStringToSeconds(timeString2);
 
-        if (!DateTimeUtils.isTimeStringValid(timeString1, true)) {
-            throw new IllegalArgumentException("The time string to compare is invalid.");
+        return Long.compare(seconds1, seconds2);
+    }
+
+
+    public static Period parseTimeString(String timeString) {
+
+        if (!DateTimeUtils.isTimeStringValid(timeString, true)) {
+            throw new IllegalArgumentException("The time string is invalid.");
         }
 
-        if (!DateTimeUtils.isTimeStringValid(timeString2, true)) {
-            throw new IllegalArgumentException("The time string to be compared to is invalid.");
+        return DateTimeUtils.TIME_STRING_FORMATTER.parsePeriod(timeString).normalizedStandard(PeriodType.time());
+    }
+
+
+
+    public static String secondsToTimeString(final long seconds)
+    {
+
+        if (seconds < 0) {
+            throw new IllegalArgumentException("The number of seconds cannot be negative");
         }
 
-        final String[] timeString1Components = timeString1.split(":");
-        final String[] timeString2Components = timeString2.split(":");
-        final int timeString1Hour = Integer.valueOf(timeString1Components[0]);
-        final int timeString2Hour = Integer.valueOf(timeString2Components[0]);
-
-        if (timeString1Hour < timeString2Hour) {
-            return -1;
+        if (seconds > DateTimeUtils.SECONDS_IN_A_DAY) {
+            throw new IllegalArgumentException("The number of seconds cannot be larger that 24 hours");
         }
 
-        if (timeString1Hour > timeString2Hour) {
-            return 1;
-        }
+        Duration duration = new Duration(seconds * 1000L);
+        Period period = duration.toPeriod().normalizedStandard(PeriodType.time());
 
-        final int timeString1Minutes = Integer.valueOf(timeString1Components[1]);
-        final int timeString2Minutes = Integer.valueOf(timeString2Components[1]);
+        return DateTimeUtils.TIME_STRING_FORMATTER.print(period);
+    }
 
-        if (timeString1Minutes < timeString2Minutes) {
-            return -1;
-        }
 
-        if (timeString1Minutes > timeString2Minutes) {
-            return 1;
-        }
+    public static long timeStringToSeconds(final String timeString)
+    {
+        final Period period = DateTimeUtils.parseTimeString(timeString);
 
-        return 0;
+        return period.toStandardDuration().getStandardSeconds();
     }
 
 
@@ -131,10 +131,10 @@ public abstract class DateTimeUtils {
      *
      * @param start the time point where the interval starts
      * @param end   the time point where the interval ends
-     * @return an simple temporal span object that contains the numeric value of the interval and the most significant
+     * @return a simple temporal span object that contains the numeric value of the interval and the most significant
      *         field
      */
-    public static final SimpleTemporalSpan getFloorDifference(final Calendar start, final Calendar end) {
+    public static SimpleTemporalSpan getFloorDifference(final Calendar start, final Calendar end) {
         Period difference = new Period(start.getTimeInMillis(), end.getTimeInMillis());
 
         if (difference.getYears() > 0) {
@@ -166,13 +166,13 @@ public abstract class DateTimeUtils {
 
 
 
-    public static final boolean isTimeStringValid(String timeString) {
+    public static boolean isTimeStringValid(String timeString) {
         return DateTimeUtils.isTimeStringValid(timeString, false);
     }
 
 
 
-    public static final boolean isTimeStringValid(String timeString, boolean allow24) {
+    public static boolean isTimeStringValid(String timeString, boolean allow24) {
 
         if (allow24 && "24:00".equals(timeString)) {
             return true;
