@@ -12,7 +12,7 @@
         "ol-layerswitcher": "4.1.1",
         "proj4": "2.11.0",
         "select2": "4.1.0-rc.0",
-        "timepicker": "1.14.1"
+        "timepicker": "1.13.19"
     },
     "eslintConfig": {
         "env": {
