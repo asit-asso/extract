@@ -539,6 +539,10 @@ public class UserModel {
 
         this.logger.debug("The new forced status of the domain user is {}.", domainUser.isTwoFactorForced());
 
+        if (this.isBeingCreated()){
+            // User type is set only at creation (or via the migration tool)
+            domainUser.setUserType(this.getUserType());
+        }
 
         if (domainUser.getUserType() == UserType.LOCAL) {
             domainUser.setEmail(this.getEmail());

@@ -97,6 +97,14 @@ services:
         networks:
             - qnetwork
 
+    node:
+        image: node:20
+        volumes:
+            - .:/var/www/html
+        working_dir: /var/www/html
+        tty: true
+        stop_grace_period: 1s
+
     qgisproxy:
         depends_on:
             qgisserver:
