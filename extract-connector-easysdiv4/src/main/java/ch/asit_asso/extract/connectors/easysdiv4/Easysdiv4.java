@@ -20,6 +20,7 @@ import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.connectors.common.IConnectorImportResult;
 import ch.asit_asso.extract.connectors.common.IExportRequest;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.RequestUtils;
+import ch.asit_asso.extract.connectors.easysdiv4.utils.TimeoutUtils;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.ZipUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,10 +40,7 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
@@ -780,7 +778,17 @@ public class Easysdiv4 implements IConnector {
         return exportResult;
     }
 
+    protected RequestConfig createRequestConfigWithTimeout()
+    {
+        String timeoutStr = config.getProperty("getOrders.timeoutInMilliseconds");
+        int timeoutInMilliseconds = TimeoutUtils.parseTimeout(timeoutStr);
 
+        return RequestConfig.custom()
+                .setConnectTimeout(timeoutInMilliseconds)
+                .setConnectionRequestTimeout(timeoutInMilliseconds)
+                .setSocketTimeout(timeoutInMilliseconds)
+                .build();
+    }
 
     /**
      * Builds an HTTP request to be sent with the GET method, adding proxy information if it is defined.
@@ -793,7 +801,10 @@ public class Easysdiv4 implements IConnector {
 
         this.logger.debug("Creating HTTP GET request for URL {}.", url);
 
-        return (HttpGet) this.addProxyInfoToRequest(new HttpGet(url));
+        HttpGet request = new HttpGet(url);
+        request.setConfig(createRequestConfigWithTimeout());
+
+        return (HttpGet) this.addProxyInfoToRequest(request);
     }
 
 

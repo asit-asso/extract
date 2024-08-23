@@ -119,7 +119,6 @@ public class Easysdiv4Test {
     }
 
 
-
     @BeforeEach
     public final void setUp() {
         this.configuration = new ConnectorConfig(Easysdiv4Test.CONFIG_FILE_PATH);
@@ -253,6 +252,15 @@ public class Easysdiv4Test {
         assertEquals(Easysdiv4Test.EXPECTED_ICON_CLASS, result);
     }
 
+    @Test
+    @DisplayName("Check the default timeout is 5000")
+    public final void testGetDefaultTimeout() {
+        Easysdiv4 instance = new Easysdiv4();
+        var config = instance.createRequestConfigWithTimeout();
+        assertEquals(5000, config.getConnectTimeout());
+        assertEquals(5000, config.getConnectionRequestTimeout());
+        assertEquals(5000, config.getSocketTimeout());
+    }
 
 
     /**
