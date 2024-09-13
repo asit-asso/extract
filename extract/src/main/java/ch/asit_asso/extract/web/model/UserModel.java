@@ -495,6 +495,8 @@ public class UserModel {
         }
 
         User domainUser = new User();
+        domainUser.setUserType(this.getUserType());
+        domainUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
 
         return this.updateDomainObject(domainUser, secrets, twoFactorService, false, true);
     }
@@ -524,15 +526,6 @@ public class UserModel {
 
         domainUser.setMailActive(this.isMailActive());
 
-
-        if (this.isBeingCreated()){
-            // User type is set only at creation (or via the migration tool)
-            domainUser.setUserType(this.getUserType());
-
-            // At creation 2FA status is always inactive (but is changed later if TwoFactorForced == true)
-            domainUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
-        }
-
         //this.processTwoFactorChange(domainUser, isCurrentUserAdmin, encryptor, twoFactorService);
         //domainUser.setTwoFactorStatus(this.getTwoFactorStatus());
 
@@ -547,6 +540,7 @@ public class UserModel {
         }
 
         this.logger.debug("The new forced status of the domain user is {}.", domainUser.isTwoFactorForced());
+
 
         if (domainUser.getUserType() == UserType.LOCAL) {
             domainUser.setEmail(this.getEmail());
