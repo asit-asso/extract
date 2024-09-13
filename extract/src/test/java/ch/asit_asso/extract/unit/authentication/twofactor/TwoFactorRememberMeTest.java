@@ -35,6 +35,8 @@ import static org.mockito.ArgumentMatchers.anyString;
 
 class TwoFactorRememberMeTest extends MockEnabledTest {
 
+    private static final String APPLICATION_PATH = "/extract-dev";
+
     @Captor
     private ArgumentCaptor<Cookie> cookieCaptor;
 
@@ -72,7 +74,8 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
                                                                      invocationOnMock.getArgument(1))
         );
 
-        this.twoFactorRememberMe = new TwoFactorRememberMe(this.user, this.repository, this.secrets);
+        this.twoFactorRememberMe = new TwoFactorRememberMe(this.user, this.repository, this.secrets,
+                                                           TwoFactorRememberMeTest.APPLICATION_PATH);
 
         Mockito.doNothing().when(this.response).addCookie(any());
     }
@@ -160,7 +163,8 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
     void disable() {
         RememberMeToken token = this.createToken(this.user, this.getValidExpiration());
         Cookie[] cookies = new Cookie[] {
-                new TwoFactorCookie(this.user, token.getToken(), this.secrets).toCookie()
+                new TwoFactorCookie(this.user, token.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie()
         };
         Mockito.when(this.request.getCookies()).thenReturn(cookies);
         User otherUser = new User(2);
@@ -218,7 +222,8 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
     void hasValidToken() {
         RememberMeToken token = this.createToken(this.user, this.getValidExpiration());
         Cookie[] cookies = new Cookie[] {
-                new TwoFactorCookie(this.user, token.getToken(), this.secrets).toCookie()
+                new TwoFactorCookie(this.user, token.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie()
         };
         Mockito.when(this.request.getCookies()).thenReturn(cookies);
         this.repository.save(token);
@@ -253,7 +258,8 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
     void hasValidTokenWithInvalidToken() {
         RememberMeToken token = this.createToken(this.user, this.getValidExpiration());
         Cookie[] cookies = new Cookie[] {
-                new TwoFactorCookie(this.user, "invalidtoken", this.secrets).toCookie()
+                new TwoFactorCookie(this.user, "invalidtoken", this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie()
         };
         Mockito.when(this.request.getCookies()).thenReturn(cookies);
         this.repository.save(token);
@@ -271,7 +277,8 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
         User otherUser = new User(2);
         RememberMeToken otherUserToken = this.createToken(otherUser, this.getValidExpiration());
         Cookie[] cookies = new Cookie[] {
-                new TwoFactorCookie(otherUser, otherUserToken.getToken(), this.secrets).toCookie()
+                new TwoFactorCookie(otherUser, otherUserToken.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie()
         };
         Mockito.when(this.request.getCookies()).thenReturn(cookies);
         this.repository.save(otherUserToken);
@@ -290,8 +297,10 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
         User otherUser = new User(2);
         RememberMeToken otherUserToken = this.createToken(otherUser, this.getValidExpiration());
         Cookie[] cookies = new Cookie[] {
-                new TwoFactorCookie(otherUser, otherUserToken.getToken(), this.secrets).toCookie(),
-                new TwoFactorCookie(this.user, token.getToken(), this.secrets).toCookie()
+                new TwoFactorCookie(otherUser, otherUserToken.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie(),
+                new TwoFactorCookie(this.user, token.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie()
         };
         Mockito.when(this.request.getCookies()).thenReturn(cookies);
         List<RememberMeToken> tokensList = new ArrayList<>();

@@ -18,6 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TwoFactorRememberMe {
+    private final String applicationPath;
+
     private final Logger logger = LoggerFactory.getLogger(TwoFactorRememberMe.class);
 
     private final Secrets secrets;
@@ -27,10 +29,11 @@ public class TwoFactorRememberMe {
     private final User user;
 
     public TwoFactorRememberMe(@NotNull User user, @NotNull RememberMeTokenRepository tokenRepository,
-                               @NotNull Secrets secrets) {
+                               @NotNull Secrets secrets, String applicationPath) {
         this.secrets = secrets;
         this.repository = tokenRepository;
         this.user = user;
+        this.applicationPath = applicationPath;
     }
 
 
@@ -129,7 +132,8 @@ public class TwoFactorRememberMe {
 
 
     private void setCookie(String token, HttpServletResponse response) {
-        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user.getLogin(), token, this.secrets);
+        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user.getLogin(), token, this.secrets,
+                                                              this.applicationPath);
         response.addCookie(twoFactorCookie.toCookie());
     }
 

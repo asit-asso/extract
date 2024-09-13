@@ -18,10 +18,12 @@ import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.Secrets;
+import ch.asit_asso.extract.utils.UrlUtils;
 import ch.asit_asso.extract.web.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -56,12 +58,12 @@ public class TwoFactorController extends BaseController {
 
     private static final String REGISTER_VIEW = "2fa/register";
 
+    private final String applicationPath;
 
     /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(TwoFactorController.class);
-
 
     private final TwoFactorService twoFactorService;
 
@@ -77,7 +79,8 @@ public class TwoFactorController extends BaseController {
 
     public TwoFactorController(TwoFactorService service, Secrets secrets,
                                RecoveryCodeRepository recoveryCodeRepository, UsersRepository usersRepository,
-                               RememberMeTokenRepository rememberMeTokenRepository, AuthenticationFailureHandler failureHandler) {
+                               RememberMeTokenRepository rememberMeTokenRepository,
+                               AuthenticationFailureHandler failureHandler, Environment environment) {
 
         this.twoFactorService = service;
         this.failureHandler = failureHandler;
@@ -85,6 +88,7 @@ public class TwoFactorController extends BaseController {
         this.recoveryCodeRepository = recoveryCodeRepository;
         this.rememberMeRepository = rememberMeTokenRepository;
         this.usersRepository = usersRepository;
+        this.applicationPath = UrlUtils.getApplicationPath(environment.getProperty("application.external.url"));
     }
 
     @GetMapping("authenticate")
@@ -141,7 +145,7 @@ public class TwoFactorController extends BaseController {
                 if (rememberMe != null) {
                     this.logger.debug("The user asked to be remembered for 2FA authentication for 30 days.");
                     TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
-                                                                                 this.secrets);
+                                                                                 this.secrets, this.applicationPath);
                     rememberMeUser.enable(response);
                 }
 
@@ -295,7 +299,7 @@ public class TwoFactorController extends BaseController {
 
             User registeredUser = this.usersRepository.save(currentUser);
             TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(registeredUser, this.rememberMeRepository,
-                                                                         this.secrets);
+                                                                         this.secrets, this.applicationPath);
             rememberMeUser.disable(request, response);
             this.processRegistrationStep(true, request);
 

@@ -27,8 +27,10 @@ import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.Secrets;
+import ch.asit_asso.extract.utils.UrlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.env.Environment;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.SavedRequestAwareAuthenticationSuccessHandler;
 import org.springframework.security.web.savedrequest.DefaultSavedRequest;
@@ -43,6 +45,7 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthenticationSuccessHandler {
+    private final String applicationPath;
 
     /**
      * The writer to the application logs.
@@ -58,10 +61,11 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
 
 
     public ExtractAuthenticationSuccessHandler(Secrets secrets, RememberMeTokenRepository tokenRepository,
-                                               UsersRepository usersRepository) {
+                                               UsersRepository usersRepository, Environment environment) {
         this.secrets = secrets;
         this.rememberMeRepository = tokenRepository;
         this.usersRepository = usersRepository;
+        this.applicationPath = UrlUtils.getApplicationPath(environment.getProperty("application.external.url"));
     }
 
 
@@ -87,7 +91,7 @@ public class ExtractAuthenticationSuccessHandler extends SavedRequestAwareAuthen
         String userName = domainUser.getLogin();
         this.logger.debug("Found user {}.", userName);
         TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
-                                                                     this.secrets);
+                                                                     this.secrets, this.applicationPath);
         rememberMeUser.cleanUp();
 
         switch (user.getTwoFactorStatus()) {

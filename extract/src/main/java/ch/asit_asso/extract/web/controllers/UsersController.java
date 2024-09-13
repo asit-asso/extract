@@ -33,6 +33,7 @@ import ch.asit_asso.extract.persistence.RecoveryCodeRepository;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.Secrets;
+import ch.asit_asso.extract.utils.UrlUtils;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.UserModel;
 import ch.asit_asso.extract.web.validators.UserValidator;
@@ -40,6 +41,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -91,6 +93,8 @@ public class UsersController extends BaseController {
 
     public static final String REDIRECT_TO_2FA_REGISTER = "redirect:/2fa/register";
 
+    private final String applicationPath;
+
     /**
      * The writer to the application logs.
      */
@@ -118,13 +122,14 @@ public class UsersController extends BaseController {
 
     public UsersController(RecoveryCodeRepository codesRepository, Secrets secrets,
                            RememberMeTokenRepository tokensRepository, TwoFactorService twoFactorService,
-                           UsersRepository usersRepository, LdapSettings ldapSettings) {
+                           UsersRepository usersRepository, LdapSettings ldapSettings, Environment environment) {
         this.backupCodesRepository = codesRepository;
         this.secrets = secrets;
         this.rememberMeRepository = tokensRepository;
         this.twoFactorService = twoFactorService;
         this.usersRepository = usersRepository;
         this.ldapSettings = ldapSettings;
+        this.applicationPath = UrlUtils.getApplicationPath(environment.getProperty("application.external.url"));
     }
 
 
@@ -368,7 +373,7 @@ public class UsersController extends BaseController {
 
             if (domainUser.getTwoFactorStatus() == User.TwoFactorStatus.INACTIVE) {
                 TwoFactorRememberMe rememberMeUser = new TwoFactorRememberMe(domainUser, this.rememberMeRepository,
-                                                                             this.secrets);
+                                                                             this.secrets, this.applicationPath);
                 rememberMeUser.disable(request, response);
                 TwoFactorBackupCodes backupCodesUser = new TwoFactorBackupCodes(domainUser, this.backupCodesRepository,
                                                                                 this.secrets);

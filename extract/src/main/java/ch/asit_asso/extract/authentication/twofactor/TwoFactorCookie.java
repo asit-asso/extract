@@ -19,7 +19,9 @@ public class TwoFactorCookie {
 
     private static final int DAYS_TO_LIVE = 30;
 
-    private static final String PATH = "/extract";
+    //private static final String PATH = "/extract";
+
+    private final String applicationPath;
 
     private final String userHash;
 
@@ -27,14 +29,17 @@ public class TwoFactorCookie {
 
     private final Secrets secrets;
 
-    public TwoFactorCookie(@NotNull User user, @NotNull String token, @NotNull Secrets secrets) {
-        this(user.getLogin(), token, secrets);
+    public TwoFactorCookie(@NotNull User user, @NotNull String token, @NotNull Secrets secrets,
+                           @NotNull String applicationPath) {
+        this(user.getLogin(), token, secrets, applicationPath);
     }
 
-    public TwoFactorCookie(@NotNull String userName, @NotNull String token, @NotNull Secrets secrets) {
+    public TwoFactorCookie(@NotNull String userName, @NotNull String token, @NotNull Secrets secrets,
+                           @NotNull String applicationPath) {
         this.secrets = secrets;
         this.userHash = this.secrets.hash(userName);
         this.token = token;
+        this.applicationPath = applicationPath;
     }
 
     private TwoFactorCookie(@NotNull Cookie cookie, @NotNull Secrets secrets) {
@@ -46,6 +51,7 @@ public class TwoFactorCookie {
         this.secrets = secrets;
         this.userHash = this.parseUserHashFromCookieName(cookie.getName());
         this.token = cookie.getValue();
+        this.applicationPath = cookie.getPath();
     }
 
     public static boolean isTwoFactorCookie(@NotNull Cookie cookie) {
@@ -87,7 +93,7 @@ public class TwoFactorCookie {
     public Cookie toCookie(boolean expire) {
         Cookie cookie = new Cookie(this.buildCookieName(), (expire) ? null : this.token);
         cookie.setHttpOnly(true);
-        cookie.setPath(TwoFactorCookie.PATH);
+        cookie.setPath(this.applicationPath);
         cookie.setMaxAge((expire) ? 0 : (int) Duration.ofDays(TwoFactorCookie.DAYS_TO_LIVE).toSeconds());
 
         return cookie;
@@ -104,7 +110,7 @@ public class TwoFactorCookie {
 
         return ResponseCookie.from(this.buildCookieName(), (expire) ? "" : this.token)
                              .httpOnly(true)
-                             .path(TwoFactorCookie.PATH)
+                             .path(this.applicationPath)
                              .maxAge(Duration.ofDays((expire) ? 0 : TwoFactorCookie.DAYS_TO_LIVE))
                              .build();
     }
