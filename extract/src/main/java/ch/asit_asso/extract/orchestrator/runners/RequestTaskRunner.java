@@ -329,7 +329,7 @@ public class RequestTaskRunner implements Runnable {
      * @return an array containing the addresses of the operators
      */
     @Transactional(readOnly = true)
-    String[] getProcessOperatorsAddresses(final Process process) {
+    public String[] getProcessOperatorsAddresses(final Process process) {
         assert process != null : "The process cannot be null.";
 
         return this.applicationRepositories.getProcessesRepository().getProcessOperatorsAddresses(process.getId());
@@ -636,7 +636,10 @@ public class RequestTaskRunner implements Runnable {
                     this.updateRequestFromPlugin(modifiedRequestData);
                 }
             }
-            case STANDBY -> this.request.setStatus(Request.Status.STANDBY);
+            case STANDBY -> {
+                this.request.setStatus(Request.Status.STANDBY);
+                this.request.setLastReminder(GregorianCalendar.getInstance());
+            }
 
             default -> this.logger.error("The result status ({}) for task \"{}\" is invalid.", taskResultStatus,
                                          this.taskHistoryRecord.getTaskLabel());
