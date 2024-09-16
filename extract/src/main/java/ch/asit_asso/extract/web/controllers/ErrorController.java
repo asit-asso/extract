@@ -58,7 +58,9 @@ public class ErrorController {
     public final String handleException(final Throwable throwable, final RedirectAttributes redirectAttributes) {
         this.logger.error("An exception was thrown during execution of the application", throwable);
         String errorMessage = (throwable != null ? throwable.getMessage() : "Unknown error");
-        redirectAttributes.addFlashAttribute("errorMessage", errorMessage);
+        redirectAttributes.addFlashAttribute("errorMessage", throwable);
+        redirectAttributes.addFlashAttribute("errorMessage2", throwable.getClass());
+        redirectAttributes.addFlashAttribute("errorMessage3", throwable.getStackTrace()[0].toString());
         return ErrorController.ERROR_VIEW;
     }
 

@@ -154,6 +154,9 @@
     <logger name="org.thymeleaf" level="WARN">
         <appender-ref ref="THYMELEAF-FILE" />
     </logger>
+    <logger name="ch.asit_asso.extract.web.controllers">
+        <appender-ref ref="STDOUT" />
+    </logger>
 
     <root level="OFF">
         <appender-ref ref="STDOUT" />

@@ -104,16 +104,16 @@ public class UsersInitializer {
      * Creates the default users if there none exist in the data source.
      */
     public final void ensureInitialized() {
-        this.logger.debug("Checking if users are initialized.");
+        this.logger.info("Checking if users are initialized.");
 
         if (this.repository.count() > 0) {
-            this.logger.debug("Users have been found.");
+            this.logger.info("Users have been found.");
             return;
         }
 
-        this.createSystemUser();
-        this.createDefaultAdministrator();
-        this.createDefaultOperator();
+        //this.createSystemUser();
+        //this.createDefaultAdministrator();
+        //this.createDefaultOperator();
     }
 
 
@@ -122,7 +122,7 @@ public class UsersInitializer {
      * Creates the hidden user that is used to denote system operations.
      */
     private void createSystemUser() {
-        this.logger.debug("Creating the system user.");
+        this.logger.info("Creating the system user.");
 
         User systemUser = new User();
         systemUser.setActive(false);
@@ -136,7 +136,7 @@ public class UsersInitializer {
         systemUser.setTwoFactorForced(false);
 
 
-        this.repository.save(systemUser);
+        //this.repository.save(systemUser);
         this.logger.info("The system user has been created.");
     }
 
@@ -146,7 +146,7 @@ public class UsersInitializer {
      * Creates a user with administrator privileges.
      */
     private void createDefaultAdministrator() {
-        this.logger.debug("Creating the default administrator.");
+        this.logger.info("Creating the default administrator.");
 
         User adminUser = new User();
         adminUser.setActive(true);
@@ -160,7 +160,7 @@ public class UsersInitializer {
         adminUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
         adminUser.setTwoFactorForced(false);
 
-        this.repository.save(adminUser);
+        //this.repository.save(adminUser);
         this.logger.info("The default administrator has been created. Please log in and change its password.");
     }
 
@@ -171,7 +171,7 @@ public class UsersInitializer {
      */
     // TODO Remove when the user management part of the website is implemented
     private void createDefaultOperator() {
-        this.logger.debug("Creating the default operator.");
+        this.logger.info("Creating the default operator.");
         User operatorUser = new User();
         operatorUser.setActive(true);
         operatorUser.setLogin("operator");
@@ -184,7 +184,7 @@ public class UsersInitializer {
         operatorUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
         operatorUser.setTwoFactorForced(false);
 
-        this.repository.save(operatorUser);
+        //this.repository.save(operatorUser);
         this.logger.info("The default operator has been created. Please log in  with an administrator user and change"
                 + " its password.");
     }

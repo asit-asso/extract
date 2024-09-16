@@ -51,6 +51,7 @@ import org.apache.http.impl.client.BasicCredentialsProvider;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
@@ -145,8 +146,6 @@ public class Easysdiv4 implements IConnector {
      * The messages to the user in the language used by the user interface.
      */
     private LocalizedMessages messages;
-
-
 
     /**
      * Creates a new easySDI v4 connector plugin instance with default parameters.
@@ -938,7 +937,11 @@ public class Easysdiv4 implements IConnector {
 
         final CredentialsProvider credentials = this.getCredentialsProvider(targetHost, targetLogin, targetPassword);
 
-        return HttpClients.custom().setDefaultCredentialsProvider(credentials).build();
+        //final String defaultUserAgent = VersionInfo.getUserAgent("Apache-HttpClient", "org.apache.http.client", Main.class);
+
+        return HttpClients.custom()
+                .setDefaultCredentialsProvider(credentials).build();
+//                .setUserAgent(defaultUserAgent + " Extract/" + this.applicationVersion).build();
     }
 
 

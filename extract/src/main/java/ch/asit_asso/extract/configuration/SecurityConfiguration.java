@@ -81,6 +81,8 @@ public class SecurityConfiguration {
         this.logger.debug("Configuring the security of the application.");
         httpSecurity.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
+                    new AntPathRequestMatcher("/setup", "GET"),
+                    new AntPathRequestMatcher("/setup", "POST"),
                     new AntPathRequestMatcher("/css/**", "GET"),
                     new AntPathRequestMatcher("/images/**", "GET"),
                     new AntPathRequestMatcher("/lib/**", "GET"),
