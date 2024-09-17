@@ -1,0 +1,8 @@
+https://www.asitvd.ch/chercher/catalogue.html?view=sheet&guid=569&catalog=main&type=complete&preview=search_list - Arrondissements des routes cantonales
+https://www.asitvd.ch/chercher/catalogue.html?view=sheet&guid=336&catalog=main&type=complete&preview=search_list - Arrondissements forestiers territoriaux
+https://www.asitvd.ch/chercher/catalogue.html?view=sheet&guid=36&catalog=main&type=complete&preview=search_list - Circonscriptions de faune
+https://www.asitvd.ch/chercher/catalogue.html?view=sheet&guid=393&catalog=main&type=complete&preview=search_list - Circonscriptions de pêche
+https://www.asitvd.ch/chercher/catalogue.html?view=sheet&guid=128ba8b7-1b53-d804-2904-009bc942942e&catalog=main&type=complete&preview=search_list - Institutions d'accueil de jour des enfants
+
+
++ https://www.asitvd.ch/chercher/catalogue.html?view=sheet&guid=196&catalog=main&type=complete&preview=search_list - Limites administratives du Canton

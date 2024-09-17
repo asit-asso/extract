@@ -97,15 +97,6 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
             final Set<String> recipientsAddresses
                     = new HashSet<>(Arrays.asList(operatorsAddresses));
 
-            for (String adminAddress : this.repositories.getUsersRepository().getActiveAdministratorsAddresses()) {
-
-                if (adminAddress == null || recipientsAddresses.contains(adminAddress)) {
-                    continue;
-                }
-
-                recipientsAddresses.add(adminAddress);
-            }
-
             if (!message.initialize(request, recipientsAddresses.toArray(new String[]{}))) {
                 this.logger.error("Could not create the request export failure message.");
                 return false;
