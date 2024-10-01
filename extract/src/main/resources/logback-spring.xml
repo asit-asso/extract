@@ -144,6 +144,7 @@
     </logger>
 
     <logger name="ch.asit_asso.extract.web" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
         <appender-ref ref="WEB-FILE" />
     </logger>
 
@@ -158,7 +159,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <root level="OFF">
+    <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

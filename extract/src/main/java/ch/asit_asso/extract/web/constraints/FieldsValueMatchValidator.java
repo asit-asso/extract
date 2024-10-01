@@ -5,6 +5,11 @@ import org.springframework.beans.BeanWrapperImpl;
 import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 
+/**
+ * Validates fields annotated with @FieldsValueMatch
+ *
+ * @author Bruno Alves
+ */
 public class FieldsValueMatchValidator
         implements ConstraintValidator<FieldsValueMatch, Object> {
 

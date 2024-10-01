@@ -250,7 +250,8 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>false</skipTests>
-                            <summaryFile>target/surefire-reports/surefire-summary-unit.xml</summaryFile>
+                            <!--Not supported anymore -->
+                            <!-- <summaryFile>target/surefire-reports/surefire-summary-unit.xml</summaryFile>-->
                             <includes>ch.asit_asso.extract.unit.**.*Test</includes>
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
@@ -273,6 +274,8 @@
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
+
+                            <groups>integration, functional</groups>
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
                             </classpathDependencyExcludes>

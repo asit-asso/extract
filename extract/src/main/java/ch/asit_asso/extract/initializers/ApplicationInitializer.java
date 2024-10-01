@@ -58,6 +58,7 @@ public class ApplicationInitializer {
      * The Spring Security object used by the application to hash passwords.
      */
     private final Secrets secrets;
+
     private final ServletContext servletContext;
 
     /**
@@ -81,7 +82,7 @@ public class ApplicationInitializer {
      */
     public synchronized final void ensureInitialized() {
         this.logger.debug("Check that the application data is initialized.");
-        //this.getUsersInitializer().ensureInitialized();
+        this.getUsersInitializer().ensureInitialized();
         this.getParametersInitializer().ensureInitialized();
     }
 

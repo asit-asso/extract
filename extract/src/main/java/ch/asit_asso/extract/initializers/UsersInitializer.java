@@ -17,6 +17,8 @@
 package ch.asit_asso.extract.initializers;
 
 import java.util.Locale;
+import java.util.UUID;
+
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.domain.User.TwoFactorStatus;
@@ -36,12 +38,6 @@ import org.springframework.context.MessageSource;
  * @author Yves Grasset
  */
 public class UsersInitializer {
-
-    /**
-     * The string that identifies the localized name for the default administrator user in the application
-     * strings.
-     */
-    private static final String ADMIN_USER_NAME_KEY = "default.users.administrator.name";
 
     /**
      * The string that identifies the localized name for the default system user in the application
@@ -111,9 +107,7 @@ public class UsersInitializer {
             return;
         }
 
-        //this.createSystemUser();
-        //this.createDefaultAdministrator();
-        //this.createDefaultOperator();
+        this.createSystemUser();
     }
 
 
@@ -124,72 +118,36 @@ public class UsersInitializer {
     private void createSystemUser() {
         this.logger.info("Creating the system user.");
 
+        final String password = this.generateSystemPassword();
+
         User systemUser = new User();
         systemUser.setActive(false);
         systemUser.setLogin(User.SYSTEM_USER_LOGIN);
         systemUser.setName(this.getMessageString(UsersInitializer.SYSTEM_USER_NAME_KEY));
-        systemUser.setPassword(".|}@;;bJXY5-#Fu$a}hNtpQ{");
+        systemUser.setPassword(this.secrets.hash(password));
         systemUser.setEmail("system@monmail.com");
         systemUser.setMailActive(false);
         systemUser.setUserType(UserType.LOCAL);
         systemUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
         systemUser.setTwoFactorForced(false);
 
+        logger.warn("\n");
+        logger.warn("-".repeat(80));
+        logger.warn("   SYSTEM USER PASSWORD: {}", password);
+        logger.warn("-".repeat(80));
+        logger.warn("\n");
 
-        //this.repository.save(systemUser);
+        this.repository.save(systemUser);
         this.logger.info("The system user has been created.");
     }
 
-
-
     /**
-     * Creates a user with administrator privileges.
+     * Generate a totally random password
+     * @return a totally random password
      */
-    private void createDefaultAdministrator() {
-        this.logger.info("Creating the default administrator.");
-
-        User adminUser = new User();
-        adminUser.setActive(true);
-        adminUser.setLogin("admin");
-        adminUser.setName(this.getMessageString(UsersInitializer.ADMIN_USER_NAME_KEY));
-        adminUser.setPassword(this.secrets.hash("motdepasse21"));
-        adminUser.setProfile(Profile.ADMIN);
-        adminUser.setUserType(UserType.LOCAL);
-        adminUser.setEmail("monadmin@monmail.com");
-        adminUser.setMailActive(false);
-        adminUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
-        adminUser.setTwoFactorForced(false);
-
-        //this.repository.save(adminUser);
-        this.logger.info("The default administrator has been created. Please log in and change its password.");
+    protected String generateSystemPassword() {
+        return UUID.randomUUID().toString();
     }
-
-
-
-    /**
-     * Creates a user with operator privileges.
-     */
-    // TODO Remove when the user management part of the website is implemented
-    private void createDefaultOperator() {
-        this.logger.info("Creating the default operator.");
-        User operatorUser = new User();
-        operatorUser.setActive(true);
-        operatorUser.setLogin("operator");
-        operatorUser.setName("Operator");
-        operatorUser.setPassword(this.secrets.hash("motdepasse21"));
-        operatorUser.setProfile(Profile.OPERATOR);
-        operatorUser.setUserType(UserType.LOCAL);
-        operatorUser.setEmail("monoperateur@monmail.com");
-        operatorUser.setMailActive(false);
-        operatorUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
-        operatorUser.setTwoFactorForced(false);
-
-        //this.repository.save(operatorUser);
-        this.logger.info("The default operator has been created. Please log in  with an administrator user and change"
-                + " its password.");
-    }
-
-
 
     /**
      * Obtains a localized string.

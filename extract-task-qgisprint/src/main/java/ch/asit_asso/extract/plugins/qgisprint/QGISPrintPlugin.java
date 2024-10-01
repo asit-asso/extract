@@ -29,6 +29,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
+import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -42,6 +43,7 @@ import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import ch.asit_asso.extract.plugins.qgisprint.utils.QgisUtils;
+import ch.asit_asso.extract.plugins.qgisprint.utils.XMLUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -497,9 +499,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
         if(responseString.isEmpty())
             return null;
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(responseString)));
+        Document document = XMLUtils.parseSecure(responseString);
 
         XPathFactory xPathfactory = XPathFactory.newInstance();
         XPath xpath = xPathfactory.newXPath();
@@ -642,9 +642,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
         if(responseString.isEmpty())
             throw new Exception(this.messages.getString("plugin.error.getFeature.responseempty"));
 
-        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        Document document = builder.parse(new InputSource(new StringReader(responseString)));
+        Document document = XMLUtils.parseSecure(responseString);
 
         XPathFactory xPathfactory = XPathFactory.newInstance();
         XPath xpath = xPathfactory.newXPath();
@@ -697,8 +695,6 @@ public class QGISPrintPlugin implements ITaskProcessor {
 
             try (CloseableHttpResponse response = httpclient.execute(httpGet, clientContext)) {
 
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
                 XPathFactory xPathfactory = XPathFactory.newInstance();
                 XPath xpath = xPathfactory.newXPath();
 
@@ -712,7 +708,7 @@ public class QGISPrintPlugin implements ITaskProcessor {
                     if(httpCode == 400) {
                         responseString = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
                         if(!responseString.isEmpty()) {
-                            Document document = builder.parse(new InputSource(new StringReader(responseString)));
+                            Document document = XMLUtils.parseSecure(responseString);
                             String exception = this.getXMLNodeLabelFromXpath(document, this.config.getProperty("getprint.xpath.exception"));
                             httpMessage = String.format(this.messages.getString("plugin.error.getPrint.failed"), exception);
                         }

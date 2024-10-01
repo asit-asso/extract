@@ -10,15 +10,11 @@ import static java.lang.annotation.ElementType.*;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * The string has to be a well-formed email address. Exact semantics of what makes up a valid
- * email address are left to Jakarta Bean Validation providers. Accepts {@code CharSequence}.
- * <p>
- * {@code null} elements are considered valid.
+ * Checks if two fields have the same values. Adapted from
  *
- * @author Emmanuel Bernard
- * @author Hardy Ferentschik
+ * @author Bruno Alves
  *
- * @since 2.0
+ * @see <a href="https://github.com/yiminyangguang520/spring-boot-tutorials">Spring Boot Tutorials</a>
  */
 @Documented
 @Constraint(validatedBy = FieldsValueMatchValidator.class)

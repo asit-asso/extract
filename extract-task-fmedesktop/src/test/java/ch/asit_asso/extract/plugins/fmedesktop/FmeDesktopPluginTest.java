@@ -105,7 +105,6 @@ public class FmeDesktopPluginTest {
     }
 
 
-
     @BeforeEach
     public final void setUp() {
         this.configuration = new PluginConfiguration(FmeDesktopPluginTest.CONFIG_FILE_PATH);

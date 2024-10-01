@@ -16,11 +16,6 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
-import java.io.File;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Locale;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
@@ -28,12 +23,7 @@ import ch.asit_asso.extract.domain.Request.Status;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.exceptions.BaseFolderNotFoundException;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
-import ch.asit_asso.extract.persistence.ConnectorsRepository;
-import ch.asit_asso.extract.persistence.ProcessesRepository;
-import ch.asit_asso.extract.persistence.RequestHistoryRepository;
-import ch.asit_asso.extract.persistence.RequestsRepository;
-import ch.asit_asso.extract.persistence.SystemParametersRepository;
-import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.persistence.sorts.RequestSort;
 import ch.asit_asso.extract.persistence.specifications.RequestSpecification;
 import ch.asit_asso.extract.web.Message.MessageType;
@@ -55,12 +45,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.io.File;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Locale;
 
 
 

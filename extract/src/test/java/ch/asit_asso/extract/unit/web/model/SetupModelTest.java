@@ -37,6 +37,20 @@ class SetupModelTest {
         assertThat(violations).isEmpty();
     }
 
+    @Test
+    @DisplayName("Testing with a reserved word")
+    void testWithReservedWord() {
+        SetupModel model = new SetupModel("admin");
+        model.setName("Admin");
+        model.setEmail("admin@example.com");
+        model.setLogin("system");
+        model.setPassword1("$Pas$word21!");
+        model.setPassword2("$Pas$word21!");
+
+        Set<ConstraintViolation<SetupModel>> violations = validator.validate(model);
+        assertThat(violations).extracting(ConstraintViolation::getMessage)
+                .contains("{setup.fields.login.reserved}");
+    }
     // Tests pour les champs de contraintes individuelles
     @Test
     @DisplayName("Testing without the name")

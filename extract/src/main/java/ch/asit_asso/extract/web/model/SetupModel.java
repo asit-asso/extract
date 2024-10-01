@@ -3,6 +3,7 @@ package ch.asit_asso.extract.web.model;
 
 import ch.asit_asso.extract.web.constraints.FieldsValueMatch;
 import ch.asit_asso.extract.web.constraints.PasswordPolicy;
+import ch.asit_asso.extract.web.constraints.ReservedWords;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -32,6 +33,7 @@ public class SetupModel {
     @NotBlank(message = "{setup.fields.login.constraint.mandatory}")
     @Size(min = 2, max = 24, message = "{setup.fields.login.constraint.size}")
     @Pattern(regexp = "^[a-zA-Z][a-zA-Z0-9_-]{2,24}$", message = "{setup.fields.login.constraint.pattern}")
+    @ReservedWords(words = {"system"}, message = "{setup.fields.login.reserved}")
     private String login;
 
     @NotBlank(message = "{setup.fields.password1.constraint.mandatory}")

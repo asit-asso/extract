@@ -6,6 +6,11 @@ import javax.validation.ConstraintValidator;
 import javax.validation.ConstraintValidatorContext;
 import java.util.regex.Pattern;
 
+/**
+ * Validates fields annotated with @PasswordPolicy
+ *
+ * @author Bruno Alves
+ */
 public class PasswordPolicyValidator implements ConstraintValidator<PasswordPolicy, String> {
 
     private static final Pattern UPPER_CASE = Pattern.compile("[A-Z]");

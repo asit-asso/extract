@@ -21,6 +21,7 @@ import ch.asit_asso.extract.connectors.common.IConnectorImportResult;
 import ch.asit_asso.extract.connectors.common.IExportRequest;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.RequestUtils;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.TimeoutUtils;
+import ch.asit_asso.extract.connectors.easysdiv4.utils.UserAgentProvider;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.ZipUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -46,10 +47,8 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.*;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
 import org.apache.http.util.VersionInfo;
 import org.slf4j.Logger;
@@ -73,11 +72,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 
 /**
@@ -934,14 +929,13 @@ public class Easysdiv4 implements IConnector {
     private CloseableHttpClient getHttpClient(final HttpHost targetHost, final String targetLogin,
             final String targetPassword) {
         assert targetHost != null : "The target host cannot be null";
-
         final CredentialsProvider credentials = this.getCredentialsProvider(targetHost, targetLogin, targetPassword);
-
-        //final String defaultUserAgent = VersionInfo.getUserAgent("Apache-HttpClient", "org.apache.http.client", Main.class);
-
+        final UserAgentProvider provider = UserAgentProvider.withVersion(config.getProperty("app.version"));
         return HttpClients.custom()
-                .setDefaultCredentialsProvider(credentials).build();
-//                .setUserAgent(defaultUserAgent + " Extract/" + this.applicationVersion).build();
+                .setDefaultCredentialsProvider(credentials)
+                .setDefaultHeaders(provider.getDefaultHeaders())
+                .setUserAgent(provider.getUserAgent())
+                .build();
     }
 
 

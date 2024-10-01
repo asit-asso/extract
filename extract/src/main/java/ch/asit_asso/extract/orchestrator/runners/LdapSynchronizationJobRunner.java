@@ -80,7 +80,7 @@ public class LdapSynchronizationJobRunner implements Runnable {
         this.ldapSettings.refresh();
 
         if (!this.ldapSettings.isEnabled() || !this.ldapSettings.isSynchronizationEnabled()) {
-            //TODO Warn admins ?
+            this.logger.error("LDAP synchronization should not be running, since it is disabled.");
             throw new IllegalStateException(
                     "The LDAP synchronization was started, but it is turned off in the settings.");
         }
