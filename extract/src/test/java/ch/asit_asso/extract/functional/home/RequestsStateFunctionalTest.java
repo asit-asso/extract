@@ -64,8 +64,6 @@ public class RequestsStateFunctionalTest {
                 )
         );
 
-        System.setProperty("webdriver.chrome.driver", "//home/balves/Downloads/chromedriver-linux64/chromedriver");
-        WebDriverManager.chromedriver().browserVersion("128.0.6613.84").setup();
         this.driver = new ChromeDriver(options);
 
         this.driver.get(RequestsStateFunctionalTest.APPLICATION_URL);

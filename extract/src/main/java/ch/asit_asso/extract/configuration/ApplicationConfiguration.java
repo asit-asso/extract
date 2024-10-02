@@ -29,16 +29,13 @@ public class ApplicationConfiguration {
         return new SpringDataDialect();
     }
 
-    @Value("${app.version}")
-    private String appVersion;
-
-    @Bean
-    public FilterRegistrationBean<VersionHeaderFilter> loggingFilter(){
-        FilterRegistrationBean<VersionHeaderFilter> registrationBean = new FilterRegistrationBean<>();
-
-        registrationBean.setFilter(new VersionHeaderFilter(appVersion));
-        registrationBean.addUrlPatterns("/*");  // S'applique à toutes les URL
-
-        return registrationBean;
-    }
+//    @Bean
+//    public FilterRegistrationBean<VersionHeaderFilter> loggingFilter(){
+//        FilterRegistrationBean<VersionHeaderFilter> registrationBean = new FilterRegistrationBean<>();
+//
+//        registrationBean.setFilter(new VersionHeaderFilter(appVersion));
+//        registrationBean.addUrlPatterns("/*");  // S'applique à toutes les URL
+//
+//        return registrationBean;
+//    }
 }
