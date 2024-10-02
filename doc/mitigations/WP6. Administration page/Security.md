@@ -1,4 +1,4 @@
-## Modélisation des menaces
+## Threat modelling
 ### Model
 
 The threat analysis is based on the STRIDE framework, which generally does an excellent job of identifying the main attack vectors. Only the most reasonable mitigation measures are implemented.
