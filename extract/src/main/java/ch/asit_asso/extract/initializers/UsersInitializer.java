@@ -125,7 +125,7 @@ public class UsersInitializer {
         systemUser.setLogin(User.SYSTEM_USER_LOGIN);
         systemUser.setName(this.getMessageString(UsersInitializer.SYSTEM_USER_NAME_KEY));
         systemUser.setPassword(this.secrets.hash(password));
-        systemUser.setEmail("system@monmail.com");
+        systemUser.setEmail("extract@asit-asso.ch");
         systemUser.setMailActive(false);
         systemUser.setUserType(UserType.LOCAL);
         systemUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
