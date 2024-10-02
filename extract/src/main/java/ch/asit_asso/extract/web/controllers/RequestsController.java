@@ -1529,7 +1529,6 @@ public class RequestsController extends BaseController {
                 "The skipped task must be part of the process attributed to the request";
         assert skipDate != null : "The date and time when the task was skipped cannot be null";
 
-        //TODO Find an elegant way to centralize the history record creation
         RequestHistoryRecord record = new RequestHistoryRecord();
         record.setProcessStep(skippedTask.getPosition());
         record.setRequest(request);

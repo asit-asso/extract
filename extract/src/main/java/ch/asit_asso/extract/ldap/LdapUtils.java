@@ -14,9 +14,6 @@ public final class LdapUtils {
 
     private LdapUtils() { throw new UnsupportedOperationException("This class is not instantiable."); }
 
-
-
-    // TODO Find a better place
     public static boolean updateFromLdap(@NotNull User domainUser, @NotNull LdapUser ldapUser,
                                          @NotNull UsersRepository usersRepository) {
 

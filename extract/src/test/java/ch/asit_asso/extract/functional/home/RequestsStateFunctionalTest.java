@@ -65,6 +65,7 @@ public class RequestsStateFunctionalTest {
         );
 
         this.driver = new ChromeDriver(options);
+
         this.driver.get(RequestsStateFunctionalTest.APPLICATION_URL);
         this.driver.manage().window().maximize();
         this.driver.manage().timeouts().implicitlyWait(Duration.of(120, ChronoUnit.MILLIS));

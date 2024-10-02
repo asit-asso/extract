@@ -320,12 +320,12 @@ public class UsersController extends BaseController {
         final String redirectTarget = (this.isCurrentUserAdmin()) ? UsersController.REDIRECT_TO_LIST
                 : UsersController.REDIRECT_TO_HOME;
 
-        if (id == this.usersRepository.getSystemUserId()) {
-            this.logger.warn("The user {} tried to edit the details of the system user.", currentUser);
-            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
-
-            return redirectTarget;
-        }
+//        if (id == this.usersRepository.getSystemUserId()) {
+//            this.logger.warn("The user {} tried to edit the details of the system user.", currentUser);
+//            this.addStatusMessage(redirectAttributes, "usersList.errors.user.notEditable", MessageType.ERROR);
+//
+//            return redirectTarget;
+//        }
 
         if (id != userModel.getId()) {
             this.logger.warn("The user {} tried to update user id {}, but the data was set for user id {}."

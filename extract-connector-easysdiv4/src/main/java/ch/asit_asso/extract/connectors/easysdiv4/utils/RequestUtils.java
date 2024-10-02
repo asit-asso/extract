@@ -40,8 +40,6 @@ public abstract class RequestUtils {
      */
     public static final Logger LOGGER = LoggerFactory.getLogger(RequestUtils.class);
 
-
-
     public static final String interpolateVariables(String pattern, IProduct product, ConnectorConfig config) {
         final String[] authorizedFields = config.getProperty("url.properties.authorized").split(",");
         String formattedPath = pattern;

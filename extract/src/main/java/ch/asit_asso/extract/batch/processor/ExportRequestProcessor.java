@@ -155,8 +155,8 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
             return request;
         }
 
-        IConnector connectorPluginInstance = connectorPlugin.newInstance(this.applicationLangague,
-                requestConnector.getConnectorParametersValues());
+        HashMap<String, String> values = requestConnector.getConnectorParametersValues();
+        IConnector connectorPluginInstance = connectorPlugin.newInstance(this.applicationLangague, values);
         IExportRequest exportRequest = new RequestResult(request, this.basePath);
         IExportResult result = connectorPluginInstance.exportResult(exportRequest);
 

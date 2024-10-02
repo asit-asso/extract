@@ -28,7 +28,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
-
+import org.springframework.validation.Validator;
+import org.springframework.validation.beanvalidation.SpringConstraintValidatorFactory;
 
 
 /**
@@ -53,7 +54,10 @@ public class UserValidator extends BaseValidator {
      */
     private final UsersRepository usersRepository;
 
-
+    /**
+     * The lock to make the validation thread-safe
+     */
+    private static final Object lock = new Object();
 
     /**
      * Creates a new instance of this validator.
@@ -223,13 +227,18 @@ public class UserValidator extends BaseValidator {
             return;
         }
 
-        final int passwordLength = userModel.getPassword().length();
+        // validate the password
+        PasswordValidator passwordValidator = PasswordValidator.create().withStopOnFirstError(false);
+        try {
+            synchronized (lock) {
+                passwordValidator.validateField("password", userModel.getPassword(), errors);
+            }
+        } catch (Exception e) {
+            errors.rejectValue("password", "userDetails.errors.password.invalid");
+        }
 
-        if (passwordLength < UserValidator.MINIMUM_PASSWORD_LENGTH) {
-            errors.rejectValue("password", "userDetails.errors.password.minimumSize",
-                    new Object[]{UserValidator.MINIMUM_PASSWORD_LENGTH}, "userDetails.errors.password.tooShort");
+        if (errors.hasErrors()) {
             return;
-
         }
 
         if (StringUtils.isEmpty(userModel.getPasswordConfirmation())) {
@@ -240,7 +249,6 @@ public class UserValidator extends BaseValidator {
         if (!userModel.isPasswordMatch()) {
             errors.rejectValue("passwordConfirmation", "userDetails.errors.password.mismatch");
         }
-
     }
 
 }

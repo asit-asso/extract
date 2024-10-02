@@ -96,7 +96,6 @@ public class TwoFactorController extends BaseController {
 
         if (!(authentication instanceof TwoFactorAuthentication)) {
             this.logger.warn("User {} requested the 2FA authentication page while being already authenticated.", authentication.getName());
-            //TODO : Better error management
             throw new IllegalStateException("Cannot display the recovery page for an authenticated user");
         }
 
@@ -104,7 +103,6 @@ public class TwoFactorController extends BaseController {
 
             if (user.getTwoFactorStatus() != User.TwoFactorStatus.ACTIVE) {
                 this.logger.warn("User {} requested the 2FA authentication page while 2FA not being active for them.", user.getUsername());
-                //TODO : Better error management
                 throw new IllegalStateException("The user's 2FA status is not valid for the authentication page.");
             }
 
@@ -113,7 +111,6 @@ public class TwoFactorController extends BaseController {
         }
 
         this.logger.warn("User {} requested the 2FA authentication page while not being an application user.", authentication.getName());
-        //TODO : Better error management
         throw new IllegalStateException("TOTP authentication without prior login.");
     }
 
@@ -124,14 +121,12 @@ public class TwoFactorController extends BaseController {
                                                HttpServletResponse response) throws Exception {
 
         if (authentication == null) {
-            //TODO : Better error management
             throw new IllegalStateException("Cannot display the recovery page for an authenticated user");
         }
 
         if (authentication.getPrincipal() instanceof ApplicationUser user) {
 
             if (user.getTwoFactorStatus() != User.TwoFactorStatus.ACTIVE) {
-                //TODO : Better error management
                 throw new IllegalStateException("The user's 2FA status is not valid for the recovery page.");
             }
 
@@ -158,7 +153,6 @@ public class TwoFactorController extends BaseController {
             }
 
         } else {
-            //TODO : Better error management
             throw new IllegalStateException("TOTP authentication without prior login.");
         }
     }
@@ -167,21 +161,18 @@ public class TwoFactorController extends BaseController {
     public String requestRecovery(Authentication authentication) {
 
         if (!(authentication instanceof TwoFactorAuthentication)) {
-            //TODO : Better error management
             throw new IllegalStateException("Cannot display the recovery page for an authenticated user");
         }
 
         if (authentication.getPrincipal() instanceof ApplicationUser user) {
 
             if (user.getTwoFactorStatus() != User.TwoFactorStatus.ACTIVE) {
-                //TODO : Better error management
                 throw new IllegalStateException("The user's 2FA status is not valid for the recovery page.");
             }
 
             return TwoFactorController.RECOVERY_VIEW;
         }
 
-        //TODO : Better error management
         throw new IllegalStateException("Cannot display the recovery page before the user logged.");
     }
 
@@ -190,14 +181,12 @@ public class TwoFactorController extends BaseController {
                                    HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         if (authentication == null) {
-            //TODO : Better error management
             throw new IllegalStateException("Cannot display the recovery page for an authenticated user");
         }
 
         if (authentication.getPrincipal() instanceof ApplicationUser user) {
 
             if (user.getTwoFactorStatus() != User.TwoFactorStatus.ACTIVE) {
-                //TODO : Better error management
                 throw new IllegalStateException("The user's 2FA status is not valid for the recovery page.");
             }
 
@@ -215,7 +204,6 @@ public class TwoFactorController extends BaseController {
             }
 
         } else {
-            //TODO : Better error management
             throw new IllegalStateException("Cannot display the recovery page before the user logged.");
         }
     }
@@ -239,7 +227,6 @@ public class TwoFactorController extends BaseController {
                               user.getId());
 
             if (user.getTwoFactorStatus() != User.TwoFactorStatus.STANDBY) {
-                //TODO : Better error management
                 throw new IllegalStateException("The user's 2FA status is invalid for the registration wizard.");
             }
 
@@ -252,7 +239,6 @@ public class TwoFactorController extends BaseController {
             return TwoFactorController.REGISTER_VIEW;
         }
 
-        //TODO : Better error management
         return null;
     }
 

@@ -19,23 +19,23 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/master}">
-    <head>
-        <title>[[#{application.name}]]&nbsp;&ndash; [[#{errorPage.title}]]</title>
-    </head>
-    <body>
-        <div id="wrapper">
-            <div id="page-wrapper" layout:fragment="content">
-                <h1 class="page-header">
-                    <i class="fa fa-frown-o fa-fw"></i>&nbsp;
-                    <span th:text="#{errorPage.body.title}">{Error}</span>
-                </h1>
-                <p th:text="#{errorPage.text}">{An error occurred during the last operation}</p>
-                <div th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#response.status)}"
-                     class="code">
-                    <p th:text="|${httpStatus} - ${httpStatus.reasonPhrase}|">{404}</p>
-                    <p th:text="${message}">{Error java.lang.NullPointerException}</p>
-                </div>
-            </div>
+<head>
+    <title>[[#{application.name}]]&nbsp;&ndash; [[#{errorPage.title}]]</title>
+</head>
+<body>
+<div id="wrapper">
+    <div id="page-wrapper" layout:fragment="content">
+        <h1 class="page-header">
+            <i class="fa fa-frown-o fa-fw"></i>&nbsp;
+            <span th:text="#{errorPage.body.title}">{Error}</span>
+        </h1>
+        <p th:text="#{errorPage.text}">{An error occurred during the last operation}</p>
+        <div th:with="httpStatus=${T(org.springframework.http.HttpStatus).valueOf(#response.status)}"
+             class="code">
+            <p th:text="|${httpStatus} - ${httpStatus.reasonPhrase}|">{404}</p>
+            <p th:text="${message}">{Error java.lang.NullPointerException}</p>
         </div>
-    </body>
+    </div>
+</div>
+</body>
 </html>

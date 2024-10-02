@@ -7,8 +7,8 @@ networks:
 services:
     pgsql:
         image: postgres:12-alpine
-        volumes:
-            - /var/extract-docker/extract_db_data:/var/lib/postgresql/data
+#        volumes:
+##            - /var/extract-docker/extract_db_data:/var/lib/postgresql/data
         environment:
             - POSTGRES_DB=extract
             - POSTGRES_USER=extractuser
@@ -28,7 +28,7 @@ services:
             - /var/extract-docker:/var/extract
             - /var/log/extract-docker:/var/log/extract
             - /var/log/tomcat-docker:/usr/local/tomcat/logs
-            - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
+            - ./extract/target/extract##2.1.3-RELEASE.war:/usr/local/tomcat/webapps/extract.war
         environment:
             - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH -Dcom.sun.jndi.ldap.connect.pool.timeout=20000
         ports:

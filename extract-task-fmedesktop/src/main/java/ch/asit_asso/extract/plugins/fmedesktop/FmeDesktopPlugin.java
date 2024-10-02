@@ -15,6 +15,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
@@ -56,6 +57,7 @@ public class FmeDesktopPlugin implements ITaskProcessor {
      * process are atomic.
      */
     private static final Lock LOCK = new ReentrantLock(true);
+    private static final long PROCESS_TIMEOUT_SECONDS = 10;
 
     /**
      * The writer to the application logs.
@@ -91,7 +93,6 @@ public class FmeDesktopPlugin implements ITaskProcessor {
      * The access to the general settings of the plugin.
      */
     private final PluginConfiguration config;
-
 
     /**
      * Creates a new FME Desktop plugin instance with default settings and using the default language.
@@ -506,33 +507,94 @@ public class FmeDesktopPlugin implements ITaskProcessor {
         return (maximumInstances - currentInstances) >= requiredInstances;
     }
 
+    private String getValidatedTaskListPath() {
+        String windowsDir = System.getenv("windir");
+
+        if (windowsDir == null) {
+            logger.warn("The 'windir' environment variable is not set. Falling back to C:\\Windows.");
+            windowsDir = "C:\\Windows"; // Fallback par défaut si la variable n'est pas définie
+        }
+
+        File taskListFile = new File(windowsDir + "\\System32\\tasklist.exe");
+
+        if (!taskListFile.exists() || !taskListFile.canExecute()) {
+            logger.error("The tasklist.exe file does not exist or is not executable.");
+            throw new SecurityException("The tasklist.exe file does not exist or is not executable.");
+        }
+
+        if (shouldVerifyAuthenticity() && !verifyDigitalSignatureWithPowerShell(taskListFile)) {
+            logger.error("The tasklist.exe file has an invalid or missing digital signature.");
+            throw new SecurityException("The tasklist.exe file has been tampered with.");
+        }
+
+        return taskListFile.getAbsolutePath();
+    }
+
+    private boolean shouldVerifyAuthenticity() {
+        try {
+            return SystemUtils.IS_OS_WINDOWS && Boolean.parseBoolean(config.getProperty("check.authenticity"));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private boolean verifyDigitalSignatureWithPowerShell(File file) {
+        try {
+            Process process = new ProcessBuilder("powershell.exe",
+                    "Get-AuthenticodeSignature", file.getAbsolutePath())
+                    .redirectErrorStream(true)
+                    .start();
+
+            int exitCode = process.waitFor();
+
+            // In PowerShell, an exit code of 0 typically means success
+            return exitCode == 0;
+        } catch (IOException | InterruptedException e) {
+            logger.error("Error while verifying digital signature with PowerShell.", e);
+            return false;
+        }
+    }
 
     private int getCurrentFmeInstances() {
+        ProcessBuilder processBuilder;
         Process process;
-        Runtime runtime = Runtime.getRuntime();
+        BufferedReader input = null;
 
         try {
             this.logger.debug("Current process user is {}.", System.getProperty("user.name"));
 
             if (SystemUtils.IS_OS_WINDOWS) {
-                process = runtime.exec(System.getenv("windir") + "\\system32\\tasklist.exe /fo csv /nh /FI \"IMAGENAME eq fme.exe\"");
+                String command = getValidatedTaskListPath() + " /fo csv /nh /FI \"IMAGENAME eq fme.exe\"";
+                processBuilder = new ProcessBuilder("cmd.exe", "/c", command);
 
             } else if (SystemUtils.IS_OS_LINUX) {
-                process = runtime.exec("pgrep -l ^fme$");
+                String command ="pgrep -l ^fme$";
+                processBuilder = new ProcessBuilder("bash", "-c", command);
 
             } else {
                 this.logger.error("This operating system is not supported by Extract.");
                 throw new UnsupportedOperationException("Unsupported operating system.");
             }
 
-            BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
+            // S'assurer que le processus s'exécute avec des permissions limitées (éventuellement, configurer le répertoire de travail)
+            processBuilder.directory(null);
+            process = processBuilder.start();
+
+            if (!process.waitFor(PROCESS_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
+                logger.error("Process took too long to execute and was terminated");
+                process.destroy();
+                throw new RuntimeException("Process execution timed out.");
+            }
+
+            input = new BufferedReader(new InputStreamReader(process.getInputStream()));
             String processItem;
             int instances = 0;
+
             this.logger.debug("Fetching current FME processes:");
             while ((processItem = input.readLine()) != null) {
                 this.logger.debug(processItem);
 
-                if (processItem.startsWith("INFO:")) {
+                if (processItem.isEmpty() || processItem.startsWith("INFO:")) {
                     continue;
                 }
 
@@ -541,10 +603,21 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             input.close();
 
             return instances;
-
         } catch (IOException ioException) {
             this.logger.error("Unable to get the running FME processes.", ioException);
             throw new RuntimeException("Could not get FME instances.", ioException);
+        } catch (InterruptedException interruptedException) {
+            this.logger.error("Process was interrupted.", interruptedException);
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Process was interrupted.", interruptedException);
+        } finally {
+            if (input != null) {
+                try {
+                    input.close();
+                } catch (IOException ioException) {
+                    this.logger.warn("Unable to close the input stream.", ioException);
+                }
+            }
         }
 
     }

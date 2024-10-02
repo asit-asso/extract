@@ -20,6 +20,8 @@ import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.connectors.common.IConnectorImportResult;
 import ch.asit_asso.extract.connectors.common.IExportRequest;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.RequestUtils;
+import ch.asit_asso.extract.connectors.easysdiv4.utils.TimeoutUtils;
+import ch.asit_asso.extract.connectors.easysdiv4.utils.UserAgentProvider;
 import ch.asit_asso.extract.connectors.easysdiv4.utils.ZipUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -39,20 +41,16 @@ import org.apache.http.auth.UsernamePasswordCredentials;
 import org.apache.http.client.AuthCache;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.*;
 import org.apache.http.client.protocol.HttpClientContext;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.HttpMultipartMode;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
 import org.apache.http.impl.auth.BasicScheme;
-import org.apache.http.impl.client.BasicAuthCache;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.*;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.util.EntityUtils;
+import org.apache.http.util.VersionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.w3c.dom.*;
@@ -74,11 +72,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import java.util.*;
 
 
 /**
@@ -147,8 +141,6 @@ public class Easysdiv4 implements IConnector {
      * The messages to the user in the language used by the user interface.
      */
     private LocalizedMessages messages;
-
-
 
     /**
      * Creates a new easySDI v4 connector plugin instance with default parameters.
@@ -780,7 +772,17 @@ public class Easysdiv4 implements IConnector {
         return exportResult;
     }
 
+    protected RequestConfig createRequestConfigWithTimeout()
+    {
+        String timeoutStr = config.getProperty("getOrders.timeoutInMilliseconds");
+        int timeoutInMilliseconds = TimeoutUtils.parseTimeout(timeoutStr);
 
+        return RequestConfig.custom()
+                .setConnectTimeout(timeoutInMilliseconds)
+                .setConnectionRequestTimeout(timeoutInMilliseconds)
+                .setSocketTimeout(timeoutInMilliseconds)
+                .build();
+    }
 
     /**
      * Builds an HTTP request to be sent with the GET method, adding proxy information if it is defined.
@@ -793,7 +795,10 @@ public class Easysdiv4 implements IConnector {
 
         this.logger.debug("Creating HTTP GET request for URL {}.", url);
 
-        return (HttpGet) this.addProxyInfoToRequest(new HttpGet(url));
+        HttpGet request = new HttpGet(url);
+        request.setConfig(createRequestConfigWithTimeout());
+
+        return (HttpGet) this.addProxyInfoToRequest(request);
     }
 
 
@@ -924,10 +929,13 @@ public class Easysdiv4 implements IConnector {
     private CloseableHttpClient getHttpClient(final HttpHost targetHost, final String targetLogin,
             final String targetPassword) {
         assert targetHost != null : "The target host cannot be null";
-
         final CredentialsProvider credentials = this.getCredentialsProvider(targetHost, targetLogin, targetPassword);
-
-        return HttpClients.custom().setDefaultCredentialsProvider(credentials).build();
+        final UserAgentProvider provider = UserAgentProvider.withVersion(config.getProperty("app.version"));
+        return HttpClients.custom()
+                .setDefaultCredentialsProvider(credentials)
+                .setDefaultHeaders(provider.getDefaultHeaders())
+                .setUserAgent(provider.getUserAgent())
+                .build();
     }
 
 

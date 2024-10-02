@@ -102,6 +102,7 @@ public class ExtractLdapUserDetailsMapper  implements UserDetailsContextMapper {
                 throw new BadCredentialsException(String.format("User %s is inactive.", username));
             }
 
+
             return domainUser;
 
         }
@@ -140,7 +141,6 @@ public class ExtractLdapUserDetailsMapper  implements UserDetailsContextMapper {
         this.logger.debug("Updating user account properties from LDAP.");
         LdapUserAttributesMapper attributesMapper = new LdapUserAttributesMapper(this.ldapSettings);
         LdapUser ldapUser = attributesMapper.mapFromAttributes(context.getAttributes());
-
         return LdapUtils.updateFromLdap(domainUser, ldapUser, this.usersRepository);
     }
 }

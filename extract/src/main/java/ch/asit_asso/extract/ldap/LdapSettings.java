@@ -4,6 +4,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
@@ -241,8 +242,70 @@ public class LdapSettings {
      * @return <code>true</code> if the configuration is valid
      */
     public final boolean isValid() {
+        if (!this.isEnabled()) {
+            this.logger.warn("LDAP is disabled");
+            return false;
+        }
 
-        // TODO Implement
+        if (this.servers == null || this.servers.length == 0) {
+            this.logger.error("No LDAP servers configured.");
+            return false;
+        }
+
+        if (this.baseDn == null || this.baseDn.length == 0) {
+            this.logger.error("No LDAP base DN configured.");
+            return false;
+        }
+
+        if (this.userObjectClass == null || this.userObjectClass.isEmpty()) {
+            this.logger.error("No LDAP user object class configured.");
+            return false;
+        }
+
+        if (this.userNameAttribute == null || this.userNameAttribute.isEmpty()) {
+            this.logger.error("No LDAP user name attribute configured.");
+            return false;
+        }
+
+        if (this.loginAttribute == null || this.loginAttribute.isEmpty()) {
+            this.logger.error("No LDAP login attribute configured.");
+            return false;
+        }
+
+        if (this.mailAttribute == null || this.mailAttribute.isEmpty()) {
+            this.logger.error("No LDAP mail attribute configured.");
+            return false;
+        }
+
+        if (this.adminsGroup == null || this.adminsGroup.isEmpty()) {
+            this.logger.error("No LDAP admins group configured.");
+            return false;
+        }
+
+        if (this.synchronizationEnabled) {
+            if (this.synchronizationUserName == null || this.synchronizationUserName.isEmpty()) {
+                this.logger.error("No LDAP synchronization username configured.");
+                return false;
+            }
+
+            if (this.synchronizationPassword == null || this.synchronizationPassword.isEmpty()) {
+                this.logger.error("No LDAP synchronization password configured.");
+                return false;
+            }
+
+            if (this.synchronizationFrequencyHours <= 0) {
+                this.logger.error("No LDAP synchronization frequency hours configured.");
+                return false;
+            }
+        }
+
+        if (this.encryptionType == null) {
+            this.logger.error("No LDAP encryption type configured.");
+            return false;
+        }
+
+        logger.info("LDAP configuration is valid.");
+
         return true;
     }
 

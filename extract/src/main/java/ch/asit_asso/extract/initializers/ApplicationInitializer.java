@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.ServletContext;
 
 
 /**
@@ -58,6 +59,8 @@ public class ApplicationInitializer {
      */
     private final Secrets secrets;
 
+    private final ServletContext servletContext;
+
     /**
      * The object that ensures that there are users defined.
      */
@@ -65,10 +68,11 @@ public class ApplicationInitializer {
 
 
     public ApplicationInitializer(ApplicationRepositories repositories, MessageSource messageSource,
-                                  Secrets secrets) {
+                                  Secrets secrets, ServletContext servletContext) {
         this.applicationRepositories = repositories;
         this.messageSource = messageSource;
         this.secrets = secrets;
+        this.servletContext = servletContext;
         this.ensureInitialized();
     }
 
