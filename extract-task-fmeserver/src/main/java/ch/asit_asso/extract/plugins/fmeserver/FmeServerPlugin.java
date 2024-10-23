@@ -641,18 +641,6 @@ public class FmeServerPlugin implements ITaskProcessor {
             return false;
         }
 
-//        try {
-//            InetAddress address = InetAddress.getByName(url.getHost());
-//            if (address.isLoopbackAddress() || address.isSiteLocalAddress()) {
-//                this.logger.error("Local or private address detected. SSRF attack prevented.");
-//                return false;
-//            }
-//        } catch (UnknownHostException e) {
-//            this.logger.error("Unknown host.", e);
-//            return false;
-//        }
-
-
         try {
             final File destinationFolder = new File(folderOut);
 
@@ -674,17 +662,6 @@ public class FmeServerPlugin implements ITaskProcessor {
                 this.logger.error("Potential directory traversal attack. Download aborted.");
                 return false;
             }
-
-            // limit the size of the sizes
-//            long fileSize = url.openConnection().getContentLengthLong();
-//            if (fileSize == -1) {
-//                this.logger.error("Unknown file size. Download aborted");
-//                return false;
-//            }
-//            if (fileSize > MAX_UPLOAD_SIZE) {
-//                this.logger.error("File size exceeds the limit.");
-//                return false;
-//            }
 
             try (ReadableByteChannel remoteFileChannel = Channels.newChannel(url.openStream());
                  FileOutputStream localFileOutputStream = new FileOutputStream(outputFile)) {
