@@ -77,7 +77,7 @@ public class PasswordValidator {
     /**
      * Pattern that seeks for at least a special character
      */
-    private static final Pattern SPECIAL_CHARACTER = Pattern.compile("[#_\\-$!@%&:]");
+    private static final Pattern SPECIAL_CHARACTER = Pattern.compile("[^a-zA-Z0-9]");
 
     private PasswordValidator() {}
 

@@ -1,7 +1,6 @@
 ## Context
 
-In the `sendImportRequest` function of the `Easysdiv4` class, an uncontrolled error may occur if the function takes too long to execute or the resource is not available.
-The aim of this work package is therefore to add a default timeout to the Http client making the requests.
+In its current state, the Easysdiv4 connector doesn't communicate its version. The present workpackage intends to implement this behaviour.  
 
 ## How it works
 There are three steps involved in the process:
@@ -42,6 +41,12 @@ private CloseableHttpClient getHttpClient(final HttpHost targetHost, final Strin
 This snippet contains two additional pieces of information:
 1. The user agent 
 2. The custom `X-Extract-Version` header
+
+Both lines are included in every request:
+```
+16:36:31.406 32072 [pool-3-thread-1] DEBUG org.apache.http.wire - http-outgoing-0 >> "X-Extract-Version: 2.1.3-RELEASE[\r][\n]"
+16:36:31.531 32197 [pool-3-thread-1] DEBUG org.apache.http.wire - http-outgoing-0 >> "User-Agent: Apache-HttpClient/4.5.14 (Java/17.0.11) Extract/2.1.3-RELEASE[\r][\n]"
+```
 
 ## Classes
 ### `UserAgentProvider`

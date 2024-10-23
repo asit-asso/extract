@@ -20,6 +20,7 @@ import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 

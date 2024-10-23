@@ -20,12 +20,13 @@ import java.util.Locale;
 import java.util.UUID;
 
 import ch.asit_asso.extract.domain.User;
-import ch.asit_asso.extract.domain.User.Profile;
 import ch.asit_asso.extract.domain.User.TwoFactorStatus;
 import ch.asit_asso.extract.domain.User.UserType;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.Secrets;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.validator.routines.EmailValidator;
+import org.openqa.selenium.InvalidArgumentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -38,6 +39,16 @@ import org.springframework.context.MessageSource;
  * @author Yves Grasset
  */
 public class UsersInitializer {
+
+    /**
+     * Default email for the system user
+     */
+    private static final String SYSTEM_USER_EMAIL = "extract@asit-asso.ch";
+
+    /**
+     * Should the password be shown in the logs ?
+     */
+    private static final Boolean SYSTEM_USER_SHOW_PASSWORD = Boolean.FALSE;
 
     /**
      * The string that identifies the localized name for the default system user in the application
@@ -66,16 +77,15 @@ public class UsersInitializer {
     private final UsersRepository repository;
 
 
-
     /**
      * Creates a new instance of the initializer.
      *
      * @param usersRepository        the object that links the user data objects with the data source
-     * @param secrets          the password utility bean used by the application to hash passwords
+     * @param secrets                the password utility bean used by the application to hash passwords
      * @param localizedStringsSource the access to the application messages in the user's language
      */
     public UsersInitializer(final UsersRepository usersRepository, final Secrets secrets,
-            final MessageSource localizedStringsSource) {
+                            final MessageSource localizedStringsSource) {
 
         if (usersRepository == null) {
             throw new IllegalArgumentException("The users repository cannot be null.");
@@ -125,20 +135,20 @@ public class UsersInitializer {
         systemUser.setLogin(User.SYSTEM_USER_LOGIN);
         systemUser.setName(this.getMessageString(UsersInitializer.SYSTEM_USER_NAME_KEY));
         systemUser.setPassword(this.secrets.hash(password));
-        systemUser.setEmail("extract@asit-asso.ch");
+        systemUser.setEmail(SYSTEM_USER_EMAIL);
         systemUser.setMailActive(false);
         systemUser.setUserType(UserType.LOCAL);
         systemUser.setTwoFactorStatus(TwoFactorStatus.INACTIVE);
         systemUser.setTwoFactorForced(false);
 
-        logger.warn("\n");
-        logger.warn("-".repeat(80));
-        logger.warn("   SYSTEM USER PASSWORD: {}", password);
-        logger.warn("-".repeat(80));
-        logger.warn("\n");
+        if (SYSTEM_USER_SHOW_PASSWORD) {
+            logger.warn("-".repeat(80));
+            logger.warn("\tSYSTEM PASSWORD: {}", password);
+            logger.warn("-".repeat(80));
+        }
 
         this.repository.save(systemUser);
-        this.logger.info("The system user has been created.");
+        this.logger.info("The system user has been created with email [{}].", systemUser.getEmail());
     }
 
     /**
