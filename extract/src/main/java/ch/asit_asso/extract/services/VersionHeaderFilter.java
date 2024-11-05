@@ -8,6 +8,14 @@ import java.io.IOException;
 
 public class VersionHeaderFilter implements Filter {
 
+    /**
+     * Constant representing the version header name
+     */
+    public static final String VERSION_HEADER = "X-App-Version";
+
+    /**
+     * Holds the currently configured version
+     */
     private final String version;
 
     public VersionHeaderFilter(String version) {
@@ -16,10 +24,10 @@ public class VersionHeaderFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         if (response instanceof HttpServletResponse httpResponse) {
-            httpResponse.setHeader("X-App-Version", this.version);
+            httpResponse.setHeader(VERSION_HEADER, this.version);
         }
 
-        // Continuer avec le filtre suivant dans la chaîne
+        // advances to the next filter in the chain
         chain.doFilter(request, response);
     }
 }
