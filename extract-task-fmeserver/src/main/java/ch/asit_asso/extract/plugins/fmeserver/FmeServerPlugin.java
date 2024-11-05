@@ -93,10 +93,6 @@ public class FmeServerPlugin implements ITaskProcessor {
      */
     private static final int HTTP_OK_RESULT_CODE = 200;
 
-    /**
-     * The maximum upload size is 1G, increase if needed
-      */
-    private static final long MAX_UPLOAD_SIZE = 1024 * 1024 * 1024;;
 
     /**
      * The writer to the application logs.

@@ -27,10 +27,10 @@ public class SetupRedirectFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
 
         if (requestCanBeForwarded(request)) {
-            // Si l'application est configurée, si c'est une ressource autorisée, ou si la requête concerne "/setup"
+            // If the application is configured, if it’s an authorized resource, or if the request concerns "/setup"
             filterChain.doFilter(request, response);
         } else {
-            // Rediriger vers "/setup" si aucune des conditions n'est remplie
+            // Redirect to "/setup" if none of the conditions are met
             response.sendRedirect(getRelativeSetupPath(request));
         }
     }

@@ -53,7 +53,18 @@ public class CommonPasswords {
             "abc123456",
             "1q2w3e4r5t6y",
             "football",
-            "123qweas"
+            "123qweas",
+            "extract",
+            "extract123",
+            "viageo",
+            "viageo.ch",
+            "plansreseaux",
+            "plans-reseaux",
+            "plans-reseaux.ch",
+            "asitasit",
+            "asitvd123",
+            "motdepasse",
+            "motdepasse21"
     };
 
     /**
