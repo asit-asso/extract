@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ch.asit_asso</groupId>
     <artifactId>extract-task-validation</artifactId>
-    <version>2.1.4-RELEASE</version>
+    <version>2.2.0-BETA.1</version>
     <packaging>jar</packaging>
     <pluginRepositories>
         <pluginRepository>
@@ -16,7 +16,7 @@
         <dependency>
             <groupId>ch.asit_asso</groupId>
             <artifactId>extract-plugin-commoninterface</artifactId>
-            <version>2.1.4-RELEASE</version>
+            <version>2.2.0-BETA.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
