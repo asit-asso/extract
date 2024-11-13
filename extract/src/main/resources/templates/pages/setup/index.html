@@ -1,0 +1,88 @@
+<!DOCTYPE html SYSTEM "http://www.thymeleaf.org/dtd/xhtml1-strict-thymeleaf-spring4-4.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" xmlns:form="http://www.w3.org/1999/html"
+      layout:decorate="~{layout/masterNoNavigation}">
+<head>
+    <title>[[#{application.name}]]</title>
+    <style>
+        .is-mandatory:after {
+            content: '*';
+            color: #d9534f;
+            margin-left: 0.25em;
+            font-weight: bold;
+            cursor: default;
+        }
+    </style>
+</head>
+<body>
+<div class="container-fluid">
+    <th:block layout:fragment="content">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="login-card card">
+                    <div class="card-header">
+                        <h3 class="card-title">
+                            <img src="../static/images/extract_logo.png" th:src="@{/images/extract_logo.png}" />
+                            <span class="login-card-title" th:text="#{setup.body.title}">{Login}</span>
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-3" th:text="#{setup.body.introduction}"></p>
+                        <div class="alert alert-primary mb-3" role="alert">
+                            <h6 class="alert-heading" th:text="#{setup.alerts.password.title}">{Politique de mots de passe}</h6>
+                            <p th:text="#{setup.alerts.password.text}">{Le mode de passe doit faire entre 8 et 24 caractères et contenir des minuscules, majuscules, chiffres, et caractères spéciaux. Il ne doit ni contenir de répétitions, ni être commun.}</p>
+                        </div>
+                        <form role="form" method="POST" action="#" th:object="${model}" th:action="@{/setup}">
+                            <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+                                <p th:if="${#fields.errors().size() == 1}" th:text="#{setup.error.message.one}"></p>
+                                <p th:if="${#fields.errors().size() > 1}" th:text="#{setup.error.message.multiple}"></p>
+                                <ul>
+                                    <li th:each="err: ${#fields.errors()}" th:text="${err}"></li>
+                                </ul>
+                            </div>
+                            <fieldset class="row gy-3">
+                                <div class="col-12">
+                                    <label class="form-label is-mandatory" th:text="#{setup.fields.name.label}"></label>
+                                    <input class="form-control"
+                                           th:field="*{name}"
+                                           type="text"/>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label is-mandatory" th:text="#{setup.fields.email.label}"></label>
+                                    <input class="form-control"
+                                           th:field="*{email}"
+                                           type="email"/>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label is-mandatory" th:text="#{setup.fields.login.label}"></label>
+                                    <input class="form-control" placeholder="{Login}"
+                                           th:field="*{identifier}"
+                                           type="text" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label is-mandatory" th:text="#{setup.fields.password1.label}"></label>
+                                    <input class="form-control"
+                                           th:field="*{password1}"
+                                           autofocus="autofocus" type="password" />
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label is-mandatory" th:text="#{setup.fields.password2.label}"></label>
+                                    <input class="form-control"
+                                           th:field="*{password2}"
+                                           type="password"  />
+                                </div>
+                                <div class="col-12">
+                                    <button id="loginButton" type="submit" class="btn btn-xl btn-extract-filled w-100"
+                                            th:text="#{setup.actions.submit}">{Log in}</button>
+                                </div>
+                            </fieldset>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </th:block>
+</div>
+</body>
+</html>

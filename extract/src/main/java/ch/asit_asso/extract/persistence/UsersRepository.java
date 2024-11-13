@@ -245,4 +245,6 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
     Collection<Request> getUserAssociatedRequestsByStatusNot(@Param("userId") int userId,
             @Param("status") Request.Status status);
 
+
+    boolean existsByProfile(Profile profile);
 }

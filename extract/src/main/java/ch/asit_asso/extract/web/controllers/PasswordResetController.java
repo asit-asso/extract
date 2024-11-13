@@ -29,6 +29,9 @@ import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.EmailUtils;
 import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message.MessageType;
+import ch.asit_asso.extract.web.constraints.PasswordPolicy;
+import ch.asit_asso.extract.web.constraints.PasswordPolicyValidator;
+import ch.asit_asso.extract.web.validators.PasswordValidator;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +42,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindException;
+import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -56,7 +61,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequestMapping("/passwordReset")
 public class PasswordResetController extends BaseController {
 
-    //TODO Centralize the password complexity requirements
     /**
      * The number of characters that a password must at least contains.
      */
@@ -102,6 +106,10 @@ public class PasswordResetController extends BaseController {
      */
     private final UsersRepository usersRepository;
 
+    /**
+     * The lock to make the validation thread-safe
+     */
+    private static final Object lock = new Object();
 
 
     public PasswordResetController(EmailSettings emailSettings, Secrets secrets,
@@ -258,8 +266,6 @@ public class PasswordResetController extends BaseController {
         return this.usersRepository.save(user);
     }
 
-
-
     /**
      * Validates a new password and its confirmation.
      *
@@ -269,15 +275,27 @@ public class PasswordResetController extends BaseController {
      */
     private String checkPassword(final String password, final String passwordConfirmation) {
 
-        if (StringUtils.isEmpty(password)) {
+        if (StringUtils.isBlank(password)) {
             return "passwordResetForm.errors.password.required";
         }
+        // performs the validation
+        PasswordValidator passwordValidator = PasswordValidator.create().withStopOnFirstError(true);
+        BindException exception = new BindException(password, "password");
 
-        if (password.length() < PasswordResetController.PASSWORD_MINIMUM_SIZE) {
-            return "passwordResetForm.errors.password.tooShort";
+        try {
+            synchronized (lock) {
+                passwordValidator.validate(password, exception);
+            }
+        } catch (Exception e) {
+            logger.error("Error while validating the password.", e);
+            return "passwordResetForm.errors.password.invalid";
         }
 
-        if (StringUtils.isEmpty(passwordConfirmation)) {
+        if (exception.hasErrors()) {
+            return exception.getAllErrors().get(0).getCode();
+        }
+
+        if (StringUtils.isBlank(passwordConfirmation)) {
             return "passwordResetForm.errors.passwordConfirmation.required";
         }
 
@@ -546,5 +564,4 @@ public class PasswordResetController extends BaseController {
 
         return PasswordResetController.REDIRECT_TO_LOGIN;
     }
-
 }

@@ -52,4 +52,5 @@ module ch.asit_asso.extract.core {
     requires com.google.zxing;
     requires com.google.zxing.javase;
     requires org.apache.commons.validator;
+    requires org.seleniumhq.selenium.json;
 }

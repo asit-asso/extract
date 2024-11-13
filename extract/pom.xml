@@ -5,7 +5,7 @@
 
     <groupId>ch.asit_asso</groupId>
     <artifactId>extract</artifactId>
-    <version>2.1.4-RELEASE</version>
+    <version>2.2.0-BETA.1</version>
     <packaging>war</packaging>
 
     <name>extract</name>
@@ -50,7 +50,7 @@
         <dependency>
             <groupId>ch.asit_asso</groupId>
             <artifactId>extract-plugin-commoninterface</artifactId>
-            <version>2.1.4-RELEASE</version>
+            <version>2.2.0-BETA.1</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -250,7 +250,6 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>false</skipTests>
-                            <summaryFile>target/surefire-reports/surefire-summary-unit.xml</summaryFile>
                             <includes>ch.asit_asso.extract.unit.**.*Test</includes>
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
@@ -273,6 +272,8 @@
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
+
+                            <groups>integration, functional</groups>
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
                             </classpathDependencyExcludes>

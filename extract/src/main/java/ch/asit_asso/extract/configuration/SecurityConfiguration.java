@@ -12,9 +12,11 @@ import ch.asit_asso.extract.authentication.ldap.ExtractLdapAuthenticationProvide
 import ch.asit_asso.extract.authentication.ldap.ExtractLdapUserDetailsMapper;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorAuthentication;
 import ch.asit_asso.extract.domain.User.Profile;
+import ch.asit_asso.extract.filter.SetupRedirectFilter;
 import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.RememberMeTokenRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.services.AppInitializationService;
 import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +40,7 @@ import org.springframework.security.web.access.intercept.RequestAuthorizationCon
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
 
@@ -48,7 +51,7 @@ import org.thymeleaf.extras.springsecurity4.dialect.SpringSecurityDialect;
  *
  * @author Yves Grasset
  */
-@EnableWebSecurity
+@EnableWebSecurity()
 public class SecurityConfiguration {
 
     /**
@@ -68,7 +71,6 @@ public class SecurityConfiguration {
     public SecurityConfiguration() {
     }
 
-
     /**
      * Sets which URLs are accessible to whom and which ones are used for authentication operations.
      *
@@ -77,17 +79,24 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity, AuthenticationSuccessHandler successHandler,
                                            DaoAuthenticationProvider daoAuthenticationProvider,
-                                           ExtractLdapAuthenticationProvider ldapAuthenticationProvider) throws Exception {
+                                           ExtractLdapAuthenticationProvider ldapAuthenticationProvider, AppInitializationService appInitializationService) throws Exception {
         this.logger.debug("Configuring the security of the application.");
         httpSecurity.authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(
+                    new AntPathRequestMatcher("/setup", "GET"),
+                    new AntPathRequestMatcher("/setup", "POST"),
                     new AntPathRequestMatcher("/css/**", "GET"),
+                    new AntPathRequestMatcher("/assets/**", "GET"),
+                    new AntPathRequestMatcher("/stylesheets/**", "GET"),
                     new AntPathRequestMatcher("/images/**", "GET"),
                     new AntPathRequestMatcher("/lib/**", "GET"),
                     new AntPathRequestMatcher("/js/extract.js", "GET"),
                     new AntPathRequestMatcher("/lang/**", "GET"),
                     new AntPathRequestMatcher("/passwordReset/request", "GET"),
+                    new AntPathRequestMatcher("/favicon/**", "GET"),
                     new AntPathRequestMatcher("/favicon.ico", "GET"),
+                    new AntPathRequestMatcher("/registerSW.js", "GET"),
+                    new AntPathRequestMatcher("/manifest.webmanifest", "GET"),
                     new AntPathRequestMatcher("/extract_favicon*.png", "GET")
                 ).permitAll()
                 .requestMatchers(new AntPathRequestMatcher("/error")).permitAll()
@@ -130,7 +139,8 @@ public class SecurityConfiguration {
                     .accessDeniedPage("/forbidden")
             )
             .authenticationManager(new ProviderManager(List.of(daoAuthenticationProvider,
-                                                               ldapAuthenticationProvider)));
+                                                               ldapAuthenticationProvider)))
+            .addFilterBefore(new SetupRedirectFilter(appInitializationService), UsernamePasswordAuthenticationFilter.class);
 
         return httpSecurity.build();
     }

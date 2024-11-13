@@ -25,4 +25,5 @@ public class ApplicationConfiguration {
     public SpringDataDialect springDataDialect() {
         return new SpringDataDialect();
     }
+
 }

@@ -21,8 +21,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.URI;
-import java.net.URL;
+import java.net.*;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Paths;
@@ -93,6 +92,7 @@ public class FmeServerPlugin implements ITaskProcessor {
      * The number returned in an HTTP response to tell that the request succeeded.
      */
     private static final int HTTP_OK_RESULT_CODE = 200;
+
 
     /**
      * The writer to the application logs.
@@ -622,20 +622,51 @@ public class FmeServerPlugin implements ITaskProcessor {
      */
     private boolean downloadFromUrl(final String urlString, final String folderOut, final String zipName) {
 
+        // not an error, but a simple warning
+        if (!urlString.startsWith("https")) {
+            this.logger.warn("Unsecure download from URL: {}", urlString);
+        }
+
+        // gets the validated url
+        URL url = null;
         try {
-            final URL url = new URL(urlString);
-            final ReadableByteChannel remoteFileByteChannel = Channels.newChannel(url.openStream());
+            final URI validatedURI = new URI(urlString);
+            url = validatedURI.toURL();
+        } catch (Exception e) {
+            this.logger.error("Invalid URL.", e);
+            return false;
+        }
+
+        try {
             final File destinationFolder = new File(folderOut);
 
-            if (!destinationFolder.exists()) {
-                destinationFolder.mkdirs();
+            if (!destinationFolder.exists() && !destinationFolder.mkdirs()) {
+                this.logger.error("Could not create destination folder.");
+                return false;
             }
 
-            final File outputFile = new File(folderOut, StringUtils.appendIfMissingIgnoreCase(zipName, ".zip"));
-            final FileOutputStream localFileOutputStream = new FileOutputStream(outputFile);
-            localFileOutputStream.getChannel().transferFrom(remoteFileByteChannel, 0, Long.MAX_VALUE);
+            if (!destinationFolder.isDirectory()) {
+                this.logger.error("The destination folder is invalid.");
+                return false;
+            }
 
-            return true;
+            String safeZipName = zipName.replaceAll("[^a-zA-Z0-9\\.\\-_]", "_");
+            final File outputFile = new File(folderOut, StringUtils.appendIfMissingIgnoreCase(safeZipName, ".zip"));
+
+            // mitigates "directory traversal" attacks
+            if (!outputFile.getCanonicalPath().startsWith(destinationFolder.getCanonicalPath())) {
+                this.logger.error("Potential directory traversal attack. Download aborted.");
+                return false;
+            }
+
+            try (ReadableByteChannel remoteFileChannel = Channels.newChannel(url.openStream());
+                 FileOutputStream localFileOutputStream = new FileOutputStream(outputFile)) {
+                localFileOutputStream.getChannel().transferFrom(remoteFileChannel, 0, Long.MAX_VALUE);
+                return true;
+            } catch (IOException e) {
+                this.logger.error("I/O Error during download from URL: " + urlString, e);
+                return false;
+            }
 
         } catch (Exception exception) {
             this.logger.error("Result zip could not be downloaded.", exception);
