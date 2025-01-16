@@ -20,7 +20,7 @@ services:
             mailhog:
                 condition: service_started
         volumes:
-            - ./extract/target/extract##2.2.0-BETA.1.war:/usr/local/tomcat/webapps/extract.war
+            - ./extract/target/extract##2.2.0.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
             - /tmp/log/tomcat:/usr/local/tomcat/logs
             - /tmp/extract:/var/extract
