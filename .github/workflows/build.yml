@@ -100,7 +100,7 @@ jobs:
              - name: Running Docker Compose file with test containers (for functional tests)
                uses: hoverkraft-tech/compose-action@v1.5.1
                with:
-                   compose-file: "./docker-compose-test.yaml"
+                   compose-file: "./docker-compose-test-ci.yaml"
                    up-flags: "--wait"
                    
              - name: Execute unit tests
