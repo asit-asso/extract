@@ -112,7 +112,7 @@ jobs:
              - name: Wait on Extract application deployment
                uses: iFaxity/wait-on-action@v1.1.0
                with:
-                   resource: http://localhost:8080/extract/login
+                   resource: http://localhost:8080/extract/setup
                    interval: 5000
                    timeout: 150000
                    verbose: true

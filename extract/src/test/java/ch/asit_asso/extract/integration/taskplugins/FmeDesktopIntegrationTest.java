@@ -58,7 +58,7 @@ public class FmeDesktopIntegrationTest {
 
     private static final String FME_MOCK_LINUX = "src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest";
 
-    private static final String FME_MOCK_WINDOWS = "src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTestWindows";
+    private static final String FME_MOCK_WINDOWS = "src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest.exe";
 
     private static final String INPUT_FOLDER_NAME = "input";
 
