@@ -1,4 +1,8 @@
-INSERT INTO connectors(id_connector, active, connector_code, connector_label, connector_params, import_freq, 
+INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
+VALUES(2, TRUE, 'monadmin@monmail.com', 'admin', FALSE, 'Administrateur', 'e3a1803bc5fc7851c84995ca9fa3ab9b42529f911170df6a4fd96b8b9db6de21ab75eb34bb462be2',
+		'ADMIN', FALSE, 'INACTIVE', 'LOCAL');
+
+INSERT INTO connectors(id_connector, active, connector_code, connector_label, connector_params, import_freq,
                        last_import_date, last_import_msg, name, error_count, max_retries)
 VALUES(1, false, 'easysdiv4', 'EasySdi V4', 
        '{"uploadSize":"","detailsUrl":"","pass":"tititoto","login":"dev_test","url":"http://ags104-demo.arxit.com/Projets/6084_ASITVD/asitvd.xml"}', 
