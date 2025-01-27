@@ -110,7 +110,7 @@ jobs:
                run: mvn -q verify -Pintegration-tests --batch-mode
                
              - name: Wait on Extract application deployment
-               uses: iFaxity/wait-on-action@v1.1.0
+               uses: iFaxity/wait-on-action@v1.2.1
                with:
                    resource: http://localhost:8080/extract/login
                    interval: 5000
