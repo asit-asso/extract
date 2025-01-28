@@ -1,14 +1,9 @@
 volumes:
     extract_db_data:
 
-networks:
-    qnetwork:
-
 services:
     pgsql:
         image: postgres:12-alpine
-        volumes:
-            - /var/extract-docker/extract_db_data:/var/lib/postgresql/data
         environment:
             - POSTGRES_DB=extract
             - POSTGRES_USER=extractuser
@@ -25,12 +20,12 @@ services:
             mailhog:
                 condition: service_started
         volumes:
-            - /var/extract-docker:/var/extract
-            - /var/log/extract-docker:/var/log/extract
-            - /var/log/tomcat-docker:/usr/local/tomcat/logs
-            - ./extract/target/extract##2.2.0.war:/usr/local/tomcat/webapps/extract.war
+            - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
+            - /tmp/log/extract:/var/log/extract
+            - /tmp/log/tomcat:/usr/local/tomcat/logs
+            - /tmp/extract:/var/extract
         environment:
-            - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH -Dcom.sun.jndi.ldap.connect.pool.timeout=20000
+            - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
         ports:
             - "8080:8080"
         healthcheck:
@@ -38,7 +33,6 @@ services:
             interval: 10s
             timeout: 10s
             retries: 15
-
 
     mailhog:
         image: mailhog/mailhog
@@ -57,6 +51,7 @@ services:
                 condition: service_healthy
         volumes:
             - ./sql/update_db.sql:/update_db.sql
+            - ./sql/create_test_data.sql:/create_test_data.sql
         environment:
             - PGHOST=pgsql
             - PGDB=extract
@@ -66,9 +61,6 @@ services:
     openldap:
         image: osixia/openldap:1.5.0
         container_name: openldap
-        volumes:
-            - /var/openldap/storage/ldap_db:/var/lib/ldap
-            - /var/openldap/ldap_config:/etc/ldap/slapd.d
         environment:
             - LDAP_ORGANISATION=Extract
             - LDAP_DOMAIN=extract.org
@@ -87,37 +79,3 @@ services:
             - ./docker/ldap-ad/users.ldif:/ldap/users.ldif
         ports:
             - "10389:10389"
-
-    qgisserver:
-        image: camptocamp/qgis-server
-        volumes:
-            - ./docker/qgis-nginx/project:/etc/qgisserver
-        environment:
-            - QGIS_PROJECT_FILE=/etc/qgisserver/world.qgs
-        networks:
-            - qnetwork
-
-    node:
-        image: node:20
-        volumes:
-            - .:/var/www/html
-        working_dir: /var/www/html
-        tty: true
-        stop_grace_period: 1s
-
-    qgisproxy:
-        depends_on:
-            qgisserver:
-                condition: service_started
-        build:
-            context: ./docker/qgis-nginx
-        image: reverseauth:0.5
-        hostname: qgisproxy
-        container_name: qgisproxy
-        volumes:
-            - ./docker/qgis-nginx/nginx.conf:/etc/nginx/nginx/conf:ro
-        ports:
-            - 8888:80
-        networks:
-            - qnetwork
-            - default
