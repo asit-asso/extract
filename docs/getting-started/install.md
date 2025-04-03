@@ -47,8 +47,6 @@ It is normal for any automatic start-up of the application after deployment to f
 19.	Click on ``Enregistrer``
 20.	Congratulation ! The application is now operational.
 
-## Docker
-
 ## Update the application
 
 ## Server Migration
