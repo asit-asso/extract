@@ -1,0 +1,1 @@
+# Set up an extraction using QGIS Server (atlas print layout)

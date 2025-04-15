@@ -1,0 +1,69 @@
+site_name: Extract Documentation
+site_url: https://benoitregamey.github.io/extract
+theme:
+  name: material
+  palette:   
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: pink
+      toggle:
+        icon: material/brightness-7 
+        name: Switch to dark mode
+        
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: pink
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  
+  font:
+    text: Asap
+    code: JetBrains Mono
+  
+  logo: assets/asit_extract_blanc.png
+  favicon: assets/extract_favicon64.png
+
+  features:
+    - navigation.sections
+    - search.suggest
+    - toc.integrate
+    - navigation.path
+
+  icon:
+    repo: fontawesome/brands/github
+
+repo_url: https://github.com/asit-asso/extract
+repo_name: asit-asso/extract
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - index.md
+  - Getting Started:
+    - getting-started/install.md
+    - getting-started/configure.md
+    - getting-started/customize.md
+    - getting-started/cybersecurity.md
+  - Features & Usage:
+    - features/user-guide.md
+    - features/admin-guide.md
+    - features/extract-viageo.md
+  - How-To:
+    - how-to/fme-form.md
+    - how-to/fme-flow.md
+    - how-to/qgis-server-atlas.md
+  - Miscellaneous:
+    - misc/viageo-test.md 
+    - misc/community.md
