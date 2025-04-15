@@ -2,6 +2,10 @@ package ch.asit_asso.extract.functional.pages;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+
+import java.time.Duration;
 
 public class LoginPage {
 
@@ -36,7 +40,13 @@ public class LoginPage {
 
 
     private HomePage submitLogin() {
+
+        String currentUrl = driver.getCurrentUrl();
+
         this.driver.findElement(LoginPage.LOGIN_BUTTON_LOCATOR).click();
+
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(5));
+        wait.until(ExpectedConditions.not(ExpectedConditions.urlToBe(currentUrl)));
 
         return new HomePage(this.driver);
     }
