@@ -186,7 +186,7 @@ public class ProcessesController extends BaseController {
         processModel.createInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository,
                                         this.userGroupsRepository);
 
-        this.addStatusMessage(redirectAttributes, "connectorsList.connector.added", MessageType.SUCCESS);
+        this.addStatusMessage(redirectAttributes, "processesList.process.added", MessageType.SUCCESS);
         return ProcessesController.REDIRECT_TO_LIST;
     }
 
