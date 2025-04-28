@@ -2,21 +2,8 @@ site_name: Extract Documentation
 site_url: https://benoitregamey.github.io/extract
 theme:
   name: material
-  palette:   
-    - media: "(prefers-color-scheme: light)"
-      scheme: default
-      primary: pink
-      toggle:
-        icon: material/brightness-7 
-        name: Switch to dark mode
-        
-    # Palette toggle for dark mode
-    - media: "(prefers-color-scheme: dark)"
-      scheme: slate
-      primary: pink
-      toggle:
-        icon: material/brightness-4
-        name: Switch to light mode
+  palette:
+    primary: custom
   
   font:
     text: Asap
@@ -27,9 +14,12 @@ theme:
 
   features:
     - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
     - search.suggest
     - toc.integrate
     - navigation.path
+    - content.code.copy
 
   icon:
     repo: fontawesome/brands/github

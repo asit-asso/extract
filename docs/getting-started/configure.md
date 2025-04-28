@@ -6,89 +6,203 @@ title: Configure
 !!! Info
     The global application settings are found in the ``application.settings`` file at the root of the ``WEB-INF\classes`` folder. Changes are taken into account when the Tomcat Extract application is restarted.
 
-**``application.external.url``**<br>
+**application.external.url**<br>
 URL to access the application. This value is used to generate links in notification e-mails.
 
-**``database.encryption.secret``**<br>
+**database.encryption.secret**<br>
 Random 32-character ISO-8859-1 string used as key to encrypt certain database values.
 
-**``database.encryption.salt``**<br>
+**database.encryption.salt**<br>
+Random 32-character ISO-8859-1 string used as "salt" to encrypt certain database values.
 
-**``email.templates.cache``**<br>
+**email.templates.cache**<br>
+Boolean value defining whether email notification templates should be cached.
 
-**``email.templates.encoding``**<br>
+**email.templates.encoding**<br>
+Encoding used by email notification templates
 
-**``email.templates.path``**<br>
+**email.templates.path**<br>
+Relative path to directory containing email notification templates. If the path is relative to the
+``WEB-INF/classes`` directory, it must be prefixed with ``classpath:/``.
 
-**``extract.i18n.language``**<br>
+**extract.i18n.language**<br>
+Language code used by the application. A directory with the same name containing the application's language files must exist in the ``WEB-INF/classes/static/lang`` directory. If this is not the case, you can add a new language (see [Add a new language section](../customize/#add-a-new-language)).
 
-**``http.proxyHost``**<br>
+**http.proxyHost**<br>
+Server name to be used as proxy for external connections. This property can be omitted if no proxy is used.
 
-**``http.proxyPassword``**<br>
+**http.proxyPassword**<br>
+Password used to log in to the proxy server. This property can be omitted if no proxy is used or if it does not require authentication.
 
-**``http.proxyPort``**<br>
+**http.proxyPort**<br>
+HTTP port of proxy server. This property can be omitted if no proxy is used.
 
-**``http.proxyUser``**<br>
+**http.proxyUser**<br>
+Username used to log in to the proxy server. This property can be omitted if no proxy is used or if it does not require authentication.
 
-**``ldap.attributes.fullname``**<br>
+**ldap.attributes.fullname**<br>
+LDAP attribute name containing the user's full name (e.g. John Doe).
 
-**``ldap.attributes.login``**<br>
+**ldap.attributes.login**<br>
+LDAP attribute name containing the user's identifier, to be typed into the login form ( e.g. jdoe).
 
-**``ldap.attributes.mail``**<br>
+**ldap.attributes.mail**<br>
+LDAP attribute name containing the user's e-mail address.
 
-**``ldap.user.objectclass``**<br>
+**ldap.user.objectclass**<br>
+LDAP object class to which users must belong.
 
-**``logging.config``**<br>
+**logging.config**<br>
+Path to file containing application log configuration. If the path is relative to the application's ``WEB-INF/classes`` directory, it must be prefixed with ``classpath:/``.
 
-**``spring.batch.jdbc.initialize-schema``**<br>
+**spring.batch.jdbc.initialize-schema**<br>
+String defining whether the Spring Batch initializer should be started. This value must be set to ``never`` in order to avoid creating unused tables in the database.
 
-**``spring.batch.job.enabled``**<br>
+**spring.batch.job.enabled**<br>
+Boolean value defining whether scheduled tasks should be started automatically by Spring Batch. Must be set to ``false``. (These tasks are started by the application.)
 
-**``spring.datasource.driver-class-name``**<br>
+**spring.datasource.driver-class-name**<br>
+Qualified name of the database driver class to be used.
 
-**``spring.datasource.password``**<br>
+**spring.datasource.password**<br>
+Database login password.
 
-**``spring.datasource.url``**<br>
+**spring.datasource.url**<br>
+JDBC database connection string.
 
-**``spring.datasource.username``**<br>
+**spring.datasource.username**<br>
+Database login username
 
-**``spring.servlet.multipart.max-file-size``**<br>
+**spring.servlet.multipart.max-file-size**<br>
+Maximum size of each file that can be uploaded to the application. If you receive a 500 error when adding a large file to a request folder, it may be useful to increase this value, remembering to also increase ``spring.servlet.multipart.max-request-size`` if necessary.
 
-**``spring.servlet.multipart.max-request-size``**<br>
+**spring.servlet.multipart.max-request-size**<br>
+Maximum size of an upload request. This value must be greater than or equal to that of ``spring.servlet.multipart.max-file-size``.
 
-**``spring.jpa.database-platform``**<br>
+**spring.jpa.database-platform**<br>
+Qualified name of the dialect class to be used to communicate with the database.
 
-**``spring.jpa.hibernate.ddl-auto``**<br>
+**spring.jpa.hibernate.ddl-auto**<br>
+Value defining the application's behaviour with regard to database architecture. By default, this property is set to ``update``, which allows tables to be generated automatically when the application is first started. Subsequently, you can speed up application start-up by setting this value to ``none``. In this case, if a table or column has been accidentally deleted, it will not be automatically recreated, which may lead to operating problems. It is also recommended to set this value back to ``update`` when installing a new version of Extract, so that any database modifications can be applied.
 
-**``spring.jpa.properties.hibernate.id.new_generator_mappings``**<br>
+**spring.jpa.properties.hibernate.id.new_generator_mappings**<br>
+Boolean value defining whether to use the latest ID generator version for database entries. Must be set to ``true``.
 
-**``spring.jpa.show-sql``**<br>
+**spring.jpa.show-sql**<br>
+Boolean value defining whether to display SQL generated by the application (e.g. in logs). We strongly advise you to leave this value at ``false``.
 
-**``spring.thymeleaf.cache``**<br>
+**spring.thymeleaf.cache**<br>
+Boolean value defining whether the application's pages templates should be cached.
 
-**``spring.thymeleaf.enabled``**<br>
+**spring.thymeleaf.enabled**<br>
+Boolean value defining whether to enable the templating engine. Must be set to ``true``.
 
-**``spring.thymeleaf.encoding``**<br>
+**spring.thymeleaf.encoding**<br>
+Encoding used by the application's pages templates.
 
-**``spring.thymeleaf.mode``**<br>
+**spring.thymeleaf.mode**<br>
+Template type used for application pages. Must be set to ``HTML``.
 
-**``spring.thymeleaf.prefix``**<br>
+**spring.thymeleaf.prefix**<br>
+Path to directory containing application page templates. If the path is relative to the application's ``WEB-INF/classe``s directory, it must be prefixed with ``classpath:/``.
 
-**``spring.thymeleaf.suffix``**<br>
+**spring.thymeleaf.suffix**<br>
+Application page templates extension.
 
-**``spring.thymeleaf.template-resolver-order``**<br>
+**spring.thymeleaf.template-resolver-order**<br>
+Templating engine priority for resolving application page templates. Must be set to ``1``.
 
-**``table.page.size``**<br>
+**table.page.size**<br>
+Number of lines to display in tables using pagination.
 
 ## Logging
+!!! Info
+    The logging application settings are found in the ``logback-spring.xml`` file at the root of the ``WEB-INF\classes`` folder. They define what information should be written to the application logs. Changes are taken into account when the Tomcat Extract application is restarted.
+
+The setup takes place in two steps:
+
+1. The setting of an ``appender``, i.e. a location to which to send the information to be logged, and the format of this information. This can be a file, a database, a console, etc.
+
+2. The setting of a ``logger``. A ``logger`` serves as the connection between a specific part of an application and one or more predefined ``appenders``. A ``logger`` can simultaneously use multiple ``appenders``, and a single ``appender`` can be shared by multiple ``loggers``. The ``logger`` is identified by a name, corresponding to the package from which the class messages originate, encompassing any of its sub-packages. Additionally, the ``logger`` specifies a minimum level of messages to be logged. The root ``logger`` provides default logging behavior for all application classes, including  dependencies.
+
+For more detailed information, please refer to the [Logback help](https://logback.qos.ch/manual/configuration.html).
 
 ## Tomcat user access rights
+Since Extract is a Tomcat application, it relies on the user running the Tomcat service to access various resources (network shares, local folders, etc.). It is therefore recommended to run the Tomcat service with an account having access to the necessary resources.
+
+#### Changing the Tomcat user (Windows)
+
+1. Open the Tomcat monitor (``tomcat8w.exe``, or ``Start Menu > All Programs > Apache Tomcat > Configure Tomcat``)
+2. Go to the ``Log On`` tab
+3. Check the ``This account`` option
+4. Edit the desired account information
+5. Click on OK
+6. Restart the Tomcat service
+
+#### Changing the Tomcat user (Linux)
+
+1. Edit the ``/etc/systemd/system/tomcat9.service`` file
+2. In the ``Service`` category, change the values of the ``User`` and ``Group`` keys to the user's name and group respectively.
+3. Save the file
+4. Restart the Tomcat service
+
+!!! Warning
+    The name of the file, its location and even the entire procedure may differ depending on the distribution used, the version of Tomcat and its installation mode.
 
 ## Tomcat default locale
+In emails sent by Tomcat, dates are formatted according to Tomcat's locale. To set this, use the Duser.language and Duser.region parameters. For example :
+```xml
+-Duser.language=fr -Duser.region=CH
+```
+
+These parameters are defined in the same way as for heap size (see [Heap Size](#heap-size)).
 
 ## Optimizing
 
+#### Heap size
+The FME Desktop scripts run by Extract can lead to heavy heap usage. If you are using this plugin, it is recommended that you set the starting size of the heap (parameter ``Xms``) to 1024 MB and the maximum size (parameter ``Xmx``) to at least 2048 MB.
+
+These parameters are set in the ``setenv.sh`` (Linux) or ``setenv.bat`` (Windows) file in Tomcat's bin directory.
+
+If Tomcat is running as a Windows service, these parameters are defined in the ``Java`` tab of the service properties. This tab can only be accessed via the Tomcat monitor (``tomcat8w.exe``, or ``Start Menu > All Programs > Apache Tomcat > Configure Tomcat``). It is not visible via the Windows services management console (services.msc).
+
+In all cases, Tomcat must be restarted for the changes to take effect.
+
+#### Cache Size
+During startup, the logs may report that an item failed to load due to insufficient cache size, for example:
+
+```
+24-May-2017 10:52:57.029 WARNING [https-jsse-nio-8443-exec-10] org.apache.catalina.webresources.Cache.getResource Unable to add the resource at [/WEB-INF/classes/static/bower_components/select2/docs/_sass/vendor/font-awesome/_variables.scss] to the cache for web application [/extract] because there was insufficient free space available after evicting expired cache entries - consider increasing the maximum size of the cache
+```
+
+In this case, you can increase the maximum cache size by modifying the ``context.xml`` file in Tomcat's ``conf`` directory :
+
+```xml
+<Context>
+    <!-- ... -->
+
+    <!-- Larger resources cache for EXTRACT -->
+    <Resources cacheMaxSize="102400" />
+
+    <!-- ... -->
+</Context>
+```
+
 ## Rule field size limitation (matching processes)
+Since the creation of text fields is problematic when handled solely with JPA (so that the application is not tied to a particular database system), It was decided to define the field that stores the rules linking requests to their corresponding processing as a ``VARCHAR`` data type. Unfortunately, this means limiting the number of characters in each rule to 65,000.
+
+Using PostgreSQL, however, you can remove this limitation by manually changing the type of the rule field in the rules table. The SQL command to make this change is :
+
+```sql
+ALTER TABLE rules ALTER COLUMN rule TYPE TEXT
+```
+
+Field values of existing records are preserved.
+
+!!! Warning
+    There is no guarantee that a similar modification will work with another DBMS.
+
+
 <br>
 <br>
 <br>
