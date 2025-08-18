@@ -18,6 +18,7 @@
 var REQUESTS_LIST_CONNECTOR_STATUS_OK = "OK";
 var REQUESTS_LIST_CONNECTOR_STATUS_ERROR = "ERROR";
 
+var _ajaxErrorNotificationId = null;
 
 function addSortAndSearchInfo(data) {
     _addSortInfo(data);
@@ -116,6 +117,25 @@ function loadDatepickers(language) {
  */
 function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSearching, isServerSide, pagingSize,
         dataFunction) {
+
+    // configure DataTables to suppress default error alerts
+    $.fn.dataTable.ext.errMode = 'none';
+
+    const selector = '#' + tableId
+
+    // Handle DataTables errors gracefully
+    $(selector).on('dt-error.dt', function(e, settings, techNote, message) {
+        console.warn('DataTables error on table ' + tableId + ':', message);
+        _showAjaxErrorNotification(tableId);
+    });
+
+    // Clear error notification on successful load
+    $(selector).on('xhr.dt', function(e, settings, json, xhr) {
+        if (xhr && xhr.status === 200) {
+            _clearAjaxErrorNotification();
+        }
+    });
+
     var configuration = _getRequestsTableConfiguration(ajaxUrl, withPaging, withSearching, isServerSide, pagingSize,
             dataFunction);
     var $table = $('#' + tableId);
@@ -143,6 +163,51 @@ function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSe
     return requestsTable;
 }
 
+/**
+  * Shows a non-intrusive error notification for AJAX failures.
+  *
+  * @param {String} tableId the identifier of the table that failed to load
+  * @private
+  */
+function _showAjaxErrorNotification(tableId) {
+
+    // Remove existing notification if present
+    _clearAjaxErrorNotification();
+
+    // Create notification element
+    var notificationHtml = '<div id="ajaxErrorNotification" class="alert alert-warning alert-dismissible" ' +
+        'style="position: fixed; top: 10px; right: 10px; z-index: 9999; min-width: 300px;">' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '<strong><i class="fa fa-exclamation-triangle"></i> ' +
+        (LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError ?
+                LANG_MESSAGES.errors.ajaxError.title : 'Connection Error') + '</strong>' +
+        '<div>' +
+        (LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError ?
+                LANG_MESSAGES.errors.ajaxError.message : 'Unable to refresh data. Will retry automatically...') +
+        '</div></div>';
+
+    $('body').append(notificationHtml);
+    _ajaxErrorNotificationId = 'ajaxErrorNotification';
+
+    // Auto-dismiss after 10 seconds
+    setTimeout(function() {
+        _clearAjaxErrorNotification();
+    }, 10000);
+}
+
+/**
+ + * Clears the AJAX error notification if present.
+ + *
+ + * @private
+ + */
+function _clearAjaxErrorNotification() {
+    if (_ajaxErrorNotificationId) {
+        $('#' + _ajaxErrorNotificationId).fadeOut(300, function() {
+            $(this).remove();
+        });
+        _ajaxErrorNotificationId = null;
+    }
+}
 
 
 /**
