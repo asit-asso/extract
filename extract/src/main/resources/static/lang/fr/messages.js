@@ -153,6 +153,12 @@ var LANG_MESSAGES = {
             "title" : "Pas encore implémenté",
             "message" : "Désolé, cette fonction n'est pas encore disponible."
         }
+    },
+    "errors" : {
+        "ajaxError" : {
+            "title" : "Erreur de connexion",
+            "message" : "Une erreur est survenue lors de la mise à jour des demandes en cours..."
+        }
     }
 };
 

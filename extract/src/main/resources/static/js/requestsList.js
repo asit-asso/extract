@@ -171,20 +171,30 @@ function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSe
   */
 function _showAjaxErrorNotification(tableId) {
 
-    // Remove existing notification if present
+    // Check if notification already exists - don't create duplicate
+    if (_ajaxErrorNotificationId && $('#' + _ajaxErrorNotificationId).length > 0) {
+        return;
+    }
+
+    // Remove any existing notification first (just in case)
     _clearAjaxErrorNotification();
+
+    // Get localized messages or use defaults
+    var title = 'Connection Error';
+    var message = 'An error occurred while updating pending requests...';
+
+    // Check if LANG_MESSAGES is available
+    if (typeof LANG_MESSAGES !== 'undefined' && LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError) {
+        title = LANG_MESSAGES.errors.ajaxError.title || title;
+        message = LANG_MESSAGES.errors.ajaxError.message || message;
+    }
 
     // Create notification element
     var notificationHtml = '<div id="ajaxErrorNotification" class="alert alert-warning alert-dismissible" ' +
         'style="position: fixed; top: 10px; right: 10px; z-index: 9999; min-width: 300px;">' +
         '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-        '<strong><i class="fa fa-exclamation-triangle"></i> ' +
-        (LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError ?
-                LANG_MESSAGES.errors.ajaxError.title : 'Connection Error') + '</strong>' +
-        '<div>' +
-        (LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError ?
-                LANG_MESSAGES.errors.ajaxError.message : 'Unable to refresh data. Will retry automatically...') +
-        '</div></div>';
+        '<strong><i class="fa fa-exclamation-triangle"></i> ' + title + '</strong>' +
+        '<div>' + message + '</div></div>';
 
     $('body').append(notificationHtml);
     _ajaxErrorNotificationId = 'ajaxErrorNotification';
@@ -683,15 +693,40 @@ function _refreshConnectorsState() {
 
     $.ajax(_connectorsUrl, {
         cache : false,
-        error : function() {
-            alert("ERROR - Could not fetch the connectors information.");
+        dataType: 'json',
+        error : function(xhr, status, error) {
+            // Check if it's a redirect to login (authentication issue)
+            if (xhr.status === 0 || xhr.status === 302 || xhr.status === 401 || xhr.status === 403) {
+                console.warn("Authentication issue when fetching connectors. User may need to log in again.");
+                // Check if we got HTML (likely login page) instead of JSON
+                if (xhr.responseText && xhr.responseText.indexOf('<!DOCTYPE') > -1) {
+                    console.warn("Received HTML instead of JSON - likely redirected to login page");
+                    window.location.href = '/extract/login';
+                    return;
+                }
+                // Show a non-intrusive notification instead of an alert
+                _showAjaxErrorNotification('connectors');
+            } else {
+                console.error("Error fetching connectors:", status, error);
+                _showAjaxErrorNotification('connectors');
+            }
         },
-        success : function(data) {
-
-            if (!data || !Array.isArray(data)) {
-                alert("ERROR - Could not fetch the connectors information.");
+        success : function(data, textStatus, xhr) {
+            // Check if we got HTML instead of JSON (can happen with some redirects)
+            var contentType = xhr.getResponseHeader("content-type") || "";
+            if (contentType.indexOf('html') > -1) {
+                console.warn("Received HTML instead of JSON - likely redirected to login page");
+                window.location.href = '/extract/login';
+                return;
             }
 
+            if (!data || !Array.isArray(data)) {
+                console.error("Invalid connectors data received:", data);
+                _showAjaxErrorNotification('connectors');
+                return;
+            }
+
+            _clearAjaxErrorNotification();
             _updateConnectorsState(data);
         }
     });

@@ -1,0 +1,45 @@
+{
+    "name": "extract-tests",
+    "version": "2.2.0",
+    "description": "JavaScript unit tests for Extract application",
+    "scripts": {
+        "test": "jest",
+        "test:watch": "jest --watch",
+        "test:coverage": "jest --coverage"
+    },
+    "dependencies": {
+        "@popperjs/core": "2.11.8",
+        "bootstrap": "5.3.3",
+        "bootstrap-datepicker": "1.10.0",
+        "datatables.net": "2.0.3",
+        "datatables.net-bs5": "2.0.3",
+        "font-awesome": "4.7.0",
+        "jquery": "3.7.1",
+        "jquery-ui": "1.13.2",
+        "ol": "9.1.0",
+        "ol-layerswitcher": "4.1.1",
+        "proj4": "2.11.0",
+        "select2": "4.1.0-rc.0",
+        "timepicker": "1.13.19"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.22.0",
+        "@babel/preset-env": "^7.22.0",
+        "babel-jest": "^29.5.0",
+        "identity-obj-proxy": "^3.0.0",
+        "jest": "^29.5.0",
+        "jest-environment-jsdom": "^29.5.0"
+    },
+    "eslintConfig": {
+        "env": {
+            "es6": true,
+            "jest": true
+        }
+    },
+    "babel": {
+        "presets": [
+            "@babel/preset-env"
+        ]
+    },
+    "packageManager": "yarn@4.1.1"
+}
