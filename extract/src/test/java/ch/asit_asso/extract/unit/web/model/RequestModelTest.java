@@ -27,9 +27,10 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
 /**
- * Unit tests for RequestModel class, specifically testing null handling for outputFolderPath.
+ * Unit tests for RequestModel class, specifically testing null handling for outputFolderPath and outputFiles.
  * This addresses issue #333: Requests without geographical perimeter (IMPORTFAIL status) 
  * should be handled gracefully.
+ * This also addresses issue #337: Cancelled requests without matching rules should render correctly.
  */
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
@@ -181,4 +182,72 @@ public class RequestModelTest {
         assertTrue(model.isWaitingIntervention(),
                    "isWaitingIntervention should return true for IMPORTFAIL with no history");
     }
+    
+    /**
+     * Test that getOutputFiles returns empty array when outputFolderPath is null.
+     * This addresses issue #337: Template should handle null outputFiles gracefully.
+     */
+    @Test
+    @DisplayName("getOutputFiles should return empty array when outputFolderPath is null")
+    public void testGetOutputFilesWithNullFolderPathIssue337() {
+        // Given: A request with null folderOut (common in UNMATCHED or IMPORTFAIL status)
+        when(mockRequest.getFolderOut()).thenReturn(null);
+        when(mockRequest.getStatus()).thenReturn(Request.Status.UNMATCHED);
+        
+        // When: Creating a RequestModel and getting output files
+        RequestModel model = new RequestModel(mockRequest, emptyHistory, basePath, mockMessageSource, validationFocusProperties);
+        Object[] outputFiles = model.getOutputFiles();
+        
+        // Then: outputFiles should be empty array, not null
+        assertNotNull(outputFiles, "outputFiles should never be null");
+        assertEquals(0, outputFiles.length, "outputFiles should be empty when folderOut is null");
+    }
+    
+    /**
+     * Test that RequestModel handles UNMATCHED status with null outputFolderPath correctly.
+     * This addresses issue #337: Cancelled requests without rules should not cause NPE.
+     */
+    @Test
+    @DisplayName("RequestModel should handle UNMATCHED status with null folder correctly")
+    public void testUnmatchedStatusWithNullFolder() {
+        // Given: An UNMATCHED request (no matching rules found)
+        when(mockRequest.getFolderOut()).thenReturn(null);
+        when(mockRequest.getStatus()).thenReturn(Request.Status.UNMATCHED);
+        when(mockRequest.getRemark()).thenReturn("No matching rules found");
+        when(mockRequest.getConnector()).thenReturn(mockConnector);
+        when(mockConnector.getName()).thenReturn("Test Connector");
+        
+        // When: Creating a RequestModel
+        RequestModel model = new RequestModel(mockRequest, emptyHistory, basePath, mockMessageSource, validationFocusProperties);
+        
+        // Then: Model should handle nulls gracefully
+        assertNull(model.getOutputFolderPath(), "outputFolderPath should be null");
+        assertNotNull(model.getOutputFiles(), "outputFiles should not be null");
+        assertEquals(0, model.getOutputFiles().length, "outputFiles should be empty");
+        assertTrue(model.isUnmatched(), "isUnmatched should be true");
+        assertEquals("No matching rules found", model.getRemark());
+    }
+    
+    /**
+     * Test that RequestModel handles ERROR status with null outputFiles correctly.
+     * This ensures the template can safely check array operations.
+     */
+    @Test
+    @DisplayName("RequestModel should handle ERROR status with null output correctly")  
+    public void testErrorStatusWithNullOutput() {
+        // Given: A request in ERROR status with no output
+        when(mockRequest.getFolderOut()).thenReturn(null);
+        when(mockRequest.getStatus()).thenReturn(Request.Status.ERROR);
+        when(mockRequest.getRemark()).thenReturn("Processing failed");
+        
+        // When: Creating a RequestModel
+        RequestModel model = new RequestModel(mockRequest, emptyHistory, basePath, mockMessageSource, validationFocusProperties);
+        
+        // Then: Should handle all null scenarios
+        assertNull(model.getOutputFolderPath(), "outputFolderPath should be null");
+        assertNotNull(model.getOutputFiles(), "outputFiles should never be null to prevent template errors");
+        assertEquals(0, model.getOutputFiles().length, "outputFiles should be empty array");
+        assertTrue(model.isInError(), "isInError should be true");
+    }
+    
 }

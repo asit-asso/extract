@@ -368,7 +368,9 @@ public class RequestModel {
 
 
 
-    public final String getOutputFolderPath() { return this.outputFolderPath.toString(); }
+    public final String getOutputFolderPath() { 
+        return this.outputFolderPath != null ? this.outputFolderPath.toString() : null; 
+    }
 
 
 

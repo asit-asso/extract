@@ -350,7 +350,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                            class="hidden-file-upload-control"/>
                 </form>
                 <div class="card card-default"
-                     th:if="${request.waitingIntervention} or not (${#strings.isEmpty(request.remark) and #arrays.isEmpty(request.outputFiles)})">
+                     th:if="${request.waitingIntervention} or (not ${#strings.isEmpty(request.remark)}) or (${request.outputFiles != null} and not ${#arrays.isEmpty(request.outputFiles)})">
                     <div class="card-header">
                         <b th:text="#{requestDetails.panels.response.title}">{Response to the customer}</b>
                     </div>
@@ -370,7 +370,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         <td><b th:text="#{requestDetails.files.title}">{Files:}</b>&nbsp;</td>
                                         <td>
                                             <div th:text="#{requestDetails.files.none}"
-                                                 th:if="(not ${request.waitingIntervention}) and ${#arrays.isEmpty(request.outputFiles)}">{(None)}</div>
+                                                 th:if="(not ${request.waitingIntervention}) and (${request.outputFiles == null} or ${#arrays.isEmpty(request.outputFiles)})">{(None)}</div>
                                             <div th:each="fileItem, fileStats : ${request.outputFiles}"
                                                  th:object="${request.outputFiles[__${fileStats.index}__]}"
                                                  th:unless="${fileStats.count == 0}">
@@ -397,7 +397,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 </button>
                                                 <button type="button" id="file-download-button"
                                                         class="btn btn-extract-white file-download-button"
-                                                        th:if="${request.waitingIntervention} and ${request.outputFiles.length} > 1"
+                                                        th:if="${request.waitingIntervention} and ${request.outputFiles != null} and ${request.outputFiles.length} > 1"
                                                         th:attr="data-action=@{'/requests/' + ${request.id} + '/getAllFiles'}">
                                                     <i class="fa fa-download"></i>
                                                     <span th:text="#{requestDetails.files.downloadAll.button.label}">
@@ -409,7 +409,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <div class="strong" th:text="#{requestDetails.tempFolder.label}">
                                                     {Temp folders path:}
                                                 </div>
-                                                <div th:text="${request.outputFolderPath}">{/var/extract/data/my-request/output/}</div>
+                                                <div th:if="${request.outputFolderPath != null}" th:text="${request.outputFolderPath}">{/var/extract/data/my-request/output/}</div>
+                                                <div th:if="${request.outputFolderPath == null}" th:text="#{requestDetails.tempFolder.notAvailable}">
+                                                    {(Not available)}
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
