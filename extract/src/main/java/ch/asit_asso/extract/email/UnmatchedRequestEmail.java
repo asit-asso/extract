@@ -107,9 +107,12 @@ public class UnmatchedRequestEmail extends Email {
         assert request.getConnector() != null : "The request connector must be set";
 
         Context model = new Context();
+        
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+        
+        // Add email-specific variables
         model.setVariable("connectorName", request.getConnector().getName());
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
 
         try {
             model.setVariable("dashboardItemUrl", this.getAbsoluteUrl(String.format("/requests/%d",

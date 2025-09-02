@@ -19,6 +19,7 @@ package ch.asit_asso.extract.email;
 import java.net.MalformedURLException;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.email.RequestModelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.context.Context;
@@ -135,9 +136,12 @@ public class TaskStandbyEmail extends Email {
         assert request.getProcess() != null : "The process attached to the request cannot be null.";
 
         final Context model = new Context();
+        
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+        
+        // Add email-specific variables
         model.setVariable("processName", request.getProcess().getName());
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
 
         try {
             model.setVariable("dashboardItemUrl", this.getAbsoluteUrl(String.format("/requests/%d",

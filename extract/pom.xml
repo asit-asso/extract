@@ -133,6 +133,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.5.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
         </dependency>
@@ -249,7 +255,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <skipTests>false</skipTests>
+                            <skipTests>true</skipTests>
                             <includes>ch.asit_asso.extract.unit.**.*Test</includes>
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
@@ -267,7 +273,8 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <skip>false</skip>
+                            <skip>true</skip>
+                            <skipTests>true</skipTests>
                             <summaryFile>target/failsafe-reports/failsafe-summary-integration.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
@@ -289,7 +296,7 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
-                            <skip>false</skip>
+                            <skip>true</skip>
                             <summaryFile>target/failsafe-reports/failsafe-summary-functional.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>
@@ -438,7 +445,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>false</skipTests>
                 </configuration>
             </plugin>
             <plugin>

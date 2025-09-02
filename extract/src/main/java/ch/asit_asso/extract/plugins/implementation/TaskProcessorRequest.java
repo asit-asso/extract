@@ -126,6 +126,11 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
      */
     private String tiers;
 
+    /**
+     * The surface area of the extraction.
+     */
+    private String surface;
+
 
 
     /**
@@ -159,6 +164,7 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
         this.setStartDate(domainRequest.getStartDate());
         this.setStatus(domainRequest.getStatus().toString());
         this.setTiers(domainRequest.getTiers());
+        this.setSurface(domainRequest.getSurface() != null ? domainRequest.getSurface().toString() : "");
     }
 
 
@@ -296,7 +302,7 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
     /**
      * Defines the name of the person who placed the order that this request is a part of.
      *
-     * @param clientName the customer's name
+     * @param clientGuid the customer's name
      */
     public void setClientGuid(final String clientGuid) {
         this.clientGuid = clientGuid;
@@ -423,7 +429,7 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
     /**
      * Defines the organization that the person who made this request is part of.
      *
-     * @param organismName the name of the organization
+     * @param organismGuid the name of the organization
      */
     public void setOrganismGuid(final String organismGuid) {
         this.organismGuid = organismGuid;
@@ -499,6 +505,20 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
      */
     public void setTiers(final String thirdParty) {
         this.tiers = thirdParty;
+    }
+
+
+    public String getSurface() {
+        return this.surface;
+    }
+
+    /**
+     * Defines the surface area of the extraction.
+     *
+     * @param surface the surface area value
+     */
+    public void setSurface(final String surface) {
+        this.surface = surface;
     }
 
 }

@@ -22,6 +22,7 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.email.RequestModelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.context.Context;
@@ -138,8 +139,11 @@ public class InvalidProductImportedEmail extends Email {
         assert new GregorianCalendar().after(importTime) : "The time of the failed import must be set in the past.";
 
         Context model = new Context();
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
+        
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+        
+        // Add email-specific variables
         model.setVariable("connectorName", request.getConnector().getName());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(importTime.getTime()));

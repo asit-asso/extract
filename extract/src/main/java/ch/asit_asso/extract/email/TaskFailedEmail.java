@@ -166,9 +166,12 @@ public class TaskFailedEmail extends Email {
         assert new GregorianCalendar().after(failureTime) : "The failure time must be set in the past.";
 
         final Context model = new Context();
+        
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+        
+        // Add task-specific variables
         model.setVariable("taskName", task.getLabel());
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(failureTime.getTime()));
 

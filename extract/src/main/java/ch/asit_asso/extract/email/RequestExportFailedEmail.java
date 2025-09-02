@@ -138,8 +138,11 @@ public class RequestExportFailedEmail extends Email {
         assert new GregorianCalendar().after(exportTime) : "The time of the failed export must be set in the past.";
 
         Context model = new Context();
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
+        
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+        
+        // Add email-specific variables
         model.setVariable("connectorName", request.getConnector().getName());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(exportTime.getTime()));

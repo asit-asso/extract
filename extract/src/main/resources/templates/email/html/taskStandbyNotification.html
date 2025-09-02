@@ -28,6 +28,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <p th:text="${#messages.msg('email.taskStandbyNotification.description', processName, productLabel, orderLabel)}">
                 {The task ended in standby mode.}
             </p>
+            <table th:if="${!#strings.isEmpty(clientName) or !#strings.isEmpty(organisationName) or !#strings.isEmpty(clientRemark)}">
+                <tr th:if="${!#strings.isEmpty(clientName)}">
+                    <th th:text="#{email.common.client.label}">{Client}</th>
+                    <td th:text="${clientName}">{Client Name}</td>
+                </tr>
+                <tr th:if="${!#strings.isEmpty(organisationName)}">
+                    <th th:text="#{email.common.organisation.label}">{Organisation}</th>
+                    <td th:text="${organisationName}">{Organisation Name}</td>
+                </tr>
+                <tr th:if="${!#strings.isEmpty(clientRemark)}">
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${clientRemark}">{Client Remark}</td>
+                </tr>
+            </table>
             <p>
                 <span th:text="#{email.taskStandbyNotification.action}">{Please go the dashboard.}</span>
                 <a href="#" class="code" th:href="${dashboardItemUrl}" th:text="${dashboardItemUrl}"></a>

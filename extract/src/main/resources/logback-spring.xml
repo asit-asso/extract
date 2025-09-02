@@ -142,6 +142,13 @@
     <logger name="ch.asit_asso.extract.plugins" level="DEBUG" additivity="false">
         <appender-ref ref="TASKS-FILE" />
     </logger>
+    
+    <!-- Configuration spécifique pour le plugin Email -->
+    <logger name="ch.asit_asso.extract.plugins.email" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="EMAIL-FILE" />
+        <appender-ref ref="TASKS-FILE" />
+    </logger>
 
     <logger name="ch.asit_asso.extract.web" level="DEBUG" additivity="false">
         <appender-ref ref="STDOUT" />

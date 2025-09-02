@@ -256,35 +256,45 @@ public class Email {
     public final boolean send() {
         assert emailSettings != null : "The e-mail settings must be set.";
 
-        this.logger.debug("Getting the SMTP settings from the database.");
+        this.logger.debug("Starting email send process...");
         //this.emailSettings.refresh();
 
         if (!this.emailSettings.isNotificationEnabled()) {
-            this.logger.info("The e-mail message has not been sent because the e-mail notifications are turned off.");
+            this.logger.warn("The e-mail message has not been sent because the e-mail notifications are turned off.");
             return false;
         }
 
         Session smtpSession = this.getSmtpSession();
+        if (smtpSession == null) {
+            this.logger.error("Failed to create SMTP session");
+            return false;
+        }
+        
         MimeMessage message = this.createMessage(smtpSession);
 
         if (message == null) {
-            this.logger.info("Could not send an e-mail because an error occured during the message creation.");
+            this.logger.error("Could not send an e-mail because an error occured during the message creation.");
             return false;
         }
 
         try {
+            this.logger.debug("Attempting to send email via SMTP...");
 
             if (this.emailSettings.useAuthentication()) {
+                this.logger.debug("Using SMTP authentication with user: {}", this.emailSettings.getSmtpUser());
                 Transport.send(message, this.emailSettings.getSmtpUser(), this.emailSettings.getSmtpPassword());
 
             } else {
+                this.logger.debug("Sending without SMTP authentication");
                 Transport.send(message);
             }
 
+            this.logger.info("Email sent successfully via SMTP");
             return true;
 
         } catch (MessagingException exception) {
-            this.logger.error("Could not send the e-mail because an error occurred with the SMTP transport", exception);
+            this.logger.error("Could not send the e-mail because an error occurred with the SMTP transport. Error: {}", 
+                    exception.getMessage(), exception);
 
             return false;
         }
@@ -303,7 +313,6 @@ public class Email {
         assert emailSettings != null : "The e-mail settings must be set.";
 
         if (!this.emailSettings.isValid()) {
-            this.logger.error("Could not send the message. The SMTP configuration is not valid.");
             return null;
         }
 
@@ -356,8 +365,18 @@ public class Email {
      */
     private Session getSmtpSession() {
         this.logger.debug("Creating the SMTP session.");
-
-        return Session.getInstance(this.emailSettings.toSystemProperties());
+        
+        try {
+            java.util.Properties props = this.emailSettings.toSystemProperties();
+            this.logger.debug("SMTP properties: {}", props.toString());
+            
+            Session session = Session.getInstance(props);
+            this.logger.debug("SMTP session created successfully");
+            return session;
+        } catch (Exception e) {
+            this.logger.error("Failed to create SMTP session: {}", e.getMessage(), e);
+            return null;
+        }
     }
 
 }

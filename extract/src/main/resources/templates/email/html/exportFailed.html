@@ -37,6 +37,62 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <th th:text="#{email.requestExportFailed.failureTime.label}">{Time of failure}</th>
                     <td th:text="${failureTimeString}">{2017-04-10 11:43:58}</td>
                 </tr>
+                <tr th:if="${!#strings.isEmpty(clientName)}">
+                    <th th:text="#{email.common.client.label}">{Client}</th>
+                    <td th:text="${clientName}">{Client Name}</td>
+                </tr>
+                <tr th:if="${!#strings.isEmpty(organisationName)}">
+                    <th th:text="#{email.common.organisation.label}">{Organisation}</th>
+                    <td th:text="${organisationName}">{Organisation Name}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${clientRemark}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${orderLabel}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${productLabel}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${startDate}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${organism}">{Client Remark}</td>
+                </tr>
+                <tr th:if="${!#strings.isEmpty(client)}">
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${client}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${tiers}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="#{email.common.remark.label}">{Remark}</th>
+                    <td th:text="${surface}">{Client Remark}</td>
+                </tr>
+
+                <tr>
+                    <th th:text="Format">{Remark}</th>
+                    <td th:text="${parameters.format}">{Client Remark}</td>
+                </tr>
+                <tr>
+                    <th th:text="Remarque">{Remark}</th>
+                    <td th:text="${parametersMap['REMARK']}">{Client Remark}</td>
+                </tr>
+                <table>
+                    <tr th:each="entry : ${parameters}">
+                        <td th:text="${entry.key}">Parameter</td>
+                        <td th:text="${entry.value}">Value</td>
+                    </tr>
+                </table>
+
             </table>
             <p>
                 <span th:text="#{email.requestExportFailed.action}">{Please go the dashboard.}</span>
