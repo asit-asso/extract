@@ -42,6 +42,27 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <h1 class="page-header" th:text="#{connectorsList.body.title}">{Connectors}</h1>
                 <div class="card card-default">
+                    <div class="card-header">
+                        <form class="filter-form-inline float-end" role="form">
+                            <div class="col">
+                                <label for="textFilter" class="form-label">Filtrer&nbsp;:</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control connector-filter-control" id="textFilter" placeholder="Connecteur">
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control connector-filter-control" id="typeFilter" data-placeholder="Type">
+                                    <option value=""></option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <a id="filterButton" class="btn btn-extract-filled" href="#">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                            </div>
+                        </form>
+                        <h3>Connecteurs</h3>
+                    </div>
                     <div class="card-body">
                         <table class="table table-striped table-hover dataTables dataTable">
                             <thead>
@@ -90,7 +111,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <script type="text/javascript">
                 var dataTablesProperties = getDataTableBaseProperties();
                 dataTablesProperties.paging = false;
-                dataTablesProperties.searching = false;
+                dataTablesProperties.searching = true;
                 dataTablesProperties.columnDefs = [
                     {
                         targets : 2,

@@ -88,6 +88,7 @@
         <module>extract-task-reject</module>
         <module>extract-task-remark</module>
         <module>extract-task-validation</module>
+        <module>extract-task-python</module>
         <module>extract</module>
 	</modules>
     <dependencies>

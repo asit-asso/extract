@@ -113,4 +113,22 @@ $(function() {
     $('.delete-button').on('click', function() {
         _handleButtonClick(this, deleteProcess);
     });
+    
+    // Initialize DataTable reference
+    var table = $('.dataTables').DataTable();
+    
+    // Handle filter input - apply on Enter key
+    $('#textFilter').on('keypress', function(e) {
+        if (e.which === 13) { // Enter key
+            e.preventDefault();
+            table.search(this.value).draw();
+        }
+    });
+    
+    // Handle filter button click
+    $('#filterButton').on('click', function(e) {
+        e.preventDefault();
+        var filterValue = $('#textFilter').val();
+        table.search(filterValue).draw();
+    });
 });

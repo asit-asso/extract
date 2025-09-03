@@ -91,11 +91,12 @@ public class SystemEmailTest {
         // Setup mock email settings
         when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
         when(mockEmailSettings.isValid()).thenReturn(true);
-        when(mockEmailSettings.getSmtpServer()).thenReturn("smtp.test.com");
+        when(mockEmailSettings.getSmtpHost()).thenReturn("smtp.test.com");
         when(mockEmailSettings.getSmtpPort()).thenReturn(587);
         when(mockEmailSettings.getSenderAddress()).thenReturn("noreply@extract.test");
         when(mockEmailSettings.getSenderName()).thenReturn("Extract System");
-        when(mockEmailSettings.getApplicationUrl()).thenReturn("https://extract.test.com");
+        // Note: EmailSettings doesn't have a getBaseUrl() method directly, 
+        // but has getAbsoluteUrl() for building full URLs
     }
     
     @Test
@@ -117,7 +118,6 @@ public class SystemEmailTest {
     public void testTaskFailedEmail_ModelVariables() {
         // Arrange
         TaskFailedEmail email = new TaskFailedEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify the context contains all expected variables
                 assertNotNull(context.getVariable("taskName"));
@@ -170,7 +170,6 @@ public class SystemEmailTest {
     public void testUnmatchedRequestEmail_ModelVariables() {
         // Arrange
         UnmatchedRequestEmail email = new UnmatchedRequestEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify all RequestModelBuilder variables are present
                 assertEquals("Test Connector", context.getVariable("connectorName"));
@@ -213,7 +212,6 @@ public class SystemEmailTest {
     public void testInvalidProductImportedEmail_ModelVariables() {
         // Arrange
         InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify RequestModelBuilder integration
                 assertEquals("ORDER-2024-001", context.getVariable("orderLabel"));
@@ -247,7 +245,6 @@ public class SystemEmailTest {
         process.setName("Standard Export Process");
         
         TaskStandbyEmail email = new TaskStandbyEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify process-specific variable
                 assertEquals("Standard Export Process", context.getVariable("processName"));
@@ -269,7 +266,7 @@ public class SystemEmailTest {
         String[] recipients = {"operator@test.com"};
         
         // Act
-        email.initialize(testRequest, process, recipients);
+        email.initialize(testRequest, recipients);
     }
     
     @Test
@@ -279,7 +276,6 @@ public class SystemEmailTest {
         process.setName("Manual Validation Process");
         
         StandbyReminderEmail email = new StandbyReminderEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify all variables including new ones from issue #323
                 assertEquals("Manual Validation Process", context.getVariable("processName"));
@@ -318,7 +314,7 @@ public class SystemEmailTest {
         String[] recipients = {"manager@test.com"};
         
         // Act
-        email.initialize(testRequest, process, recipients);
+        email.initialize(testRequest, recipients);
     }
     
     @Test
@@ -329,7 +325,6 @@ public class SystemEmailTest {
         minimalRequest.setProductLabel("Basic Product");
         
         TaskFailedEmail email = new TaskFailedEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify null values are handled as empty strings
                 assertEquals("MIN-ORDER", context.getVariable("orderLabel"));
@@ -368,7 +363,6 @@ public class SystemEmailTest {
         testRequest.setParameters(jsonWithSpecialChars);
         
         UnmatchedRequestEmail email = new UnmatchedRequestEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify special characters are preserved
                 assertEquals("données_2024.pdf", context.getVariable("param_file_name"));
@@ -386,7 +380,6 @@ public class SystemEmailTest {
         testRequest.setParameters("not valid json {");
         
         TaskFailedEmail email = new TaskFailedEmail(mockEmailSettings) {
-            @Override
             protected void setContentFromTemplate(String template, Context context) {
                 // Should handle invalid JSON gracefully
                 assertEquals("not valid json {", context.getVariable("parametersJson"));
