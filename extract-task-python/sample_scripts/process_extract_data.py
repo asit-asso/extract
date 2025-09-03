@@ -94,26 +94,26 @@ def main():
         geometry = feature.get('geometry')
         if geometry:
             print("Geometry (GeoJSON):")
-                geom_type = geometry.get('type', 'Unknown')
-                print(f"  - Type: {geom_type}")
-                
-                # For polygon, calculate some basic statistics
-                if geom_type in ['Polygon', 'MultiPolygon'] and 'coordinates' in geometry:
-                    coords = geometry['coordinates']
-                    if geom_type == 'Polygon' and coords and len(coords) > 0:
-                        num_points = len(coords[0]) if coords[0] else 0
-                        print(f"  - Number of points: {num_points}")
-                        
-                        # Calculate bounding box
-                        if num_points > 0:
-                            all_x = [p[0] for p in coords[0] if len(p) >= 2]
-                            all_y = [p[1] for p in coords[0] if len(p) >= 2]
-                            if all_x and all_y:
-                                print(f"  - Bounding box:")
-                                print(f"    - Min X: {min(all_x):.6f}")
-                                print(f"    - Max X: {max(all_x):.6f}")
-                                print(f"    - Min Y: {min(all_y):.6f}")
-                                print(f"    - Max Y: {max(all_y):.6f}")
+            geom_type = geometry.get('type', 'Unknown')
+            print(f"  - Type: {geom_type}")
+            
+            # For polygon, calculate some basic statistics
+            if geom_type in ['Polygon', 'MultiPolygon'] and 'coordinates' in geometry:
+                coords = geometry['coordinates']
+                if geom_type == 'Polygon' and coords and len(coords) > 0:
+                    num_points = len(coords[0]) if coords[0] else 0
+                    print(f"  - Number of points: {num_points}")
+                    
+                    # Calculate bounding box
+                    if num_points > 0:
+                        all_x = [p[0] for p in coords[0] if len(p) >= 2]
+                        all_y = [p[1] for p in coords[0] if len(p) >= 2]
+                        if all_x and all_y:
+                            print(f"  - Bounding box:")
+                            print(f"    - Min X: {min(all_x):.6f}")
+                            print(f"    - Max X: {max(all_x):.6f}")
+                            print(f"    - Min Y: {min(all_y):.6f}")
+                            print(f"    - Max Y: {max(all_y):.6f}")
             
             print()
         

@@ -437,8 +437,16 @@ public class PythonPlugin implements ITaskProcessor {
             this.logger.info("Python script finished with exit code: {}", exitCode);
             
             if (exitCode != 0) {
-                String errorMsg = String.format("Python script failed with exit code %d. Output:\n%s", 
-                                              exitCode, output.toString());
+                String scriptOutput = output.toString().trim();
+                String errorMsg;
+                if (!scriptOutput.isEmpty()) {
+                    // Format error message with script output
+                    errorMsg = String.format("Le script Python a échoué avec le code de sortie %d.\n\nSortie du script:\n%s", 
+                                           exitCode, scriptOutput);
+                } else {
+                    errorMsg = String.format("Le script Python a échoué avec le code de sortie %d (aucune sortie capturée)", 
+                                           exitCode);
+                }
                 this.logger.error(errorMsg);
                 return errorMsg;
             }
