@@ -285,11 +285,11 @@ public class PythonPlugin implements ITaskProcessor {
         
         try {
             // Check if inputs are initialized
-            if (this.inputs == null) {
-                String errorMessage = "Plugin not properly initialized: no input parameters";
+            if (this.inputs == null || this.inputs.isEmpty()) {
+                String errorMessage = "Configuration error: No input parameters provided";
                 this.logger.error(errorMessage);
                 result.setSuccess(false);
-                result.setErrorMessage(errorMessage);
+                result.setMessage(errorMessage);  // Use setMessage for consistency
                 return result;
             }
             
@@ -297,51 +297,118 @@ public class PythonPlugin implements ITaskProcessor {
             String pythonInterpreter = this.inputs.get("pythonInterpreter");
             String pythonScript = this.inputs.get("pythonScript");
             
-            if (pythonInterpreter == null || pythonInterpreter.isEmpty()) {
+            if (pythonInterpreter == null || pythonInterpreter.trim().isEmpty()) {
                 String errorMessage = this.messages.getString("error.pythonInterpreter.missing");
                 this.logger.error(errorMessage);
                 result.setSuccess(false);
-                result.setErrorMessage(errorMessage);
+                result.setMessage(errorMessage);  // Use setMessage for consistency
                 return result;
             }
             
-            if (pythonScript == null || pythonScript.isEmpty()) {
+            if (pythonScript == null || pythonScript.trim().isEmpty()) {
                 String errorMessage = this.messages.getString("error.pythonScript.missing");
                 this.logger.error(errorMessage);
                 result.setSuccess(false);
-                result.setErrorMessage(errorMessage);
+                result.setMessage(errorMessage);  // Use setMessage for consistency
                 return result;
             }
             
-            // Check if Python interpreter exists
+            // Trim paths to remove extra spaces
+            pythonInterpreter = pythonInterpreter.trim();
+            pythonScript = pythonScript.trim();
+            
+            // Check if Python interpreter exists and is executable
             File pythonInterpreterFile = new File(pythonInterpreter);
-            if (!pythonInterpreterFile.exists() || !pythonInterpreterFile.canExecute()) {
-                String errorMessage = this.messages.getString("error.pythonInterpreter.notFound");
-                this.logger.error(errorMessage + ": " + pythonInterpreter);
+            if (!pythonInterpreterFile.exists()) {
+                String errorMessage = String.format("L'interpréteur Python n'existe pas: %s", pythonInterpreter);
+                this.logger.error(errorMessage);
                 result.setSuccess(false);
-                result.setErrorMessage(errorMessage);
+                result.setMessage(errorMessage);
                 return result;
             }
             
-            // Check if Python script exists
-            File pythonScriptFile = new File(pythonScript);
-            if (!pythonScriptFile.exists() || !pythonScriptFile.canRead()) {
-                String errorMessage = this.messages.getString("error.pythonScript.notFound");
-                this.logger.error(errorMessage + ": " + pythonScript);
+            if (!pythonInterpreterFile.canExecute()) {
+                String errorMessage = String.format("L'interpréteur Python n'est pas exécutable: %s", pythonInterpreter);
+                this.logger.error(errorMessage);
                 result.setSuccess(false);
-                result.setErrorMessage(errorMessage);
+                result.setMessage(errorMessage);
+                return result;
+            }
+            
+            // Check if Python script exists and is readable
+            File pythonScriptFile = new File(pythonScript);
+            if (!pythonScriptFile.exists()) {
+                String errorMessage = String.format("Le script Python n'existe pas: %s", pythonScript);
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            }
+            
+            if (!pythonScriptFile.canRead()) {
+                String errorMessage = String.format("Le script Python n'est pas lisible: %s", pythonScript);
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            }
+            
+            // Validate and create output directory
+            String folderOut = request.getFolderOut();
+            if (folderOut == null || folderOut.trim().isEmpty()) {
+                String errorMessage = "Erreur: Le dossier de sortie n'est pas défini";
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            }
+            
+            File outputDir = new File(folderOut);
+            if (!outputDir.exists()) {
+                if (!outputDir.mkdirs()) {
+                    String errorMessage = String.format("Impossible de créer le dossier de sortie: %s", folderOut);
+                    this.logger.error(errorMessage);
+                    result.setSuccess(false);
+                    result.setMessage(errorMessage);
+                    return result;
+                }
+            }
+            
+            if (!outputDir.canWrite()) {
+                String errorMessage = String.format("Impossible d'écrire dans le dossier de sortie: %s", folderOut);
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
                 return result;
             }
             
             // Create parameters JSON file
-            String folderOut = request.getFolderOut();
-            File outputDir = new File(folderOut);
-            if (!outputDir.exists()) {
-                outputDir.mkdirs();
+            File parametersFile = new File(outputDir, "parameters.json");
+            try {
+                createParametersFile(request, parametersFile);
+                this.logger.info("Parameters file created successfully: {}", parametersFile.getAbsolutePath());
+            } catch (IOException e) {
+                String errorMessage = String.format("Erreur lors de la création du fichier de paramètres: %s", e.getMessage());
+                this.logger.error(errorMessage, e);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            } catch (Exception e) {
+                String errorMessage = String.format("Erreur inattendue lors de la création du fichier de paramètres: %s", e.getMessage());
+                this.logger.error(errorMessage, e);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
             }
             
-            File parametersFile = new File(outputDir, "parameters.json");
-            createParametersFile(request, parametersFile);
+            // Verify parameters file was created
+            if (!parametersFile.exists() || !parametersFile.canRead()) {
+                String errorMessage = "Le fichier de paramètres n'a pas pu être créé ou n'est pas lisible";
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            }
             
             // Execute Python script
             String errorMessage = executePythonScript(pythonInterpreter, pythonScript, 
@@ -353,16 +420,25 @@ public class PythonPlugin implements ITaskProcessor {
                 result.setMessage(this.messages.getString("execute.success"));
                 result.setResultFilePath(folderOut);
             } else {
-                // Error occurred
+                // Error occurred during execution - put error in message like FMEDesktop
+                this.logger.error("Python script execution failed: {}", errorMessage);
                 result.setSuccess(false);
-                result.setErrorMessage(errorMessage);
+                result.setMessage(errorMessage);  // Use setMessage instead of setErrorMessage
             }
             
-        } catch (Exception e) {
-            String errorMessage = this.messages.getString("execute.error");
-            this.logger.error("Error executing Python script", e);
+        } catch (SecurityException e) {
+            String errorMessage = String.format("Erreur de sécurité: %s", e.getMessage());
+            this.logger.error(errorMessage, e);
             result.setSuccess(false);
-            result.setErrorMessage(errorMessage + ": " + e.getMessage());
+            result.setMessage(errorMessage);  // Use setMessage instead of setErrorMessage
+        } catch (Exception e) {
+            String errorMessage = String.format("Erreur inattendue: %s", e.getClass().getSimpleName());
+            if (e.getMessage() != null) {
+                errorMessage += " - " + e.getMessage();
+            }
+            this.logger.error("Unexpected error during Python plugin execution", e);
+            result.setSuccess(false);
+            result.setMessage(errorMessage);  // Use setMessage instead of setErrorMessage
         }
         
         return result;
@@ -403,6 +479,10 @@ public class PythonPlugin implements ITaskProcessor {
             
             // Set working directory
             File workingDir = new File(request.getFolderOut());
+            if (!workingDir.exists() || !workingDir.isDirectory()) {
+                return String.format("Erreur: Le répertoire de travail n'existe pas ou n'est pas un dossier: %s", 
+                                   request.getFolderOut());
+            }
             processBuilder.directory(workingDir);
             
             // Capture both stdout and stderr
@@ -410,43 +490,139 @@ public class PythonPlugin implements ITaskProcessor {
             
             this.logger.info("Executing command: {} in directory: {}", 
                            String.join(" ", command), workingDir);
-            Process process = processBuilder.start();
             
-            // Capture output
+            Process process;
+            try {
+                process = processBuilder.start();
+            } catch (IOException e) {
+                // Handle specific error cases
+                String errorDetail = e.getMessage();
+                if (errorDetail != null) {
+                    if (errorDetail.contains("No such file or directory") || 
+                        errorDetail.contains("Le fichier spécifié est introuvable")) {
+                        // Python interpreter not found
+                        return String.format("ERREUR: L'interpréteur Python '%s' n'a pas été trouvé.\n" +
+                                           "Vérifiez que Python est installé et que le chemin est correct.", 
+                                           pythonExecutable);
+                    } else if (errorDetail.contains("Permission denied") || 
+                               errorDetail.contains("Accès refusé")) {
+                        return String.format("ERREUR: Permission refusée pour exécuter '%s'.\n" +
+                                           "Vérifiez les permissions du fichier.", 
+                                           pythonExecutable);
+                    }
+                }
+                return String.format("ERREUR lors du lancement du script: %s", errorDetail);
+            }
+            
+            // Capture output with timeout handling
             StringBuilder output = new StringBuilder();
+            StringBuilder errorOutput = new StringBuilder();
+            boolean hasError = false;
+            
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     output.append(line).append("\n");
-                    this.logger.info("Python: {}", line);
+                    
+                    // Detect Python-specific errors
+                    String lowerLine = line.toLowerCase();
+                    if (line.contains("Traceback") || line.contains("Error:") || 
+                        line.contains("SyntaxError") || line.contains("IndentationError") ||
+                        line.contains("TabError") || line.contains("NameError") ||
+                        line.contains("ImportError") || line.contains("ModuleNotFoundError") ||
+                        line.contains("FileNotFoundError") || line.contains("PermissionError")) {
+                        hasError = true;
+                        errorOutput.append(line).append("\n");
+                        this.logger.error("Python Error: {}", line);
+                    } else {
+                        this.logger.info("Python: {}", line);
+                    }
                 }
+            } catch (IOException e) {
+                return String.format("ERREUR lors de la lecture de la sortie du script: %s", e.getMessage());
             }
             
             // Wait for completion with timeout (5 minutes)
-            boolean completed = process.waitFor(300, TimeUnit.SECONDS);
+            boolean completed;
+            try {
+                completed = process.waitFor(300, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                process.destroyForcibly();
+                return "ERREUR: L'exécution du script a été interrompue";
+            }
             
             if (!completed) {
                 process.destroyForcibly();
-                String errorMsg = "Python script execution timeout after 5 minutes";
-                this.logger.error(errorMsg);
-                return errorMsg;
+                return "ERREUR: Timeout - Le script Python n'a pas terminé après 5 minutes.\n" +
+                       "Le script prend trop de temps ou est peut-être bloqué.";
             }
             
             int exitCode = process.exitValue();
             this.logger.info("Python script finished with exit code: {}", exitCode);
             
+            // Check exit code and format appropriate error message
             if (exitCode != 0) {
                 String scriptOutput = output.toString().trim();
                 String errorMsg;
-                if (!scriptOutput.isEmpty()) {
-                    // Format error message with script output
-                    errorMsg = String.format("Le script Python a échoué avec le code de sortie %d.\n\nSortie du script:\n%s", 
-                                           exitCode, scriptOutput);
-                } else {
-                    errorMsg = String.format("Le script Python a échoué avec le code de sortie %d (aucune sortie capturée)", 
-                                           exitCode);
+                
+                // Special handling for common Python exit codes
+                switch (exitCode) {
+                    case 1:
+                        // General error - check if we have Python error details
+                        if (hasError && !errorOutput.toString().isEmpty()) {
+                            errorMsg = String.format("ERREUR Python détectée:\n%s", errorOutput.toString());
+                        } else if (!scriptOutput.isEmpty()) {
+                            // Check for specific Python errors in output
+                            if (scriptOutput.contains("SyntaxError")) {
+                                errorMsg = String.format("ERREUR de syntaxe dans le script Python:\n%s", scriptOutput);
+                            } else if (scriptOutput.contains("IndentationError") || scriptOutput.contains("TabError")) {
+                                errorMsg = String.format("ERREUR d'indentation dans le script Python:\n%s", scriptOutput);
+                            } else if (scriptOutput.contains("ImportError") || scriptOutput.contains("ModuleNotFoundError")) {
+                                errorMsg = String.format("ERREUR d'import - Module Python manquant:\n%s", scriptOutput);
+                            } else if (scriptOutput.contains("FileNotFoundError")) {
+                                errorMsg = String.format("ERREUR - Fichier introuvable dans le script:\n%s", scriptOutput);
+                            } else if (scriptOutput.contains("PermissionError")) {
+                                errorMsg = String.format("ERREUR de permissions dans le script:\n%s", scriptOutput);
+                            } else if (scriptOutput.contains("NameError")) {
+                                errorMsg = String.format("ERREUR - Variable ou fonction non définie:\n%s", scriptOutput);
+                            } else {
+                                errorMsg = String.format("Le script Python a échoué (code %d):\n%s", exitCode, scriptOutput);
+                            }
+                        } else {
+                            errorMsg = String.format("Le script Python a échoué avec le code %d (aucun détail disponible)", exitCode);
+                        }
+                        break;
+                    case 2:
+                        errorMsg = String.format("ERREUR: Mauvaise utilisation du script (code 2).\n" +
+                                               "Vérifiez les paramètres du script.\n%s", 
+                                               scriptOutput.isEmpty() ? "" : "Détails:\n" + scriptOutput);
+                        break;
+                    case 126:
+                        errorMsg = String.format("ERREUR: Le script '%s' n'est pas exécutable.\n" +
+                                               "Vérifiez les permissions du fichier (chmod +x).", scriptPath);
+                        break;
+                    case 127:
+                        errorMsg = String.format("ERREUR: Commande introuvable.\n" +
+                                               "L'interpréteur Python '%s' n'a pas été trouvé dans le PATH.", 
+                                               pythonExecutable);
+                        break;
+                    case -1:
+                    case 255:
+                        errorMsg = "ERREUR: Le script a été terminé de manière anormale";
+                        if (!scriptOutput.isEmpty()) {
+                            errorMsg += "\nDétails:\n" + scriptOutput;
+                        }
+                        break;
+                    default:
+                        if (!scriptOutput.isEmpty()) {
+                            errorMsg = String.format("Le script Python a retourné le code d'erreur %d:\n%s", 
+                                                   exitCode, scriptOutput);
+                        } else {
+                            errorMsg = String.format("Le script Python a retourné le code d'erreur %d", exitCode);
+                        }
                 }
+                
                 this.logger.error(errorMsg);
                 return errorMsg;
             }
@@ -454,8 +630,18 @@ public class PythonPlugin implements ITaskProcessor {
             this.logger.info("Python script executed successfully");
             return null; // Success
             
+        } catch (SecurityException e) {
+            String errorMsg = String.format("ERREUR de sécurité: %s\nVérifiez les permissions.", e.getMessage());
+            this.logger.error(errorMsg, e);
+            return errorMsg;
+        } catch (IllegalArgumentException e) {
+            String errorMsg = String.format("ERREUR de configuration: %s", e.getMessage());
+            this.logger.error(errorMsg, e);
+            return errorMsg;
         } catch (Exception e) {
-            String errorMsg = "Error executing Python script: " + e.getMessage();
+            String errorMsg = String.format("ERREUR inattendue (%s): %s", 
+                                          e.getClass().getSimpleName(), 
+                                          e.getMessage() != null ? e.getMessage() : "Pas de détails");
             this.logger.error(errorMsg, e);
             return errorMsg;
         }
