@@ -25,6 +25,51 @@
                 </div>
                 <h1 class="page-header" th:text="#{usersList.body.title}">{Users and permissions}</h1>
                 <div class="card card-default">
+                    <div class="card-header">
+                        <form class="filter-form-inline float-end" role="form">
+                            <div class="col">
+                                <label for="textFilter" class="form-label">Filtrer&nbsp;:</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control user-filter-control" id="textFilter" placeholder="Utilisateur">
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="roleFilter" data-placeholder="Rôle">
+                                    <option value=""></option>
+                                    <option value="ADMIN">Administrateur</option>
+                                    <option value="OPERATOR">Opérateur</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="stateFilter" data-placeholder="État">
+                                    <option value=""></option>
+                                    <option value="active">Actif</option>
+                                    <option value="inactive">Inactif</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="notificationsFilter" data-placeholder="Notifications">
+                                    <option value=""></option>
+                                    <option value="active">Oui</option>
+                                    <option value="inactive">Non</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="2faFilter" data-placeholder="2FA">
+                                    <option value=""></option>
+                                    <option value="ACTIVE">Actif</option>
+                                    <option value="INACTIVE">Inactif</option>
+                                    <option value="STANDBY">En attente</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <a id="filterButton" class="btn btn-extract-filled" href="#">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                            </div>
+                        </form>
+                        <h3>Utilisateurs et droits</h3>
+                    </div>
                     <div class="card-body">
                         <table class="table table-striped table-hover dataTables dataTable">
                             <thead>
@@ -121,7 +166,7 @@
             <script type="text/javascript">
                 var dataTablesProperties = getDataTableBaseProperties();
                 dataTablesProperties.paging = false;
-                dataTablesProperties.searching = false;
+                dataTablesProperties.searching = true;
                 dataTablesProperties.columnDefs = [
                     {
                         targets : 3,

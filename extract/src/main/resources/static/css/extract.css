@@ -692,6 +692,18 @@ table.list-table.files-list-table {
     margin-right: 10px;
 }
 
+.filter-form-inline .select2-container {
+    min-width: 150px;
+}
+
+#roleFilter + .select2-container {
+    min-width: 170px;
+}
+
+#notificationsFilter + .select2-container {
+    min-width: 140px;
+}
+
 .preserve-whitespace {
     overflow-wrap: break-word;
     white-space: pre-wrap;

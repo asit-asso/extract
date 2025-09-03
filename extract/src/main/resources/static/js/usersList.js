@@ -61,4 +61,89 @@ $(function() {
 
         deleteUser(id, login);
     });
+    
+    // Initialize DataTable reference
+    var table = $('.dataTables').DataTable();
+    
+    // Initialize select2 for all filter dropdowns WITHOUT auto-triggering
+    $('#roleFilter, #stateFilter, #notificationsFilter, #2faFilter').select2({
+        allowClear: true,
+        width: 'resolve'
+    }).on('select2:select select2:unselect', function(e) {
+        // Prevent automatic filtering when selecting/unselecting
+        e.stopImmediatePropagation();
+    });
+    
+    // Custom search function for multiple filters
+    $.fn.dataTable.ext.search.push(function(settings, data, dataIndex) {
+        var textFilter = $('#textFilter').val().toLowerCase();
+        var roleFilter = $('#roleFilter').val();
+        var stateFilter = $('#stateFilter').val();
+        var notificationsFilter = $('#notificationsFilter').val();
+        var twoFAFilter = $('#2faFilter').val();
+        
+        // Text search across login, name, and email columns
+        var login = data[0].toLowerCase();
+        var name = data[1].toLowerCase();
+        var email = data[2].toLowerCase();
+        var textMatch = !textFilter || 
+            login.indexOf(textFilter) !== -1 || 
+            name.indexOf(textFilter) !== -1 || 
+            email.indexOf(textFilter) !== -1;
+        
+        // Role filter (column 3)
+        var roleText = $(table.row(dataIndex).node()).find('td:eq(3) div').text().trim();
+        var roleMatch = !roleFilter || 
+            (roleFilter === 'ADMIN' && roleText.indexOf('Admin') !== -1) ||
+            (roleFilter === 'OPERATOR' && roleText.indexOf('Opérateur') !== -1);
+        
+        // State filter (column 5)
+        var stateText = $(table.row(dataIndex).node()).find('td:eq(5) div').text().trim().toLowerCase();
+        var stateMatch = !stateFilter || 
+            (stateFilter === 'active' && (stateText.indexOf('actif') !== -1 || stateText.indexOf('active') !== -1)) ||
+            (stateFilter === 'inactive' && (stateText.indexOf('inactif') !== -1 || stateText.indexOf('inactive') !== -1));
+        
+        // Notifications filter (column 6)
+        var notifText = $(table.row(dataIndex).node()).find('td:eq(6) div').text().trim().toLowerCase();
+        var notifMatch = !notificationsFilter || 
+            (notificationsFilter === 'active' && (notifText.indexOf('oui') !== -1 || notifText.indexOf('actif') !== -1 || notifText.indexOf('active') !== -1 || notifText.indexOf('yes') !== -1)) ||
+            (notificationsFilter === 'inactive' && (notifText.indexOf('non') !== -1 || notifText.indexOf('inactif') !== -1 || notifText.indexOf('inactive') !== -1 || notifText.indexOf('no') !== -1));
+        
+        // 2FA filter (column 7)
+        var twoFAText = $(table.row(dataIndex).node()).find('td:eq(7) div').text().trim().toLowerCase();
+        
+        // Debug logging - remove when fixed
+        // if (twoFAFilter) {
+        //     console.log('2FA Filter:', twoFAFilter, 'Text found:', twoFAText);
+        // }
+        
+        var twoFAMatch = !twoFAFilter || 
+            (twoFAFilter === 'ACTIVE' && twoFAText === 'actif') ||
+            (twoFAFilter === 'INACTIVE' && twoFAText === 'inactif') ||
+            (twoFAFilter === 'STANDBY' && (twoFAText.indexOf('attente') !== -1 || twoFAText === 'en attente'));
+        
+        return textMatch && roleMatch && stateMatch && notifMatch && twoFAMatch;
+    });
+    
+    // Apply filters function
+    function applyFilters() {
+        table.draw();
+    }
+    
+    // Handle text filter - apply on Enter key
+    $('#textFilter').on('keypress', function(e) {
+        if (e.which === 13) { // Enter key
+            e.preventDefault();
+            applyFilters();
+        }
+    });
+    
+    // No automatic filter application on dropdown changes
+    // Filters will only apply when search button is clicked or Enter is pressed
+    
+    // Handle filter button click
+    $('#filterButton').on('click', function(e) {
+        e.preventDefault();
+        applyFilters();
+    });
 });
