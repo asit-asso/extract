@@ -127,7 +127,7 @@ In the top-right corner of the page, chips show active connectors grouped by the
 
 If no connectors fall under a particular status, the corresponding chip is not shown. For operators, only error messages may be visible.
 
-Clicking on a chip opens a dropdown listing the relevant connectors. Hovering over a connector displays a tooltip with the time of the last import and any associated error message. Administrators can click a connector to view and edit its settings (see [Connectors detail](./admin-guide.md/#connectors-detail)).
+Clicking on a chip opens a dropdown listing the relevant connectors. Hovering over a connector displays a tooltip with the time of the last import and any associated error message. Administrators can click a connector to view and edit its settings (see [Connectors detail](./admin-guide.md/#connectors)).
 
 ### Requests in progress
 
