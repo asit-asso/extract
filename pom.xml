@@ -89,6 +89,7 @@
         <module>extract-task-remark</module>
         <module>extract-task-validation</module>
         <module>extract-task-python</module>
+        <module>extract-task-fmedesktop-v2</module>
         <module>extract</module>
 	</modules>
     <dependencies>
