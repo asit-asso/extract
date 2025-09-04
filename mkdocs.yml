@@ -35,6 +35,8 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+  - tables
+  - pymdownx.magiclink
 
 extra_css:
   - stylesheets/extra.css
@@ -45,15 +47,23 @@ nav:
     - getting-started/install.md
     - getting-started/configure.md
     - getting-started/customize.md
-    - getting-started/cybersecurity.md
-  - Features & Usage:
-    - features/user-guide.md
-    - features/admin-guide.md
-    - features/extract-viageo.md
+    - getting-started/cybersecurity-win.md
+    - getting-started/cybersecurity-linux.md
+  - features/user-guide.md
+  - features/admin-guide.md
   - How-To:
+    - how-to/extract-viageo.md
     - how-to/fme-form.md
     - how-to/fme-flow.md
     - how-to/qgis-server-atlas.md
   - Miscellaneous:
     - misc/viageo-test.md 
     - misc/community.md
+
+plugins:
+  - search
+  - exclude-search:
+      exclude:
+        - mitigations/*
+        - extract-connector-sample/*
+        - extract-task-sample/*

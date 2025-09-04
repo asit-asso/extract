@@ -16,7 +16,7 @@ title: Install
     In the given paths, **[ZIP]** indicates the root of the delivered ZIP file in the release assets. Otherwise, relative paths are expressed in relation to the directory in which the application is deployed.
 
 !!! Tip
-    The latest release can be downloaded [here](https://github.com/asit-asso/extract/releases/tag/v2.2.0).
+    The latest release can be downloaded [here](https://github.com/asit-asso/extract/releases/tag/v2.2.0){target="_blank"}.
 
 1.	Create a PostgreSQL database to store the application data. Encoding must be UTF-8.
 2.	The database must be accessible by a user with read, write and object creation/deletion privileges. The database content is automatically generated when the application is first started.
@@ -41,7 +41,7 @@ It is normal for any automatic start-up of the application after deployment to f
     ![Create admin user](../assets/install/create_admin.png)
 
 15.	Fill in the fields and click `Créer le compte`.
-16.	Go to `Settings`.
+16.	Go to `Paramètres`.
 17.	Enter the storage path. This is the directory in which data relating to request processing will be written. The Tomcat user must therefore have read and write rights to this directory.
 18.	Enter SMTP server parameters for sending notifications.
 19.	Click on ``Enregistrer``.
@@ -70,7 +70,7 @@ It is normal for any automatic start-up of the application after deployment to f
 
 7. Copy your backup ``map.custom.js`` file (if set) to the ``WEB-INF\classes\static\js\requestMap`` directory.
 > !!! Info "Updating to version 2.1"
-    The OpenLayers library used to display the map underwent a major update (to 9.1.0) when Extract was upgraded to version 2.1. The code used to register a projection system has changed (see the new version of the ``map.custom.js`` example file). Depending on the functionality used, further modifications may be necessary. Please refer to the official documentation if necessary: [https://openlayers.org/en/v9.1.0/apidoc/](https://openlayers.org/en/v9.1.0/apidoc/)
+    The OpenLayers library used to display the map underwent a major update (to 9.1.0) when Extract was upgraded to version 2.1. The code used to register a projection system has changed (see the new version of the ``map.custom.js`` example file). Depending on the functionality used, further modifications may be necessary. Please refer to the official documentation if necessary: [https://openlayers.org/en/v9.1.0/apidoc/](https://openlayers.org/en/v9.1.0/apidoc/){target="_blank"}
 
 8. Compare the e-mail templates in ``WEB-INF\classes\templates\email\html\`` with those you've backed up, to merge any changes you've made with the new version.
 9. Compare the language files in ``WEB-INF\classes\static\lang\*\`` with those you've backed up, to merge any changes you've made with the new version.

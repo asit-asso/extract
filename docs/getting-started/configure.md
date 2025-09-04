@@ -125,12 +125,12 @@ The setup takes place in two steps:
 
 2. The setting of a ``logger``. A ``logger`` serves as the connection between a specific part of an application and one or more predefined ``appenders``. A ``logger`` can simultaneously use multiple ``appenders``, and a single ``appender`` can be shared by multiple ``loggers``. The ``logger`` is identified by a name, corresponding to the package from which the class messages originate, encompassing any of its sub-packages. Additionally, the ``logger`` specifies a minimum level of messages to be logged. The root ``logger`` provides default logging behavior for all application classes, including  dependencies.
 
-For more detailed information, please refer to the [Logback help](https://logback.qos.ch/manual/configuration.html).
+For more detailed information, please refer to the [Logback help](https://logback.qos.ch/manual/configuration.html){target="_blank"}.
 
 ## Tomcat user access rights
 Since Extract is a Tomcat application, it relies on the user running the Tomcat service to access various resources (network shares, local folders, etc.). It is therefore recommended to run the Tomcat service with an account having access to the necessary resources.
 
-#### Changing the Tomcat user (Windows)
+### Changing the Tomcat user (Windows)
 
 1. Open the Tomcat monitor (``tomcat8w.exe``, or ``Start Menu > All Programs > Apache Tomcat > Configure Tomcat``)
 2. Go to the ``Log On`` tab
@@ -139,7 +139,7 @@ Since Extract is a Tomcat application, it relies on the user running the Tomcat 
 5. Click on OK
 6. Restart the Tomcat service
 
-#### Changing the Tomcat user (Linux)
+### Changing the Tomcat user (Linux)
 
 1. Edit the ``/etc/systemd/system/tomcat9.service`` file
 2. In the ``Service`` category, change the values of the ``User`` and ``Group`` keys to the user's name and group respectively.
@@ -159,7 +159,7 @@ These parameters are defined in the same way as for heap size (see [Heap Size](#
 
 ## Optimizing
 
-#### Heap size
+### Heap size
 The FME Desktop scripts run by Extract can lead to heavy heap usage. If you are using this plugin, it is recommended that you set the starting size of the heap (parameter ``Xms``) to 1024 MB and the maximum size (parameter ``Xmx``) to at least 2048 MB.
 
 These parameters are set in the ``setenv.sh`` (Linux) or ``setenv.bat`` (Windows) file in Tomcat's bin directory.
@@ -168,7 +168,7 @@ If Tomcat is running as a Windows service, these parameters are defined in the `
 
 In all cases, Tomcat must be restarted for the changes to take effect.
 
-#### Cache Size
+### Cache Size
 During startup, the logs may report that an item failed to load due to insufficient cache size, for example:
 
 ```
