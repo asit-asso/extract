@@ -7,7 +7,7 @@
 Access to the application is secured and requires authentication via either:
 
 * A user account created by the administrator (see [User Administration](./admin-guide.md/#user-administration)), or
-+ An account linked to the corporate LDAP directory (see [LDAP-Based User Authentication](./admin-guide.md/#ldap-based-user-authentication)).
++ An account linked to the corporate LDAP directory (see [LDAP authentication](./admin-guide.md/#ldap-authentication)).
 
 Usernames are **not** case-sensitive, but passwords **are** case-sensitive.
 
