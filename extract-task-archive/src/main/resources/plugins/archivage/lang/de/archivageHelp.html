@@ -1,0 +1,46 @@
+<div>
+    <p>
+        Das Archivage-Plugin ermöglicht das Speichern der Verarbeitungsergebnisse eines Anfrageelements in einem Verzeichnis. Geben Sie einen Pfad (lokal oder Netzwerk) an, in den die Dateien archiviert werden.</p>
+
+    <p>Das Archivverzeichnis kann lokal oder im Unternehmensnetzwerk sein.
+        Beispiele für Pfade:
+    </p>
+    <ul>
+        <li>Lokales Windows-Verzeichnis: D:\extract_data\...</li>
+        <li>Lokales Linux-Verzeichnis: /var/extract_data\...</li>
+        <li>Windows-Netzwerkverzeichnis (UNC): \\server\share\folder...</li>
+    </ul>
+    <p>
+        Der Archivpfad kann Variablen enthalten, die durch die Eigenschaften der Anfrage ersetzt werden. Die erlaubten dynamischen Eigenschaften
+        sind die folgenden:
+    </p>
+    <ul>
+        <li>orderLabel</li>
+        <li>orderGuid</li>
+        <li>productGuid</li>
+        <li>productLabel</li>
+        <li>startDate</li>
+        <li>organism</li>
+        <li>client</li>
+    </ul>
+    <p><i>Beispiel für einen Archivpfad:</i> /var/extraction/{orderLabel}-{orderGuid}/{productGuid}/</p>
+    <p><b>Wichtig:</b></p>
+    <ul>
+        <li>
+            Wenn das Zielverzeichnis existiert und Dateien mit demselben
+            Namen wie die zu archivierenden enthält, werden diese überschrieben.
+        </li>
+        <li>
+            Wenn die Extract-Anwendung auf einer Linux-Umgebung bereitgestellt ist, ist die Archivierung in ein
+            Windows-Netzwerkverzeichnis nicht möglich.
+        </li>
+        <li>
+            Wenn Sie in ein freigegebenes Linux-Verzeichnis archivieren möchten, stellen Sie bitte sicher, dass die
+            Samba-Mount vorab durchgeführt wurde.
+        </li>
+        <li>
+            Der Tomcat-Benutzer muss ausreichende Berechtigungen haben, um in das
+            angegebene Netzwerkverzeichnis zu schreiben.
+        </li>
+    </ul>
+</div>
