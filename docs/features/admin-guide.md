@@ -230,6 +230,15 @@ The ``Tester la connexion`` button lets you verify whether the current settings 
 * If synchronization is enabled, the test uses the provided username and password.
 * If synchronization is disabled, the test runs anonymously.
 
+### Request validation
+![Validation](../assets/admin-guide/validation.png){width="500"}
+
+This section lets you specify which request properties should be highlighted for operators in the request validation area (see [Validation in the user guide](../user-guide#validation)). No syntax checks is applied to the properties entered here — only properties that actually exists in the request will be considered.
+
+Additionally, this section provides access to the management of predefined comment templates used during request validation steps.
+
+#### Validation comment templates
+
 <br>
 <br>
 <br>
