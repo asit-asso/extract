@@ -522,38 +522,10 @@ public class FmeDesktopPlugin implements ITaskProcessor {
             throw new SecurityException("The tasklist.exe file does not exist or is not executable.");
         }
 
-        if (shouldVerifyAuthenticity() && !verifyDigitalSignatureWithPowerShell(taskListFile)) {
-            logger.error("The tasklist.exe file has an invalid or missing digital signature.");
-            throw new SecurityException("The tasklist.exe file has been tampered with.");
-        }
 
         return taskListFile.getAbsolutePath();
     }
 
-    private boolean shouldVerifyAuthenticity() {
-        try {
-            return SystemUtils.IS_OS_WINDOWS && Boolean.parseBoolean(config.getProperty("check.authenticity"));
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
-    private boolean verifyDigitalSignatureWithPowerShell(File file) {
-        try {
-            Process process = new ProcessBuilder("powershell.exe",
-                    "Get-AuthenticodeSignature", file.getAbsolutePath())
-                    .redirectErrorStream(true)
-                    .start();
-
-            int exitCode = process.waitFor();
-
-            // In PowerShell, an exit code of 0 typically means success
-            return exitCode == 0;
-        } catch (IOException | InterruptedException e) {
-            logger.error("Error while verifying digital signature with PowerShell.", e);
-            return false;
-        }
-    }
 
     private int getCurrentFmeInstances() {
         ProcessBuilder processBuilder;
