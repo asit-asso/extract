@@ -462,4 +462,10 @@ public class ArchiveRequest implements ITaskProcessorRequest {
         this.organismGuid = guid;
     }
 
+    @Override
+    public final String getSurface() {
+        // Archive plugin doesn't use surface information
+        return null;
+    }
+
 }

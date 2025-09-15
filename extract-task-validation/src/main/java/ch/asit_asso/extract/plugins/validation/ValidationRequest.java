@@ -122,6 +122,11 @@ public class ValidationRequest implements ITaskProcessorRequest {
      */
     private Calendar endDate;
 
+    /**
+     * The surface area of the extraction.
+     */
+    private String surface;
+
 
 
     @Override
@@ -459,6 +464,24 @@ public class ValidationRequest implements ITaskProcessorRequest {
      */
     public final void setOrganismGuid(final String guid) {
         this.organismGuid = guid;
+    }
+
+
+
+    @Override
+    public final String getSurface() {
+        return this.surface;
+    }
+
+
+
+    /**
+     * Defines the surface area of the extraction.
+     *
+     * @param surface the surface area value as a string
+     */
+    public final void setSurface(final String surface) {
+        this.surface = surface;
     }
 
 }

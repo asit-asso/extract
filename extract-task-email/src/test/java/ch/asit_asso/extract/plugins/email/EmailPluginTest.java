@@ -83,7 +83,7 @@ public class EmailPluginTest {
         
         when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
         when(mockEmailSettings.isValid()).thenReturn(true);
-        when(mockEmailSettings.getSmtpServer()).thenReturn("smtp.test.com");
+        when(mockEmailSettings.getSmtpHost()).thenReturn("smtp.test.com");
         when(mockEmailSettings.getSmtpPort()).thenReturn(587);
         
         // Act

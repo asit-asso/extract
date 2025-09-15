@@ -90,8 +90,9 @@
         <module>extract-task-validation</module>
         <module>extract-task-python</module>
         <module>extract-task-fmedesktop-v2</module>
+        <module>extract-task-fmeserver-v2</module>
         <module>extract</module>
-	</modules>
+    </modules>
     <dependencies>
         <dependency>
             <groupId>io.github.bonigarcia</groupId>
