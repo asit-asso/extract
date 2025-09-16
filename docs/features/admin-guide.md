@@ -235,9 +235,29 @@ The ``Tester la connexion`` button lets you verify whether the current settings 
 
 This section lets you specify which request properties should be highlighted for operators in the request validation area (see [Validation in the user guide](../user-guide#validation)). No syntax checks is applied to the properties entered here — only properties that actually exists in the request will be considered.
 
-Additionally, this section provides access to the management of predefined comment templates used during request validation steps.
+Additionally, this section provides access (by clicking on the `Gérer les modèles` button) to the management of predefined comment templates used during request validation steps.
 
-#### Validation comment templates
+#### Validation comment templates list
+![Validation tempalates list](../assets/admin-guide/validation-templates-list.png){width="1000"}
+
+This page lists all existing message templates. Following action are available:
+
+* **Create a new validation message** by clicking on the `Nouveau message` button
+* **Edit a message** by clicking on its title
+* **Delete a message** by clicking on the red button with a cross. It is not possible to delete a message associated with a validation task of a process (grayed out button).
+
+#### Validation comment template details
+![Validation tempalate details](../assets/admin-guide/validation-template-details.png){width="1000"}
+
+Message parameters are:
+
+* Its title (for display in the validation plugin settings and in the list of comments available during validation)
+* Message text. The strings ``[operatorName]`` and ``[operatorEmail]`` will be replaced by the name and email address of the operator who validated the process.
+
+### Miscellaneous information
+![Misc](../assets/admin-guide/misc.png){width="500"}
+
+This section provides general information about Extract, including the application version installed.
 
 <br>
 <br>

@@ -1,1 +1,1 @@
-# viageo.ch Test Instance
+# viageo.ch Validation Instance
