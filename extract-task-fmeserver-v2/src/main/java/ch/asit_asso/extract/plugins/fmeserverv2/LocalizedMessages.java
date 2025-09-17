@@ -84,7 +84,14 @@ public class LocalizedMessages {
      * @param languageCode the string that identifies the language to use for the messages to the user
      */
     public LocalizedMessages(final String languageCode) {
-        String langToUse = (languageCode != null) ? languageCode : LocalizedMessages.DEFAULT_LANGUAGE;
+        // Handle comma-separated language codes by taking the first one
+        String primaryLanguage = languageCode;
+        if (languageCode != null && languageCode.contains(",")) {
+            primaryLanguage = languageCode.split(",")[0].trim();
+            this.logger.debug("Multiple languages detected in config: {}. Using primary language: {}", 
+                            languageCode, primaryLanguage);
+        }
+        String langToUse = (primaryLanguage != null) ? primaryLanguage : LocalizedMessages.DEFAULT_LANGUAGE;
         this.loadFile(langToUse);
         this.language = langToUse;
     }
