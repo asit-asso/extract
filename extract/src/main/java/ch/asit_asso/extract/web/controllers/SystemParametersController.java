@@ -27,6 +27,7 @@ import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
 import ch.asit_asso.extract.orchestrator.runners.LdapSynchronizationJobRunner;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import ch.asit_asso.extract.services.MessageService;
 import ch.asit_asso.extract.utils.Secrets;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.SystemParameterModel;
@@ -121,6 +122,8 @@ public class SystemParametersController extends BaseController {
 
     private final MessageSource messageSource;
 
+    private final MessageService messageService;
+
     private final Secrets secrets;
 
     /**
@@ -132,11 +135,12 @@ public class SystemParametersController extends BaseController {
 
     public SystemParametersController(SystemParametersRepository repository, UsersRepository usersRepository,
                                       LdapSettings ldapSettings, MessageSource messageSource,
-                                      Secrets secrets) {
+                                      MessageService messageService, Secrets secrets) {
         this.systemParametersRepository = repository;
         this.usersRepository = usersRepository;
         this.ldapSettings = ldapSettings;
         this.messageSource = messageSource;
+        this.messageService = messageService;
         this.secrets = secrets;
     }
 
@@ -481,8 +485,7 @@ public class SystemParametersController extends BaseController {
             } catch (IllegalArgumentException exception) {
                 this.logger.error("Impossible de décrypter le mot de passe.");
                 model.addAttribute("ldapTestMessage",
-                                   this.messageSource.getMessage("parameters.ldap.test.badCredentials",
-                                                                 null, LocaleContextHolder.getLocale()));
+                                   this.messageService.getMessage("parameters.ldap.test.badCredentials", null));
 
                 return this.prepareModelForDetailsView(model, parameterModel);
             }
@@ -510,7 +513,7 @@ public class SystemParametersController extends BaseController {
         }
 
         model.addAttribute("ldapTestMessage",
-                           this.messageSource.getMessage(messageKey,null, LocaleContextHolder.getLocale()));
+                           this.messageService.getMessage(messageKey, null));
 
 
         return this.prepareModelForDetailsView(model, parameterModel);

@@ -291,7 +291,6 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
     private Request setRequestToUnmatched(final Request request) {
         assert request != null : "The request must not be null.";
 
-        // TODO Send mail, etc.
         this.logger.debug("Setting request status to unmatched,");
         request.setStatus(Status.UNMATCHED);
 

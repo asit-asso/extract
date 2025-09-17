@@ -16,6 +16,7 @@ import ch.asit_asso.extract.connectors.common.IProduct;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
+import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -54,6 +55,11 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
     private final EmailSettings emailSettings;
 
     /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
+
+    /**
      * The locale of the language that the application displays messages in.
      */
     private final String language;
@@ -73,10 +79,11 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
      * @param repositories        an ensemble of objects linking the data objects with the database
      * @param smtpSettings        the objects required to create and send an email message
      * @param applicationLanguage the locale code of the language used by the application to display messages
+     * @param messageService      the service for obtaining localized messages
      */
     public CommandImportJobRunner(final int connectorIdentifier, final IConnector connectorPlugin,
             final ApplicationRepositories repositories, final EmailSettings smtpSettings,
-            final String applicationLanguage) {
+            final String applicationLanguage, final MessageService messageService) {
 
         if (connectorIdentifier < 1) {
             throw new IllegalArgumentException("The connector identifier must be greater than 0.");
@@ -98,11 +105,16 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
             throw new IllegalArgumentException("The application language code cannot be null.");
         }
 
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
         this.connectorId = connectorIdentifier;
         this.connectorPluginInstance = connectorPlugin;
         this.applicationRepositories = repositories;
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
+        this.messageService = messageService;
     }
 
 
@@ -176,7 +188,8 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
      */
     public final ImportedRequestsWriter getWriter() {
         ImportedRequestsWriter writer
-                = new ImportedRequestsWriter(this.connectorId, this.emailSettings, this.applicationRepositories);
+                = new ImportedRequestsWriter(this.connectorId, this.emailSettings, this.applicationRepositories,
+                        this.messageService);
 
         return writer;
     }

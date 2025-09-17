@@ -27,6 +27,7 @@ import ch.asit_asso.extract.domain.RequestHistoryRecord;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.InvalidProductImportedEmail;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
+import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemWriter;
@@ -64,6 +65,11 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
     private final EmailSettings emailSettings;
 
     /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(ImportedRequestsWriter.class);
@@ -82,9 +88,10 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
      *                                to import the requests
      * @param smtpSettings            the objects required to create and send an e-mail message
      * @param applicationRepositories the he link between the various data objects and their data source
+     * @param messageService          the service for obtaining localized messages
      */
     public ImportedRequestsWriter(final int connectorIdentifier, final EmailSettings smtpSettings,
-            final ApplicationRepositories applicationRepositories) {
+            final ApplicationRepositories applicationRepositories, final MessageService messageService) {
 
         if (connectorIdentifier < 1) {
             throw new IllegalArgumentException("The connector identifier must be greater than 0.");
@@ -98,9 +105,14 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
             throw new IllegalArgumentException("The application repositories object cannot be null.");
         }
 
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
         this.connectorId = connectorIdentifier;
         this.emailSettings = smtpSettings;
         this.repositories = applicationRepositories;
+        this.messageService = messageService;
     }
 
 
@@ -134,7 +146,7 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
 
                     if (savedRequest.getStatus() == Request.Status.IMPORTFAIL) {
                         this.sendEmailNotification(savedRequest,
-                                this.getLocalizedString(this.getErrorMessageKey(request)), request.getStartDate());
+                                this.messageService.getMessage(this.getErrorMessageKey(request)), request.getStartDate());
                     }
                 }
             }
@@ -163,7 +175,7 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
         exportRecord.setStartDate(request.getStartDate());
         exportRecord.setStep(ImportedRequestsWriter.IMPORT_HISTORY_STEP);
         exportRecord.setProcessStep(ImportedRequestsWriter.IMPORT_PROCESS_STEP);
-        exportRecord.setTaskLabel(this.getLocalizedString("requestHistory.tasks.import.label"));
+        exportRecord.setTaskLabel(this.messageService.getMessage("requestHistory.tasks.import.label"));
         exportRecord.setUser(this.repositories.getUsersRepository().getSystemUser());
 
         String messageKey;
@@ -179,7 +191,7 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
         }
 
         exportRecord.setStatus(status);
-        exportRecord.setMessage(this.getLocalizedString(messageKey));
+        exportRecord.setMessage(this.messageService.getMessage(messageKey));
         exportRecord.setEndDate(new GregorianCalendar());
 
         return repository.save(exportRecord);
@@ -205,18 +217,6 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
 
 
 
-    /**
-     * Obtains a message in the language used by the application.
-     *
-     * @param messageKey the string that identifies the message
-     * @return the message in the language of the application
-     */
-    private String getLocalizedString(final String messageKey) {
-        assert StringUtils.isNotBlank(messageKey) : "The message key cannot be blank";
-
-        // TODO Ne pas passer par l'objet EmailSettings
-        return this.emailSettings.getMessageString(messageKey);
-    }
 
 
 

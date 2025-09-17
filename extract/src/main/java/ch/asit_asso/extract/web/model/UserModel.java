@@ -104,6 +104,11 @@ public class UserModel {
 
     private UserType userType;
 
+    /**
+     * The locale preference for this user's interface language.
+     */
+    private String locale;
+
 
 
     /**
@@ -117,6 +122,7 @@ public class UserModel {
         this.twoFactorForced = false;
         this.twoFactorStatus = TwoFactorStatus.INACTIVE;
         this.userType = UserType.LOCAL;
+        this.locale = "fr";
     }
 
 
@@ -426,6 +432,10 @@ public class UserModel {
 
     public void setUserType(UserType userType) { this.userType = userType; }
 
+    public String getLocale() { return this.locale; }
+
+    public void setLocale(String locale) { this.locale = locale; }
+
 //    public final TwoFactorStatus getNewStatusToSet(TwoFactorStatus originalStatus, TwoFactorStatus requestedStatus,
 //                                                   boolean is2faForced) {
 //        if (originalStatus == null) {
@@ -525,6 +535,7 @@ public class UserModel {
         }
 
         domainUser.setMailActive(this.isMailActive());
+        domainUser.setLocale(this.getLocale());
 
         //this.processTwoFactorChange(domainUser, isCurrentUserAdmin, encryptor, twoFactorService);
         //domainUser.setTwoFactorStatus(this.getTwoFactorStatus());
@@ -598,6 +609,7 @@ public class UserModel {
         this.setTwoFactorToken(domainUser.getTwoFactorToken());
         this.setTwoFactorStandbyToken(domainUser.getTwoFactorStandbyToken());
         this.setUserType(domainUser.getUserType());
+        this.setLocale(domainUser.getLocale());
     }
 
 }

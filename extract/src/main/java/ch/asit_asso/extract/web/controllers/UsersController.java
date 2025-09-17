@@ -16,6 +16,9 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +28,7 @@ import ch.asit_asso.extract.authentication.twofactor.TwoFactorApplication;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorBackupCodes;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorRememberMe;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
+import ch.asit_asso.extract.configuration.LocaleConfiguration;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.UserType;
 import ch.asit_asso.extract.domain.UserGroup;
@@ -118,11 +122,17 @@ public class UsersController extends BaseController {
 
     private final LdapSettings ldapSettings;
 
+    /**
+     * The locale configuration for internationalization support.
+     */
+    private final LocaleConfiguration localeConfiguration;
+
 
 
     public UsersController(RecoveryCodeRepository codesRepository, Secrets secrets,
                            RememberMeTokenRepository tokensRepository, TwoFactorService twoFactorService,
-                           UsersRepository usersRepository, LdapSettings ldapSettings, Environment environment) {
+                           UsersRepository usersRepository, LdapSettings ldapSettings, Environment environment,
+                           LocaleConfiguration localeConfiguration) {
         this.backupCodesRepository = codesRepository;
         this.secrets = secrets;
         this.rememberMeRepository = tokensRepository;
@@ -130,6 +140,7 @@ public class UsersController extends BaseController {
         this.usersRepository = usersRepository;
         this.ldapSettings = ldapSettings;
         this.applicationPath = UrlUtils.getApplicationPath(environment.getProperty("application.external.url"));
+        this.localeConfiguration = localeConfiguration;
     }
 
 
@@ -847,6 +858,20 @@ public class UsersController extends BaseController {
             }
         }
 
+        // Add available languages if in multilingual mode
+        if (localeConfiguration.isMultilingualMode()) {
+            List<LanguageOption> availableLanguages = new ArrayList<>();
+            for (Locale locale : localeConfiguration.getAvailableLocales()) {
+                availableLanguages.add(new LanguageOption(
+                    locale.toLanguageTag(),
+                    locale.getDisplayName(locale)
+                ));
+            }
+            model.addAttribute("availableLanguages", availableLanguages);
+        } else {
+            model.addAttribute("availableLanguages", new ArrayList<>());
+        }
+
         this.addCurrentSectionToModel(currentSection, model);
 
         return UsersController.DETAILS_VIEW;
@@ -868,6 +893,27 @@ public class UsersController extends BaseController {
         this.addCurrentSectionToModel(UsersController.CURRENT_SECTION_IDENTIFIER, model);
 
         return UsersController.LIST_VIEW;
+    }
+
+    /**
+     * Helper class for representing language options in the UI.
+     */
+    public static class LanguageOption {
+        private final String code;
+        private final String displayName;
+
+        public LanguageOption(String code, String displayName) {
+            this.code = code;
+            this.displayName = displayName;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
 }

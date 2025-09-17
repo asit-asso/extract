@@ -13,6 +13,7 @@ import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.runners.CommandImportJobRunner;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
+import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.TaskScheduler;
@@ -52,6 +53,11 @@ public class ImportJobsScheduler extends JobScheduler {
     private final EmailSettings emailSettings;
 
     /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
+
+    /**
      * The job that checks at a regular interval if the import jobs of the connectors are correctly
      * scheduled.
      */
@@ -84,10 +90,11 @@ public class ImportJobsScheduler extends JobScheduler {
      * @param connectorsPluginsDiscoverer an object that provides access to the available connector plugins
      * @param smtpSettings                the objects required to create and send an e-mail message
      * @param applicationLanguage         the locale code of the language used by the application to display messages
+     * @param messageService              the service for obtaining localized messages
      */
     public ImportJobsScheduler(final ScheduledTaskRegistrar taskRegistrar, final ApplicationRepositories repositories,
             final ConnectorDiscovererWrapper connectorsPluginsDiscoverer, final EmailSettings smtpSettings,
-            final String applicationLanguage, final OrchestratorSettings orchestratorSettings) {
+            final String applicationLanguage, final OrchestratorSettings orchestratorSettings, final MessageService messageService) {
         super(taskRegistrar);
 
         if (connectorsPluginsDiscoverer == null) {
@@ -110,11 +117,16 @@ public class ImportJobsScheduler extends JobScheduler {
             throw new IllegalArgumentException("The orchestrator settings cannot be null.");
         }
 
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
         this.applicationRepositories = repositories;
         this.connectorsDiscoverer = connectorsPluginsDiscoverer;
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
         this.orchestratorSettings = orchestratorSettings;
+        this.messageService = messageService;
         this.setSchedulingStep(this.orchestratorSettings.getFrequency());
     }
 
@@ -241,7 +253,7 @@ public class ImportJobsScheduler extends JobScheduler {
 
         try {
             CommandImportJobRunner jobRunner = new CommandImportJobRunner(connector.getId(), connectorPlugin,
-                    this.applicationRepositories, this.emailSettings, this.language);
+                    this.applicationRepositories, this.emailSettings, this.language, this.messageService);
             this.logger.debug("Task to run import job for connector {} created.", connectorName);
             TaskScheduler taskScheduler = this.getTaskScheduler();
             ScheduledFuture jobFuture = taskScheduler.scheduleWithFixedDelay(jobRunner, delay);

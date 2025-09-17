@@ -29,6 +29,7 @@ import ch.asit_asso.extract.email.RequestExportFailedEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.TasksRepository;
+import ch.asit_asso.extract.services.MessageService;
 import ch.asit_asso.extract.utils.FileSystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -69,6 +70,11 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
     private final EmailSettings emailSettings;
 
     /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(ExportRequestProcessor.class);
@@ -88,10 +94,11 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
      * @param requestsFolderPath      the absolute path of the folder that contains the data for all requests
      * @param smtpSettings            the objects that are required to create and send an e-mail message
      * @param applicationLanguage     the locale code of the language used by the application to display messages
+     * @param messageService          the service for obtaining localized messages
      */
     public ExportRequestProcessor(final ApplicationRepositories applicationRepositories,
             final ConnectorDiscovererWrapper connectorsDiscoverer, final String requestsFolderPath,
-            final EmailSettings smtpSettings, final String applicationLanguage) {
+            final EmailSettings smtpSettings, final String applicationLanguage, final MessageService messageService) {
 
         if (connectorsDiscoverer == null) {
             throw new IllegalArgumentException("The connector plugin discoverer cannot be null.");
@@ -117,11 +124,16 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
             throw new IllegalArgumentException("The application language code cannot be null.");
         }
 
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
         this.repositories = applicationRepositories;
         this.connectorPluginDiscoverer = connectorsDiscoverer;
         this.basePath = requestsFolderPath;
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
+        this.messageService = messageService;
     }
 
 
@@ -182,8 +194,7 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
         exportRecord.setStatus(RequestHistoryRecord.Status.ONGOING);
         exportRecord.setStep(repository.findByRequestOrderByStep(request).size() + 1);
         exportRecord.setProcessStep(this.getExportProcessStep(request));
-        // TODO Ne pas passer par l'objet EmailSettings
-        exportRecord.setTaskLabel(this.emailSettings.getMessageString("requestHistory.tasks.export.label"));
+        exportRecord.setTaskLabel(this.messageService.getMessage("requestHistory.tasks.export.label"));
         exportRecord.setUser(this.repositories.getUsersRepository().getSystemUser());
 
         return repository.save(exportRecord);

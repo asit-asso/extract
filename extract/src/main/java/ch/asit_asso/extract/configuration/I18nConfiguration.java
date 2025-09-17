@@ -44,6 +44,11 @@ public class I18nConfiguration {
      * application language.
      */
     private static final String EXTRACT_MESSAGES_BASENAME_FORMAT = "classpath:static/lang/%s/messages";
+    
+    /**
+     * The standard Spring basename for messages with locale suffixes.
+     */
+    private static final String SPRING_MESSAGES_BASENAME = "classpath:messages";
 
     /**
      * The code of the language to use to localize the application strings.
@@ -65,16 +70,29 @@ public class I18nConfiguration {
      */
     @Bean
     public MessageSource messageSource() {
-        this.logger.debug("Configuring the message source for language {}.", this.language);
+        this.logger.debug("Configuring the message source for languages: {}.", this.language);
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        String basename = I18nConfiguration.DEFAULT_MESSAGES_BASENAME;
-
-        if (this.language.matches("^[a-z]{2}$")) {
-            basename = String.format(I18nConfiguration.EXTRACT_MESSAGES_BASENAME_FORMAT, this.language);
+        
+        // Use standard Spring basename for messages with locale suffixes
+        // This will look for messages.properties, messages_fr.properties, messages_en.properties, etc.
+        String basename = "classpath:messages";
+        
+        // For backward compatibility, also check the old path structure
+        String defaultLang = this.language.split(",")[0].trim();
+        String extractBasename = null;
+        if (defaultLang.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
+            extractBasename = String.format(I18nConfiguration.EXTRACT_MESSAGES_BASENAME_FORMAT, defaultLang);
         }
 
-        this.logger.debug("The message source basename is \"{}\".", basename);
-        messageSource.setBasenames(basename);
+        // Set both basenames if the old structure exists
+        if (extractBasename != null) {
+            this.logger.debug("The message source basenames are \"{}\" and \"{}\".", basename, extractBasename);
+            messageSource.setBasenames(basename, extractBasename);
+        } else {
+            this.logger.debug("The message source basename is \"{}\".", basename);
+            messageSource.setBasenames(basename);
+        }
+        
         messageSource.setUseCodeAsDefaultMessage(true);
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setCacheSeconds(-1);

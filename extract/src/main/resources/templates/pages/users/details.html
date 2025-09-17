@@ -297,6 +297,24 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <div class="row" th:if="${availableLanguages != null and availableLanguages.size() > 1}">
+                                        <div class="col-xl-12">
+                                            <div class="form-group form-group-with-label">
+                                                <div>
+                                                    <label class="form-label"
+                                                           th:text="#{userDetails.fields.language.label}">
+                                                        {Langue de l'interface}
+                                                    </label>
+                                                </div>
+                                                <select class="form-control" th:field="*{locale}">
+                                                    <option th:each="lang : ${availableLanguages}" 
+                                                            th:value="${lang.code}" 
+                                                            th:text="${lang.displayName}">
+                                                    </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="row">
                                         <div class="col-xl-12">
                                             <input type="hidden" th:field="*{twoFactorStatus}" />

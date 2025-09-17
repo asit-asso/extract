@@ -19,11 +19,14 @@ package ch.asit_asso.extract.email;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.MessageSource;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
@@ -42,17 +45,32 @@ import static org.mockito.Mockito.*;
 @ExtendWith(MockitoExtension.class)
 public class SystemEmailTest {
 
-    @Mock
     private EmailSettings mockEmailSettings;
-    
-    @Mock
     private TemplateEngine mockTemplateEngine;
     
     private Request testRequest;
     private Task testTask;
     
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
+        // Create mock objects for testing
+        SystemParametersRepository mockRepo = Mockito.mock(SystemParametersRepository.class);
+        MessageSource mockMessageSource = Mockito.mock(MessageSource.class);
+        mockTemplateEngine = Mockito.mock(TemplateEngine.class);
+        
+        // Mock the repository to return our test email settings
+        when(mockRepo.isEmailNotificationEnabled()).thenReturn("true");
+        when(mockRepo.getSmtpServer()).thenReturn("smtp.test.com");
+        when(mockRepo.getSmtpPort()).thenReturn("587");
+        when(mockRepo.getSmtpFromMail()).thenReturn("noreply@extract.test");
+        when(mockRepo.getSmtpFromName()).thenReturn("Extract System");
+        when(mockRepo.getSmtpUser()).thenReturn(null);
+        when(mockRepo.getSmtpPassword()).thenReturn(null);
+        when(mockRepo.getSmtpSSL()).thenReturn("false");
+        
+        // Create EmailSettings with correct constructor parameters
+        mockEmailSettings = new EmailSettings(mockRepo, mockTemplateEngine, mockMessageSource, "http://localhost:8080");
+        
         // Setup test request with comprehensive data
         testRequest = new Request();
         testRequest.setId(123);
@@ -87,16 +105,6 @@ public class SystemEmailTest {
         testTask = new Task();
         testTask.setId(456);
         testTask.setLabel("Data Export Task");
-        
-        // Setup mock email settings
-        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
-        when(mockEmailSettings.isValid()).thenReturn(true);
-        when(mockEmailSettings.getSmtpHost()).thenReturn("smtp.test.com");
-        when(mockEmailSettings.getSmtpPort()).thenReturn(587);
-        when(mockEmailSettings.getSenderAddress()).thenReturn("noreply@extract.test");
-        when(mockEmailSettings.getSenderName()).thenReturn("Extract System");
-        // Note: EmailSettings doesn't have a getBaseUrl() method directly, 
-        // but has getAbsoluteUrl() for building full URLs
     }
     
     @Test

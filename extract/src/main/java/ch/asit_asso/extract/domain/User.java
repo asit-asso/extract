@@ -192,6 +192,13 @@ public class User implements Serializable {
     @Enumerated(EnumType.STRING)
     private UserType userType;
 
+    /**
+     * The locale preference for this user's interface language.
+     */
+    @Size(max = 10)
+    @Column(name = "locale", length = 10)
+    private String locale = "fr";
+
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.REMOVE)
     private Collection<RecoveryCode> twoFactorRecoveryCodesCollection;
@@ -543,6 +550,24 @@ public class User implements Serializable {
 
     public void setUserType(UserType userType) {
         this.userType = userType;
+    }
+
+    /**
+     * Obtains the locale preference for this user's interface language.
+     *
+     * @return the locale code (e.g., "fr", "de", "en")
+     */
+    public String getLocale() {
+        return this.locale != null ? this.locale : "fr";
+    }
+
+    /**
+     * Defines the locale preference for this user's interface language.
+     *
+     * @param locale the locale code (e.g., "fr", "de", "en")
+     */
+    public void setLocale(String locale) {
+        this.locale = locale;
     }
 
     /**
