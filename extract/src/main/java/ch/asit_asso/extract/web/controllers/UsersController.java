@@ -57,6 +57,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
@@ -127,12 +128,17 @@ public class UsersController extends BaseController {
      */
     private final LocaleConfiguration localeConfiguration;
 
+    /**
+     * The locale resolver for managing language changes.
+     */
+    private final LocaleResolver localeResolver;
+
 
 
     public UsersController(RecoveryCodeRepository codesRepository, Secrets secrets,
                            RememberMeTokenRepository tokensRepository, TwoFactorService twoFactorService,
                            UsersRepository usersRepository, LdapSettings ldapSettings, Environment environment,
-                           LocaleConfiguration localeConfiguration) {
+                           LocaleConfiguration localeConfiguration, LocaleResolver localeResolver) {
         this.backupCodesRepository = codesRepository;
         this.secrets = secrets;
         this.rememberMeRepository = tokensRepository;
@@ -141,6 +147,7 @@ public class UsersController extends BaseController {
         this.ldapSettings = ldapSettings;
         this.applicationPath = UrlUtils.getApplicationPath(environment.getProperty("application.external.url"));
         this.localeConfiguration = localeConfiguration;
+        this.localeResolver = localeResolver;
     }
 
 
@@ -402,6 +409,13 @@ public class UsersController extends BaseController {
             this.addStatusMessage(model, "userDetails.errors.user.update.failed", MessageType.ERROR);
 
             return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+        // If the current user changed their own language, update the locale in the session
+        if (this.isEditingCurrentUser(userModel) && userModel.getLocale() != null) {
+            Locale newLocale = Locale.forLanguageTag(userModel.getLocale());
+            this.localeResolver.setLocale(request, response, newLocale);
+            this.logger.debug("Updated locale for user {} to {}", userModel.getLogin(), newLocale);
         }
 
         this.addStatusMessage(redirectAttributes, "usersList.user.updated", MessageType.SUCCESS);
