@@ -1,5 +1,5 @@
 site_name: Extract Documentation
-site_url: https://benoitregamey.github.io/extract
+site_url: https://benoitregamey.github.io/doc
 theme:
   name: material
   palette:
@@ -58,7 +58,6 @@ nav:
     # - how-to/qgis-server-atlas.md
   - Miscellaneous:
     - misc/viageo-test.md 
-    - misc/community.md
 
 plugins:
   - search

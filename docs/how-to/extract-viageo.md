@@ -1,5 +1,5 @@
 # Connect Extract to viageo.ch
-!!! Info 
+!!! Warning 
     This section is only useful if your organization provides geodata on the platform [viageo.ch](https://viageo.ch){target="_blank"} or [plans-reseaux.ch](https://plans-reseaux.ch){target="_blank"}. You must be an [ASIT](https://asit-asso.ch){target="_blank"} member to distribute geodata through these platforms.
 
 !!! Info 
