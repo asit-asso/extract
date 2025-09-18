@@ -21,7 +21,7 @@ Extract est modulable et extensible, à installer dans l’environnement informa
 
 ## 📋Documentation
 
-Toute la documentation pour installer, paramétrer et utiliser Extract est en ligne (en anglais) : https://benoitregamey.github.io/doc/
+Toute la documentation pour installer, paramétrer et utiliser Extract est en ligne (en anglais) : https://benoitregamey.github.io/extract/
 
 ## Groupe utilisateurs
 
