@@ -57,12 +57,6 @@ mvn package
 Outre le fichier WAR, l'archive de livraison d'une nouvelle version contient :
 
 * La dernière version du script de mise à jour de la base de données (`sql/update_db.sql`)
-* La documentation : 
-  * guide d'installation (`doc/MAN_ASIT_Extract_ManuelInstallation.pdf`)
-  * guide d'exploitation (`doc/MAN_ASIT_Extract_ManuelExploitation.pdf`) 
-  * guide d'utilisation (`doc/MAN_ASIT_Extract_ManuelUtilisation.pdf`)
-  * documentation de création d'un connecteur (`doc/extract-connector-sample/`)
-  * documentation de création d'un plugin de tâche (`doc/extract-task-sample/`)
 * Le script d'exemple FME (`fme/`)
 
 ### Tests
@@ -88,7 +82,6 @@ Présentations sur le projet aux Rencontres ASIT : https://asit-asso.ch/toutes-l
 
 L'ASIT, Association pour le Système d'Information du Territoire, à l'origine du projet : https://asit-asso.ch
 
-Forked from easySDI (www.easysdi.org) : https://svn.easysdi.org/svn/easysdi/branches/4.5.x/java
 
 ## Screenshots:
 

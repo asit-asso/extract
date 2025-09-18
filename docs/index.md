@@ -17,13 +17,10 @@ And all of that with or without human intervention, you choose it !
 *  :high_brightness: increase delivered data quality
 *  :smiling_face_with_3_hearts: increase customer satisfaction
 
-![Extract Robot](assets/introduction/extract_robot.png)
-
 ## Open Source project
 
 Extract is a modular and extensible web application, **to be installed in the IT environment of each data provider**, and can be accessed with a web browser.
 
-![Schema](assets/introduction/shema_global_transparent2.png)
 <br>
 <br>
 <br>
