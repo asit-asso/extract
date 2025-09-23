@@ -51,6 +51,7 @@ nav:
     - getting-started/cybersecurity-linux.md
   - features/user-guide.md
   - features/admin-guide.md
+  - features/dev-guide.md
   - How-To:
     - how-to/extract-viageo.md
     # - how-to/fme-form.md
