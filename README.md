@@ -45,37 +45,6 @@ Actuellement, 37 fournisseurs diffusent tout ou partie de leurs géodonnées ave
 * Holdigaz Prestations SA
 * ASIT - Association pour le système d'information du territoire
 
-## Développement
-
-### Packaging
-
-Pour générer un WAR de l'application, il faut lancer la commande suivante
-```bash
-mvn package
-```
-
-Outre le fichier WAR, l'archive de livraison d'une nouvelle version contient :
-
-* La dernière version du script de mise à jour de la base de données (`sql/update_db.sql`)
-* Le script d'exemple FME (`fme/`)
-
-### Tests
-
-Les tests unitaires peuvent se lancer indépendamment du packaging par la commande
-```bash
-mvn -q test -Punit-tests --batch-mode --fail-at-end
-```
-
-Pour exécuter les tests d'intégration
-```bash
-mvn -q verify -Pintegration-tests --batch-mode
-```
-
-Pour les tests fonctionnels (nécessite que l'application tourne sur le port 8080 du localhost)
-```bash
-mvn -q verify -Pfunctional-tests --batch-mode
-```
-
 ## Liens:
 
 Présentations sur le projet aux Rencontres ASIT : https://asit-asso.ch/toutes-les-rencontres#2018

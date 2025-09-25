@@ -87,7 +87,7 @@ A single database and a single schema are created, and the user who owns the sch
 
 Table listing the connectors configured in the system. It is not possible to modify/delete a connector if a related request is incomplete. Deleting a connector involves deleting the associated rules and setting the id_connector of the related requests in the REQUESTS table to null.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
 | ``id_connector`` | int | **Primary key** | *1*
 | ``connector_code`` | varchar 50 | Code identifying the connector type. Retrieved from the connector itself via a specific function. The code must be unique in the connector catalog. | *easysdiv4*
@@ -103,7 +103,7 @@ Table listing the connectors configured in the system. It is not possible to mod
 
 Table listing the rules applied to a given connector and associating a process with each of them.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
 | ``id_rule`` | int | **Primary key** | *1*
 | ``id_process`` | int | **Foreign key** linking to the PROCESSES table | *1*
@@ -116,7 +116,7 @@ Table listing the rules applied to a given connector and associating a process w
 
 Table listing the processes configured in the system. It is not possible to modify (i.e., the tasks that comprise it) a process if a related request is ONGOING. It is not possible to delete a process if a related request is incomplete or if it is associated with a connector rule.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
 | ``id_process`` | int | **Primary key** | *1*
 | ``name`` | varchar 255 | Process title | *Réseau de Gaz*
@@ -125,7 +125,7 @@ Table listing the processes configured in the system. It is not possible to modi
 
 Table listing the tasks (plugins) configured for a given process.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
 | ``id_task`` | int | **Primary key**| *1*
 | ``id_process`` | int | **Foreign key** linking to the PROCESSES table | *1*
@@ -138,7 +138,7 @@ Table listing the tasks (plugins) configured for a given process.
 
 Table ensuring the assignment of one or more users to a given process.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
 | ``id_process`` | int | **Foreign key** linking to the PROCESSES table | *1*
 | ``id_user`` | int | **Foreign key** linking to the USERS table | *1*
@@ -147,7 +147,7 @@ Table ensuring the assignment of one or more users to a given process.
 
 Table ensuring the assignment of one or more groups to a given process.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
 | ``id_process`` | int | **Foreign key** linking to the PROCESSES table | *1*
 | ``id_usergroup`` | int | **Foreign key** linking to the USERGROUPS table | *1*
@@ -156,20 +156,170 @@ Table ensuring the assignment of one or more groups to a given process.
 
 User table. It is not possible to delete a user if they are associated with a process. When a user is deleted, the items linked to them in the REQUEST_HISTORY table are assigned an ``id_user`` value of ``null``, indicating that the user is now unknown.
 
-| ``Attribute`` | Type | Description | Example |
+| Attribute | Type | Description | Example |
 | --- | --- | --- | --- | 
-| ``id_user`` | int | **Primary key** linking to the PROCESSES table | *1*
+| ``id_user`` | int | **Primary key** | *1*
 | ``user_type`` | string | User type: LOCAL: user whose Extract database is the authentication source. LDAP: user whose LDAP server is the authentication source | *LOCAL*
 | ``two_factor_status`` | string | 2FA status: ACTIVE / INACTIVE / STANDBY | *ACTIVE*
 | ``two_factor_forced`` | varchar 100 | 2FA imposed by the administrator ? | *true*
 | ``two_factor_token`` | varchar 100 | String used to generate two-factor authentication codes (encrypted) | *Xxxxx*
 | ``two_factor_standby_token`` | string | String used to generate two-factor authentication codes (encrypted) awaiting validation by the user | *Xxxxx*
 | ``profile`` | string | Attribute that can take two values. ADMIN: Administrator. OPERATOR: Operator. Note: the texts corresponding to the values are managed in the application itself to ensure multilingual support. | *ADMIN*
-| ``name`` | varchar 50 | Full name of the user | *Yves Blatti*
-| ``login`` | varchar 50 | User login | *yblatti*
+| ``name`` | varchar 50 | Full name of the user | *Xxxx*
+| ``login`` | varchar 50 | User login | *Xxxx*
 | ``pass`` | varchar 60 | User password | *******
-| ``email`` | varchar 50 | User email | *yves.blatti@asitvd.ch*
+| ``email`` | varchar 50 | User email | *example@myentreprise.ch*
 | ``active`` | boolean | Defines whether the user is active or not | *true*
 | ``mailactive`` | boolean | Defines whether notifications are active for the user | *true*
 | ``tokenpass`` | varchar 50 | Token used for password recovery (single use). Attribute reset to null when the user next logs in (regardless of the password used) | *so37dd9sxwxdx3449ckl*
 | ``tokenexpire`` | datetime | **Foreign key** linking to the USERGROUPS table. Token expiration date/time | *2016.01.01 12 :00*
+
+##### RECOVERY_CODES
+
+Table of recovery codes per user in case of loss of access to the device enabling two-factor authentication. When a code is successfully used, it is removed from this table.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``id_code`` | int | **Primary key** | *1*
+| ``Id_user`` | int | **Foreign key** linking to the USERS table | *1*
+| ``token`` | varchar 100 | Recovery code (hashed) | *Xxxxx*
+
+##### REMEMBER_ME_TOKENS
+
+Table tracking tokens issued so that two-factor authentication is not required for a user on a machine for a certain period of time.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``id_code`` | int | **Primary key** | *1*
+| ``Id_user`` | int | **Foreign key** linking to the USERS table | *1*
+| ``token`` | varchar 100 | Random string contained in the authorization cookie | *Xxxxxx*
+| ``tokenexpire`` | timestamp | Date and time of authorization expiration | *154564566*
+
+##### REQUESTS
+
+Table listing current and completed requests.
+
+In order to manage connectors with multiple interfaces, the connector itself must provide the request elements in a standardized format for database entry. This format consists of **p_xxx** attributes.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``id_request`` | int | **Primary key** | *1*
+| ``id_process`` | int | **Foreign key** linking to the PROCESSES table.<br> This parameter remains null if no rule matches the query element. | *1*
+| ``id_connector`` | int | **Foreign key** linking to the CONNECTORS table. <br> This parameter is null if the associated connector has been deleted | *1*
+| ``p_orderlabel`` | varchar 255 | Standardized query parameter <br> Order name| *123456 / 6*
+| ``p_orderguid`` | varchar 255 | Standardized query parameter <br> Order ID, also to be provided when sending the result | *677587e2-057f-0144-ddc1-9feca766448f*
+| ``p_productguid`` | varchar 255 | Standardized query parameter <br> ID of the product ordered, also to be provided when sending the result | *708e932b-81c3-2ce4-b907-ed07e61ac5f9*
+| ``p_productlabel`` | varchar 255 | Standardized query parameter <br> Name of the product ordered | *Plan du réseau d’eau commune de Bex*
+| ``p_organism`` | varchar 255 | Standardized query parameter <br> Organization receiving the order | *Terrassements SA*
+| ``p_client`` | varchar 255 | Standardized query parameter <br> Customer receiving the order | *Terrassements SA*
+| ``p_clientguid`` | varchar 255 | Standardized query parameter <br> Customer ID | *708e932b-81c3-2ce4-b907-ed07e61ac5f9*
+| ``p_organismguid`` | varchar 255 | Standardized query parameter <br> Organization ID | *708e932b-81c3-2ce4-b907-ed07e61ac5f9*
+| ``p_tiers`` | varchar 255 | Standardized query parameter <br> Third party linked to the order | *Commune de Bex*
+| ``p_tiersguid`` | varchar 255 | Standardized query parameter <br> GUID of the third party linked to the order | *708e932b-81c3-2ce4-b907-ed07e61ac5f9*
+| ``p_clientdetails`` | varchar 4000 | Standardized query parameter <br> Details of the customer receiving the order | *Nom de rue 37<br>1880 Bex<br>Tel :00.00.00.00.00<br>Mail : xxx@yyy.com*
+| ``p_tiersdetails`` | varchar 4000 | Standardized query parameter <br> Details of the third party linked to the order | *Nom de rue 37<br>1880 Bex<br>Tel :00.00.00.00.00<br>Mail : xxx@yyy.com*
+| ``p_perimeter`` | varchar 4000 | Standardized query parameter <br> Coordinates of the extraction polygon | *POLYGON((6.9378 46.1056,6.1245 …*
+| ``p_surface`` | float | Standardized query parameter <br> Extraction polygon area | *123.4 (m2)*
+| ``p_parameters`` | varchar 4000 | Standardized query parameter <br> List of non-standardized parameters passed as is to task plugins | *{‘format’ :’pdf’, … }*
+| ``p_external_url`` | varchar 255 | URL for accessing order details on the origin server | *https://viageo.ch/commandes/123456*
+| ``remark`` | varchar 4000 | Any comments related to the query element. Modifiable by task plugins | *Donnée fournie à titre confidentielle*
+| ``folder_in`` | varchar 255 | Request element input directory. Defined by the application based on a base path (configurable by the administrator). It is sent to task plugins along with the other parameters of the request element | */677587e2-057f-0144-ddc1-9feca766448f/20161212180000/in*
+| ``folder_out`` | varchar 255 | Output directory of the request element. Defined by the application based on a base path (configurable by the administrator). It is sent to the task plugins along with the other request element parameters. | */677587e2-057f-0144-ddc1-9feca766448f/20161212180000/out*
+| ``start_date`` | datetime | Date and time the query was created in the system. | *22.11.2016 09:00*
+| ``end_date`` | datetime | Date and time the query processing ended. | *22.11.2016 09:15*
+| ``tasknum`` | int | Number of the task currently in progress in the process. | 
+| ``rejected`` | boolean | False by default. <br> Flag indicating that the operator or administrator wanted to stop the associated processing and thus reject the request. | *False*
+| ``status`` | string | Status of the request in its lifecycle.<br><br>IMPORTED: Imported – The request is initialized in the system following a connector import (or when the status is forced by the administrator)<br>IMPORTFAIL: Import failure – The request cannot be processed because its import via the connector failed<br>ONGOING: In progress – A rule has allowed the request to be associated with a process. The orchestrator can move it forward.<br>STANDBY: On hold – Manual action is required on the current task (e.g., validation plugin).<br>ERROR: Error – The current task has encountered an error (e.g., FME script not found).<br>UNMATCHED: Unmatched – No rule has allowed a process to be associated with the request<br>TOEXPORT: To be exported – The last task in a process has been completed successfully. The request is ready for export<br>EXPORTFAIL: Export failure – The request has been processed but its export via its original connector has failed<br>FINISHED: Finished – The request has been processed and the export was successful<br><br>Note: the texts corresponding to the values are managed in the application itself in order to ensure multilingual support. | *IMPORTED*
+| ``last_reminder`` | datetime | Date and time of the last reminder in the case of a request awaiting validation | *22.11.2016 09:00*
+
+##### REQUEST_HISTORY
+
+Table listing the processing history for each of the requests initiated. For a given request, there may be more items in this table than tasks, since the user can go back in the processing. This table must remain completely independent of the process (and therefore the tasks) attached to the request. This is to avoid corrupting the history if the process is modified retrospectively. All history items must therefore be duplicated in this table (e.g., task_label).
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``Id_record`` | int | **Primary key** | *1*
+| ``id_request`` | int | **Foreign key** linking to the PROCESSES table| *1*
+| ``id_user`` | int | **Foreign key** linking to the USERS table. <br><br>0 = system<br>null = unknown (user deleted)<br><br>Note: the texts corresponding to the values are managed in the application itself in order to ensure multilingual support. | *1*
+| ``task_label`` | varchar 255 | Label of the corresponding task plugin or Export for the export step or Import for the import step | *Extraction FME 2016*
+| ``status`` | string | Task status <br><br>ONGOING: In progress - The task is being processed<br>STANDBY: Waiting - Manual action is required (e.g. validation plugin)<br>ERROR: Error - The task has encountered an error (e.g. FME script not found) or the import/export has failed<br>FINISHED: Finished - The task/import/export has been successfully completed<br><br>Note: the texts corresponding to the values are managed in the application itself in order to ensure multilingual support. | *FINISHED*
+| ``last_msg`` | varchar 4000 | Last message returned by the plugin (error message or success message) or by the connector (import/export step). Incremented by 1 with each new entry in this table (for the same id_request) |
+| ``step`` | int | Standardized query parameter <br> Name of the product ordered | *3*
+| ``start_date`` | datetime | Date and time when task processing began | *22.11.2016 09:00*
+| ``end_date`` | datetime | Date and time when task processing ended<br>Null if the task plugin is currently running. | *22.11.2016 09:02*
+| ``process_step`` | int | Task number in the process | *1*
+
+##### SYSTEM
+
+Table listing the system parameters required for the solution to function properly.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``key`` | varchar 50 | **Primary key** | *smtp_port*
+| ``value`` | varchar 65000 | System attribute value | *25*
+
+Below is a list of the keys contained in this table. These keys cannot be modified.
+
+| Key | Value (example or domains) |
+| --- | --- |
+| ``freq_scheduler_sec`` | *1* |
+| ``dashboard_interval`` | *10* |
+| ``smtp_server`` | *mail.laboite.ch* |
+| ``smtp_port`` | *25* |
+| ``smtp_from_name`` | *EX3K* |
+| ``smtp_from_mail`` | *ex3k.noreply@laboite.ch* |
+| ``smtp_pass`` | ****** |
+| ``smtp_user`` | *admin* |
+| ``smtp_ssl`` | *0* |
+| ``base_path`` | *D:\extract\orders* |
+| ``display_temp_folder`` | *false* |
+| ``mails_enable`` | *true* |
+| ``op_mode`` | *ON / RANGES / OFF* |
+| ``op_timeranges`` | *[<br>&emsp;{dayfrom :1, dayto :4, timefrom :7, timeto :18},<br>&emsp;{dayfrom :5, dayto :5, timefrom :7, timeto :16},<br>&emsp;{…}<br>]* |
+| ``ldap_on`` | *true* |
+| ``ldap_servers`` | *ldap.example.com, ldap2.example.com* |
+| ``ldap_encryption_type`` | *LDAPS / STARTTLS* |
+| ``ldap_base_dn`` | *cn=admin,dc=example,dc=com * |
+| ``ldap_admins_group`` | *CN=YourGroup, OU=Users,DC=YourDomain,DC=COM* |
+| ``ldap_operators_group`` | *CN=YourGroup, OU=Users,DC=YourDomain,DC=COM* |
+| ``ldap_synchro_on`` | *true* |
+| ``ldap_user`` | *Service_account_extract* |
+| ``ldap_password`` | *xxxxx* |
+| ``ldap_synchro_freq`` | *24* |
+| ``ldap_last_synchro`` | *22.11.2016 09:00* |
+| ``standby_reminder_days`` | *3* |
+| ``validation_focus_properties`` | *REMARK, PROJECTION, FORMAT* |
+
+##### REMARKS
+
+Table listing predefined messages to be used as comments during the validation stage of a process.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``Id_remark`` | int | **Primary key** | *1*
+| ``content`` | varchar 65000 | Comment text | *Madame, Monsieur, Votre commande...*
+| ``title`` | varchar 255 | Comment title (for display in the list) | *Périmètre non valide*
+
+##### USERGROUPS
+
+Table listing user groups that can be assigned to a process
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``Id_usergroup`` | int | **Primary key** | *1*
+| ``name`` | varchar  50 | User group name | *Responsables cadastre*
+
+##### USERS_USERGROUPS
+
+Table ensuring that users belong to user groups
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``Id_usergroup`` | int | Foreign key linking to the USERGROUPS table | *1*
+| ``Id_user`` | int | Foreign key linking to the USERS table | *1*
+
+#### Deletion of database elements
+
+The table below shows the constraints and triggers established directly in the database for managing cascading deletions.
+
+Note: these actions/deletions do not need to be managed in the web interface.
