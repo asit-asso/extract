@@ -323,3 +323,109 @@ Table ensuring that users belong to user groups
 The table below shows the constraints and triggers established directly in the database for managing cascading deletions.
 
 Note: these actions/deletions do not need to be managed in the web interface.
+
+| Source element | Target element | Deletion/cascading action |
+| --- | --- | --- |
+| ``CONNECTORS`` | ``RULES`` | Deleting items in the RULES linked table<br>Note: however, this scenario is only possible for connectors without unfinished linked requests. The interface must not allow a connector to be deleted if it has an ongoing or pending request associated with it. |
+| ``CONNECTORS`` | ``REQUESTS`` | Setting the id_connector in the REQUESTS table to null<br>Note: however, this scenario is only possible for connectors without unfinished linked requests. The interface must not allow a connector to be deleted if it has a request in progress or pending. |
+| ``REQUESTS`` | ``REQUEST_HISTORY`` | Deleting items in the linked REQUEST_HISTORY table.  |
+| ``PROCESSES`` | ``REQUESTS`` | Setting the id_process in the REQUESTS table to null<br>Note: however, this scenario is only possible for completed requests. The interface must not allow a process to be deleted if it has a pending or ongoing request associated with it. |
+| ``PROCESSES`` | ``RULES`` | Delete items in the linked RULES table<br>Note: however, this scenario should never occur, as the interface must not allow a process to be deleted if it has a rule associated with it |
+| ``PROCESSES`` | ``TASKS`` | Deleting items in the TASKS related table |
+| ``PROCESSES`` | ``PROCESSES_USERS`` | Deleting items in the PROCESSES_USERS related table |
+| ``PROCESSES`` | ``PROCESSES_USERGROUPS`` | Deleting items in the PROCESSES_USERGROUPS related table |
+| ``USERS`` | ``REQUEST_HISTORY`` | Setting the id_user in the REQUEST_HISTORY table to null |
+| ``USERS`` | ``PROCESSES_USERS`` | Deleting items in the PROCESSES_USERS related table |
+| ``USERS`` | ``USER_USERGROUPS`` | Deleting items in the USER_USERGROUPS related table |
+| ``USERS`` | ``RECOVERY_CODES`` | Delete items in the RECOVERY_CODES related table |
+| ``USERS`` | ``REMEMBER_ME_TOKENS`` | Delete items in the REMEMBER_ME_TOKENS related table |
+| ``USERGROUPS`` | ``PROCESSES_USERGROUPS`` | Delete items in the PROCESSES_USERGROUPS related table |
+| ``USERGROUPS`` | ``USER_USERGROUPS`` | Delete items in the USER_USERGROUPS related table |
+
+#### Request lifecycle
+
+Requests follow the lifecycle illustrated in the diagram below. Transitions show the system or user event that triggered them.
+
+![request-lifecycle](../assets/dev-guide/request-lifecycle.png){width="900"}
+
+### Description of interfaces and third-party systems
+
+#### Connector catalog
+
+##### Introduction
+
+The connector catalog contains all connectors available for the system. They must all implement the following interface functions:
+
+* ``String getCode``: returns the connector code, which must be unique in the catalog
+* ``String getLabel``: returns the connector name
+* ``String getDescription``: returns formatted text describing the connector
+* ``String getHelp``: returns formatted text to guide the user in entering parameters
+* ``String getParams``: returns the parameters specific to the connector, in json format. Each parameter is defined by a unique code, a label, a type, whether it is mandatory or not, and any other tags specific to the type. The types available for connectors are as follows:
+    * **text** : character string to be entered via a text box. The maximum length of the string is specified in an additional attribute.
+    * **pass**: character string to be entered via a hidden text field. The maximum length of the string is specified in an additional attribute.
+* ``Object new(params)``: creates an instance of the connector by passing the user-defined parameters. Returns the created object.
+* ``Object importCommands()``: launches the command import. Returns an object consisting of an error code, the list of request elements in standardized format, and, if applicable, an associated message.
+* ``Object exportResults(request)``: launches the export of a command result. The request element (containing in particular the output directory, the remark attribute, the status, etc.) is passed as a parameter (complete object from the REQUESTS table). Returns an error code and, if applicable, an associated message.
+
+The following chapters list the return values of these functions for each of the connectors available in the first version of the solution. Note that plugins must implement multilingual support in the return values of functions. The descriptions below correspond to the English version.
+
+##### Easy SDI v4 connector
+
+| Function | Return |
+| --- | --- |
+| ``getCode`` | easysdiv4 |
+| ``getLabel`` | EasySdi V4 |
+| ``getDescription`` | *Connecteur pour la solution EasySdi V4* |
+| ``getHelp`` | *Se référer directement au connecteur* |
+| ``getParams`` | [<br>&emsp;{‘code’ : ‘url’, ‘label’ : ‘URL du service’, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘login’, ‘label’ : ‘Login distant’, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 50},<br>&emsp;{‘code’ : ‘pass’, ‘label’ : ‘Mot de passe’, ‘type’ : ‘pass’, ‘req’ : ‘true’, ‘maxlength’ : 50}<br>]<br><br>Below is an example of the corresponding settings (connector_params attribute in the CONNECTOR table):<br><br>{<br>&emsp; ‘url’ : ‘http://www.asitvd.ch/extractpoint/rest’,<br>&emsp; ‘login’ : ‘fournisseur12445’,<br>&emsp; ‘pass’ : ‘motdepasse’<br>}|
+
+#### Task Plugin Catalog
+
+##### Introduction
+
+The task catalog contains all of the task plugins available for the system. They must all implement the following interface functions:
+
+* ``String getCode``: returns the plugin code, which must be unique in the catalog.
+* ``String getLabel``: returns the task plugin name.
+* ``String getDescription``: returns formatted text describing the plugin 
+* ``String getHelp``: returns formatted text to guide the user in entering parameters
+* ``String getPictoClass``: returns the class to be used for the plugin pictogram
+* ``String getParams``: returns the parameters specific to the task plugin, in json format. Each parameter is defined by a unique code, a label, a type, whether it is mandatory or not, and any other tags specific to the type. The types available for task plugins are as follows:
+    - **text**: character string to be entered via a text box. The maximum length of the string is specified in an additional attribute. 
+    - **multitext**: character string to be entered via a multi-line text box. The maximum length of the string is specified in an additional attribute. Parameters of this type support    dynamic strings using the same keywords as the text type.
+    - **pass**: character string to be entered via an obfuscated text field. The maximum length of the string is specified in an additional attribute.
+    - **list**: list of choices to be entered via a drop-down list. The available options are specified in an additional attribute (values separated by |)
+    - **boolean**: boolean to be entered via a checkbox
+    - **email**: email address or list of email addresses separated by a semicolon and/or a comma.
+    - **list_msgs** (for new validation plugin): multiple choice list filled in by the Extract core with the validation messages defined at the Extract instance level.
+    - **numeric** (for FME Desktop plugin): Numeric value. Min, max, and step are specified in three additional attributes.
+* ``Object new(params)``: creates an instance of the plugin by passing the user-defined parameters. Returns the created object.
+* ``Object execute(request)``: executes the task plugin according to the request element passed as parameters. Returns an object of the type:
+    * **State**: status among success, error, standby
+    * **Code**: if applicable, return code 
+    * **Message**: message associated with the state (stored in last_msg for info). This can be a raw message from a tool underlying the plugin (e.g. FME), an informative message explaining why the plugin is on standby, etc.
+    * **Request**: request element passed as input and possibly modified by the plugin
+
+The following chapters list the return values of these functions for each of the plugins available in the first version of the solution. Note that plugins must implement multilingual support in the return values of functions (except, of course, for error/success messages from underlying tools). The descriptions below correspond to the English version.
+
+##### File Archiving Plugin
+
+| Function | Return |
+| --- | --- |
+| ``getCode`` | ARCHIVE |
+| ``getLabel`` | Archivage fichiers |
+| ``getDescription`` | Copie des fichiers dans un répertoire local ou réseau |
+| ``getHelp`` | *Se référer directement au connecteur* |
+| ``getPictoClass`` | *Se référer directement au connecteur* |
+| ``getParams`` | [<br>&emsp;{‘code’ : ‘path’, ‘label’ : ‘Chemin d’archivage’, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘login’, ‘label’ : ‘Login’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘pass’, ‘label’ : ‘Mot de passe’, ‘type’ : ‘pass’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>]<br><br>Below is an example of the corresponding settings (task_params attribute in the TASK table):<br><br>{<br>&emsp; ‘path’ : ‘/var/extraction/{no_commande}-{date}/{code-produit}/’<br>}|
+
+Note: This plugin supports dynamic strings in its settings according to the following keywords:
+
+* {orderLabel}
+* {orderGuid}
+* {productGuid}
+* {productLabel}
+* {startDate}
+* {organism}
+* {client}
+
