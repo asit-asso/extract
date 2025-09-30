@@ -1,112 +1,76 @@
-# Extract - Initialiser un nouveau plugin de connecteur
+# Extract - Initialize a New Connector Plugin
 
 ## Introduction
 
-Ce module java est un exemple de plugin de connecteur qui peut être utilisé pour initialiser un nouveau
-plugin pour le projet Extract.
-Le code source est documenté et permet d'avoir les indications nécessaires pour développer un nouveau plugin,
-Il peut être importé dans un nouveau environnement Java, des adaptations sont cependant
-nécessaires selon le fonctionnement attendu.
+This Java module is an example of a connector plugin that can be used to initialize a new plugin for the Extract project.  
+The source code is documented and provides the necessary guidance to develop a new plugin.  
+It can be imported into a new Java environment, but adaptations may be required depending on the expected behavior.
 
-## Pré-requis pour l'utilisation
-* OS 64 bits
-* Java 17
-* Tomcat 9
+## Prerequisites for Use
+* 64-bit OS  
+* Java 17  
+* Tomcat 9  
 
-## Pré-requis pour le développement et la compilation
-* Java 17
-* [Yarn][Yarn_Site]
-* Projet extract-interface (Interface commune pour l'utilisation des plugins connecteurs et tâches)
+## Prerequisites for Development and Compilation
+* Java 17  
+* [Yarn][Yarn_Site]  
+* Extract-interface project (Common interface for using connector and task plugins)  
 
-## Initialisation du nouveau plugin de connecteur.
-Le projet doit être un module Java. \
-Le projet du nouveau plugin doit définir une dépendance vers le projet extract-interface.\
-Les dépendances requises sont définies dans le fichier pom.xml.
+## Initializing the New Connector Plugin
+The project must be a Java module.  
+The new plugin project must define a dependency on the extract-interface project.  
+Required dependencies are defined in the pom.xml file.  
 
-Pour initialiser un nouveau plugin, suivre les étapes dans l'ordre :
-1. Copier le code du plugin extract-connector-sample vers un workspace java. Le système propose demande de définir un
-   nouveau nom.  Si ce n'est pas le cas, utiliser le menu contextuel (clic droit) `Refactor > Rename`
+To initialize a new plugin, follow the steps in order:  
+1. Copy the extract-connector-sample plugin code into a Java workspace. The system will prompt you to define a new name. If it does not, use the context menu (right-click) `Refactor > Rename`.  
 
+2. Edit the **pom.xml** file of the module, replace occurrences of `extrat-connector-sample` with the new plugin name.  
+   After right-clicking the file, choose `Add as Maven Project`.  
 
-2. Editer le fichier **pom.xml** du module, remplacer les occurences de `extrat-connector-sample` par le nouveau nom du plugin.
-   Après un clic droit sur le fichier, choisir l'option `Add as Maven Project`
+3. Right-click the namespace `ch.asit_asso.extract.connectors.sample`, choose the menu `Refactor > Rename`.  
+   Enter the new class name to identify the plugin. If prompted, click the `Add in current Module` button to apply the changes only to the module.  
+   This will automatically update the package name in all files of the module.  
 
+4. Right-click the **SampleConnector.java** file, choose `Refactor > Rename`, then enter the new main class name of the plugin (e.g., EasySDIv4). This will rename the file and update all references to this class wherever it is used.  
 
-3. Après un clic droit sur l'espace de nom `ch.asit_asso.extract.connectors.sample`, choisir le menu `Refactor > Rename`.
-   Saisir le nom de la nouvelle classe permettant d'identifier le plugin. Si l'interface le demande, cliquer sur le bouton
-   `Add in current Module` afin d'appliquer les changements sur le mode uniquement.
-   Cela aura pour effet de modifier automatiquement le nom du package dans tous les fichiers du module.
+5. Edit the **LocalizedMessages.java** file: adjust the value of the LOCALIZED_FILE_PATH_FORMAT parameter, which corresponds to the path to the `lang` directory.  
 
+6. Check the **module-info.java** file, especially the reference to `SampleConnector`. Also verify line 4 of this file (reference to the namespace `ch.asit_asso.extract.connectors.sample`).  
 
-4. Après un clic droit sur le fichier **SampleConnector.java**, choisir le menu `Refactor > Rename` puis saisir le nom
-   de la nouvelle classe principale du plugin (e.g EasySDIv4). Cela aura pour effet de renommer le fichier et de modifer
-   toutes les références à cette classe partout où elle est utilisée.
+7. Check the file **resources\META-INF\services\ch.asit_asso.extract.connectors.common.IConnector**, especially the reference to the class `ch.asit_asso.extract.connectors.sample.SampleConnector`.  
 
+8. Right-click the **resources\connectors\sample** folder, choose `Refactor > Rename`, and enter the new name.  
 
-5. Editer le fichier **LocalizedMessages.java** : ajuster la valeur du paramètre LOCALIZED_FILE_PATH_FORMAT qui
-   correspond au chemin vers le répertoire `lang`
+9. Edit the file **resources\connectors\<connector>\lang\fr\messages.properties**. Modify or add the labels used by the plugin source code. This step can be done progressively during development.  
 
+10. Edit the file **resources\connectors\<connector>\properties\config.properties**. This file contains the plugin configuration parameters used by the source code. This step can be done progressively during development.  
 
-6. vérifier le fichier **module-info.java** en particulier la référence à `SampleConnector`. Vérifier également la ligne 4
-   de ce fichier (référence à l'espace de nom `ch.asit_asso.extract.connectors.sample`)
+11. The folder **resources\connectors\<connector>\templates** contains XML templates used by the connector.  
+    However, they are specific to the EasySDIv4 connector, since XML is used as the exchange format for commands. These files will likely not be useful for other types of connectors.  
 
+## Important Points to Consider During Development
 
-7. Vérifier le fichier **resources\META-INF\services\ch.asit_asso.extract.connectors.common.IConnector**  en particulier
-la cohérence de la classe `ch.asit_asso.extract.connectors.sample.SampleConnector`
+The source code is sufficiently commented to help the developer build the new plugin. Comments in **UPPERCASE** identify important code sections or functions that must be updated.  
 
+It is recommended to make the following changes in the Connector class:  
+* Adjust the `CONFIG_FILE_PATH` variable if needed  
+* Change the value of the `code` parameter to one identifying the plugin (e.g., `EasySDIv4`)  
 
-8. Après un clic droit sur le dossier **resources\connectors\sample**, choisir le menu `Refactor > Rename`. Saisir
-   le nouveau nom
+Next, adapt the functions that override the IConnector interface methods:  
+* `getParams` to define the connector parameters. This method returns plugin parameters as a JSON array. If the plugin does not accept parameters, return an empty array.  
+* `importCommands` to manage importing commands executed by the remote server.  
+* `exportResult` to manage sending the processing result of a command back to the originating server.  
 
+Private functions in the code handle utility operations or process received data. These can be adapted or removed as needed. These functions are clearly identified in the Connector class code.  
 
-9. Editer le fichier **resources\connectors\<connector>\lang\fr\messages.properties**. Modifier ou
-    ajouter les libellés qui seront utilisés par le code source du plugin. Cette étape peut se faire
-    de manière progressive pendant le développement
+## Installing or Updating the Plugin in EXTRACT
 
-
-10. Editer le fichier **resources\connectors\<connector>\properties\config.properties**. Ce ficher contient les
-    paramètres de configuration du plugn utilisés par le code source. Cette étape peut se faire
-    de manière progressive pendant le développement
-
-
-11. Le dossier **resources\connectors\<connector>\templates** contient des modèles XML utilisés par le connecteur.
-Néanmoins, ils sont spécifiques au connecteur EasySDIv4, le format XML est en effet utilisés comme format d'échange 
-pour les commandes. Ces fichiers ne serviront sans doute pas pour d'autres types de connecteurs.
-
-
-## Points important à prendre en compte pendant le développement
-
-Le code source est suffisamment commenté afin d'aider le développeur à développer le
-nouveau plugin. Les commentaires en **MAJUSCULE** permettent d'identifer les parties de code ou les fonctions
-importantes à mettre à jour.
-
-Il est notamment recommandé d'apporter les modifications suivantes dans la class Connector :
-* Ajuster si besoin la variable `CONFIG_FILE_PATH`
-* Modifier la valeur du paramètre `code` par une valeur permettant d'identifier le plugin (e.g `EasySDIv4`)
-
-Ensuite, les fonctions à adapter sont celles qui surchargent les fonctions de l'interface
-IConnector :
-* `getParams` pour définir les paramètres du connecteur. Cette méthode retourne les paramètres
-  du plugin sous forme de tableau au format JSON. Si le plugin n’accepte pas de paramètres, renvoyer un tableau vide
-* `importCommands` qui permet de gérer l'import des commandes effectués par le serveur distant
-* `exportResult` qui permet de gérer l'envoi du traitement d'une commande vers le serveur qui l'a produite
-
-Les fonctions privées dans le code permettent de réaliser des traitements utilitaires ou de traiter
-les données reçues. Ces fonctions peuvent être addaptées ou supprimées selon le besoin.
-Ces fonctions sont bien identifiées dans le code de la classe Connector.
-
-## Installation ou mise à jour du plugin dans EXTRACT
-
-Avant de compiler le connecteur, supprimer le dossier **target**.\
-Dès que le connecteur est compilé et que le fichier jar est généré, il suffit de placer le JAR
-dans le répertoire **WEB-INF/classes/connectors** de l’application
-(contenant tous les plugins de connecteurs).\
-En cas de mise à jour, il convient de supprimer le WAR de l’ancienne version afin d’éviter des conflits.
+Before compiling the connector, delete the **target** folder.  
+Once the connector is compiled and the JAR file is generated, place the JAR into the **WEB-INF/classes/connectors** directory of the application (containing all connector plugins).  
+For updates, delete the WAR of the previous version to avoid conflicts.  
 
 ```
-Le redémarrage de l’application Tomcat EXTRACT est ensuite requis afin que la 
-modification des connecteurs soit prise en compte.
-``` 
+Restarting the Tomcat EXTRACT application is then required so that the connector changes are taken into account.
+```
 
-
-[Yarn_Site]: https://yarnpkg.com/ "Site du gestionnaire de package Yarn"
+[Yarn_Site]: https://yarnpkg.com/ "Yarn package manager site"

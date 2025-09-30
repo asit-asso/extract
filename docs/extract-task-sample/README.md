@@ -1,113 +1,76 @@
-# Extract - Initialiser un nouveau plugin de tâche 
+# Extract - Initialize a New Task Plugin
 
 ## Introduction
 
-Ce module java est un exemple de plugin de tâche qui peut être utilisé pour initialiser un nouveau 
-plugin pour le projet Extract. 
-Le code source est documenté et permet d'avoir les indications nécessaires pour développer un nouveau plugin,
-Il peut être importé dans un nouveau environnement Java, des adaptations sont cependant
-nécessaires selon le fonctionnement attendu.
+This Java module is an example of a task plugin that can be used to initialize a new plugin for the Extract project.  
+The source code is documented and provides the necessary guidance to develop a new plugin.  
+It can be imported into a new Java environment, but adaptations may be required depending on the expected behavior.
 
-## Pré-requis pour l'utilisation
-* OS 64 bits
-* Java 17
-* Tomcat 9
+## Prerequisites for Use
+* 64-bit OS  
+* Java 17  
+* Tomcat 9  
 
-## Pré-requis pour le développement et la compilation
-* Java 17
-* [Yarn][Yarn_Site]
-* Projet extract-interface (Interface commune pour l'utilisation des plugins connecteurs et tâches)
+## Prerequisites for Development and Compilation
+* Java 17  
+* [Yarn][Yarn_Site]  
+* Extract-interface project (Common interface for using connector and task plugins)  
 
-## Initialisation du nouveau plugin de tâche.
-Le projet doit être un module Java. \
-Le projet du nouveau plugin doit définir une dépendance vers le projet extract-interface.\
-Les dépendances requises sont définies dans le fichier pom.xml.
+## Initializing the New Task Plugin
+The project must be a Java module.  
+The new plugin project must define a dependency on the extract-interface project.  
+Required dependencies are defined in the pom.xml file.  
 
-Pour initialiser un nouveau plugin, suivre les étapes dans l'ordre :
-1. Copier le cde du plugin extract-task-sample vers un workspace java. Le système propose demande de définir un 
-nouveau nom.  Si ce n'est pas le cas, utiliser le menu contextuel (clic droit) `Refactor > Rename`
+To initialize a new plugin, follow the steps in order:  
+1. Copy the extract-task-sample plugin code into a Java workspace. The system will prompt you to define a new name. If it does not, use the context menu (right-click) `Refactor > Rename`.  
 
+2. Edit the **pom.xml** file of the module, replace occurrences of `extrat-task-sample` with the new plugin name.  
+   After right-clicking the file, choose `Add as Maven Project`.  
 
-2. Editer le fichier **pom.xml** du module, remplacer les occurences de `extrat-task-sample` par le nouveau nom du plugin.
-Après un clic droit sur le fichier, choisir l'option `Add as Maven Project`
+3. Right-click the namespace `ch.asit_asso.extract.plugins.sample`, choose the menu `Refactor > Rename`.  
+   Enter the new class name to identify the plugin. If prompted, click the `Add in current Module` button to apply the changes only to the module.  
+   This will automatically update the package name in all files of the module.  
 
+4. Right-click the **SamplePlugin.java** file, choose `Refactor > Rename`, then enter the new main class name of the plugin. This will rename the file and update all references to this class wherever it is used.  
 
-3. Après un clic droit sur l'espace de nom `ch.asit_asso.extract.plugins.sample`, choisir le menu `Refactor > Rename`.
-Saisir le nom de la nouvelle classe permettant d'identifier le plugin. Si l'interface le demande, cliquer sur le bouton 
-`Add in current Module` afin d'appliquer les changements sur le mode uniquement.
-Cela aura pour effet de modifier automatiquement le nom du package dans tous les fichiers du module.
+5. Repeat step 4 for the files **SampleRequest.java** and **SampleResult.java**.  
 
+6. Edit the **LocalizedMessages.java** file: adjust the value of the LOCALIZED_FILE_PATH_FORMAT parameter, which corresponds to the path to the `lang` directory.  
 
-4. Après un clic droit sur le fichier **SamplePlugin.java**, choisir le menu `Refactor > Rename` puis saisir le nom 
-de la nouvelle classe principale du plugin. Cela aura pour effet de renommer le fichier et de modifer 
-toutes les références à cette classe partout où elle est utilisée. 
+7. Check the **module-info.java** file, especially the reference to `SamplePlugin`. Also verify line 4 of this file (reference to the namespace `ch.asit_asso.extract.plugins.sample`).  
 
+8. Check the file **resources\META-INF\services\ch.asit_asso.extract.plugins.common.ITaskProcessor**, especially the reference to the class `ch.asit_asso.extract.plugins.sample.SamplePlugin`.  
 
-5. Refaire l'opération 4 pour les fichiers **SampleRequest.java** et **SampleResult.java**
+9. Right-click the **resources\plugins\sample** folder, choose `Refactor > Rename`, and enter the new name.  
 
+10. Edit the file **resources\plugins\<plugin>\lang\fr\messages.properties**. Modify or add the labels used by the plugin source code. This step can be done progressively during development.  
 
-6. Editer le fichier **LocalizedMessages.java** : ajuster la valeur du paramètre LOCALIZED_FILE_PATH_FORMAT qui 
-correspond au chemin vers le répertoire `lang`
+11. Edit the file **resources\plugins\<plugin>\lang\fr\help.html** to describe the plugin’s functionality. *The file content is in HTML format*.  
 
+12. Edit the file **resources\plugins\<plugin>\properties\config.properties**. This file contains the plugin configuration parameters used by the source code. This step can be done progressively during development.  
 
-7. Vérifier le fichier **module-info.java** en particulier la référence à `SamplePlugin`. Vérifier  également la ligne 4
-de ce fichier (référence à l'espace de nom `ch.asit_asso.extract.plugins.sample`)
+## Important Points to Consider During Development
 
+The source code is sufficiently commented to help the developer build the new plugin. Comments in **UPPERCASE** identify important code sections or functions that must be updated.  
 
-8. Vérifier le fichier **resources\META-INF\services\ch.asit_asso.extract.plugins.common.ITaskProcessor** : en particulier 
-la cohérence de  la classe `ch.asit_asso.extract.plugins.sample.SamplePlugin` 
+It is recommended to make the following changes in the Plugin class:  
+* Adjust the `CONFIG_FILE_PATH` variable if needed  
+* Change the value of the `code` parameter to one identifying the plugin (e.g., `remark` or `fmeserver`)  
+* Change the value of the `pictoClass` parameter to an appropriate CSS class name (plugin logo image). Search for an icon on the [Font Awesome][Fontawesome_Site] website.  
 
+Next, adapt the functions that override the ITaskProcessor interface methods:  
+* `getParams` to define the task plugin parameters. This method returns plugin parameters as a JSON array. If the plugin does not accept parameters, return an empty array.  
+* `execute` to handle the execution of the plugin.  
 
-9. Après un clic droit sur le dossier **resources\plugins\sample**, choisir le menu `Refactor > Rename`. Saisir 
-le nouveau nom
+## Installing or Updating the Plugin in EXTRACT
 
-
-10. Editer le fichier **resources\plugins\<plugin>\lang\fr\messages.properties**. Modifier ou
-ajouter les libellés qui seront utilisés par le code source du plugin. Cette étape peut se faire 
-de manière progressive pendant le développement
-
-
-11. Editer le fichier **resources\plugins\<plugin>\lang\fr\help.html** afin d'y décrire le focntionnement
-du plugin. *Le contenu de fichier est au format HTML*
-
-
-12. Editer le fichier **resources\plugins\<plugin>\properties\config.properties**. Ce ficher contient les
-paramètres de configuration du plugn utilisés par le code source. Cette étape peut se faire
-de manière progressive pendant le développement
-
-
-## Points important à prendre en compte pendant le développement 
-
-Le code source est suffisamment commenté afin d'aider le développeur à développer le 
-nouveau plugin. Les commentaires en **MAJUSCULE** permettent d'identifer les parties de code ou les fonctions 
-importantes à mettre à jour.
-
-Il est notamment recommandé d'apporter les modifications suivantes dans la class Plugin:
-* Ajuster si besoin la variable `CONFIG_FILE_PATH`
-* Modifier la valeur du paramètre `code` par une valeur permettant d'identifier le plugin (e.g `remark` ou `fmeserver`)
-* Changer la valeur du paramètre pictoClass par un nom de classe CSS approprié (image du logo du plugin). Chercher 
-une icône sur le site [Font Awesome][Fontawesome_Site]
-
-
-Ensuite, les fonctions à adapter sont celles qui surchargent les fonctions de l'interface 
-ITaskProcessor :
-* `getParams` pour définir les paramètres du connecteur. Cette méthode retourne les paramètres 
-du plugin sous forme de tableau au format JSON. Si le plugin n’accepte pas de paramètres, renvoyer un tableau vide
-* `execute` qui permet de gérer l'exécution du plugin
-
-## Installation ou mise à jour du plugin dans EXTRACT 
-
-Avant de compiler le plugin, supprimer le dossier **target**.\
-Dès que le plugin est compilé et que le fichier jar est généré, il suffit de placer le JAR
-dans le répertoire **WEB-INF/classes/task_processors** de l’application 
-(contenant tous les plugins de tâches).\
-En cas de mise à jour, il convient de supprimer le WAR de l’ancienne version afin d’éviter des conflits.
+Before compiling the plugin, delete the **target** folder.  
+Once the plugin is compiled and the JAR file is generated, place the JAR into the **WEB-INF/classes/task_processors** directory of the application (containing all task plugins).  
+For updates, delete the WAR of the previous version to avoid conflicts.  
 
 ```
-Le redémarrage de l’application Tomcat EXTRACT est ensuite requis afin que la 
-modification des plugins soit prise en compte.
-``` 
+Restarting the Tomcat EXTRACT application is then required so that the plugin changes are taken into account.
+```
 
-
-[Yarn_Site]: https://yarnpkg.com/ "Site du gestionnaire de package Yarn"
-[Fontawesome_Site]: https://fontawesome.com/icons "Site web FontAwesome"
+[Yarn_Site]: https://yarnpkg.com/ "Yarn package manager site"  
+[Fontawesome_Site]: https://fontawesome.com/icons "FontAwesome website"
