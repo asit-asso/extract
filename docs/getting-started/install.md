@@ -16,7 +16,7 @@ title: Install
     In the given paths, **[ZIP]** indicates the root of the delivered ZIP file in the release assets. Otherwise, relative paths are expressed in relation to the directory in which the application is deployed.
 
 !!! Tip
-    The latest release can be downloaded [here](https://github.com/asit-asso/extract/releases/tag/v2.2.0){target="_blank"}.
+    The latest release can be downloaded [here](https://github.com/asit-asso/extract/releases/latest){target="_blank"}.
 
 1.	Create a PostgreSQL database to store the application data. Encoding must be UTF-8.
 2.	The database must be accessible by a user with read, write and object creation/deletion privileges. The database content is automatically generated when the application is first started.

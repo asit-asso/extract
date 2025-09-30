@@ -46,6 +46,7 @@ nav:
   - Getting Started:
     - getting-started/install.md
     - getting-started/configure.md
+    - getting-started/network-integration.md
     - getting-started/customize.md
     - getting-started/cybersecurity-win.md
     - getting-started/cybersecurity-linux.md
