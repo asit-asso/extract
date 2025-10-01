@@ -1,0 +1,92 @@
+<div>
+    <h3>Plugin Python pour Extract</h3>
+    
+    <p>Ce plugin permet d'exécuter des scripts Python personnalisés dans le cadre d'un processus Extract. 
+    Les paramètres de la requête sont transmis au script via un fichier JSON.</p>
+    
+    <h4>Paramètres requis :</h4>
+    <ul>
+        <li><b>Interpréteur Python :</b> Le chemin complet vers l'exécutable Python (ex: /usr/bin/python3, C:\Python39\python.exe)</li>
+        <li><b>Script Python :</b> Le chemin complet vers le script Python à exécuter</li>
+    </ul>
+    
+    <h4>Paramètres optionnels :</h4>
+    <ul>
+        <li><b>Arguments supplémentaires :</b> Arguments additionnels à passer au script Python</li>
+    </ul>
+    
+    <h4>Fonctionnement :</h4>
+    <ol>
+        <li>Le plugin crée un fichier <code>parameters.json</code> dans le dossier de sortie contenant toutes les informations de la requête</li>
+        <li>Le script Python est exécuté avec le chemin du fichier JSON comme premier argument</li>
+        <li>Le script doit sauvegarder ses résultats dans le dossier de sortie spécifié (<code>folderOut</code>)</li>
+        <li>Le script doit retourner 0 en cas de succès, toute autre valeur indique une erreur</li>
+    </ol>
+    
+    <h4>Structure du fichier parameters.json :</h4>
+    <pre>{
+    "requestId": "ID de la requête",
+    "folderOut": "Dossier de sortie",
+    "folderIn": "Dossier d'entrée",
+    "order": {
+        "guid": "GUID de la commande",
+        "label": "Libellé de la commande"
+    },
+    "client": {
+        "guid": "GUID du client",
+        "details": "Détails du client"
+    },
+    "organism": {
+        "guid": "GUID de l'organisme",
+        "details": "Détails de l'organisme"
+    },
+    "productGuid": "GUID du produit",
+    "productLabel": "Libellé du produit",
+    "parameters": {
+        // Paramètres spécifiques de la requête
+    },
+    "perimeter": {
+        // Géométrie au format GeoJSON
+    }
+}</pre>
+    
+    <h4>Exemple de script Python :</h4>
+    <pre>#!/usr/bin/env python3
+import json
+import sys
+import os
+
+def main():
+    if len(sys.argv) < 2:
+        print("Erreur: chemin du fichier parameters.json requis")
+        return 1
+    
+    # Charger les paramètres
+    with open(sys.argv[1], 'r') as f:
+        params = json.load(f)
+    
+    # Récupérer le dossier de sortie
+    output_dir = params['folderOut']
+    
+    # Traiter la requête
+    # ... votre code ici ...
+    
+    # Sauvegarder les résultats
+    result_file = os.path.join(output_dir, 'result.txt')
+    with open(result_file, 'w') as f:
+        f.write("Traitement terminé avec succès")
+    
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
+</pre>
+    
+    <h4>Notes importantes :</h4>
+    <ul>
+        <li>Le script Python doit être exécutable et avoir les permissions appropriées</li>
+        <li>L'interpréteur Python doit être installé sur le serveur Extract</li>
+        <li>Les dépendances Python nécessaires doivent être installées</li>
+        <li>Le script s'exécute dans le contexte du dossier de sortie</li>
+    </ul>
+</div>
