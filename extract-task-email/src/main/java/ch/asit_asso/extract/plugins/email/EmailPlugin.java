@@ -303,8 +303,26 @@ public class EmailPlugin implements ITaskProcessor {
 
         } catch (Exception e) {
             this.logger.error("The Plugin Email has failed with exception: " + e.getClass().getName(), e);
-            resultMessage = String.format(this.messages.getString("email.executing.failedWithMessage"), e.getMessage());
-            e.printStackTrace();
+            String errorMsg = (e.getMessage() != null) ? e.getMessage() : "Unknown error";
+            resultMessage = String.format(this.messages.getString("email.executing.failedWithMessage"), errorMsg);
+            
+            // Ensure we always return a valid result even on unexpected errors
+            resultStatus = EmailResult.Status.ERROR;
+            resultErrorCode = "-1";
+        }
+
+        // Ensure we always have valid values
+        if (resultStatus == null) {
+            resultStatus = EmailResult.Status.ERROR;
+            this.logger.error("resultStatus was null, setting to ERROR");
+        }
+        if (resultMessage == null) {
+            resultMessage = this.messages.getString("email.executing.failed");
+            this.logger.error("resultMessage was null, setting default error message");
+        }
+        if (resultErrorCode == null) {
+            resultErrorCode = "-1";
+            this.logger.error("resultErrorCode was null, setting to -1");
         }
 
         pluginResult.setStatus(resultStatus);
@@ -349,7 +367,17 @@ public class EmailPlugin implements ITaskProcessor {
     private String getEmailTemplate() {
 
         if (this.emailTemplate == null) {
-            this.emailTemplate = this.messages.getFileContent(EmailPlugin.TEMPLATE_FILE_NAME);
+            try {
+                this.emailTemplate = this.messages.getFileContent(EmailPlugin.TEMPLATE_FILE_NAME);
+                if (this.emailTemplate == null) {
+                    this.logger.error("Email template file {} could not be loaded", TEMPLATE_FILE_NAME);
+                    // Provide a basic fallback template
+                    this.emailTemplate = "<!DOCTYPE html><html><head><title>##title##</title></head><body>##body##</body></html>";
+                }
+            } catch (Exception e) {
+                this.logger.error("Error loading email template {}: {}", TEMPLATE_FILE_NAME, e.getMessage());
+                this.emailTemplate = "<!DOCTYPE html><html><head><title>##title##</title></head><body>##body##</body></html>";
+            }
         }
 
         return this.emailTemplate;
@@ -624,8 +652,14 @@ public class EmailPlugin implements ITaskProcessor {
                 email.addRecipient(address);
                 this.logger.debug("Recipient added successfully: {}", address);
             } catch (AddressException exception) {
-                this.logger.error("The address {} could not be added as recipient. The error message is: {}. Full exception:", 
-                        address, exception.getMessage(), exception);
+                this.logger.error("The address {} could not be added as recipient. The error message is: {}.", 
+                        address, exception.getMessage());
+                this.logger.debug("Full exception details for invalid address {}: ", address, exception);
+                continue;
+            } catch (Exception exception) {
+                this.logger.error("Unexpected error when adding recipient {}: {}", 
+                        address, exception.getMessage());
+                this.logger.debug("Full exception details: ", exception);
                 continue;
             }
 

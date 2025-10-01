@@ -24,8 +24,10 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 
 import ch.asit_asso.extract.plugins.TaskProcessorsDiscoverer;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
@@ -35,7 +37,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.web.context.ServletContextAware;
 import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.servlet.LocaleResolver;
 
 
 
@@ -160,7 +165,6 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
         if (this.taskProcessorDiscoverer == null) {
             this.logger.debug("Instantiating the task processor discoverer.");
             this.taskProcessorDiscoverer = TaskProcessorsDiscoverer.getInstance();
-            this.taskProcessorDiscoverer.setApplicationLanguage(this.applicationLanguage);
             URL[] jarUrlsArray = this.getJarUrls();
 
             if (jarUrlsArray != null) {
@@ -171,6 +175,10 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
                 this.logger.warn("The returned JAR URLs was null. Using the default system class loader.");
             }
         }
+
+        // since the language can change, it must sit here
+        String currentLanguage = this.getCurrentUserLanguage();
+        this.taskProcessorDiscoverer.setApplicationLanguage(currentLanguage);
 
         return this.taskProcessorDiscoverer;
     }
@@ -232,6 +240,87 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
         }
 
         return jarUrlsArray.toArray(new URL[]{});
+    }
+
+    /**
+     * Gets the current user's language from the HTTP request context.
+     * Falls back to the default application language if no request context is available.
+     *
+     * @return the current user's language code
+     */
+    private String getCurrentUserLanguage() {
+        try {
+            ServletRequestAttributes requestAttributes = 
+                (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            
+            if (requestAttributes != null) {
+                HttpServletRequest request = requestAttributes.getRequest();
+                ServletContext context = this.servletContext != null ? this.servletContext.get() : null;
+                
+                if (context != null && request != null) {
+                    WebApplicationContext webAppContext = 
+                        WebApplicationContextUtils.getWebApplicationContext(context);
+                    
+                    if (webAppContext != null) {
+                        try {
+                            // Try to get LocaleResolver from the application context
+                            LocaleResolver localeResolver = webAppContext.getBean(LocaleResolver.class);
+                            if (localeResolver != null) {
+                                Locale currentLocale = localeResolver.resolveLocale(request);
+                                if (currentLocale != null) {
+                                    String lang = currentLocale.getLanguage();
+                                    if (lang != null && !lang.isEmpty() && this.isLanguageSupported(lang)) {
+                                        this.logger.debug("Using user language: {}", lang);
+                                        return lang;
+                                    }
+                                }
+                            }
+                        } catch (Exception e) {
+                            this.logger.debug("Could not resolve user locale, using default: {}", e.getMessage());
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            this.logger.debug("Could not get request context, using default language: {}", e.getMessage());
+        }
+        
+        // Fallback to default application language
+        String defaultLang = this.getDefaultLanguage();
+        this.logger.debug("Using default language: {}", defaultLang);
+        return defaultLang;
+    }
+
+    /**
+     * Checks if a language is supported by the application.
+     *
+     * @param language the language code to check
+     * @return true if the language is supported
+     */
+    private boolean isLanguageSupported(final String language) {
+        if (this.applicationLanguage == null || language == null) {
+            return false;
+        }
+        
+        String[] supportedLanguages = this.applicationLanguage.split(",");
+        for (String supported : supportedLanguages) {
+            if (supported.trim().equalsIgnoreCase(language)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the default language from configuration.
+     *
+     * @return the default language code
+     */
+    private String getDefaultLanguage() {
+        if (this.applicationLanguage != null && this.applicationLanguage.contains(",")) {
+            return this.applicationLanguage.split(",")[0].trim();
+        }
+        return this.applicationLanguage != null ? this.applicationLanguage : "fr";
     }
 
 }

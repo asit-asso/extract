@@ -11,3 +11,4 @@ extract-task-validation/target/
 .idea/
 *.iml
 CLAUDE.md
+.claude/

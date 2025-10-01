@@ -1,0 +1,199 @@
+<div>
+    <p>Das FME Flow V2-Extraktions-Plugin (ehemals FME Server) ermöglicht die Ausführung von Geodatenverarbeitungen auf einem entfernten FME Flow Server über REST-API mit Token-Authentifizierung.</p>
+
+    <h4>Funktionsweise</h4>
+    <p>
+        Dieses Plugin verwendet den FME Data Download Service zur Ausführung von Workspaces auf FME Flow.
+        Es überträgt die Parameter als GeoJSON im Body der POST-Anfrage und gibt eine ZIP-Datei mit den Ergebnissen zurück.
+    </p>
+
+    <h4>Konfiguration des FME-Workspace</h4>
+    <p>Der FME-Workspace muss auf FME Flow veröffentlicht werden mit:</p>
+    <ul>
+        <li>Einem veröffentlichten Parameter zum Empfang des GeoJSON (Standard: <code>GEOJSON_INPUT</code>)</li>
+        <li>Konfiguration zur Rückgabe der Ergebnisse über den Data Download Service</li>
+    </ul>
+
+    <h4>Struktur des übertragenen GeoJSON</h4>
+    <p>Das Plugin erstellt ein GeoJSON-Objekt vom Typ Feature mit:</p>
+    <ul>
+        <li><strong>geometry</strong>: Die Geometrie des Umfangs (automatische Konvertierung von WKT zu GeoJSON)</li>
+        <li><strong>properties</strong>: Alle Parameter der Anfrage</li>
+    </ul>
+
+    <h4>Verfügbare Parameter im GeoJSON</h4>
+    <p>Die folgenden Eigenschaften stehen im an den Workspace übertragenen GeoJSON-Objekt zur Verfügung:</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+            <tr>
+                <td class="popover-table-header"><p>Parameter</p></td>
+                <td class="popover-table-header"><p>Beschreibung</p></td>
+                <td class="popover-table-header"><p>Typ</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>RequestId</p></td>
+                <td class="popover-table-data"><p>Extract-Anfrage-Identifikator</p></td>
+                <td class="popover-table-data"><p>Ganzzahl</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ClientGuid</p></td>
+                <td class="popover-table-data"><p>Eindeutige Kennung des Kunden</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ClientName</p></td>
+                <td class="popover-table-data"><p>Name des Kunden</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrganismGuid</p></td>
+                <td class="popover-table-data"><p>Eindeutige Kennung der Organisation</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrganismName</p></td>
+                <td class="popover-table-data"><p>Name der Organisation</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ProductGuid</p></td>
+                <td class="popover-table-data"><p>Eindeutige Kennung des Produkts</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ProductLabel</p></td>
+                <td class="popover-table-data"><p>Bezeichnung des Produkts</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrderGuid</p></td>
+                <td class="popover-table-data"><p>Eindeutige Kennung der Bestellung</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrderLabel</p></td>
+                <td class="popover-table-data"><p>Bezeichnung der Bestellung</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>Surface</p></td>
+                <td class="popover-table-data"><p>Ungefähre Fläche in Quadratmetern</p></td>
+                <td class="popover-table-data"><p>Dezimalzahl</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>Parameters</p></td>
+                <td class="popover-table-data"><p>Benutzerdefinierte Parameter</p></td>
+                <td class="popover-table-data"><p>JSON-Objekt</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>FolderIn</p></td>
+                <td class="popover-table-data"><p>Verzeichnis der Eingabedaten</p></td>
+                <td class="popover-table-data"><p>Pfad</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>FolderOut</p></td>
+                <td class="popover-table-data"><p>Ausgabeverzeichnis</p></td>
+                <td class="popover-table-data"><p>Pfad</p></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Geometrie</h4>
+    <p>
+        Die Geometrie des Umfangs wird automatisch vom WKT-Format (WGS84) in GeoJSON konvertiert.
+        Folgende Typen werden unterstützt:
+    </p>
+    <ul>
+        <li>Polygon (mit Unterstützung für Löcher/Donuts)</li>
+        <li>MultiPolygon</li>
+        <li>Point</li>
+        <li>LineString</li>
+    </ul>
+
+    <h4>Beispiel eines GeoJSON-Body</h4>
+    <pre>{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727, 46.443720],
+      [6.881351, 46.441265],
+      [6.886480, 46.439198],
+      [6.893221, 46.441705],
+      [6.886727, 46.443720]
+    ]]
+  },
+  "properties": {
+    "RequestId": 123,
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "Jean Dupont",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Katasterverwaltung",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Katasterplan",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "Surface": 152384.56,
+    "Parameters": {
+      "FORMAT": "SHP",
+      "PROJECTION": "EPSG:2056"
+    },
+    "FolderIn": "/data/input/",
+    "FolderOut": "/data/output/"
+  }
+}</pre>
+
+    <h4>Konfiguration des FME-Workspace</h4>
+    <p>
+        Der FME Flow-Workspace muss für die Verwendung des Data Download Service konfiguriert werden:
+    </p>
+    <ul>
+        <li>Workspace in einem FME Flow Repository veröffentlichen</li>
+        <li>Einen veröffentlichten Parameter für das Empfangen des GeoJSON konfigurieren (z.B.: GEOJSON_INPUT)</li>
+        <li>Einen GeoJSON Reader oder JSONFeatureReader verwenden, um die Daten aus dem Parameter zu lesen</li>
+        <li>Writer für die Erzeugung von Ausgabedateien konfigurieren</li>
+        <li>Der Data Download Service erstellt automatisch eine ZIP-Datei mit den Ergebnissen</li>
+    </ul>
+    
+    <h4>Service-URL</h4>
+    <p>
+        Die URL muss dem Standard-Format des Data Download Service folgen:
+    </p>
+    <pre>https://&lt;server&gt;/fmedatadownload/&lt;repository&gt;/&lt;workspace&gt;.fmw</pre>
+    <p>
+        Beispiel: <code>https://fme.example.com/fmedatadownload/extract/ProcessGeoData.fmw</code>
+    </p>
+
+    <h4>Sicherheit</h4>
+    <p>
+        Dieses Plugin implementiert mehrere Sicherheitsmaßnahmen:
+    </p>
+    <ul>
+        <li>URL-Validierung zur Verhinderung von SSRF-Angriffen</li>
+        <li>API-Token wird sicher im Header übertragen</li>
+        <li>Größenbegrenzung für Downloads (500 MB)</li>
+        <li>Timeouts zur Vermeidung von Blockierungen</li>
+        <li>Automatisches Retry mit exponentieller Backoff-Strategie</li>
+        <li>Validierung und Bereinigung aller Eingaben</li>
+    </ul>
+
+    <h4>Ergebnis</h4>
+    <p>
+        Das Plugin lädt automatisch die resultierende ZIP-Datei in das Ausgabeverzeichnis herunter.
+        Der Dateiname wird automatisch mit einem Zeitstempel generiert, um Konflikte zu vermeiden.
+    </p>
+
+    <h4>Fehlerbehandlung</h4>
+    <p>
+        Das Plugin behandelt folgende Fehler:
+    </p>
+    <ul>
+        <li>Ungültige oder nicht erreichbare Service-URL</li>
+        <li>Ungültiges oder abgelaufenes API-Token</li>
+        <li>Ungültige WKT-Geometrie</li>
+        <li>Anfrage-Timeout</li>
+        <li>Zu große Ergebnisdatei</li>
+        <li>HTTP-Fehler (mit automatischem Retry für 5xx-Fehler)</li>
+    </ul>
+</div>

@@ -237,7 +237,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             List<String> command = new ArrayList<>();
             command.add(applicationFile.getAbsolutePath());
             command.add(workspaceFile.getAbsolutePath());
-            command.add("--PARAM_FILE");
+            command.add("--parametersFile");
             command.add(parametersFile.getAbsolutePath());
             
             ProcessBuilder processBuilder = new ProcessBuilder(command);

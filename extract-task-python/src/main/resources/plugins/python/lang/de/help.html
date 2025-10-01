@@ -1,56 +1,57 @@
+<!-- de: German -->
 <div>
-    <h3>Plugin Python pour Extract</h3>
-    
-    <p>Ce plugin permet d'exécuter des scripts Python personnalisés dans le cadre d'un processus Extract. 
-    Les paramètres de la requête sont transmis au script via un fichier JSON.</p>
-    
-    <h4>Paramètres requis :</h4>
+    <h3>Python-Plugin für Extract</h3>
+
+    <p>Dieses Plugin ermöglicht das Ausführen benutzerdefinierter Python-Skripte im Rahmen eines Extract-Prozesses.
+        Die Anfrageparameter werden über eine JSON-Datei an das Skript übergeben.</p>
+
+    <h4>Erforderliche Parameter:</h4>
     <ul>
-        <li><b>Interpréteur Python :</b> Le chemin complet vers l'exécutable Python (ex: /usr/bin/python3, C:\Python39\python.exe)</li>
-        <li><b>Script Python :</b> Le chemin complet vers le script Python à exécuter</li>
+        <li><b>Python-Interpreter:</b> Der vollständige Pfad zur ausführbaren Python-Datei (z. B. /usr/bin/python3, C:\Python39\python.exe)</li>
+        <li><b>Python-Skript:</b> Der vollständige Pfad zum auszuführenden Python-Skript</li>
     </ul>
-    
-    <h4>Paramètres optionnels :</h4>
+
+    <h4>Optionale Parameter:</h4>
     <ul>
-        <li><b>Arguments supplémentaires :</b> Arguments additionnels à passer au script Python</li>
+        <li><b>Zusätzliche Argumente:</b> Weitere Argumente, die an das Python-Skript übergeben werden</li>
     </ul>
-    
-    <h4>Fonctionnement :</h4>
+
+    <h4>Ablauf:</h4>
     <ol>
-        <li>Le plugin crée un fichier <code>parameters.json</code> dans le dossier de sortie contenant toutes les informations de la requête</li>
-        <li>Le script Python est exécuté avec le chemin du fichier JSON comme premier argument</li>
-        <li>Le script doit sauvegarder ses résultats dans le dossier de sortie spécifié (<code>folderOut</code>)</li>
-        <li>Le script doit retourner 0 en cas de succès, toute autre valeur indique une erreur</li>
+        <li>Das Plugin erstellt im Ausgabeverzeichnis eine Datei <code>parameters.json</code>, die alle Informationen der Anfrage enthält</li>
+        <li>Das Python-Skript wird mit dem Pfad zur JSON-Datei als erstem Argument ausgeführt</li>
+        <li>Das Skript muss seine Ergebnisse im angegebenen Ausgabeverzeichnis (<code>folderOut</code>) speichern</li>
+        <li>Das Skript muss bei Erfolg 0 zurückgeben; jeder andere Wert signalisiert einen Fehler</li>
     </ol>
-    
-    <h4>Structure du fichier parameters.json :</h4>
+
+    <h4>Struktur der Datei parameters.json:</h4>
     <pre>{
-    "requestId": "ID de la requête",
-    "folderOut": "Dossier de sortie",
-    "folderIn": "Dossier d'entrée",
+    "requestId": "ID der Anfrage",
+    "folderOut": "Ausgabeverzeichnis",
+    "folderIn": "Eingabeverzeichnis",
     "order": {
-        "guid": "GUID de la commande",
-        "label": "Libellé de la commande"
+        "guid": "GUID des Auftrags",
+        "label": "Bezeichnung des Auftrags"
     },
     "client": {
-        "guid": "GUID du client",
-        "details": "Détails du client"
+        "guid": "GUID des Kunden",
+        "details": "Kundendetails"
     },
     "organism": {
-        "guid": "GUID de l'organisme",
-        "details": "Détails de l'organisme"
+        "guid": "GUID der Organisation",
+        "details": "Details zur Organisation"
     },
-    "productGuid": "GUID du produit",
-    "productLabel": "Libellé du produit",
+    "productGuid": "GUID des Produkts",
+    "productLabel": "Produktbezeichnung",
     "parameters": {
-        // Paramètres spécifiques de la requête
+        // Anfragespezifische Parameter
     },
     "perimeter": {
-        // Géométrie au format GeoJSON
+        // Geometrie im GeoJSON-Format
     }
 }</pre>
-    
-    <h4>Exemple de script Python :</h4>
+
+    <h4>Beispiel für ein Python-Skript:</h4>
     <pre>#!/usr/bin/env python3
 import json
 import sys
@@ -58,35 +59,35 @@ import os
 
 def main():
     if len(sys.argv) < 2:
-        print("Erreur: chemin du fichier parameters.json requis")
+        print("Fehler: Pfad zur Datei parameters.json erforderlich")
         return 1
-    
-    # Charger les paramètres
+
+    # Parameter laden
     with open(sys.argv[1], 'r') as f:
         params = json.load(f)
-    
-    # Récupérer le dossier de sortie
+
+    # Ausgabeverzeichnis ermitteln
     output_dir = params['folderOut']
-    
-    # Traiter la requête
-    # ... votre code ici ...
-    
-    # Sauvegarder les résultats
+
+    # Anfrage verarbeiten
+    # ... Ihr Code hier ...
+
+    # Ergebnisse speichern
     result_file = os.path.join(output_dir, 'result.txt')
     with open(result_file, 'w') as f:
-        f.write("Traitement terminé avec succès")
-    
+        f.write("Verarbeitung erfolgreich abgeschlossen")
+
     return 0
 
 if __name__ == '__main__':
     sys.exit(main())
 </pre>
-    
-    <h4>Notes importantes :</h4>
+
+    <h4>Wichtige Hinweise:</h4>
     <ul>
-        <li>Le script Python doit être exécutable et avoir les permissions appropriées</li>
-        <li>L'interpréteur Python doit être installé sur le serveur Extract</li>
-        <li>Les dépendances Python nécessaires doivent être installées</li>
-        <li>Le script s'exécute dans le contexte du dossier de sortie</li>
+        <li>Das Python-Skript muss ausführbar sein und die entsprechenden Berechtigungen besitzen</li>
+        <li>Der Python-Interpreter muss auf dem Extract-Server installiert sein</li>
+        <li>Erforderliche Python-Abhängigkeiten müssen installiert sein</li>
+        <li>Das Skript wird im Kontext des Ausgabeverzeichnisses ausgeführt</li>
     </ul>
 </div>

@@ -1,0 +1,31 @@
+<div>
+    <p>Das E-Mail-Benachrichtigungs-Plugin ermöglicht das Versenden einer Nachricht an einen oder mehrere Empfänger.</p>
+
+    <p>Die E-Mails der Empfänger müssen durch Semikolons getrennt werden.</p>
+
+    <p>
+        Der Betreff und der Inhalt der Nachricht können Variablen enthalten, die durch die
+        Eigenschaften der Anfrage ersetzt werden. Die erlaubten dynamischen Eigenschaften
+        sind die folgenden:
+    </p>
+
+    <ul>
+        <li>orderLabel</li>
+        <li>orderGuid</li>
+        <li>productGuid</li>
+        <li>productLabel</li>
+        <li>startDate</li>
+        <li>organism</li>
+        <li>client</li>
+    </ul>
+
+    <p><i>Beispiel für den Betreff:</i> "Neue Anfrage für das Produkt {productLabel}, Kunde {client}"</p>
+
+    <p><i>Beispiel für den Inhalt:</i></p>
+    <p>
+        "Der Kunde {client} ({organism}) hat das Produkt {productLabel} bestellt<br />
+        Bestellnummer: {orderLabel}<br />
+        Verarbeitungsdatum: {startDate}<br />
+        Die gelieferten Daten wurden archiviert nach: /home/data/extract/archive/{orderLabel}/{productLabel}"
+    </p>
+</div>

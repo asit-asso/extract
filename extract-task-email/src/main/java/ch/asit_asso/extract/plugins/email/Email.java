@@ -295,7 +295,11 @@ public class Email {
         } catch (MessagingException exception) {
             this.logger.error("Could not send the e-mail because an error occurred with the SMTP transport. Error: {}", 
                     exception.getMessage(), exception);
-
+            return false;
+            
+        } catch (Exception exception) {
+            this.logger.error("Unexpected error occurred while sending email: {}", 
+                    exception.getMessage(), exception);
             return false;
         }
     }

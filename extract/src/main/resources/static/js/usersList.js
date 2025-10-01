@@ -99,9 +99,14 @@ $(function() {
         
         // State filter (column 5)
         var stateText = $(table.row(dataIndex).node()).find('td:eq(5) div').text().trim().toLowerCase();
-        var stateMatch = !stateFilter || 
-            (stateFilter === 'active' && (stateText.indexOf('actif') !== -1 || stateText.indexOf('active') !== -1)) ||
-            (stateFilter === 'inactive' && (stateText.indexOf('inactif') !== -1 || stateText.indexOf('inactive') !== -1));
+        var stateMatch = true;
+        if (stateFilter) {
+            if (stateFilter === 'active') {
+                stateMatch = (stateText.indexOf('actif') !== -1 || stateText.indexOf('active') !== -1);
+            } else if (stateFilter === 'inactive') {
+                stateMatch = (stateText.indexOf('inactif') !== -1 || stateText.indexOf('inactive') !== -1);
+            }
+        }
         
         // Notifications filter (column 6)
         var notifText = $(table.row(dataIndex).node()).find('td:eq(6) div').text().trim().toLowerCase();

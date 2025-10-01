@@ -18,8 +18,10 @@ package ch.asit_asso.extract.plugins.reject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Properties;
 import java.util.Set;
 import org.apache.commons.io.IOUtils;
@@ -177,7 +179,8 @@ public class LocalizedMessages {
                 }
 
                 this.propertyFile = new Properties();
-                this.propertyFile.load(languageFileStream);
+                this.propertyFile.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
+                break; // Stop after successfully loading the first available file
 
             } catch (IOException exception) {
                 this.logger.error("Could not load the localization file.");
@@ -210,7 +213,7 @@ public class LocalizedMessages {
                 "The language code is invalid.";
         assert StringUtils.isNotBlank(filename) && !filename.contains("../");
 
-        Set<String> pathsList = new HashSet<>();
+        Set<String> pathsList = new LinkedHashSet<>();
 
         pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, locale, filename));
 

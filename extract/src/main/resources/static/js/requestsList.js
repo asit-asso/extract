@@ -605,7 +605,14 @@ function _getRequestsTableConfiguration(ajaxUrl, withPaging, withSearching, isSe
     tableProperties.paging = withPaging;
     tableProperties.searching = withSearching;
     tableProperties.serverSide = isServerSide;
-    tableProperties.order = [[2, 'asc']];
+    // Use conditional ordering to prevent index out of bounds errors
+    if (ajaxUrl.includes('getCurrentRequests')) {
+        // For current requests, avoid default ordering to prevent column index errors
+        tableProperties.order = [];
+    } else {
+        // For finished requests, use default ordering
+        tableProperties.order = [[2, 'asc']];
+    }
     var pageLength = parseInt(pagingSize);
 
     if (!isNaN(pageLength) && pageLength > 0) {
@@ -615,9 +622,52 @@ function _getRequestsTableConfiguration(ajaxUrl, withPaging, withSearching, isSe
     tableProperties.ajax = {
         url : ajaxUrl,
         type : "GET",
-        data : dataFunction
+        data : dataFunction,
+        dataSrc: function(json) {
+            // Enhanced data validation and logging
+            if (json && json.data && Array.isArray(json.data)) {
+                const tableType = ajaxUrl.includes('getCurrentRequests') ? 'currentRequestsTable' : 'finishedRequestsTable';
+                console.log('Table ' + tableType + ' received ' + json.data.length + ' rows');
+                
+                if (json.data.length > 0) {
+                    const sampleRow = json.data[0];
+                    const properties = Object.keys(sampleRow);
+                    console.log('Sample row properties:', properties);
+                    
+                    // Validate that we have the expected properties for DataTables columns
+                    const expectedProperties = ['index', 'state', 'taskInfo', 'orderInfo', 'customerName', 'processInfo', 'startDateInfo'];
+                    const missingProperties = expectedProperties.filter(prop => !properties.includes(prop));
+                    
+                    if (missingProperties.length > 0) {
+                        console.warn('Missing expected properties:', missingProperties);
+                        console.warn('Available properties:', properties);
+                    }
+                }
+                
+                return json.data;
+            } else {
+                console.warn('Invalid or empty data received for table');
+                return [];
+            }
+        },
+        error: function(xhr, error, code) {
+            console.error('AJAX error for table:', ajaxUrl, error, code);
+            if (xhr.responseText) {
+                console.error('Response text:', xhr.responseText);
+            }
+        }
     };
     tableProperties.columnDefs = _getRequestsTableColumnsConfiguration();
+    
+    // Enhanced error handling for column definitions
+    tableProperties.columnDefs.forEach(function(columnDef) {
+        if (columnDef.targets !== undefined) {
+            // Add default content for all columns to prevent undefined errors
+            if (!columnDef.defaultContent) {
+                columnDef.defaultContent = "";
+            }
+        }
+    });
 
     return tableProperties;
 }

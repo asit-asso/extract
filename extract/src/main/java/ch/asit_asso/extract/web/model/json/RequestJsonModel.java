@@ -151,8 +151,9 @@ public class RequestJsonModel implements JsonModel {
      * @param model         the application model that represents the order
      * @param messageSource the access to the localized application strings
      * @param positionIndex the position of the order to model with the default sort
+     * @param locale        the locale to use for message formatting
      */
-    public RequestJsonModel(final RequestModel model, final MessageSource messageSource, final int positionIndex) {
+    public RequestJsonModel(final RequestModel model, final MessageSource messageSource, final int positionIndex, final Locale locale) {
 
         if (model == null) {
             throw new IllegalArgumentException("The request model cannot be null.");
@@ -162,13 +163,17 @@ public class RequestJsonModel implements JsonModel {
             throw new IllegalArgumentException("The message source cannot be null.");
         }
 
+        if (locale == null) {
+            throw new IllegalArgumentException("The locale cannot be null.");
+        }
+
         this.index = positionIndex;
         this.customerName = model.getCustomerName();
         this.orderInfo = new OrderInfo(model.getOrderLabel(), model.getProductLabel(), model.getConnector());
-        this.processInfo = new ProcessInfo(model.getProcessId(), this.getProcessNameFromModel(model, messageSource));
+        this.processInfo = new ProcessInfo(model.getProcessId(), this.getProcessNameFromModel(model, messageSource, locale));
 
         final String startDateText = messageSource.getMessage(RequestJsonModel.TIME_POINT_STRING_KEY,
-                new Object[]{model.getStartDateSpanToNow()}, Locale.getDefault());
+                new Object[]{model.getStartDateSpanToNow(locale)}, locale);
         this.startDateInfo = new DateInfo(startDateText, model.getStartDate());
 
         if (model.isInError()) {
@@ -189,8 +194,8 @@ public class RequestJsonModel implements JsonModel {
         this.rowAttributes.put("data-href", String.format(RequestJsonModel.REQUEST_URL_FORMAT, model.getId()));
 
         final String taskDateText = messageSource.getMessage(RequestJsonModel.PERIOD_STRING_KEY,
-                new Object[]{model.getTaskDateSpanToNow()}, Locale.getDefault());
-        this.taskInfo = new TaskInfo(taskDateText, model.getTaskDate(), model.getCurrentStepName());
+                new Object[]{model.getTaskDateSpanToNow(locale)}, locale);
+        this.taskInfo = new TaskInfo(taskDateText, model.getTaskDate(), model.getCurrentStepName(locale));
     }
 
 
@@ -278,10 +283,11 @@ public class RequestJsonModel implements JsonModel {
      *
      * @param modelsArray   an array that contains the order application models to export to JSON
      * @param messageSource the access to the localized application strings
+     * @param locale        the locale to use for message formatting
      * @return an array that contains the JSON models
      */
     public static RequestJsonModel[] fromRequestModelsArray(final RequestModel[] modelsArray,
-            final MessageSource messageSource) {
+            final MessageSource messageSource, final Locale locale) {
 
         if (modelsArray == null) {
             throw new IllegalArgumentException("The array of request models cannot be null.");
@@ -291,10 +297,14 @@ public class RequestJsonModel implements JsonModel {
             throw new IllegalArgumentException("The message source cannot be null.");
         }
 
+        if (locale == null) {
+            throw new IllegalArgumentException("The locale cannot be null.");
+        }
+
         List<RequestJsonModel> jsonModelsList = new ArrayList<>();
 
         for (int modelIndex = 0; modelIndex < modelsArray.length; modelIndex++) {
-            jsonModelsList.add(new RequestJsonModel(modelsArray[modelIndex], messageSource, modelIndex));
+            jsonModelsList.add(new RequestJsonModel(modelsArray[modelIndex], messageSource, modelIndex, locale));
         }
 
         return jsonModelsList.toArray(new RequestJsonModel[]{});
@@ -307,17 +317,17 @@ public class RequestJsonModel implements JsonModel {
      *
      * @param model         the application model for the order whose process name is requested
      * @param messageSource the access the localized application strings
+     * @param locale        the locale to use for message formatting
      * @return the name of the process, or a default localized string if the order is not bound to a process
      */
-    private String getProcessNameFromModel(final RequestModel model, final MessageSource messageSource) {
+    private String getProcessNameFromModel(final RequestModel model, final MessageSource messageSource, final Locale locale) {
         final String processNameString = model.getProcessName();
 
         if (StringUtils.isNotEmpty(processNameString)) {
             return processNameString;
         }
 
-        return String.format("##%s", messageSource.getMessage(RequestJsonModel.NO_PROCESS_KEY, null,
-                Locale.getDefault()));
+        return String.format("##%s", messageSource.getMessage(RequestJsonModel.NO_PROCESS_KEY, null, locale));
     }
 
 }

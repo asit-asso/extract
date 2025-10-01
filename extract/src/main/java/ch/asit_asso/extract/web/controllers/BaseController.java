@@ -18,6 +18,7 @@ package ch.asit_asso.extract.web.controllers;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import ch.asit_asso.extract.authentication.ApplicationUser;
 import ch.asit_asso.extract.domain.User.Profile;
@@ -26,12 +27,16 @@ import ch.asit_asso.extract.web.Message.MessageType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
@@ -89,6 +94,12 @@ public abstract class BaseController {
     private String applicationLanguage;
 
     /**
+     * The locale resolver to determine the current user's locale.
+     */
+    @Autowired(required = false)
+    private LocaleResolver localeResolver;
+
+    /**
      * The URL of the folder containing the localized messages to be used by the scripts on the page.
      */
     //@Value("${javascript.lang.basename}")
@@ -124,11 +135,23 @@ public abstract class BaseController {
 
     /**
      * Adds to the model the path of the file that contains the localized messages to be used by Javascript.
+     * Uses the current request context to determine the user's locale.
      *
      * @param model the data to be displayed by the next view
      */
     protected final void addJavascriptMessagesAttribute(final ModelMap model) {
-        model.addAttribute("jsMessagesPath", this.getJavascriptMessagesPath());
+        HttpServletRequest request = this.getCurrentRequest();
+        model.addAttribute("jsMessagesPath", this.getJavascriptMessagesPath(request));
+    }
+
+    /**
+     * Adds to the model the path of the file that contains the localized messages to be used by Javascript.
+     *
+     * @param model the data to be displayed by the next view
+     * @param request the HTTP request to determine the current locale
+     */
+    protected final void addJavascriptMessagesAttribute(final ModelMap model, final HttpServletRequest request) {
+        model.addAttribute("jsMessagesPath", this.getJavascriptMessagesPath(request));
     }
 
 
@@ -358,16 +381,89 @@ public abstract class BaseController {
     /**
      * Obtains the URL of the file that contains the localized messages to be used by page scripts.
      *
+     * @param request the HTTP request to determine the current locale
      * @return the URL of the messages file
      */
-    protected final String getJavascriptMessagesPath() {
+    protected final String getJavascriptMessagesPath(final HttpServletRequest request) {
+        String currentLanguage = this.getCurrentLanguage(request);
+        return String.format(BaseController.JAVASCRIPT_MESSAGES_PATH_FORMAT, currentLanguage);
+    }
 
-        if (this.javascriptMessagesPath == null) {
-            this.javascriptMessagesPath = String.format(BaseController.JAVASCRIPT_MESSAGES_PATH_FORMAT,
-                    this.applicationLanguage);
+    /**
+     * Gets the current language code for the user.
+     * Attempts to use LocaleResolver first, with fallback to default configuration.
+     *
+     * @param request the HTTP request to determine the current locale
+     * @return the language code (never null)
+     */
+    private String getCurrentLanguage(final HttpServletRequest request) {
+        // Try to get language from LocaleResolver if available
+        if (this.localeResolver != null && request != null) {
+            try {
+                Locale currentLocale = this.localeResolver.resolveLocale(request);
+                if (currentLocale != null) {
+                    String lang = currentLocale.getLanguage();
+                    if (lang != null && !lang.isEmpty()) {
+                        // Validate that the language is supported
+                        if (this.isLanguageSupported(lang)) {
+                            return lang;
+                        }
+                        this.logger.debug("Language {} not supported, using default", lang);
+                    }
+                }
+            } catch (Exception e) {
+                this.logger.warn("Error resolving locale, using default: {}", e.getMessage());
+            }
         }
+        
+        // Fallback to first language from configuration if available
+        return this.getDefaultLanguage();
+    }
 
-        return this.javascriptMessagesPath;
+    /**
+     * Checks if a language is supported by the application.
+     *
+     * @param language the language code to check
+     * @return true if the language is supported
+     */
+    private boolean isLanguageSupported(final String language) {
+        if (this.applicationLanguage == null || language == null) {
+            return false;
+        }
+        
+        String[] supportedLanguages = this.applicationLanguage.split(",");
+        for (String supported : supportedLanguages) {
+            if (supported.trim().equalsIgnoreCase(language)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Gets the default language from configuration.
+     *
+     * @return the default language code
+     */
+    private String getDefaultLanguage() {
+        if (this.applicationLanguage != null && this.applicationLanguage.contains(",")) {
+            return this.applicationLanguage.split(",")[0].trim();
+        }
+        return this.applicationLanguage != null ? this.applicationLanguage : "fr";
+    }
+
+    /**
+     * Gets the current language code for the logged-in user.
+     * Public method for controllers that need to pass the language to the model.
+     *
+     * @return the language code
+     */
+    protected final String getCurrentUserLanguage() {
+        HttpServletRequest request = this.getCurrentRequest();
+        if (request != null) {
+            return this.getCurrentLanguage(request);
+        }
+        return this.getDefaultLanguage();
     }
 
 
@@ -379,6 +475,21 @@ public abstract class BaseController {
      */
     private Authentication getCurrentAuthentication() {
         return SecurityContextHolder.getContext().getAuthentication();
+    }
+
+    /**
+     * Gets the current HTTP request from the request context.
+     *
+     * @return the current HTTP request, or null if not available
+     */
+    private HttpServletRequest getCurrentRequest() {
+        try {
+            ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+            return attributes != null ? attributes.getRequest() : null;
+        } catch (Exception e) {
+            this.logger.debug("Could not get current request: {}", e.getMessage());
+            return null;
+        }
     }
 
 }

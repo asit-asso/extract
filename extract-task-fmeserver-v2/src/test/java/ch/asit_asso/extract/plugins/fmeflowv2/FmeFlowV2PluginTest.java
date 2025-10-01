@@ -87,7 +87,6 @@ class FmeFlowV2PluginTest {
             // Check for required parameters
             boolean hasServiceUrl = false;
             boolean hasApiToken = false;
-            boolean hasGeoJsonParam = false;
             
             for (JsonNode param : paramsJson) {
                 String code = param.get("code").asText();
@@ -102,17 +101,11 @@ class FmeFlowV2PluginTest {
                         assertTrue(param.get("req").asBoolean());
                         assertEquals("pass", param.get("type").asText());
                         break;
-                    case "geoJsonParameter":
-                        hasGeoJsonParam = true;
-                        assertFalse(param.get("req").asBoolean());
-                        assertEquals("GEOJSON_INPUT", param.get("default").asText());
-                        break;
                 }
             }
             
             assertTrue(hasServiceUrl, "Should have serviceURL parameter");
             assertTrue(hasApiToken, "Should have apiToken parameter");
-            assertTrue(hasGeoJsonParam, "Should have geoJsonParameter parameter");
         });
     }
     
@@ -225,7 +218,6 @@ class FmeFlowV2PluginTest {
     void testGeoJsonCreation() throws Exception {
         taskSettings.put("serviceURL", "https://valid.example.com/fmedatadownload/repo/workspace.fmw");
         taskSettings.put("apiToken", "test-token");
-        taskSettings.put("geoJsonParameter", "CUSTOM_PARAM");
         
         when(mockRequest.getParameters()).thenReturn("{\"FORMAT\":\"SHP\",\"PROJECTION\":\"EPSG:2056\"}");
         
@@ -241,16 +233,16 @@ class FmeFlowV2PluginTest {
     }
     
     @Test
-    void testGeoJsonParameterDefault() {
+    void testGeoJsonAsRequestBody() {
         taskSettings.put("serviceURL", "https://valid.example.com/service");
         taskSettings.put("apiToken", "test-token");
-        // No geoJsonParameter set - should use default
+        // GeoJSON is now sent as request body, not as a parameter
         
         plugin = new FmeFlowV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
-        // Should not fail due to missing GeoJSON parameter name
+        // Should handle GeoJSON as request body correctly
     }
     
     @Test

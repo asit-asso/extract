@@ -251,16 +251,6 @@ public class PythonPlugin implements ITaskProcessor {
         pythonScriptParam.put("help", this.messages.getString("param.pythonScript.help"));
         parametersNode.add(pythonScriptParam);
 
-        // Additional arguments parameter (optional)
-        ObjectNode additionalArgsParam = mapper.createObjectNode();
-        additionalArgsParam.put("code", "additionalArgs");
-        additionalArgsParam.put("label", this.messages.getString("param.additionalArgs.label"));
-        additionalArgsParam.put("type", "text");
-        additionalArgsParam.put("req", false);
-        additionalArgsParam.put("maxlength", 500);
-        additionalArgsParam.put("help", this.messages.getString("param.additionalArgs.help"));
-        parametersNode.add(additionalArgsParam);
-
         try {
             return mapper.writeValueAsString(parametersNode);
         } catch (JsonProcessingException e) {
@@ -463,18 +453,7 @@ public class PythonPlugin implements ITaskProcessor {
             command.add(pythonExecutable);
             command.add(scriptPath);
             command.add(parametersFile.getAbsolutePath());
-            
-            // Add additional arguments if provided
-            String additionalArgs = this.inputs.get("additionalArgs");
-            if (additionalArgs != null && !additionalArgs.trim().isEmpty()) {
-                String[] args = additionalArgs.trim().split("\\s+");
-                for (String arg : args) {
-                    if (!arg.isEmpty()) {
-                        command.add(arg);
-                    }
-                }
-            }
-            
+
             ProcessBuilder processBuilder = new ProcessBuilder(command);
             
             // Set working directory

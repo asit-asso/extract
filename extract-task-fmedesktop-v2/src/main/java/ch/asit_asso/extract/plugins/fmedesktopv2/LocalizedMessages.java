@@ -18,6 +18,8 @@ package ch.asit_asso.extract.plugins.fmedesktopv2;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
@@ -203,7 +205,7 @@ public class LocalizedMessages {
                 }
 
                 this.propertyFile = new Properties();
-                this.propertyFile.load(languageFileStream);
+                this.propertyFile.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
 
             } catch (IOException exception) {
                 this.logger.error("Could not load the localization file.");

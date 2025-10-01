@@ -29,7 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +41,7 @@ import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -50,12 +50,9 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
 import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
@@ -211,12 +208,6 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
         // Get and validate parameters - Security: Input sanitization
         String serviceUrl = StringUtils.trimToNull(this.inputs.get("serviceURL"));
         String apiToken = StringUtils.trimToNull(this.inputs.get("apiToken"));
-        String geoJsonParam = StringUtils.trimToNull(this.inputs.get("geoJsonParameter"));
-        
-        // Default parameter name if not specified
-        if (geoJsonParam == null) {
-            geoJsonParam = "GEOJSON_INPUT";
-        }
 
         if (serviceUrl == null) {
             String errorMessage = this.messages.getString("errorServiceUrl.notDefined");
@@ -251,9 +242,10 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
             String geoJsonBody = createGeoJsonRequest(request);
             
             // Execute the POST request
-            String responseUrl = executePostRequest(serviceUrl, apiToken, geoJsonBody, geoJsonParam);
+            FmeFlowResponse fmeResponse = executePostRequest(serviceUrl, apiToken, geoJsonBody);
             
-            if (responseUrl != null && !responseUrl.isEmpty()) {
+            if (fmeResponse.isSuccess() && fmeResponse.getDownloadUrl() != null) {
+                String responseUrl = fmeResponse.getDownloadUrl();
                 // Download the result file
                 File downloadedFile = downloadResult(responseUrl, apiToken, request.getFolderOut());
                 
@@ -268,6 +260,14 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
                     result.setStatus(ITaskProcessorResult.Status.ERROR);
                     result.setMessage(errorMessage);
                 }
+            } else if (!fmeResponse.isSuccess()) {
+                // FME transformation failed - provide detailed error
+                String errorMessage = fmeResponse.getErrorMessage() != null ? 
+                    fmeResponse.getErrorMessage() : 
+                    this.messages.getString("errorResponse.noUrl");
+                this.logger.error("FME Flow transformation failed: {}", errorMessage);
+                result.setStatus(ITaskProcessorResult.Status.ERROR);
+                result.setMessage(errorMessage);
             } else {
                 String errorMessage = this.messages.getString("errorResponse.noUrl");
                 this.logger.error(errorMessage);
@@ -505,15 +505,41 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
     }
     
     /**
+     * Inner class to represent FME Flow response
+     */
+    private static class FmeFlowResponse {
+        private final boolean success;
+        private final String downloadUrl;
+        private final String errorMessage;
+        
+        public FmeFlowResponse(boolean success, String downloadUrl, String errorMessage) {
+            this.success = success;
+            this.downloadUrl = downloadUrl;
+            this.errorMessage = errorMessage;
+        }
+        
+        public boolean isSuccess() {
+            return success;
+        }
+        
+        public String getDownloadUrl() {
+            return downloadUrl;
+        }
+        
+        public String getErrorMessage() {
+            return errorMessage;
+        }
+    }
+    
+    /**
      * Executes the POST request to FME Flow Data Download service.
      * 
      * @param serviceUrl the URL of the FME Data Download service
      * @param apiToken the API token for authentication
-     * @param jsonBody the GeoJSON body to send
-     * @param geoJsonParam the name of the published parameter in the FME workspace
-     * @return the URL to download the result, or null if error
+     * @param jsonBody the GeoJSON body to send as the request body
+     * @return FmeFlowResponse containing the result or error details
      */
-    private String executePostRequest(String serviceUrl, String apiToken, String jsonBody, String geoJsonParam) 
+    private FmeFlowResponse executePostRequest(String serviceUrl, String apiToken, String jsonBody) 
             throws IOException {
         
         // Security: Configure timeouts to prevent resource exhaustion
@@ -542,16 +568,11 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
             // Security: Set authorization header with API token
             httpPost.setHeader("Authorization", "fmetoken token=" + apiToken);
             httpPost.setHeader("Accept", "application/json");
+            httpPost.setHeader("Content-Type", "application/json");
             
-            // For FME Data Download, we pass the GeoJSON as a form parameter
-            // The workspace should have a published parameter to receive this
-            List<NameValuePair> formParams = new ArrayList<>();
-            // Add the GeoJSON as a parameter using the configured parameter name
-            formParams.add(new BasicNameValuePair(geoJsonParam, jsonBody));
-            
-            // Create URL-encoded form entity
-            UrlEncodedFormEntity formEntity = new UrlEncodedFormEntity(formParams, StandardCharsets.UTF_8);
-            httpPost.setEntity(formEntity);
+            // Send the GeoJSON directly as the request body
+            StringEntity jsonEntity = new StringEntity(jsonBody, ContentType.APPLICATION_JSON);
+            httpPost.setEntity(jsonEntity);
             
             // Security: Retry logic with exponential backoff
             for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
@@ -576,38 +597,75 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
                                     // Check various possible fields for the download URL
                                     if (responseJson.has("serviceResponse") && 
                                         responseJson.get("serviceResponse").has("url")) {
-                                        return responseJson.get("serviceResponse").get("url").asText();
+                                        return new FmeFlowResponse(true, 
+                                            responseJson.get("serviceResponse").get("url").asText(), 
+                                            null);
                                     } else if (responseJson.has("url")) {
-                                        return responseJson.get("url").asText();
+                                        logger.info("Found 'url' field in response: " + responseJson.get("url").asText());
+                                        return new FmeFlowResponse(true, responseJson.get("url").asText(), null);
                                     } else if (responseJson.has("downloadUrl")) {
-                                        return responseJson.get("downloadUrl").asText();
+                                        return new FmeFlowResponse(true, responseJson.get("downloadUrl").asText(), null);
                                     } else {
                                         // If response is just a URL string
                                         if (responseStr.startsWith("http")) {
-                                            return responseStr.trim();
+                                            return new FmeFlowResponse(true, responseStr.trim(), null);
                                         }
                                     }
                                 } catch (Exception e) {
                                     logger.warn("Could not parse JSON response, treating as plain text");
                                     // If not JSON, maybe the response is the URL directly
                                     if (responseStr.startsWith("http")) {
-                                        return responseStr.trim();
+                                        return new FmeFlowResponse(true, responseStr.trim(), null);
                                     }
                                 }
                             }
                             logger.error("No download URL found in response");
-                            return null;
+                            return new FmeFlowResponse(false, null, "No download URL found in FME response");
                             
                         } else {
                             String errorBody = "";
+                            String errorDetails = "";
                             if (response.getEntity() != null) {
                                 errorBody = EntityUtils.toString(response.getEntity(), StandardCharsets.UTF_8);
+                                // Try to extract detailed error message from FME response
+                                try {
+                                    ObjectMapper mapper = new ObjectMapper();
+                                    JsonNode errorJson = mapper.readTree(errorBody);
+                                    if (errorJson.has("serviceResponse")) {
+                                        JsonNode serviceResponse = errorJson.get("serviceResponse");
+                                        if (serviceResponse.has("statusInfo") && 
+                                            serviceResponse.get("statusInfo").has("message")) {
+                                            errorDetails = serviceResponse.get("statusInfo").get("message").asText();
+                                        }
+                                        if (serviceResponse.has("fmeTransformationResult")) {
+                                            JsonNode fmeResult = serviceResponse.get("fmeTransformationResult");
+                                            if (fmeResult.has("fmeEngineResponse") && 
+                                                fmeResult.get("fmeEngineResponse").has("statusMessage")) {
+                                                String fmeError = fmeResult.get("fmeEngineResponse").get("statusMessage").asText();
+                                                if (!fmeError.isEmpty()) {
+                                                    errorDetails = errorDetails.isEmpty() ? fmeError : errorDetails + " - " + fmeError;
+                                                }
+                                            }
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    // Ignore JSON parsing errors and use raw response
+                                    logger.debug("Could not parse error response as JSON", e);
+                                }
                             }
-                            logger.error("HTTP error {}: {}", statusCode, errorBody);
+                            
+                            if (!errorDetails.isEmpty()) {
+                                logger.error("FME Flow error (HTTP {}): {}", statusCode, errorDetails);
+                                logger.debug("Full error response: {}", errorBody);
+                            } else {
+                                logger.error("HTTP error {}: {}", statusCode, errorBody);
+                            }
                             
                             // Don't retry on client errors (4xx)
                             if (statusCode >= 400 && statusCode < 500) {
-                                return null;
+                                String errorMsg = !errorDetails.isEmpty() ? errorDetails : 
+                                    String.format("FME Flow error (HTTP %d)", statusCode);
+                                return new FmeFlowResponse(false, null, errorMsg);
                             }
                         }
                     }
@@ -629,7 +687,7 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
             }
         }
         
-        return null;
+        return new FmeFlowResponse(false, null, "Failed to connect to FME Flow service");
     }
     
     /**
@@ -779,16 +837,6 @@ public class FmeFlowV2Plugin implements ITaskProcessor {
         apiTokenParam.put("help", this.messages.getString("param.apiToken.help"));
         parametersNode.add(apiTokenParam);
 
-        // GeoJSON Parameter name
-        ObjectNode geoJsonParamNode = mapper.createObjectNode();
-        geoJsonParamNode.put("code", "geoJsonParameter");
-        geoJsonParamNode.put("label", this.messages.getString("param.geoJsonParam.label"));
-        geoJsonParamNode.put("type", "text");
-        geoJsonParamNode.put("maxlength", 100);
-        geoJsonParamNode.put("req", false);
-        geoJsonParamNode.put("default", "GEOJSON_INPUT");
-        geoJsonParamNode.put("help", this.messages.getString("param.geoJsonParam.help"));
-        parametersNode.add(geoJsonParamNode);
 
         try {
             return mapper.writeValueAsString(parametersNode);

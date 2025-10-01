@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * Configuration for internationalization (i18n) support.
  * Manages available languages and locale resolution.
  *
- * @author Claude Code
+ * @author Bruno Alves
  */
 @Configuration
 public class LocaleConfiguration implements WebMvcConfigurer {
