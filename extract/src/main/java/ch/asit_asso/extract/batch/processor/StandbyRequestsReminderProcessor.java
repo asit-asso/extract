@@ -81,9 +81,9 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
 
 
     /**
-     * Notifies the administrator by e-mail that the export failed.
+     * Notifies the operators by e-mail that a request is in standby and requires intervention.
      *
-     * @param request   the request that could not be exported
+     * @param request   the request that is in standby mode
      */
     private boolean sendEmailNotification(final Request request) {
         assert request != null : "The request cannot be null.";
@@ -115,7 +115,7 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
                     }
 
                     if (!message.initialize(request, new String[]{operator.getEmail()}, userLocale)) {
-                        this.logger.error("Could not create the request export failure message for user {}.", operator.getLogin());
+                        this.logger.error("Could not create the standby reminder message for user {}.", operator.getLogin());
                         continue;
                     }
 

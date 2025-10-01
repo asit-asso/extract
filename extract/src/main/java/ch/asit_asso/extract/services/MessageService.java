@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletRequest;
  * Service for obtaining localized messages from the application's message sources.
  * This service provides a centralized way to access localized strings throughout the application.
  *
- * @author Bruno Alves
+ * @author Bruno Alvesg
  */
 @Service
 public class MessageService {

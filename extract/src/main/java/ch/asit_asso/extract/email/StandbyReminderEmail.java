@@ -96,7 +96,7 @@ public class StandbyReminderEmail extends Email {
             return false;
         }
 
-        this.logger.debug("The task failure message has been successfully initialized.");
+        this.logger.debug("The standby reminder message has been successfully initialized.");
         return true;
     }
 
@@ -141,7 +141,7 @@ public class StandbyReminderEmail extends Email {
         this.setSubject(this.getMessageString("email.taskStandbyNotification.subject",
                 new Object[]{request.getProcess().getName()}, locale));
 
-        this.logger.debug("The task failure message content has been sucessfully initilized.");
+        this.logger.debug("The standby reminder message content has been successfully initialized.");
         return true;
     }
 
