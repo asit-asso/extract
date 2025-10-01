@@ -204,12 +204,26 @@ public class EmailSettings implements IEmailSettings {
      * @return the message
      */
     public final String getMessageString(final String messageKey, final Object[] arguments) {
+        return this.getMessageString(messageKey, arguments, null);
+    }
+
+    /**
+     * Obtains the application string that matches the given key for a specific locale.
+     *
+     * @param messageKey the key that identifies the desired message
+     * @param arguments  an array of object that will replace the placeholders in the message string, or
+     *                   <code>null</code> if no substitution is needed
+     * @param locale     the locale to use for the message, or <code>null</code> to use the default locale
+     * @return the message
+     */
+    public final String getMessageString(final String messageKey, final Object[] arguments, final Locale locale) {
 
         if (StringUtils.isBlank(messageKey)) {
             throw new IllegalArgumentException("The message key cannot be null.");
         }
 
-        return this.messageSource.getMessage(messageKey, arguments, Locale.getDefault());
+        Locale messageLocale = (locale != null) ? locale : Locale.getDefault();
+        return this.messageSource.getMessage(messageKey, arguments, messageLocale);
     }
 
 

@@ -64,6 +64,18 @@ public class StandbyReminderEmail extends Email {
      * @return <code>true</code> if this message has been successfully initialized
      */
     public final boolean initialize(final Request request, final String[] recipients) {
+        return this.initialize(request, recipients, null);
+    }
+
+    /**
+     * Prepares this message so that it is ready to be sent with a specific locale.
+     *
+     * @param request    the request that was processed by the task that ended in standby mode
+     * @param recipients an array that contains the valid e-mail addresses that this message must be sent to
+     * @param locale     the locale to use for the email content, or null to use default
+     * @return <code>true</code> if this message has been successfully initialized
+     */
+    public final boolean initialize(final Request request, final String[] recipients, final java.util.Locale locale) {
         this.logger.debug("Initializing the task standby notification message.");
 
         if (recipients == null || recipients.length == 0) {
@@ -72,7 +84,7 @@ public class StandbyReminderEmail extends Email {
 
         this.logger.debug("Initializing the message content.");
 
-        if (!this.initializeContent(request)) {
+        if (!this.initializeContent(request, locale)) {
             this.logger.error("Could not set the message content.");
             return false;
         }
@@ -97,6 +109,17 @@ public class StandbyReminderEmail extends Email {
      * @return <code>true</code> if the message content has been successfully initialized
      */
     public final boolean initializeContent(final Request request) {
+        return this.initializeContent(request, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param request the request that was processed by the task that ended in standby mode
+     * @param locale  the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final java.util.Locale locale) {
 
         if (request == null) {
             throw new IllegalArgumentException("The request cannot be null.");
@@ -107,7 +130,7 @@ public class StandbyReminderEmail extends Email {
 
         try {
             this.logger.debug("Defining the message body");
-            this.setContentFromTemplate(StandbyReminderEmail.EMAIL_HTML_TEMPLATE, this.getModel(request));
+            this.setContentFromTemplate(StandbyReminderEmail.EMAIL_HTML_TEMPLATE, this.getModel(request, locale));
 
         } catch (EmailTemplateNotFoundException exception) {
             this.logger.error("Could not define the message body.", exception);
@@ -116,7 +139,7 @@ public class StandbyReminderEmail extends Email {
 
         this.logger.debug("Defining the subject of the message.");
         this.setSubject(this.getMessageString("email.taskStandbyNotification.subject",
-                new Object[]{request.getProcess().getName()}));
+                new Object[]{request.getProcess().getName()}, locale));
 
         this.logger.debug("The task failure message content has been sucessfully initilized.");
         return true;
@@ -131,10 +154,21 @@ public class StandbyReminderEmail extends Email {
      * @return the context object to feed to the message body template
      */
     private IContext getModel(final Request request) {
+        return this.getModel(request, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param request the request that was processed by the task that ended in standby mode
+     * @param locale  the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Request request, final java.util.Locale locale) {
         assert request != null : "The request cannot be null";
         assert request.getProcess() != null : "The process attached to the request cannot be null.";
 
-        final Context model = new Context();
+        final Context model = new Context(locale);
         
         // Add all standard request variables using the utility class
         RequestModelBuilder.addRequestVariables(model, request);

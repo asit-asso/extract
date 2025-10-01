@@ -30,16 +30,25 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Custom locale resolver that determines the locale based on:
- * 1. User's stored preference (if logged in)
- * 2. Browser's Accept-Language header
+ * Custom locale resolver that determines the locale based on authentication status:
+ * 
+ * For unauthenticated users (login pages, etc.):
+ * 1. User's explicitly selected locale (if set during session)
+ * 2. Browser's Accept-Language header (matches available locales)
  * 3. Default locale from configuration
+ * 
+ * For authenticated users:
+ * 1. User's explicitly selected locale (if set during session)
+ * 2. User's stored preference from database (if set and non-empty)
+ * 3. Browser's Accept-Language header (matches available locales)
+ * 4. Default locale from configuration
  *
- * @author Claude Code
+ * @author arx iT
  */
 public class UserLocaleResolver implements LocaleResolver {
 
     private static final String LOCALE_SESSION_ATTRIBUTE = "EXTRACT_LOCALE";
+    private static final String USER_SELECTED_LOCALE_ATTRIBUTE = "EXTRACT_USER_SELECTED_LOCALE";
 
     @Autowired
     private UsersRepository usersRepository;
@@ -55,45 +64,43 @@ public class UserLocaleResolver implements LocaleResolver {
      */
     @Override
     public Locale resolveLocale(HttpServletRequest request) {
-        // Try to get locale from session first
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            Locale sessionLocale = (Locale) session.getAttribute(LOCALE_SESSION_ATTRIBUTE);
-            if (sessionLocale != null) {
-                return sessionLocale;
-            }
-        }
+        // Check if user is authenticated
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAuthenticated = auth != null && auth.isAuthenticated() && 
+                                 !auth.getName().equals("anonymousUser");
 
-        // Try to get locale from authenticated user
-        Locale userLocale = getUserLocale();
-        if (userLocale != null) {
-            // Store in session for performance
+        // For authenticated users: check explicit selection first, then user preference
+        if (isAuthenticated) {
+            HttpSession session = request.getSession(false);
             if (session != null) {
-                session.setAttribute(LOCALE_SESSION_ATTRIBUTE, userLocale);
-            }
-            return userLocale;
-        }
-
-        // Try to match browser locale with available locales
-        if (availableLocales != null && !availableLocales.isEmpty()) {
-            Locale browserLocale = request.getLocale();
-            if (browserLocale != null) {
-                // Exact match
-                if (availableLocales.contains(browserLocale)) {
-                    return browserLocale;
-                }
-                // Language match (e.g., "en-US" matches "en")
-                String browserLang = browserLocale.getLanguage();
-                for (Locale availableLocale : availableLocales) {
-                    if (availableLocale.getLanguage().equals(browserLang)) {
-                        return availableLocale;
+                Boolean userSelected = (Boolean) session.getAttribute(USER_SELECTED_LOCALE_ATTRIBUTE);
+                if (userSelected != null && userSelected) {
+                    Locale sessionLocale = (Locale) session.getAttribute(LOCALE_SESSION_ATTRIBUTE);
+                    if (sessionLocale != null) {
+                        return sessionLocale;
                     }
                 }
             }
+
+            // For authenticated users: prioritize user preference from database
+            Locale userLocale = getUserLocale();
+            if (userLocale != null) {
+                // Store in session for performance
+                if (session != null) {
+                    session.setAttribute(LOCALE_SESSION_ATTRIBUTE, userLocale);
+                }
+                return userLocale;
+            }
+        }
+
+        // For unauthenticated users (login page): always use browser locale, ignore session
+        Locale browserLocale = getBrowserLocale(request);
+        if (browserLocale != null) {
+            return browserLocale;
         }
 
         // Fall back to default locale
-        return defaultLocale != null ? defaultLocale : Locale.forLanguageTag("fr");
+        return this.defaultLocale != null ? this.defaultLocale : Locale.forLanguageTag("fr");
     }
 
     /**
@@ -107,6 +114,8 @@ public class UserLocaleResolver implements LocaleResolver {
     public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
         HttpSession session = request.getSession();
         session.setAttribute(LOCALE_SESSION_ATTRIBUTE, locale);
+        // Mark this as explicitly set by the user
+        session.setAttribute(USER_SELECTED_LOCALE_ATTRIBUTE, true);
         
         // Update user's locale preference if logged in
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -125,7 +134,7 @@ public class UserLocaleResolver implements LocaleResolver {
     /**
      * Gets the locale for the currently authenticated user.
      *
-     * @return the user's locale or null if not authenticated
+     * @return the user's locale or null if not authenticated or not set
      */
     private Locale getUserLocale() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -133,8 +142,34 @@ public class UserLocaleResolver implements LocaleResolver {
             String username = auth.getName();
             if (username != null && !username.equals("anonymousUser")) {
                 User user = usersRepository.findByLoginIgnoreCase(username);
-                if (user != null && user.getLocale() != null) {
+                if (user != null && user.getLocale() != null && !user.getLocale().trim().isEmpty()) {
                     return Locale.forLanguageTag(user.getLocale());
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the browser locale that matches available locales.
+     *
+     * @param request the HTTP request
+     * @return the matched browser locale or null if no match found
+     */
+    private Locale getBrowserLocale(HttpServletRequest request) {
+        if (availableLocales != null && !availableLocales.isEmpty()) {
+            Locale browserLocale = request.getLocale();
+            if (browserLocale != null) {
+                // Exact match
+                if (availableLocales.contains(browserLocale)) {
+                    return browserLocale;
+                }
+                // Language match (e.g., "en-US" matches "en")
+                String browserLang = browserLocale.getLanguage();
+                for (Locale availableLocale : availableLocales) {
+                    if (availableLocale.getLanguage().equals(browserLang)) {
+                        return availableLocale;
+                    }
                 }
             }
         }

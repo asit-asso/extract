@@ -91,26 +91,56 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
 
         try {
             this.logger.debug("Sending an e-mail reminder to the operators.");
-            final StandbyReminderEmail message = new StandbyReminderEmail(this.emailSettings);
-            final String[] operatorsAddresses
-                    = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(request.getProcess().getId());
-            final Set<String> recipientsAddresses
-                    = new HashSet<>(Arrays.asList(operatorsAddresses));
+            
+            // Get process operators as User objects to access their locales
+            final ch.asit_asso.extract.domain.User[] operators
+                    = this.repositories.getProcessesRepository().getProcessOperators(request.getProcess().getId());
 
-            if (!message.initialize(request, recipientsAddresses.toArray(new String[]{}))) {
-                this.logger.error("Could not create the request export failure message.");
+            if (operators == null || operators.length == 0) {
+                this.logger.warn("No operators found for process {}.", request.getProcess().getId());
                 return false;
             }
 
-            final boolean messageSent = message.send();
+            boolean atLeastOneEmailSent = false;
 
-            if (!messageSent) {
-                this.logger.warn("The request export failure notification was not sent.");
-                return false;
+            // Send individual emails to each operator with their preferred locale
+            for (ch.asit_asso.extract.domain.User operator : operators) {
+                try {
+                    final StandbyReminderEmail message = new StandbyReminderEmail(this.emailSettings);
+                    
+                    // Determine user's locale
+                    java.util.Locale userLocale = null;
+                    if (operator.getLocale() != null && !operator.getLocale().trim().isEmpty()) {
+                        userLocale = java.util.Locale.forLanguageTag(operator.getLocale());
+                    }
+
+                    if (!message.initialize(request, new String[]{operator.getEmail()}, userLocale)) {
+                        this.logger.error("Could not create the request export failure message for user {}.", operator.getLogin());
+                        continue;
+                    }
+
+                    final boolean messageSent = message.send();
+
+                    if (messageSent) {
+                        this.logger.debug("Standby notification sent successfully to {} with locale {}.", 
+                                operator.getEmail(), userLocale != null ? userLocale.toLanguageTag() : "default");
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send standby notification to {}.", operator.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending notification to user {}: {}", operator.getLogin(), exception.getMessage());
+                }
             }
 
-            this.logger.info("The request export failure notification was successfully sent to the operators.");
-            return true;
+            if (atLeastOneEmailSent) {
+                this.logger.info("At least one standby notification was successfully sent to the operators.");
+                return true;
+            } else {
+                this.logger.warn("No standby notifications could be sent to any operators.");
+                return false;
+            }
 
         } catch (Exception exception) {
             this.logger.warn("An error prevented notifying the operators by e-mail.", exception);
