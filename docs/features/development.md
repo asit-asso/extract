@@ -3,8 +3,18 @@ title: Development
 ---
 
 ## Packaging
+Before packaging, you need to install the JS dependencies (i.e. node modules). Easiest approach is to use Docker:
+```bash
+docker compose up -d
+```
+Install dependencies:
+```bash
+docker compose exec node bash  # open a bash session inside the node docker container
 
-To generate a WAR of the application, run the following command:
+./extract/install_dependencies.sh  # run the script to install dependencies
+```
+
+Stop docker compose and generate a WAR of the application, run the following command:
 
 ``` bash
 mvn clean package
@@ -76,3 +86,4 @@ To publish your modification, send them (only the markdown files) through a pull
 <br>
 
 <br>
+
