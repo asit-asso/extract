@@ -7,7 +7,12 @@ title: Development
 To generate a WAR of the application, run the following command:
 
 ``` bash
-mvn package
+mvn clean package
+```
+
+Package while skipping tests (compile and run)
+```powershell
+mvn clean package "-Dmaven.test.skip"  # add double quotes on windows powershell
 ```
 
 In addition to the WAR file, the delivery archive of a new version
@@ -69,4 +74,5 @@ To publish your modification, send them (only the markdown files) through a pull
 <br>
 <br>
 <br>
+
 <br>
