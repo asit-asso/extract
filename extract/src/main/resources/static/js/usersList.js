@@ -102,17 +102,25 @@ $(function() {
         var stateMatch = true;
         if (stateFilter) {
             if (stateFilter === 'active') {
-                stateMatch = (stateText.indexOf('actif') !== -1 || stateText.indexOf('active') !== -1);
+                // Exact match to avoid "inactif" containing "actif"
+                stateMatch = (stateText === 'actif' || stateText === 'active');
             } else if (stateFilter === 'inactive') {
-                stateMatch = (stateText.indexOf('inactif') !== -1 || stateText.indexOf('inactive') !== -1);
+                stateMatch = (stateText === 'inactif' || stateText === 'inactive');
             }
         }
         
         // Notifications filter (column 6)
         var notifText = $(table.row(dataIndex).node()).find('td:eq(6) div').text().trim().toLowerCase();
-        var notifMatch = !notificationsFilter || 
-            (notificationsFilter === 'active' && (notifText.indexOf('oui') !== -1 || notifText.indexOf('actif') !== -1 || notifText.indexOf('active') !== -1 || notifText.indexOf('yes') !== -1)) ||
-            (notificationsFilter === 'inactive' && (notifText.indexOf('non') !== -1 || notifText.indexOf('inactif') !== -1 || notifText.indexOf('inactive') !== -1 || notifText.indexOf('no') !== -1));
+        var notifMatch = true;
+        if (notificationsFilter) {
+            if (notificationsFilter === 'active') {
+                // Exact match to avoid "inactif" containing "actif"
+                notifMatch = (notifText === 'oui' || notifText === 'actif' || notifText === 'active' || notifText === 'yes');
+            } else if (notificationsFilter === 'inactive') {
+                // Exact match to avoid false positives
+                notifMatch = (notifText === 'non' || notifText === 'inactif' || notifText === 'inactive' || notifText === 'no');
+            }
+        }
         
         // 2FA filter (column 7)
         var twoFAText = $(table.row(dataIndex).node()).find('td:eq(7) div').text().trim().toLowerCase();
