@@ -66,7 +66,7 @@ public class SystemEmailTest {
         when(mockRepo.getSmtpFromName()).thenReturn("Extract System");
         when(mockRepo.getSmtpUser()).thenReturn(null);
         when(mockRepo.getSmtpPassword()).thenReturn(null);
-        when(mockRepo.getSmtpSSL()).thenReturn("false");
+        when(mockRepo.getSmtpSSL()).thenReturn("NONE");
         
         // Create EmailSettings with correct constructor parameters
         mockEmailSettings = new EmailSettings(mockRepo, mockTemplateEngine, mockMessageSource, "http://localhost:8080");

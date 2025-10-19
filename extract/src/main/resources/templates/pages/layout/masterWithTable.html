@@ -28,33 +28,52 @@
         </th:block>
         <th:block layout:fragment="customScripts">
             <script type="text/javascript" th:inline="javascript">
+                // Map language codes to DataTables i18n file names
+                var languageCode = /*[[${language}]]*/ 'fr';
+
+                // Custom error messages per language
+                var ajaxErrorMessages = {
+                    'fr': {
+                        'title': /*[[#{errors.ajax.title}]]*/ 'Erreur de connexion',
+                        'message': /*[[#{errors.ajax.message}]]*/ 'Une erreur est survenue lors de la mise à jour des demandes en cours'
+                    },
+                    'de': {
+                        'title': /*[[#{errors.ajax.title}]]*/ 'Verbindungsfehler',
+                        'message': /*[[#{errors.ajax.message}]]*/ 'Bei der Aktualisierung der Anfragen ist ein Fehler aufgetreten'
+                    },
+                    'en': {
+                        'title': 'Connection Error',
+                        'message': 'An error occurred while updating requests'
+                    }
+                };
+
+                // Global language messages object for use by JavaScript modules
+                var LANG_MESSAGES = {
+                    errors: {
+                        ajaxError: ajaxErrorMessages[languageCode] || ajaxErrorMessages['fr']
+                    }
+                };
+
                 function getDataTableBaseProperties() {
+                    var languageFileMap = {
+                        'fr': 'fr-FR',
+                        'de': 'de-DE',
+                        'en': 'en-GB'
+                    };
+                    var languageFile = languageFileMap[languageCode] || 'fr-FR';
+                    var languageUrl = /*[[@{/lib/datatables.net-plugins/i18n/}]]*/ '/lib/datatables.net-plugins/i18n/';
+
+                    var ajaxError = ajaxErrorMessages[languageCode] || ajaxErrorMessages['fr'];
+
                     return {
-                        "language" : {
-                            "sProcessing" : /*[[#{table.processing}]]*/ "{Processing}",
-                            "sSearch" : /*[[#{table.searchBox.label}]]*/ "{Search:}",
-                            "sLengthMenu" : /*[[${#messages.msg('table.paging.control.text', '_MENU_')}]]*/ "{Show _MENU_ items}",
-                            "sInfo" : /*[[${#messages.msg('table.paging.info', '_START_', '_END_', '_TOTAL_')}]]*/ "{Showing items _START_ to _END_ from _TOTAL_}",
-                            "sInfoEmpty" : /*[[#{table.paging.info.empty}]]*/ "{No item shown}",
-                            "sInfoFiltered" : /*[[${#messages.msg('table.filter.info', '_MAX_')}]]*/ "{(filtered from _MAX_ total items)}",
-                            "sInfoPostFix" : "",
-                            "sLoadingRecords" : /*[[#{table.loading}]]*/ "{Loading}",
-                            "sZeroRecords" : /*[[#{table.empty}]]*/ "{No item to display}",
-                            "sEmptyTable" : /*[[#{table.empty}]]*/ "{No item to display}",
-                            "oPaginate" : {
-                                "sFirst" : /*[[#{table.paging.first}]]*/ "{First}",
-                                "sPrevious" : /*[[#{table.paging.previous}]]*/ "{Previous}",
-                                "sNext" : /*[[#{table.paging.next}]]*/ "{Next}",
-                                "sLast" : /*[[#{table.paging.last}]]*/ "{Last}"
-                            },
-                            "oAria" : {
-                                "sSortAscending" : /*[[#{table.sorting.ascending.alt}]]*/ "{: activate to sort the column in ascending order}",
-                                "sSortDescending" : /*[[#{table.sorting.descending.alt}]]*/ "{: activate to sort the column in descending order}"
-                            }
+                        "language": {
+                            "url": languageUrl + languageFile + '.json',
+                            // Custom properties extending the base i18n file
+                            "ajaxError": ajaxError
                         },
-                        "pagingType" : "simple_numbers",
-                        "info" : false,
-                        "lengthChange" : false,
+                        "pagingType": "simple_numbers",
+                        "info": false,
+                        "lengthChange": false,
                         "layout": {
                             "topEnd": null
                         }

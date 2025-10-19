@@ -181,9 +181,9 @@ function _showAjaxErrorNotification(tableId) {
 
     // Get localized messages or use defaults
     var title = 'Connection Error';
-    var message = 'An error occurred while updating pending requests...';
+    var message = 'An error occurred while updating requests';
 
-    // Check if LANG_MESSAGES is available
+    // Check if LANG_MESSAGES is available (set by masterWithTable.html)
     if (typeof LANG_MESSAGES !== 'undefined' && LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError) {
         title = LANG_MESSAGES.errors.ajaxError.title || title;
         message = LANG_MESSAGES.errors.ajaxError.message || message;
