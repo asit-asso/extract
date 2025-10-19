@@ -1,31 +1,80 @@
 <div>
-    <p>Das E-Mail-Benachrichtigungs-Plugin ermöglicht das Versenden einer Nachricht an einen oder mehrere Empfänger.</p>
+    <h4>Beschreibung</h4>
+    <p>Das E-Mail-Benachrichtigungs-Plugin ermöglicht das Versenden einer personalisierten Nachricht an einen oder mehrere Empfänger.</p>
 
-    <p>Die E-Mails der Empfänger müssen durch Semikolons getrennt werden.</p>
+    <p>Die E-Mail-Adressen der Empfänger müssen durch Semikolons getrennt werden.</p>
 
+    <h4>Verfügbare Platzhalter</h4>
     <p>
-        Der Betreff und der Inhalt der Nachricht können Variablen enthalten, die durch die
-        Eigenschaften der Anfrage ersetzt werden. Die erlaubten dynamischen Eigenschaften
-        sind die folgenden:
+        Der Betreff und der Inhalt der Nachricht verwenden die <strong>Thymeleaf</strong>-Syntax. Sie können die
+        folgenden Platzhalter verwenden, um Informationen aus der Anfrage dynamisch einzufügen:
     </p>
 
+    <h5>Grundinformationen</h5>
     <ul>
-        <li>orderLabel</li>
-        <li>orderGuid</li>
-        <li>productGuid</li>
-        <li>productLabel</li>
-        <li>startDate</li>
-        <li>organism</li>
-        <li>client</li>
+        <li><code>${orderLabel}</code> - Name der Bestellung/Anfrage</li>
+        <li><code>${productLabel}</code> - Name des Produkts</li>
+        <li><code>${startDate}</code> - Einreichungsdatum der Anfrage (formatiert)</li>
+        <li><code>${startDateISO}</code> - Einreichungsdatum (ISO 8601 Format)</li>
+        <li><code>${endDate}</code> - Enddatum der Anfrage (formatiert)</li>
+        <li><code>${endDateISO}</code> - Enddatum (ISO 8601 Format)</li>
+        <li><code>${status}</code> - Status der Anfrage (ONGOING, FINISHED, ERROR, usw.)</li>
+        <li><code>${rejected}</code> - Boolean, true wenn die Anfrage abgelehnt wurde</li>
     </ul>
 
-    <p><i>Beispiel für den Betreff:</i> "Neue Anfrage für das Produkt {productLabel}, Kunde {client}"</p>
+    <h5>Kunde und Organisation</h5>
+    <ul>
+        <li><code>${client}</code> oder <code>${clientName}</code> - Name des Kunden</li>
+        <li><code>${clientGuid}</code> - Eindeutige Kennung des Kunden</li>
+        <li><code>${organism}</code> oder <code>${organisationName}</code> - Name der Kundenorganisation</li>
+        <li><code>${organismGuid}</code> - Eindeutige Kennung der Organisation</li>
+    </ul>
 
-    <p><i>Beispiel für den Inhalt:</i></p>
-    <p>
-        "Der Kunde {client} ({organism}) hat das Produkt {productLabel} bestellt<br />
-        Bestellnummer: {orderLabel}<br />
-        Verarbeitungsdatum: {startDate}<br />
-        Die gelieferten Daten wurden archiviert nach: /home/data/extract/archive/{orderLabel}/{productLabel}"
-    </p>
+    <h5>Drittpartei</h5>
+    <ul>
+        <li><code>${tiers}</code> - Name der Drittorganisation (kann leer sein)</li>
+        <li><code>${tiersDetails}</code> - Zusätzliche Details zur Drittpartei</li>
+        <li><code>${tiersGuid}</code> - Eindeutige Kennung der Drittpartei</li>
+    </ul>
+
+    <h5>Geografische Informationen</h5>
+    <ul>
+        <li><code>${perimeter}</code> - Geografischer Umkreis (WKT-Format)</li>
+        <li><code>${surface}</code> - Fläche der Bestellung in m²</li>
+    </ul>
+
+    <h5>Bemerkungen</h5>
+    <ul>
+        <li><code>${remark}</code> oder <code>${clientRemark}</code> - Bemerkung/Kommentar des Kunden</li>
+    </ul>
+
+    <h5>Dynamische Parameter</h5>
+    <p>Die JSON-Parameter der Anfrage sind zugänglich über:</p>
+    <ul>
+        <li><code>${parameters.xxx}</code> - Zugriff mit Schlüssel in Kleinbuchstaben (z.B.: <code>${parameters.format}</code> für den Schlüssel "FORMAT")</li>
+        <li><code>${param_XXX}</code> - Zugriff mit originaler Groß-/Kleinschreibung (z.B.: <code>${param_FORMAT}</code>)</li>
+        <li><code>${parametersJson}</code> - Rohe JSON-Zeichenkette aller Parameter</li>
+        <li><code>${parametersMap}</code> - Map aller Parameter (erhält originale Groß-/Kleinschreibung)</li>
+    </ul>
+
+    <p><strong>Wichtiger Hinweis:</strong> Fehlende oder undefinierte Platzhalter geben eine leere Zeichenkette zurück, anstatt einen Fehler zu verursachen. Die E-Mail wird immer gesendet.</p>
+
+    <h4>Bedingte Anzeige</h4>
+    <p>Verwenden Sie <code>th:if</code>, um Inhalte nur anzuzeigen, wenn ein Platzhalter existiert:</p>
+    <pre>&lt;p th:if="${!parameters.raison.isEmpty()}"&gt;
+    Grund: &lt;span th:text="${parameters.raison}"&gt;&lt;/span&gt;
+&lt;/p&gt;</pre>
+
+    <h4>Beispiele</h4>
+    <p><strong>Beispiel Betreff:</strong></p>
+    <pre>Neue Anfrage für das Produkt ${productLabel}, Kunde ${client}</pre>
+
+    <p><strong>Beispiel Inhalt:</strong></p>
+    <pre>&lt;p&gt;Der Kunde &lt;strong th:text="${client}"&gt;&lt;/strong&gt; (${organism}) hat das Produkt &lt;em th:text="${productLabel}"&gt;&lt;/em&gt; bestellt&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;Bestellnummer: &lt;span th:text="${orderLabel}"&gt;&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Verarbeitungsdatum: &lt;span th:text="${startDate}"&gt;&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Fläche: &lt;span th:text="${surface}"&gt;&lt;/span&gt; m²&lt;/li&gt;
+    &lt;li th:if="${!parameters.format.isEmpty()}"&gt;Angefordertes Format: &lt;span th:text="${parameters.format}"&gt;&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;</pre>
 </div>

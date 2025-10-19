@@ -1,31 +1,80 @@
 <div>
-    <p>Le plugin de notification e-mail permet d'envoyer un message &agrave; un ou plusieurs destinataires.</p>
+    <h4>Description</h4>
+    <p>Le plugin de notification e-mail permet d'envoyer un message personnalisé à un ou plusieurs destinataires.</p>
 
-    <p>Les e-mails des destinataires doivent &ecirc;tre s&eacute;par&eacute;s par des points-virgules.</p>
+    <p>Les e-mails des destinataires doivent être séparés par des points-virgules.</p>
 
+    <h4>Placeholders disponibles</h4>
     <p>
-        L'objet et le contenu du message peuvent contenir des variables qui seront remplac&eacute;es par les
-        propri&eacute;t&eacute;s de la requ&ecirc;te. Les propri&eacute;t&eacute;s dynamiques autoris&eacute;es
-        sont les suivantes&nbsp;:
+        L'objet et le contenu du message utilisent la syntaxe <strong>Thymeleaf</strong>. Vous pouvez utiliser les
+        placeholders suivants pour insérer dynamiquement des informations de la requête :
     </p>
 
+    <h5>Informations de base</h5>
     <ul>
-        <li>orderLabel</li>
-        <li>orderGuid</li>
-        <li>productGuid</li>
-        <li>productLabel</li>
-        <li>startDate</li>
-        <li>organism</li>
-        <li>client</li>
+        <li><code>${orderLabel}</code> - Nom de la commande/requête</li>
+        <li><code>${productLabel}</code> - Nom du produit</li>
+        <li><code>${startDate}</code> - Date de soumission de la requête (formatée)</li>
+        <li><code>${startDateISO}</code> - Date de soumission (format ISO 8601)</li>
+        <li><code>${endDate}</code> - Date de fin de la requête (formatée)</li>
+        <li><code>${endDateISO}</code> - Date de fin (format ISO 8601)</li>
+        <li><code>${status}</code> - Statut de la requête (ONGOING, FINISHED, ERROR, etc.)</li>
+        <li><code>${rejected}</code> - Booléen, true si la requête a été rejetée</li>
     </ul>
 
-    <p><i>Exemple d'objet&nbsp;:</i> "Nouvelle demande pour le produit {productLabel}, client {client}"</p>
+    <h5>Client et organisation</h5>
+    <ul>
+        <li><code>${client}</code> ou <code>${clientName}</code> - Nom du client</li>
+        <li><code>${clientGuid}</code> - Identifiant unique du client</li>
+        <li><code>${organism}</code> ou <code>${organisationName}</code> - Nom de l'organisme du client</li>
+        <li><code>${organismGuid}</code> - Identifiant unique de l'organisme</li>
+    </ul>
 
-    <p><i>Exemple de contenu&nbsp;:</i></p>
-    <p>
-        "Le client {client} ({organism}) a command&eacute; le produit {productLabel}<br />
-        N° de commande : {orderLabel}<br />
-        Date de traitement : {startDate}<br />
-        Les donn&eacute;es livr&eacute;es ont &eacute;t&eacute; archiv&eacute;es vers : /home/data/extract/archive/{orderLabel}/{productLabel}"
-    </p>
+    <h5>Tiers</h5>
+    <ul>
+        <li><code>${tiers}</code> - Nom de l'organisation tierce (peut être vide)</li>
+        <li><code>${tiersDetails}</code> - Détails supplémentaires du tiers</li>
+        <li><code>${tiersGuid}</code> - Identifiant unique du tiers</li>
+    </ul>
+
+    <h5>Informations géographiques</h5>
+    <ul>
+        <li><code>${perimeter}</code> - Périmètre géographique (format WKT)</li>
+        <li><code>${surface}</code> - Surface de la commande en m²</li>
+    </ul>
+
+    <h5>Remarques</h5>
+    <ul>
+        <li><code>${remark}</code> ou <code>${clientRemark}</code> - Remarque/commentaire du client</li>
+    </ul>
+
+    <h5>Paramètres dynamiques</h5>
+    <p>Les paramètres JSON de la requête sont accessibles via :</p>
+    <ul>
+        <li><code>${parameters.xxx}</code> - Accès avec clé en minuscules (ex: <code>${parameters.format}</code> pour la clé "FORMAT")</li>
+        <li><code>${param_XXX}</code> - Accès avec la casse originale préservée (ex: <code>${param_FORMAT}</code>)</li>
+        <li><code>${parametersJson}</code> - Chaîne JSON brute de tous les paramètres</li>
+        <li><code>${parametersMap}</code> - Map de tous les paramètres (préserve la casse originale)</li>
+    </ul>
+
+    <p><strong>Note importante :</strong> Les placeholders manquants ou non définis retournent une chaîne vide au lieu de provoquer une erreur. L'email sera toujours envoyé.</p>
+
+    <h4>Affichage conditionnel</h4>
+    <p>Utilisez <code>th:if</code> pour afficher du contenu uniquement si un placeholder existe :</p>
+    <pre>&lt;p th:if="${!parameters.raison.isEmpty()}"&gt;
+    Raison : &lt;span th:text="${parameters.raison}"&gt;&lt;/span&gt;
+&lt;/p&gt;</pre>
+
+    <h4>Exemples</h4>
+    <p><strong>Exemple d'objet :</strong></p>
+    <pre>Nouvelle demande pour le produit ${productLabel}, client ${client}</pre>
+
+    <p><strong>Exemple de contenu :</strong></p>
+    <pre>&lt;p&gt;Le client &lt;strong th:text="${client}"&gt;&lt;/strong&gt; (${organism}) a commandé le produit &lt;em th:text="${productLabel}"&gt;&lt;/em&gt;&lt;/p&gt;
+&lt;ul&gt;
+    &lt;li&gt;N° de commande : &lt;span th:text="${orderLabel}"&gt;&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Date de traitement : &lt;span th:text="${startDate}"&gt;&lt;/span&gt;&lt;/li&gt;
+    &lt;li&gt;Surface : &lt;span th:text="${surface}"&gt;&lt;/span&gt; m²&lt;/li&gt;
+    &lt;li th:if="${!parameters.format.isEmpty()}"&gt;Format demandé : &lt;span th:text="${parameters.format}"&gt;&lt;/span&gt;&lt;/li&gt;
+&lt;/ul&gt;</pre>
 </div>
