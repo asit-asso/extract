@@ -97,13 +97,17 @@ $(function() {
             (roleFilter === 'ADMIN' && roleText.indexOf('Admin') !== -1) ||
             (roleFilter === 'OPERATOR' && roleText.indexOf('Opérateur') !== -1);
         
-        // State filter (column 5) - Use data-state attribute (locale-independent)
+        // State filter (column 5) - Use data-state attribute (true/false boolean)
         var stateValue = $(table.row(dataIndex).node()).find('td:eq(5)').attr('data-state');
-        var stateMatch = !stateFilter || stateFilter === stateValue;
+        var stateMatch = !stateFilter ||
+            (stateFilter === 'active' && stateValue === 'true') ||
+            (stateFilter === 'inactive' && stateValue === 'false');
 
-        // Notifications filter (column 6) - Use data-notifications attribute (locale-independent)
+        // Notifications filter (column 6) - Use data-notifications attribute (true/false boolean)
         var notifValue = $(table.row(dataIndex).node()).find('td:eq(6)').attr('data-notifications');
-        var notifMatch = !notificationsFilter || notificationsFilter === notifValue;
+        var notifMatch = !notificationsFilter ||
+            (notificationsFilter === 'active' && notifValue === 'true') ||
+            (notificationsFilter === 'inactive' && notifValue === 'false');
         
         // 2FA filter (column 7)
         var twoFAText = $(table.row(dataIndex).node()).find('td:eq(7) div').text().trim().toLowerCase();
