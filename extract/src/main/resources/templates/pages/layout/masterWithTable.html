@@ -24,61 +24,34 @@
             <script th:src="@{/lib/datatables.net-bs5/js/dataTables.bootstrap5.min.js} + '?v=@@datatablesLibVersion@@'"
                     src="../../static/lib/datatables.net-bs5/js/dataTables.bootstrap5.min.js"
             type="text/javascript"></script>
+            <script th:src="@{/js/datatableConfig.js} + '?v=@@applicationVersion@@'"
+                    src="../../static/js/datatableConfig.js"
+            type="text/javascript"></script>
             <th:block layout:fragment="additionalScriptIncludes"></th:block>
         </th:block>
         <th:block layout:fragment="customScripts">
             <script type="text/javascript" th:inline="javascript">
-                // Map language codes to DataTables i18n file names
-                var languageCode = /*[[${language}]]*/ 'fr';
-
-                // Custom error messages per language
-                var ajaxErrorMessages = {
-                    'fr': {
-                        'title': /*[[#{errors.ajax.title}]]*/ 'Erreur de connexion',
-                        'message': /*[[#{errors.ajax.message}]]*/ 'Une erreur est survenue lors de la mise à jour des demandes en cours'
+                /**
+                 * Global configuration object for Extract application
+                 * Contains i18n messages and paths injected by Thymeleaf template
+                 */
+                var EXTRACT_CONFIG = {
+                    language: /*[[${language}]]*/ 'fr',
+                    datatables: {
+                        i18nPath: /*[[@{/lib/datatables.net-plugins/i18n/}]]*/ '/lib/datatables.net-plugins/i18n/'
                     },
-                    'de': {
-                        'title': /*[[#{errors.ajax.title}]]*/ 'Verbindungsfehler',
-                        'message': /*[[#{errors.ajax.message}]]*/ 'Bei der Aktualisierung der Anfragen ist ein Fehler aufgetreten'
-                    },
-                    'en': {
-                        'title': 'Connection Error',
-                        'message': 'An error occurred while updating requests'
-                    }
-                };
-
-                // Global language messages object for use by JavaScript modules
-                var LANG_MESSAGES = {
-                    errors: {
-                        ajaxError: ajaxErrorMessages[languageCode] || ajaxErrorMessages['fr']
-                    }
-                };
-
-                function getDataTableBaseProperties() {
-                    var languageFileMap = {
-                        'fr': 'fr-FR',
-                        'de': 'de-DE',
-                        'en': 'en-GB'
-                    };
-                    var languageFile = languageFileMap[languageCode] || 'fr-FR';
-                    var languageUrl = /*[[@{/lib/datatables.net-plugins/i18n/}]]*/ '/lib/datatables.net-plugins/i18n/';
-
-                    var ajaxError = ajaxErrorMessages[languageCode] || ajaxErrorMessages['fr'];
-
-                    return {
-                        "language": {
-                            "url": languageUrl + languageFile + '.json',
-                            // Custom properties extending the base i18n file
-                            "ajaxError": ajaxError
-                        },
-                        "pagingType": "simple_numbers",
-                        "info": false,
-                        "lengthChange": false,
-                        "layout": {
-                            "topEnd": null
+                    messages: {
+                        errors: {
+                            ajaxError: {
+                                title: /*[[#{errors.ajax.title}]]*/ 'Erreur de connexion',
+                                message: /*[[#{errors.ajax.message}]]*/ 'Une erreur est survenue lors de la mise à jour des demandes en cours'
+                            }
                         }
-                    };
-                }
+                    }
+                };
+
+                // Legacy support: LANG_MESSAGES for backward compatibility
+                var LANG_MESSAGES = EXTRACT_CONFIG.messages;
             </script>
             <th:block layout:fragment="additionalScripts"></th:block>
         </th:block>
