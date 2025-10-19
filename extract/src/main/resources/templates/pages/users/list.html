@@ -107,13 +107,13 @@
                                             {Local}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td th:attr="data-state=*{active} ? 'active' : 'inactive'">
                                         <div class="badge bg-success" th:text="#{usersList.table.item.active}"
                                              th:if="*{active}">{Active}</div>
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.inactive}"
                                              th:unless="*{active}">{Inactive}</div>
                                     </td>
-                                    <td>
+                                    <td th:attr="data-notifications=*{mailActive} ? 'active' : 'inactive'">
                                         <div class="badge bg-success" th:text="#{usersList.table.item.mailActive}"
                                              th:if="*{mailActive}">{Active}</div>
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.mailInactive}"

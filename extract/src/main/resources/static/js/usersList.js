@@ -97,30 +97,13 @@ $(function() {
             (roleFilter === 'ADMIN' && roleText.indexOf('Admin') !== -1) ||
             (roleFilter === 'OPERATOR' && roleText.indexOf('Opérateur') !== -1);
         
-        // State filter (column 5)
-        var stateText = $(table.row(dataIndex).node()).find('td:eq(5) div').text().trim().toLowerCase();
-        var stateMatch = true;
-        if (stateFilter) {
-            if (stateFilter === 'active') {
-                // Exact match to avoid "inactif" containing "actif"
-                stateMatch = (stateText === 'actif' || stateText === 'active');
-            } else if (stateFilter === 'inactive') {
-                stateMatch = (stateText === 'inactif' || stateText === 'inactive');
-            }
-        }
-        
-        // Notifications filter (column 6)
-        var notifText = $(table.row(dataIndex).node()).find('td:eq(6) div').text().trim().toLowerCase();
-        var notifMatch = true;
-        if (notificationsFilter) {
-            if (notificationsFilter === 'active') {
-                // Exact match to avoid "inactif" containing "actif"
-                notifMatch = (notifText === 'oui' || notifText === 'actif' || notifText === 'active' || notifText === 'yes');
-            } else if (notificationsFilter === 'inactive') {
-                // Exact match to avoid false positives
-                notifMatch = (notifText === 'non' || notifText === 'inactif' || notifText === 'inactive' || notifText === 'no');
-            }
-        }
+        // State filter (column 5) - Use data-state attribute (locale-independent)
+        var stateValue = $(table.row(dataIndex).node()).find('td:eq(5)').attr('data-state');
+        var stateMatch = !stateFilter || stateFilter === stateValue;
+
+        // Notifications filter (column 6) - Use data-notifications attribute (locale-independent)
+        var notifValue = $(table.row(dataIndex).node()).find('td:eq(6)').attr('data-notifications');
+        var notifMatch = !notificationsFilter || notificationsFilter === notifValue;
         
         // 2FA filter (column 7)
         var twoFAText = $(table.row(dataIndex).node()).find('td:eq(7) div').text().trim().toLowerCase();
