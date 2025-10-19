@@ -119,11 +119,36 @@ public class RequestModelBuilder {
     }
 
     /**
+     * A HashMap that returns an empty string for non-existent keys instead of null.
+     * This prevents Thymeleaf template errors when accessing undefined parameters
+     * like ${parameters.raison} when 'raison' key doesn't exist.
+     *
+     * This addresses the issue raised in #323 where missing dynamic parameters
+     * should not cause email sending to fail.
+     */
+    private static class SafeParametersMap extends HashMap<String, Object> {
+        @Override
+        public Object get(Object key) {
+            Object value = super.get(key);
+            return value != null ? value : "";
+        }
+
+        @Override
+        public Object getOrDefault(Object key, Object defaultValue) {
+            Object value = super.get(key);
+            return value != null ? value : "";
+        }
+    }
+
+    /**
      * Parses and adds dynamic parameters to the context.
      * Parameters are available in multiple ways:
      * 1. As raw JSON string under "parametersJson"
      * 2. As parsed map under "parameters"
      * 3. As individual variables with lowercase keys (e.g., parameters.format for FORMAT key)
+     *
+     * Non-existent keys in the parameters map return empty strings instead of causing errors,
+     * making email templates more resilient to missing optional parameters.
      *
      * @param context The Thymeleaf context to populate
      * @param parametersJson The JSON string containing parameters
@@ -131,12 +156,12 @@ public class RequestModelBuilder {
     private static void addDynamicParameters(Context context, String parametersJson) {
         // Always set the raw parameters string
         context.setVariable("parametersJson", parametersJson != null ? parametersJson : "{}");
-        
+
         // Initialize empty parameters map
         Map<String, Object> parametersMap = new HashMap<>();
-        
-        // Create a parameters object that allows dot notation access with lowercase keys
-        Map<String, Object> parametersObject = new HashMap<>();
+
+        // Create a safe parameters object that returns empty string for missing keys
+        Map<String, Object> parametersObject = new SafeParametersMap();
         
         if (parametersJson != null && !parametersJson.trim().isEmpty()) {
             try {
