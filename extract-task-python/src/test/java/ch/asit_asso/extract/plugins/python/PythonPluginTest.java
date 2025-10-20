@@ -76,11 +76,11 @@ class PythonPluginTest {
     void testGetParams() {
         plugin = new PythonPlugin();
         String params = plugin.getParams();
-        
+
         assertNotNull(params);
         assertTrue(params.contains("pythonInterpreter"));
         assertTrue(params.contains("pythonScript"));
-        assertTrue(params.contains("additionalArgs"));
+        // additionalArgs parameter was removed - no longer in plugin
     }
     
     @Test
@@ -309,19 +309,18 @@ class PythonPluginTest {
     }
     
     @Test
-    void testAdditionalArguments() {
-        // Test with additional arguments
+    void testOnlyTwoParametersRequired() {
+        // Test that only pythonInterpreter and pythonScript are required
+        // additionalArgs parameter was removed from the plugin
         Path scriptPath = tempDir.resolve("test.py");
-        
+
         taskSettings.put("pythonInterpreter", "python3");
         taskSettings.put("pythonScript", scriptPath.toString());
-        taskSettings.put("additionalArgs", "--verbose --debug");
-        
+
         plugin = new PythonPlugin("fr", taskSettings);
-        
-        // Should include additional arguments
+
+        // Should only have 2 parameters
         assertNotNull(plugin);
-        assertEquals(3, taskSettings.size());
-        assertEquals("--verbose --debug", taskSettings.get("additionalArgs"));
+        assertEquals(2, taskSettings.size());
     }
 }

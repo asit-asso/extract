@@ -343,7 +343,36 @@ public class PythonPlugin implements ITaskProcessor {
                 return result;
             }
             
-            // Validate and create output directory
+            // Validate and create input directory for parameters file
+            String folderIn = request.getFolderIn();
+            if (folderIn == null || folderIn.trim().isEmpty()) {
+                String errorMessage = "Erreur: Le dossier d'entrée n'est pas défini";
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            }
+
+            File inputDir = new File(folderIn);
+            if (!inputDir.exists()) {
+                if (!inputDir.mkdirs()) {
+                    String errorMessage = String.format("Impossible de créer le dossier d'entrée: %s", folderIn);
+                    this.logger.error(errorMessage);
+                    result.setSuccess(false);
+                    result.setMessage(errorMessage);
+                    return result;
+                }
+            }
+
+            if (!inputDir.canWrite()) {
+                String errorMessage = String.format("Impossible d'écrire dans le dossier d'entrée: %s", folderIn);
+                this.logger.error(errorMessage);
+                result.setSuccess(false);
+                result.setMessage(errorMessage);
+                return result;
+            }
+
+            // Validate output directory exists
             String folderOut = request.getFolderOut();
             if (folderOut == null || folderOut.trim().isEmpty()) {
                 String errorMessage = "Erreur: Le dossier de sortie n'est pas défini";
@@ -352,7 +381,7 @@ public class PythonPlugin implements ITaskProcessor {
                 result.setMessage(errorMessage);
                 return result;
             }
-            
+
             File outputDir = new File(folderOut);
             if (!outputDir.exists()) {
                 if (!outputDir.mkdirs()) {
@@ -363,17 +392,9 @@ public class PythonPlugin implements ITaskProcessor {
                     return result;
                 }
             }
-            
-            if (!outputDir.canWrite()) {
-                String errorMessage = String.format("Impossible d'écrire dans le dossier de sortie: %s", folderOut);
-                this.logger.error(errorMessage);
-                result.setSuccess(false);
-                result.setMessage(errorMessage);
-                return result;
-            }
-            
-            // Create parameters JSON file
-            File parametersFile = new File(outputDir, "parameters.json");
+
+            // Create parameters JSON file in FolderIn (not FolderOut)
+            File parametersFile = new File(inputDir, "parameters.json");
             try {
                 createParametersFile(request, parametersFile);
                 this.logger.info("Parameters file created successfully: {}", parametersFile.getAbsolutePath());
@@ -455,12 +476,13 @@ public class PythonPlugin implements ITaskProcessor {
             command.add(parametersFile.getAbsolutePath());
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
-            
-            // Set working directory
-            File workingDir = new File(request.getFolderOut());
-            if (!workingDir.exists() || !workingDir.isDirectory()) {
-                return String.format("Erreur: Le répertoire de travail n'existe pas ou n'est pas un dossier: %s", 
-                                   request.getFolderOut());
+
+            // Set working directory to the script's directory
+            File scriptFile = new File(scriptPath);
+            File workingDir = scriptFile.getParentFile();
+            if (workingDir == null || !workingDir.exists() || !workingDir.isDirectory()) {
+                return String.format("Erreur: Le répertoire du script n'existe pas ou n'est pas un dossier: %s",
+                                   workingDir != null ? workingDir.getAbsolutePath() : "null");
             }
             processBuilder.directory(workingDir);
             
@@ -497,24 +519,53 @@ public class PythonPlugin implements ITaskProcessor {
             StringBuilder output = new StringBuilder();
             StringBuilder errorOutput = new StringBuilder();
             boolean hasError = false;
-            
+            boolean inTraceback = false;
+
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     output.append(line).append("\n");
-                    
-                    // Detect Python-specific errors
-                    String lowerLine = line.toLowerCase();
-                    if (line.contains("Traceback") || line.contains("Error:") || 
-                        line.contains("SyntaxError") || line.contains("IndentationError") ||
-                        line.contains("TabError") || line.contains("NameError") ||
-                        line.contains("ImportError") || line.contains("ModuleNotFoundError") ||
-                        line.contains("FileNotFoundError") || line.contains("PermissionError")) {
+
+                    // Detect start of Python traceback
+                    if (line.contains("Traceback (most recent call last):")) {
+                        inTraceback = true;
                         hasError = true;
                         errorOutput.append(line).append("\n");
-                        this.logger.error("Python Error: {}", line);
-                    } else {
+                        this.logger.error("Python Traceback started: {}", line);
+                        continue;
+                    }
+
+                    // If in traceback, capture all lines including file/line info
+                    if (inTraceback) {
+                        errorOutput.append(line).append("\n");
+                        this.logger.error("Python Traceback: {}", line);
+
+                        // Check if this is a line with file and line number info
+                        if (line.trim().startsWith("File \"") && line.contains(", line ")) {
+                            this.logger.error("  -> Error location: {}", line.trim());
+                        }
+
+                        // Check if traceback is ending (error type line)
+                        if (line.matches("^[A-Z][a-zA-Z]*Error:.*")) {
+                            inTraceback = false;
+                        }
+                    }
+
+                    // Detect Python-specific errors
+                    if (line.contains("Error:") || line.contains("SyntaxError") ||
+                        line.contains("IndentationError") || line.contains("TabError") ||
+                        line.contains("NameError") || line.contains("ImportError") ||
+                        line.contains("ModuleNotFoundError") || line.contains("FileNotFoundError") ||
+                        line.contains("PermissionError") || line.contains("ValueError") ||
+                        line.contains("TypeError") || line.contains("KeyError") ||
+                        line.contains("AttributeError") || line.contains("IndexError")) {
+                        hasError = true;
+                        if (!inTraceback) {
+                            errorOutput.append(line).append("\n");
+                            this.logger.error("Python Error: {}", line);
+                        }
+                    } else if (!inTraceback) {
                         this.logger.info("Python: {}", line);
                     }
                 }

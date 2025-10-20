@@ -1,27 +1,27 @@
 <div>
-    <p>Le plugin d'extraction FME Desktop V2 permet d'ex&eacute;cuter un script avec FME Desktop en surmontant les limitations de longueur de ligne de commande.</p>
+    <p>Le plugin d'extraction FME Desktop V2 permet d'exécuter un script avec FME Desktop en surmontant les limitations de longueur de ligne de commande.</p>
 
-    <h4>M&eacute;thode de transmission des param&egrave;tres</h4>
+    <h4>Méthode de transmission des paramètres</h4>
     <p>
-        Contrairement &agrave; la version classique, ce plugin transmet les param&egrave;tres via un fichier GeoJSON nomm&eacute; <code>parameters.json</code>
-        cr&eacute;&eacute; dans le r&eacute;pertoire de sortie. Le workspace FME re&ccedil;oit le chemin de ce fichier via le param&egrave;tre <code>--PARAM_FILE</code>.
+        Contrairement à la version classique, ce plugin transmet les paramètres via un fichier GeoJSON nommé <code>parameters.json</code>
+        créé dans le répertoire de sortie. Le workspace FME re&ccedil;oit le chemin de ce fichier via le paramètre <code>--parametersFile</code>.
     </p>
 
     <h4>Structure du fichier GeoJSON</h4>
     <p>Le fichier est un objet GeoJSON de type Feature contenant&nbsp;:</p>
     <ul>
-        <li><strong>geometry</strong> : La g&eacute;om&eacute;trie du p&eacute;rim&egrave;tre (convertion automatique du WKT en GeoJSON)</li>
-        <li><strong>properties</strong> : Tous les param&egrave;tres de la requ&ecirc;te</li>
+        <li><strong>geometry</strong> : La géométrie du périmètre (convertion automatique du WKT en GeoJSON)</li>
+        <li><strong>properties</strong> : Tous les paramètres de la requête</li>
     </ul>
 
-    <h4>Param&egrave;tres disponibles dans le fichier GeoJSON</h4>
-    <p>Les propri&eacute;t&eacute;s suivantes sont disponibles dans le fichier GeoJSON&nbsp;:</p>
+    <h4>Paramètres disponibles dans le fichier GeoJSON</h4>
+    <p>Les propriétés suivantes sont disponibles dans le fichier GeoJSON&nbsp;:</p>
 
     <table class="popover-table parameter-table">
         <tbody>
             <tr>
                 <td class="popover-table-header">
-                    <p>Param&egrave;tre</p>
+                    <p>Paramètre</p>
                 </td>
 
                 <td class="popover-table-header">
@@ -53,7 +53,7 @@
                     <p>FolderOut</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>R&eacute;pertoire de sortie o&ugrave; doivent &ecirc;tre &eacute;crits les fichiers cr&eacute;&eacute;s</p>
+                    <p>Répertoire de sortie o&ugrave; doivent être écrits les fichiers créés</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Cha&icirc;ne</p>
@@ -67,7 +67,7 @@
                     <p>FolderIn</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>R&eacute;pertoire contenant les donn&eacute;es d'entr&eacute;e</p>
+                    <p>Répertoire contenant les données d'entrée</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Cha&icirc;ne</p>
@@ -95,7 +95,7 @@
                     <p>OrderLabel</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Libell&eacute; de commande externe</p>
+                    <p>Libellé de commande externe</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Texte</p>
@@ -123,7 +123,7 @@
                     <p>ClientName</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Nom du client qui a pass&eacute; la commande</p>
+                    <p>Nom du client qui a passé la commande</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Texte</p>
@@ -165,7 +165,7 @@
                     <p>ProductGuid</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Identifiant unique du produit command&eacute;</p>
+                    <p>Identifiant unique du produit commandé</p>
                 </td>
                 <td class="popover-table-data">
                     <p>GUID&nbsp;/ UUID</p>
@@ -179,7 +179,7 @@
                     <p>ProductLabel</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Libell&eacute; du produit command&eacute;</p>
+                    <p>Libellé du produit commandé</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Texte</p>
@@ -193,7 +193,7 @@
                     <p>Parameters</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Objet JSON contenant les param&egrave;tres personnalis&eacute;s de la requ&ecirc;te</p>
+                    <p>Objet JSON contenant les paramètres personnalisés de la requête</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Objet JSON</p>
@@ -205,10 +205,10 @@
         </tbody>
     </table>
 
-    <h4>G&eacute;om&eacute;trie (geometry)</h4>
+    <h4>Géométrie (geometry)</h4>
     <p>
-        La g&eacute;om&eacute;trie du p&eacute;rim&egrave;tre est automatiquement convertie du format WKT (WGS84) vers le format GeoJSON.
-        Elle est plac&eacute;e dans la propri&eacute;t&eacute; <code>geometry</code> de l'objet Feature.
+        La géométrie du périmètre est automatiquement convertie du format WKT (WGS84) vers le format GeoJSON.
+        Elle est placée dans la propriété <code>geometry</code> de l'objet Feature.
     </p>
 
     <h4>Exemple de fichier parameters.json</h4>
@@ -245,14 +245,14 @@
 
     <h4>Utilisation dans FME</h4>
     <p>
-        Le workspace FME peut lire ce fichier avec un Reader GeoJSON ou FeatureReader en utilisant le param&egrave;tre
-        <code>$(PARAM_FILE)</code> comme source. Les attributs sont directement accessibles et la g&eacute;om&eacute;trie
-        est automatiquement import&eacute;e.
+        Le workspace FME peut lire ce fichier avec un Reader GeoJSON ou FeatureReader en utilisant le paramètre
+        <code>$(PARAM_FILE)</code> comme source. Les attributs sont directement accessibles et la géométrie
+        est automatiquement importée.
     </p>
 
     <h4>Sortie</h4>
     <p>
-        Les fichiers de sortie du script doivent &ecirc;tre &eacute;crits dans le r&eacute;pertoire indiqu&eacute; par <code>FolderOut</code>.
-        Le script doit retourner un code de sortie de 0 si le traitement a r&eacute;ussi.
+        Les fichiers de sortie du script doivent être écrits dans le répertoire indiqué par <code>FolderOut</code>.
+        Le script doit retourner un code de sortie de 0 si le traitement a réussi.
     </p>
 </div>

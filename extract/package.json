@@ -5,6 +5,7 @@
         "bootstrap-datepicker": "1.10.0",
         "datatables.net": "2.0.3",
         "datatables.net-bs5": "2.0.3",
+        "datatables.net-plugins": "^2.3.2",
         "font-awesome": "4.7.0",
         "jquery": "3.7.1",
         "jquery-ui": "1.13.2",

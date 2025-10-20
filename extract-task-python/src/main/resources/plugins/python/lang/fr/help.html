@@ -1,92 +1,300 @@
 <div>
-    <h3>Plugin Python pour Extract</h3>
-    
-    <p>Ce plugin permet d'exécuter des scripts Python personnalisés dans le cadre d'un processus Extract. 
-    Les paramètres de la requête sont transmis au script via un fichier JSON.</p>
-    
-    <h4>Paramètres requis :</h4>
+    <p>Le plugin d'extraction Python permet d'ex&eacute;cuter un script Python personnalis&eacute; en surmontant les limitations de longueur de ligne de commande.</p>
+
+    <h4>M&eacute;thode de transmission des param&egrave;tres</h4>
+    <p>
+        Ce plugin transmet les param&egrave;tres via un fichier GeoJSON nomm&eacute; <code>parameters.json</code>
+        cr&eacute;&eacute; dans le r&eacute;pertoire d'entr&eacute;e. Le script Python re&ccedil;oit le chemin de ce fichier comme premier argument.
+    </p>
+
+    <h4>Structure du fichier GeoJSON</h4>
+    <p>Le fichier est un objet GeoJSON de type Feature contenant&nbsp;:</p>
     <ul>
-        <li><b>Interpréteur Python :</b> Le chemin complet vers l'exécutable Python (ex: /usr/bin/python3, C:\Python39\python.exe)</li>
-        <li><b>Script Python :</b> Le chemin complet vers le script Python à exécuter</li>
+        <li><strong>geometry</strong> : La g&eacute;om&eacute;trie du p&eacute;rim&egrave;tre (conversion automatique du WKT en GeoJSON)</li>
+        <li><strong>properties</strong> : Tous les param&egrave;tres de la requ&ecirc;te</li>
     </ul>
-    
-    <h4>Paramètres optionnels :</h4>
-    <ul>
-        <li><b>Arguments supplémentaires :</b> Arguments additionnels à passer au script Python</li>
-    </ul>
-    
-    <h4>Fonctionnement :</h4>
-    <ol>
-        <li>Le plugin crée un fichier <code>parameters.json</code> dans le dossier de sortie contenant toutes les informations de la requête</li>
-        <li>Le script Python est exécuté avec le chemin du fichier JSON comme premier argument</li>
-        <li>Le script doit sauvegarder ses résultats dans le dossier de sortie spécifié (<code>folderOut</code>)</li>
-        <li>Le script doit retourner 0 en cas de succès, toute autre valeur indique une erreur</li>
-    </ol>
-    
-    <h4>Structure du fichier parameters.json :</h4>
+
+    <h4>Param&egrave;tres disponibles dans le fichier GeoJSON</h4>
+    <p>Les propri&eacute;t&eacute;s suivantes sont disponibles dans le fichier GeoJSON&nbsp;:</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+            <tr>
+                <td class="popover-table-header">
+                    <p>Param&egrave;tre</p>
+                </td>
+
+                <td class="popover-table-header">
+                    <p>Description</p>
+                </td>
+                <td class="popover-table-header">
+                    <p>Type</p>
+                </td>
+                <td class="popover-table-header">
+                    <p>Exemple</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>RequestId</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant de commande interne Extract</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Entier</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>365</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>FolderOut</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>R&eacute;pertoire de sortie o&ugrave; doivent &ecirc;tre &eacute;crits les fichiers cr&eacute;&eacute;s</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Cha&icirc;ne</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>FolderIn</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>R&eacute;pertoire contenant les donn&eacute;es d'entr&eacute;e</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Cha&icirc;ne</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrderGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique de la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID&nbsp;/ UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrderLabel</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Libell&eacute; de commande externe</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>221587</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ClientGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique du client</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID&nbsp;/ UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>94d47632-b0e9-57f4-6580-58925e3f9a88</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ClientName</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Nom du client qui a pass&eacute; la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Jean Dupont</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrganismGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique de l'organisme</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID&nbsp;/ UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>2edc1a50-4837-4c44-1519-3ebc85f14588</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrganismName</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Nom de l'organisme</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Service du cadastre</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ProductGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique du produit command&eacute;</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID&nbsp;/ UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>a049fecb-30d9-9124-ed41-068b566a0855</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ProductLabel</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Libell&eacute; du produit command&eacute;</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Plan cadastral</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Parameters</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Objet JSON contenant les param&egrave;tres personnalis&eacute;s de la requ&ecirc;te</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Objet JSON</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>{"FORMAT" : "SHP", "PROJECTION" : "EPSG:2056"}</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>G&eacute;om&eacute;trie (geometry)</h4>
+    <p>
+        La g&eacute;om&eacute;trie du p&eacute;rim&egrave;tre est automatiquement convertie du format WKT (WGS84) vers le format GeoJSON.
+        Elle est plac&eacute;e dans la propri&eacute;t&eacute; <code>geometry</code> de l'objet Feature.
+    </p>
+
+    <h4>Exemple de fichier parameters.json</h4>
     <pre>{
-    "requestId": "ID de la requête",
-    "folderOut": "Dossier de sortie",
-    "folderIn": "Dossier d'entrée",
-    "order": {
-        "guid": "GUID de la commande",
-        "label": "Libellé de la commande"
-    },
-    "client": {
-        "guid": "GUID du client",
-        "details": "Détails du client"
-    },
-    "organism": {
-        "guid": "GUID de l'organisme",
-        "details": "Détails de l'organisme"
-    },
-    "productGuid": "GUID du produit",
-    "productLabel": "Libellé du produit",
-    "parameters": {
-        // Paramètres spécifiques de la requête
-    },
-    "perimeter": {
-        // Géométrie au format GeoJSON
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727164248283, 46.44372031957538],
+      [6.881351862162561, 46.44126511019801],
+      [6.886480507180103, 46.43919870486726],
+      [6.893221678307809, 46.441705238743005],
+      [6.886727164248283, 46.44372031957538]
+    ]]
+  },
+  "properties": {
+    "RequestId": 365,
+    "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
+    "FolderIn": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "Jean Dupont",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Service du cadastre",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Plan cadastral",
+    "Parameters": {
+      "FORMAT": "SHP",
+      "PROJECTION": "EPSG:2056"
     }
+  }
 }</pre>
-    
-    <h4>Exemple de script Python :</h4>
+
+    <h4>Utilisation dans Python</h4>
+    <p>
+        Le script Python peut lire ce fichier comme un GeoJSON standard. Les propri&eacute;t&eacute;s sont accessibles
+        via <code>feature['properties']</code> et la g&eacute;om&eacute;trie via <code>feature['geometry']</code>.
+    </p>
+
+    <h4>Exemple de script Python</h4>
     <pre>#!/usr/bin/env python3
 import json
 import sys
 import os
 
 def main():
-    if len(sys.argv) < 2:
+    if len(sys.argv) &lt; 2:
         print("Erreur: chemin du fichier parameters.json requis")
         return 1
-    
-    # Charger les paramètres
+
+    # Charger le fichier GeoJSON
     with open(sys.argv[1], 'r') as f:
-        params = json.load(f)
-    
-    # Récupérer le dossier de sortie
-    output_dir = params['folderOut']
-    
-    # Traiter la requête
+        feature = json.load(f)
+
+    # R&eacute;cup&eacute;rer les param&egrave;tres
+    props = feature['properties']
+    output_dir = props['FolderOut']
+    geometry = feature['geometry']
+
+    # Traiter la requ&ecirc;te
     # ... votre code ici ...
-    
-    # Sauvegarder les résultats
+
+    # Sauvegarder les r&eacute;sultats dans FolderOut
     result_file = os.path.join(output_dir, 'result.txt')
     with open(result_file, 'w') as f:
-        f.write("Traitement terminé avec succès")
-    
+        f.write("Traitement termin&eacute; avec succ&egrave;s")
+
     return 0
 
 if __name__ == '__main__':
     sys.exit(main())
 </pre>
-    
-    <h4>Notes importantes :</h4>
+
+    <h4>Sortie</h4>
+    <p>
+        Les fichiers de sortie du script doivent &ecirc;tre &eacute;crits dans le r&eacute;pertoire indiqu&eacute; par <code>FolderOut</code>.
+        Le script doit retourner un code de sortie de 0 si le traitement a r&eacute;ussi.
+    </p>
+
+    <h4>Notes importantes</h4>
     <ul>
-        <li>Le script Python doit être exécutable et avoir les permissions appropriées</li>
-        <li>L'interpréteur Python doit être installé sur le serveur Extract</li>
-        <li>Les dépendances Python nécessaires doivent être installées</li>
-        <li>Le script s'exécute dans le contexte du dossier de sortie</li>
+        <li>Le script s'ex&eacute;cute dans le r&eacute;pertoire o&ugrave; se trouve le script Python</li>
+        <li>Cela permet d'utiliser des chemins relatifs dans le script</li>
+        <li>Le fichier parameters.json est cr&eacute;&eacute; dans FolderIn et supprim&eacute; &agrave; la fin du processus</li>
+        <li>L'interpr&eacute;teur Python doit &ecirc;tre install&eacute; sur le serveur Extract</li>
+        <li>Les d&eacute;pendances Python n&eacute;cessaires doivent &ecirc;tre install&eacute;es</li>
     </ul>
 </div>
