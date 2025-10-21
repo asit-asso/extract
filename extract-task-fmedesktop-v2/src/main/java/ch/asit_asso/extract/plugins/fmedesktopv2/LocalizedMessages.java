@@ -20,10 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -106,39 +104,6 @@ public class LocalizedMessages {
 
 
     /**
-     * Reads the content of a file in the current language. Fallbacks will be used if the file is not available
-     * in the current language.
-     *
-     * @param filename the name of the file to read
-     * @return the content of the file, or <code>null</code> if the file could not be read in any compatible language
-     */
-    public final String getFileContent(final String filename) {
-
-        if (StringUtils.isBlank(filename) || filename.contains("../")) {
-            throw new IllegalArgumentException("The filename is invalid.");
-        }
-
-        for (String filePath : this.getFallbackPaths(this.language, filename)) {
-
-            try (InputStream fileStream = this.getClass().getClassLoader().getResourceAsStream(filePath)) {
-
-                if (fileStream == null) {
-                    continue;
-                }
-
-                return IOUtils.toString(fileStream, "UTF-8");
-
-            } catch (IOException exception) {
-                this.logger.error("The help page could not be loaded.", exception);
-            }
-        }
-
-        return null;
-    }
-
-
-
-    /**
      * Obtains a localized string in the current language.
      *
      * @param key the string that identifies the localized string
@@ -153,72 +118,99 @@ public class LocalizedMessages {
         return this.propertyFile.getProperty(key);
     }
 
-
+    /**
+     * Gets the current locale.
+     *
+     * @return the locale
+     */
+    public java.util.Locale getLocale() {
+        return new java.util.Locale(this.language);
+    }
 
     /**
-     * Obtains the language used for the localized messages.
+     * Gets the help content from the specified file path.
      *
-     * @return the language code
+     * @param filePath the path to the help file
+     * @return the help content as a string
      */
-    public final String getLanguage() {
-        return this.language;
+    public String getHelp(String filePath) {
+        try (InputStream helpStream = this.getClass().getClassLoader().getResourceAsStream(filePath)) {
+            if (helpStream != null) {
+                return IOUtils.toString(helpStream, "UTF-8");
+            }
+        } catch (IOException e) {
+            logger.error("Could not read help file: " + filePath, e);
+        }
+        return "Help file not found: " + filePath;
     }
 
 
 
     /**
-     * Obtains the help content in the specified format.
+     * Loads the localization file for the specified language code. This method validates the
+     * provided language code, attempts to locate and load the appropriate localization file
+     * based on a collection of fallback paths, and initializes the {@code propertyFile} field
+     * with the loaded properties. If the localization file cannot be found or the language code
+     * is invalid, an exception is thrown.
      *
-     * @param format the format of the help content (e.g., "html")
-     * @return the help content, or null if not available
+     * @param languageCode the string representing the language code for which the localization
+     *                     file should be loaded; must match the locale validation pattern
+     *                     specified by {@code LocalizedMessages.LOCALE_VALIDATION_PATTERN}
+     *                     and cannot be null
+     * @throws IllegalArgumentException if the provided language code is invalid
+     * @throws IllegalStateException    if no localization file can be found
      */
-    public final String getHelp(final String format) {
-        if ("html".equalsIgnoreCase(format)) {
-            return this.getFileContent("fmeDesktopV2Help.html");
-        }
-        return null;
-    }
+    private void loadFile(final String languageCode) {
+        this.logger.debug("Loading the localization file for language {}.", languageCode);
 
-
-
-    /**
-     * Reads the file that holds the application strings in a given language. Fallbacks will be used if the
-     * application string file is not available in the given language.
-     *
-     * @param guiLanguage the string that identifies the language to use for the messages to the user
-     */
-    private void loadFile(final String guiLanguage) {
-        this.logger.debug("Loading the localization file for language {}.", guiLanguage);
-
-        if (guiLanguage == null || !guiLanguage.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
-            this.logger.error("The language string \"{}\" is not a valid locale.", guiLanguage);
-            throw new IllegalArgumentException(String.format("The language code \"%s\" is invalid.", guiLanguage));
+        if (languageCode == null || !languageCode.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
+            this.logger.error("The language string \"{}\" is not a valid locale.", languageCode);
+            throw new IllegalArgumentException(String.format("The language code \"%s\" is invalid.", languageCode));
         }
 
-        for (String filePath : this.getFallbackPaths(guiLanguage, LocalizedMessages.MESSAGES_FILE_NAME)) {
+        // Avoid stale state if loadFile is called multiple times
+        this.propertyFile = null;
 
-            try (InputStream languageFileStream = this.getClass().getClassLoader().getResourceAsStream(filePath)) {
+        for (String filePath : this.getFallbackPaths(languageCode, LocalizedMessages.MESSAGES_FILE_NAME)) {
+            this.logger.debug("Trying localization file at {}", filePath);
 
-                if (languageFileStream == null) {
-                    this.logger.debug("Could not find a localization file at \"{}\".", filePath);
-                    continue;
-                }
-
-                this.propertyFile = new Properties();
-                this.propertyFile.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
-
-            } catch (IOException exception) {
-                this.logger.error("Could not load the localization file.");
-                this.propertyFile = null;
+            Optional<Properties> maybeProps = loadPropertiesFrom(filePath);
+            if (maybeProps.isPresent()) {
+                this.propertyFile = maybeProps.get();
+                this.logger.info("Loaded localization from {}", filePath);
+                this.logger.info("Localized messages loaded.");
+                return; // Early return: do not override with later fallbacks
             }
         }
 
-        if (this.propertyFile == null) {
-            this.logger.error("Could not find any localization file, not even the default.");
-            throw new IllegalStateException("Could not find any localization file.");
-        }
+        this.logger.error("Could not find any localization file, not even the default.");
+        throw new IllegalStateException("Could not find any localization file.");
+    }
 
-        this.logger.info("Localized messages loaded.");
+    /**
+     * Loads properties from a file located at the specified file path.
+     * Attempts to read the file using UTF-8 encoding and load its contents into a Properties
+     * object. If the file is not found or cannot be read, an empty Optional is returned.
+     *
+     * @param filePath the path to the file from which the properties should be loaded
+     * @return an Optional containing the loaded Properties object if successful,
+     *         or an empty Optional if the file cannot be found or read
+     */
+    private Optional<Properties> loadPropertiesFrom(final String filePath) {
+        try (InputStream languageFileStream = this.getClass().getClassLoader().getResourceAsStream(filePath)) {
+            if (languageFileStream == null) {
+                this.logger.debug("Localization file not found at \"{}\".", filePath);
+                return Optional.empty();
+            }
+            Properties props = new Properties();
+            try (InputStreamReader reader = new InputStreamReader(languageFileStream, StandardCharsets.UTF_8)) {
+                props.load(reader);
+            }
+            return Optional.of(props);
+        } catch (IOException exception) {
+            this.logger.warn("Could not load localization file at {}: {}", filePath, exception.getMessage());
+            return Optional.empty();
+        }
     }
 
 
@@ -238,7 +230,7 @@ public class LocalizedMessages {
                 "The language code is invalid.";
         assert StringUtils.isNotBlank(filename) && !filename.contains("../");
 
-        Set<String> pathsList = new HashSet<>();
+        Set<String> pathsList = new LinkedHashSet<>();
 
         pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, locale, filename));
 

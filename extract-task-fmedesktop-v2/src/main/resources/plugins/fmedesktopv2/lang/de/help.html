@@ -1,48 +1,51 @@
 <div>
-    <p>Le plugin d'extraction FME Desktop V2 permet d'exécuter un script avec FME Desktop en surmontant les limitations de longueur de ligne de commande.</p>
+    <p>Das FME Desktop V2-Extraktions-Plugin ermöglicht die Ausführung eines Skripts mit FME Desktop und überwindet dabei Befehlszeilen-Längenbeschränkungen.</p>
 
-    <h4>Méthode de transmission des paramètres</h4>
+    <h4>Parameterübertragungsmethode</h4>
     <p>
-        Contrairement à la version classique, ce plugin transmet les paramètres via un fichier GeoJSON nommé <code>parameters.json</code>
-        créé dans le répertoire de sortie. Le workspace FME re&ccedil;oit le chemin de ce fichier via le paramètre <code>--parametersFile</code>.
+        Im Gegensatz zur klassischen Version überträgt dieses Plugin Parameter über eine GeoJSON-Datei namens <code>parameters.json</code>,
+        die im Ausgabeverzeichnis erstellt wird. Der FME-Workspace erhält den Pfad zu dieser Datei über den Parameter <code>--parametersFile</code>.
+
+        Die Befehlsparameter werden in einer GeoJSON-Datei gespeichert, wobei das Begrenzungspolygon des Befehls in WGS84 das einzige Feature ist. Andere Parameter sind in den Eigenschaften des Features enthalten.
+        Nur der Dateipfad wird mit dem Parameter parametersFile an das Skript übergeben (das FME-Skript muss diese Datei lesen und die gewünschten Parameter extrahieren).
     </p>
 
-    <h4>Structure du fichier GeoJSON</h4>
-    <p>Le fichier est un objet GeoJSON de type Feature contenant&nbsp;:</p>
+    <h4>GeoJSON-Dateistruktur</h4>
+    <p>Die Datei ist ein GeoJSON-Feature-Objekt, das Folgendes enthält:</p>
     <ul>
-        <li><strong>geometry</strong> : La géométrie du périmètre (convertion automatique du WKT en GeoJSON)</li>
-        <li><strong>properties</strong> : Tous les paramètres de la requête</li>
+        <li><strong>geometry</strong>: Die Perimeter-Geometrie (automatische Konvertierung von WKT zu GeoJSON)</li>
+        <li><strong>properties</strong>: Alle Anfrageparameter</li>
     </ul>
 
-    <h4>Paramètres disponibles dans le fichier GeoJSON</h4>
-    <p>Les propriétés suivantes sont disponibles dans le fichier GeoJSON&nbsp;:</p>
+    <h4>Verfügbare Parameter in der GeoJSON-Datei</h4>
+    <p>Die folgenden Eigenschaften sind in der GeoJSON-Datei verfügbar:</p>
 
     <table class="popover-table parameter-table">
         <tbody>
             <tr>
                 <td class="popover-table-header">
-                    <p>Paramètre</p>
+                    <p>Parameter</p>
                 </td>
 
                 <td class="popover-table-header">
-                    <p>Description</p>
+                    <p>Beschreibung</p>
                 </td>
                 <td class="popover-table-header">
-                    <p>Type</p>
+                    <p>Typ</p>
                 </td>
                 <td class="popover-table-header">
-                    <p>Exemple</p>
+                    <p>Beispiel</p>
                 </td>
             </tr>
             <tr>
                 <td class="popover-table-data">
-                    <p>RequestId</p>
+                    <p>Request</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Identifiant de commande interne Extract</p>
+                    <p>Interne Bestellkennung von Extract</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Entier</p>
+                    <p>Ganzzahl</p>
                 </td>
                 <td class="popover-table-data">
                     <p>365</p>
@@ -53,10 +56,10 @@
                     <p>FolderOut</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Répertoire de sortie o&ugrave; doivent être écrits les fichiers créés</p>
+                    <p>Ausgabeverzeichnis, in das erstellte Dateien geschrieben werden müssen</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Cha&icirc;ne</p>
+                    <p>Zeichenfolge</p>
                 </td>
                 <td class="popover-table-data">
                     <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
@@ -67,10 +70,10 @@
                     <p>FolderIn</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Répertoire contenant les données d'entrée</p>
+                    <p>Verzeichnis mit Eingabedaten</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Cha&icirc;ne</p>
+                    <p>Zeichenfolge</p>
                 </td>
                 <td class="popover-table-data">
                     <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/</p>
@@ -81,10 +84,10 @@
                     <p>OrderGuid</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Identifiant unique de la commande</p>
+                    <p>Eindeutige Bestellkennung</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>GUID&nbsp;/ UUID</p>
+                    <p>GUID / UUID</p>
                 </td>
                 <td class="popover-table-data">
                     <p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p>
@@ -95,10 +98,10 @@
                     <p>OrderLabel</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Libellé de commande externe</p>
+                    <p>Externe Bestellbezeichnung</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Texte</p>
+                    <p>Text</p>
                 </td>
                 <td class="popover-table-data">
                     <p>221587</p>
@@ -109,10 +112,10 @@
                     <p>ClientGuid</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Identifiant unique du client</p>
+                    <p>Eindeutige Kundenkennung</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>GUID&nbsp;/ UUID</p>
+                    <p>GUID / UUID</p>
                 </td>
                 <td class="popover-table-data">
                     <p>94d47632-b0e9-57f4-6580-58925e3f9a88</p>
@@ -123,13 +126,13 @@
                     <p>ClientName</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Nom du client qui a passé la commande</p>
+                    <p>Name des Kunden, der die Bestellung aufgegeben hat</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Texte</p>
+                    <p>Text</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Jean Dupont</p>
+                    <p>Max Mustermann</p>
                 </td>
             </tr>
             <tr>
@@ -137,10 +140,10 @@
                     <p>OrganismGuid</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Identifiant unique de l'organisme</p>
+                    <p>Eindeutige Organisationskennung</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>GUID&nbsp;/ UUID</p>
+                    <p>GUID / UUID</p>
                 </td>
                 <td class="popover-table-data">
                     <p>2edc1a50-4837-4c44-1519-3ebc85f14588</p>
@@ -151,13 +154,13 @@
                     <p>OrganismName</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Nom de l'organisme</p>
+                    <p>Organisationsname</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Texte</p>
+                    <p>Text</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Service du cadastre</p>
+                    <p>Katasteramt</p>
                 </td>
             </tr>
             <tr>
@@ -165,10 +168,10 @@
                     <p>ProductGuid</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Identifiant unique du produit commandé</p>
+                    <p>Eindeutige Kennung des bestellten Produkts</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>GUID&nbsp;/ UUID</p>
+                    <p>GUID / UUID</p>
                 </td>
                 <td class="popover-table-data">
                     <p>a049fecb-30d9-9124-ed41-068b566a0855</p>
@@ -179,13 +182,13 @@
                     <p>ProductLabel</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Libellé du produit commandé</p>
+                    <p>Bezeichnung des bestellten Produkts</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Texte</p>
+                    <p>Text</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Plan cadastral</p>
+                    <p>Katasterplan</p>
                 </td>
             </tr>
             <tr>
@@ -193,10 +196,10 @@
                     <p>Parameters</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Objet JSON contenant les paramètres personnalisés de la requête</p>
+                    <p>JSON-Objekt mit benutzerdefinierten Anfrageparametern</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Objet JSON</p>
+                    <p>JSON-Objekt</p>
                 </td>
                 <td class="popover-table-data">
                     <p>{"FORMAT" : "SHP", "PROJECTION" : "EPSG:2056"}</p>
@@ -205,13 +208,13 @@
         </tbody>
     </table>
 
-    <h4>Géométrie (geometry)</h4>
+    <h4>Geometrie</h4>
     <p>
-        La géométrie du périmètre est automatiquement convertie du format WKT (WGS84) vers le format GeoJSON.
-        Elle est placée dans la propriété <code>geometry</code> de l'objet Feature.
+        Die Perimeter-Geometrie wird automatisch vom WKT-Format (WGS84) in das GeoJSON-Format konvertiert.
+        Sie wird in der Eigenschaft <code>geometry</code> des Feature-Objekts platziert.
     </p>
 
-    <h4>Exemple de fichier parameters.json</h4>
+    <h4>Beispiel einer parameters.json-Datei</h4>
     <pre>{
   "type": "Feature",
   "geometry": {
@@ -225,34 +228,37 @@
     ]]
   },
   "properties": {
-    "RequestId": 365,
+    "Request": 365,
     "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
     "FolderIn": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/",
     "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
     "OrderLabel": "221587",
     "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
-    "ClientName": "Jean Dupont",
+    "ClientName": "Max Mustermann",
     "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
-    "OrganismName": "Service du cadastre",
+    "OrganismName": "Katasteramt",
     "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
-    "ProductLabel": "Plan cadastral",
+    "ProductLabel": "Katasterplan",
     "Parameters": {
       "FORMAT": "SHP",
-      "PROJECTION": "EPSG:2056"
+      "SELECTION" : "PASS_THROUGH",
+      "PROJECTION" : "SWITZERLAND95",
+      "REMARK" : "bla bla bla",
+      "CLIENT_LANG" : "de"
     }
   }
 }</pre>
 
-    <h4>Utilisation dans FME</h4>
+    <h4>Verwendung in FME</h4>
     <p>
-        Le workspace FME peut lire ce fichier avec un Reader GeoJSON ou FeatureReader en utilisant le paramètre
-        <code>$(PARAM_FILE)</code> comme source. Les attributs sont directement accessibles et la géométrie
-        est automatiquement importée.
+        Der FME-Workspace kann diese Datei mit einem GeoJSON Reader oder FeatureReader lesen, indem der
+        <code>$(PARAM_FILE)</code>-Parameter als Quelle verwendet wird. Attribute sind direkt zugänglich und Geometrie
+        wird automatisch importiert.
     </p>
 
-    <h4>Sortie</h4>
+    <h4>Ausgabe</h4>
     <p>
-        Les fichiers de sortie du script doivent être écrits dans le répertoire indiqué par <code>FolderOut</code>.
-        Le script doit retourner un code de sortie de 0 si le traitement a réussi.
+        Skript-Ausgabedateien müssen in das durch <code>FolderOut</code> angegebene Verzeichnis geschrieben werden.
+        Das Skript muss einen Exit-Code von 0 zurückgeben, wenn die Verarbeitung erfolgreich war.
     </p>
 </div>

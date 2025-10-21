@@ -1,0 +1,198 @@
+<div>
+    <p>The FME Flow V2 extraction plugin (formerly FME Server) allows executing geospatial data processing on a remote FME Flow server via REST API with token authentication.</p>
+
+    <h4>Operating Method</h4>
+    <p>
+        This plugin uses the FME Data Download service to execute workspaces on FME Flow.
+        It transmits parameters via GeoJSON in the POST request body and returns a ZIP file containing the results.
+    </p>
+
+    <h4>FME Workspace Configuration</h4>
+    <p>
+        The FME Flow workspace must be configured to use the Data Download service:
+    </p>
+    <ul>
+        <li>Publish the workspace in an FME Flow repository by uploading all data necessary for your script</li>
+        <li>Select the <i>Data Download</i> service</li>
+        <li>Use a GeoJSON Reader or FeatureReader to read the data contained in the request body. The parameter containing the GeoJSON reader source must be published but not mandatory. In the <i>Data Download</i> service configuration, select the GeoJSON reader in the Send HTTP Message <i>Body to Reader</i> field.</li>
+        <li>Configure Writers to produce output files. The location of the output files is not important.</li>
+        <li>The Data Download service will automatically create a ZIP with the results</li>
+    </ul>
+
+    <h4>Service URL</h4>
+    <p>
+        The URL must follow the standard Data Download Service format:
+    </p>
+    <pre>https://&lt;server&gt;/fmedatadownload/&lt;repository&gt;/&lt;workspace&gt;.fmw</pre>
+    <p>
+        Example: <code>https://fme.example.com/fmedatadownload/extract/ProcessGeoData.fmw</code>
+    </p>
+
+    <p>The FME workspace must be published on FME Flow with:</p>
+    <ul>
+        <li>A published parameter to receive the GeoJSON (default: <code>GEOJSON_INPUT</code>)</li>
+        <li>Configuration to return results via the Data Download service</li>
+    </ul>
+
+    <h4>Transmitted GeoJSON Structure</h4>
+    <p>The plugin creates a GeoJSON Feature object containing:</p>
+    <ul>
+        <li><strong>geometry</strong>: The perimeter geometry in WGS84 (automatic conversion from WKT to GeoJSON)</li>
+        <li><strong>properties</strong>: All request parameters</li>
+    </ul>
+
+    <h4>Available Parameters in GeoJSON</h4>
+    <p>The following properties are available in the GeoJSON object transmitted to the workspace:</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+            <tr>
+                <td class="popover-table-header"><p>Parameter</p></td>
+                <td class="popover-table-header"><p>Description</p></td>
+                <td class="popover-table-header"><p>Type</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>Request</p></td>
+                <td class="popover-table-data"><p>Extract request identifier</p></td>
+                <td class="popover-table-data"><p>Integer</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ClientGuid</p></td>
+                <td class="popover-table-data"><p>Unique client identifier</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ClientName</p></td>
+                <td class="popover-table-data"><p>Client name</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrganismGuid</p></td>
+                <td class="popover-table-data"><p>Unique organization identifier</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrganismName</p></td>
+                <td class="popover-table-data"><p>Organization name</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ProductGuid</p></td>
+                <td class="popover-table-data"><p>Unique product identifier</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>ProductLabel</p></td>
+                <td class="popover-table-data"><p>Product label</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrderGuid</p></td>
+                <td class="popover-table-data"><p>Unique order identifier</p></td>
+                <td class="popover-table-data"><p>UUID</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>OrderLabel</p></td>
+                <td class="popover-table-data"><p>Order label</p></td>
+                <td class="popover-table-data"><p>Text</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>Surface</p></td>
+                <td class="popover-table-data"><p>Approximate surface area in square meters</p></td>
+                <td class="popover-table-data"><p>Decimal number</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>Parameters</p></td>
+                <td class="popover-table-data"><p>Custom parameters</p></td>
+                <td class="popover-table-data"><p>JSON Object</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>FolderIn</p></td>
+                <td class="popover-table-data"><p>Input data directory</p></td>
+                <td class="popover-table-data"><p>Path</p></td>
+            </tr>
+            <tr>
+                <td class="popover-table-data"><p>FolderOut</p></td>
+                <td class="popover-table-data"><p>Output directory</p></td>
+                <td class="popover-table-data"><p>Path</p></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Geometry</h4>
+    <p>
+        The perimeter geometry is automatically converted from WKT format (WGS84) to GeoJSON.
+        The following types are supported:
+    </p>
+    <ul>
+        <li>Polygon (with support for holes/donuts)</li>
+        <li>MultiPolygon</li>
+        <li>Point</li>
+        <li>LineString</li>
+    </ul>
+
+    <h4>GeoJSON Body Example</h4>
+    <pre>{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727, 46.443720],
+      [6.881351, 46.441265],
+      [6.886480, 46.439198],
+      [6.893221, 46.441705],
+      [6.886727, 46.443720]
+    ]]
+  },
+  "properties": {
+    "Request": 123,
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "John Doe",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Land Registry Office",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Cadastral Plan",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "Surface": 152384.56,
+    "Parameters": {
+      "FORMAT": "SHP",
+      "PROJECTION": "EPSG:2056"
+    },
+    "FolderIn": "/data/input/",
+    "FolderOut": "/data/output/"
+  }
+}</pre>
+
+    <h4>Security</h4>
+    <p>
+        This plugin implements several security measures:
+    </p>
+    <ul>
+        <li>URL validation to prevent SSRF attacks</li>
+        <li>API token transmitted securely in the header</li>
+        <li>Size limit for downloads (10 GB)</li>
+        <li>Timeouts to avoid blocking</li>
+        <li>Automatic retry with exponential backoff</li>
+        <li>Validation and sanitization of all inputs</li>
+    </ul>
+
+    <h4>Result</h4>
+    <p>
+        The plugin automatically downloads the resulting ZIP file to the output directory.
+        The filename is automatically generated with a timestamp to avoid conflicts.
+    </p>
+
+    <h4>Error Handling</h4>
+    <p>
+        The plugin handles the following errors:
+    </p>
+    <ul>
+        <li>Invalid or inaccessible service URL</li>
+        <li>Invalid or expired API token</li>
+        <li>Invalid WKT geometry</li>
+        <li>Request timeout</li>
+        <li>Result file too large</li>
+        <li>HTTP errors (with automatic retry for 5xx errors)</li>
+    </ul>
+</div>

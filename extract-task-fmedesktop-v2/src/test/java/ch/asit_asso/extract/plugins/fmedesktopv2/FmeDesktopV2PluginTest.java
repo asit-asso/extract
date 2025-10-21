@@ -52,7 +52,7 @@ public class FmeDesktopV2PluginTest {
     private static final String TEST_INSTANCE_LANGUAGE = "fr";
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
     private static final String DESCRIPTION_STRING_IDENTIFIER = "plugin.description";
-    private static final String HELP_FILE_NAME = "fmeDesktopV2Help.html";
+    private static final String HELP_FILE_NAME = "help.html";
     private static final int PARAMETERS_NUMBER = 3;
     private static final String[] VALID_PARAMETER_TYPES = new String[] {"email", "pass", "multitext", "text", "numeric"};
     

@@ -26,7 +26,7 @@ import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
  *
  * @author Florent Krin
  */
-public class FmeDesktopRequest implements ITaskProcessorRequest {
+public class FmeDesktopV2Request implements ITaskProcessorRequest {
 
     private int id;
 

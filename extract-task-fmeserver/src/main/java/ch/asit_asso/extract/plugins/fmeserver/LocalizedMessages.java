@@ -20,10 +20,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Properties;
-import java.util.Set;
+import java.util.*;
+
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -180,6 +178,8 @@ public class LocalizedMessages {
 
                 this.propertyFile = new Properties();
                 this.propertyFile.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
+                this.logger.info("Localized messages loaded from \"{}\".", filePath);
+                return; // Early return: do not override with later fallbacks
 
             } catch (IOException exception) {
                 this.logger.error("Could not load the localization file.");
@@ -212,7 +212,7 @@ public class LocalizedMessages {
                 "The language code is invalid.";
         assert StringUtils.isNotBlank(filename) && !filename.contains("../");
 
-        Set<String> pathsList = new HashSet<>();
+        Set<String> pathsList = new LinkedHashSet<>();
 
         pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, locale, filename));
 

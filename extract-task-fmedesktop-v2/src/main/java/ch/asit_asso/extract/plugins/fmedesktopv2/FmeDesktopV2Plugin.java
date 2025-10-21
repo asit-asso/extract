@@ -67,7 +67,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
      * The name of the file that holds the text explaining how to use this plugin in the language of
      * the user interface.
      */
-    private static final String HELP_FILE_NAME = "fmeDesktopV2Help.html";
+    private static final String HELP_FILE_NAME = "help.html";
 
     /**
      * Object that ensures that the test of available FME Desktop instances and the (possible) start of the extraction
@@ -180,7 +180,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             if (this.inputs == null || this.inputs.isEmpty()) {
                 result.setStatus(FmeDesktopV2Result.Status.ERROR);
                 result.setErrorCode("-1");
-                result.setMessage(this.messages.getString("errorParameters.noParam"));
+                result.setMessage(this.messages.getString("plugin.errors.inputs.none"));
                 result.setRequestData(request);
                 return result;
             }
@@ -191,7 +191,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             if (workspaceParam == null) {
                 result.setStatus(FmeDesktopV2Result.Status.ERROR);
                 result.setErrorCode("-1");
-                result.setMessage(this.messages.getString("errorWorkspace.notDefined"));
+                result.setMessage(this.messages.getString("plugin.errors.params.workspace.not.defined"));
                 result.setRequestData(request);
                 return result;
             }
@@ -199,7 +199,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             if (applicationParam == null) {
                 result.setStatus(FmeDesktopV2Result.Status.ERROR);
                 result.setErrorCode("-1");
-                result.setMessage(this.messages.getString("errorApplication.notDefined"));
+                result.setMessage(this.messages.getString("plugin.errors.params.application.not.defined"));
                 result.setRequestData(request);
                 return result;
             }
@@ -208,7 +208,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             if (!workspaceFile.exists() || !workspaceFile.isFile()) {
                 result.setStatus(FmeDesktopV2Result.Status.ERROR);
                 result.setErrorCode("-1");
-                result.setMessage(this.messages.getString("errorWorkspace.notFile"));
+                result.setMessage(this.messages.getString("plugin.errors.file.workspace.not.found"));
                 result.setRequestData(request);
                 return result;
             }
@@ -217,13 +217,71 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             if (!applicationFile.exists() || !applicationFile.isFile()) {
                 result.setStatus(FmeDesktopV2Result.Status.ERROR);
                 result.setErrorCode("-1");
-                result.setMessage(this.messages.getString("errorApplication.notFile"));
+                result.setMessage(this.messages.getString("plugin.errors.file.application.not.found"));
                 result.setRequestData(request);
                 return result;
             }
 
+            String folderIn = request.getFolderIn();
+            if (folderIn == null || folderIn.trim().isEmpty()) {
+                String errorMessage = this.messages.getString("plugin.errors.folderin.undefined");
+                this.logger.error(errorMessage);
+                result.setErrorCode("-1");
+                result.setMessage(errorMessage);
+                return result;
+            }
+
+            File inputDir = new File(folderIn);
+            if (!inputDir.exists()) {
+                if (!inputDir.mkdirs()) {
+                    String errorMessage = String.format(
+                            this.messages.getString("plugin.errors.folderin.creation.failed"),
+                            folderIn
+                    );
+                    this.logger.error(errorMessage);
+                    result.setErrorCode("-1");
+                    result.setMessage(errorMessage);
+                    return result;
+                }
+            }
+
+            if (!inputDir.canWrite()) {
+                String errorMessage = String.format(
+                        this.messages.getString("plugin.errors.folderin.not.writable"),
+                        folderIn
+                );
+                this.logger.error(errorMessage);
+                result.setErrorCode("-1");
+                result.setMessage(errorMessage);
+                return result;
+            }
+
+            // Validate output directory exists
+            String folderOut = request.getFolderOut();
+            if (folderOut == null || folderOut.trim().isEmpty()) {
+                String errorMessage = this.messages.getString("plugin.errors.folderout.undefined");
+                this.logger.error(errorMessage);
+                result.setErrorCode("-1");
+                result.setMessage(errorMessage);
+                return result;
+            }
+
+            File outputDir = new File(folderOut);
+            if (!outputDir.exists()) {
+                if (!outputDir.mkdirs()) {
+                    String errorMessage = String.format(
+                            this.messages.getString("plugin.errors.folderout.creation.failed"),
+                            folderOut
+                    );
+                    this.logger.error(errorMessage);
+                    result.setErrorCode("-1");
+                    result.setMessage(errorMessage);
+                    return result;
+                }
+            }
+
             // Create the parameters JSON file
-            File parametersFile = new File(request.getFolderIn(), "parameters.json");
+            File parametersFile = new File(inputDir, "parameters.json");
             try {
                 createParametersFile(request, parametersFile);
                 this.logger.info("Created parameters file: {}", parametersFile.getAbsolutePath());
@@ -254,7 +312,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
                 resultMessage = this.readInputStream(fmeTaskProcess.getErrorStream());
 
             } else {
-                final File dirFolderOut = new File(request.getFolderOut());
+                final File dirFolderOut = new File(folderOut);
                 final File[] resultFiles = dirFolderOut.listFiles((dir, name) -> (name != null));
                 final int resultFilesNumber = (resultFiles != null) ? resultFiles.length : 0;
                 this.logger.debug("folder out {} contains {} file(s)", dirFolderOut.getPath(), resultFilesNumber);
@@ -263,12 +321,12 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
                     this.logger.debug("FME task succeeded");
                     resultStatus = FmeDesktopV2Result.Status.SUCCESS;
                     resultErrorCode = "";
-                    resultMessage = this.messages.getString("extract.success");
+                    resultMessage = this.messages.getString("plugin.execution.success");
                     result.setResultFilePath(request.getFolderOut());
 
                 } else {
                     this.logger.debug("Result folder is empty or not exists");
-                    resultMessage = this.messages.getString("errorFolderOut.empty");
+                    resultMessage = this.messages.getString("plugin.errors.execution.empty");
                 }
             }
 
@@ -277,7 +335,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         } catch (Exception exception) {
             final String exceptionMessage = exception.getMessage();
             this.logger.error("The FME workspace has failed", exception);
-            resultMessage = String.format(this.messages.getString("errorFme.executionFailed"), exceptionMessage);
+            resultMessage = String.format(this.messages.getString("plugin.errors.execution.failed"), exceptionMessage);
         }
 
         result.setStatus(resultStatus);
@@ -405,27 +463,16 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         
         // Add all parameters as properties of the Feature
         ObjectNode properties = mapper.createObjectNode();
-        
-        // Basic info
-        properties.put("RequestId", request.getId());
-        properties.put("FolderOut", request.getFolderOut());
-        properties.put("FolderIn", request.getFolderIn());
-        
-        // Order info
-        properties.put("OrderGuid", request.getOrderGuid());
-        properties.put("OrderLabel", request.getOrderLabel());
-        
-        // Client info
-        properties.put("ClientGuid", request.getClientGuid());
-        properties.put("ClientName", request.getClient());
-        
-        // Organism info
-        properties.put("OrganismGuid", request.getOrganismGuid());
-        properties.put("OrganismName", request.getOrganism());
-        
-        // Product info
-        properties.put("ProductGuid", request.getProductGuid());
-        properties.put("ProductLabel", request.getProductLabel());
+        properties.put(this.config.getProperty("paramRequestId"), request.getId());
+        properties.put(this.config.getProperty("paramRequestFolderOut"), request.getFolderOut());
+        properties.put(this.config.getProperty("paramRequestOrderGuid"), request.getOrderGuid());
+        properties.put(this.config.getProperty("paramRequestOrderLabel"), request.getOrderLabel());
+        properties.put(this.config.getProperty("paramRequestClientGuid"), request.getClientGuid());
+        properties.put(this.config.getProperty("paramRequestClientName"), request.getClient());
+        properties.put(this.config.getProperty("paramRequestOrganismGuid"), request.getOrganismGuid());
+        properties.put(this.config.getProperty("paramRequestOrganismName"), request.getOrganism());
+        properties.put(this.config.getProperty("paramRequestProductGuid"), request.getProductGuid());
+        properties.put(this.config.getProperty("paramRequestProductLabel"), request.getProductLabel());
         
         // Add custom parameters as a nested object
         String parametersJson = request.getParameters();
@@ -433,15 +480,15 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             try {
                 ObjectNode parametersNode = (ObjectNode) mapper.readTree(parametersJson);
                 // Add parameters as a nested object in properties
-                properties.set("Parameters", parametersNode);
+                properties.set(this.config.getProperty("paramRequestParameters"), parametersNode);
             } catch (Exception e) {
                 this.logger.warn("Could not parse custom parameters as JSON: {}", e.getMessage());
                 // If not valid JSON, add as string
-                properties.put("Parameters", parametersJson);
+                properties.put(this.config.getProperty("paramRequestParameters"), parametersJson);
             }
         } else {
             // Add empty parameters object if no parameters
-            properties.set("Parameters", mapper.createObjectNode());
+            properties.set(this.config.getProperty("paramRequestParameters"), mapper.createObjectNode());
         }
         
         root.set("properties", properties);
@@ -556,10 +603,15 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
 
     @Override
     public String getHelp() {
-        if (this.help == null) {
-            this.help = this.messages.getFileContent(FmeDesktopV2Plugin.HELP_FILE_NAME);
-        }
+        final String helpFilePath = String.format("%s/lang/%s/%s",
+                CONFIG_FILE_PATH.replace("/properties/config.properties", ""),
+                this.messages.getLocale().getLanguage(),
+                HELP_FILE_NAME
+        );
 
+        if (this.help == null) {
+            this.help = this.messages.getHelp(helpFilePath);
+        }
         return this.help;
     }
 
@@ -583,7 +635,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
      * @return true if enough instances are available, false otherwise
      */
     private boolean hasEnoughInstances() {
-        int requiredInstances = NumberUtils.toInt(this.inputs.get("nbInstances"), 1);
+        int requiredInstances = NumberUtils.toInt(this.inputs.get("instances"), 1);
         int currentInstances = this.getCurrentFmeInstances();
         int maximumInstances = this.getMaxFmeInstances();
 
@@ -694,34 +746,34 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         // Workspace parameter
         ObjectNode workspaceParam = mapper.createObjectNode();
         workspaceParam.put("code", "workbench");
-        workspaceParam.put("label", this.messages.getString("param.workbench.label"));
+        workspaceParam.put("label", this.messages.getString("plugin.params.workbench.label"));
         workspaceParam.put("type", "text");
         workspaceParam.put("maxlength", 500);
         workspaceParam.put("req", true);
-        workspaceParam.put("help", this.messages.getString("param.workbench.help"));
+        workspaceParam.put("help", this.messages.getString("plugin.params.workbench.help"));
         parametersNode.add(workspaceParam);
 
         // FME Application parameter
         ObjectNode applicationParam = mapper.createObjectNode();
         applicationParam.put("code", "application");
-        applicationParam.put("label", this.messages.getString("param.application.label"));
+        applicationParam.put("label", this.messages.getString("plugin.params.application.label"));
         applicationParam.put("type", "text");
         applicationParam.put("maxlength", 500);
         applicationParam.put("req", true);
-        applicationParam.put("help", this.messages.getString("param.application.help"));
+        applicationParam.put("help", this.messages.getString("plugin.params.application.help"));
         parametersNode.add(applicationParam);
 
         // Number of instances parameter
         ObjectNode instancesParam = mapper.createObjectNode();
         instancesParam.put("code", "nbInstances");
-        instancesParam.put("label", this.messages.getString("param.nbInstances.label")
+        instancesParam.put("label", this.messages.getString("plugin.params.instances.label")
                 .replace("{maxInstances}", this.getMaxFmeInstances().toString()));
         instancesParam.put("type", "numeric");
         instancesParam.put("min", 1);
         instancesParam.put("max", this.getMaxFmeInstances());
         instancesParam.put("req", true);
         instancesParam.put("step", 1);
-        instancesParam.put("help", this.messages.getString("param.nbInstances.help"));
+        instancesParam.put("help", this.messages.getString("plugin.params.instances.help"));
         parametersNode.add(instancesParam);
 
         try {
