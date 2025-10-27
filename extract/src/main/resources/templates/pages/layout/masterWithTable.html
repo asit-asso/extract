@@ -50,8 +50,13 @@
                     }
                 };
 
-                // Legacy support: LANG_MESSAGES for backward compatibility
-                var LANG_MESSAGES = EXTRACT_CONFIG.messages;
+                // Legacy support: LANG_MESSAGES should already be defined by messages.js
+                // Extend it with EXTRACT_CONFIG.messages instead of overwriting
+                if (typeof LANG_MESSAGES === 'undefined') {
+                    var LANG_MESSAGES = {};
+                }
+                // Merge EXTRACT_CONFIG.messages into LANG_MESSAGES without overwriting existing properties
+                Object.assign(LANG_MESSAGES, EXTRACT_CONFIG.messages);
             </script>
             <th:block layout:fragment="additionalScripts"></th:block>
         </th:block>
