@@ -50,7 +50,8 @@ import java.util.Map;
 public class PythonPlugin implements ITaskProcessor {
 
     private static final java.util.regex.Pattern PY_TRACE_FILE_LINE =
-            java.util.regex.Pattern.compile("^\\s*File\\s+\"([^\"]+)\",\\s+line\\s+(\\d+)(?:,\\s+in\\s+(.+))?$");
+            java.util.regex.Pattern.compile("^\\s*File\\s+\"([^\"]+)\",\\s+line\\s+(\\d+)(?:,\\s+in\\s+(.+))?$",
+                    java.util.regex.Pattern.MULTILINE);
 
 
     /**
