@@ -92,7 +92,7 @@
                                     </td>
                                     <td th:text="*{name}">{Titi Toto}</td>
                                     <td th:text="*{email}">{toto@tata.com}</td>
-                                    <td th:switch="*{profile}">
+                                    <td th:switch="*{profile}" th:attr="data-role=*{profile}">
                                         <div class="badge bg-success" th:text="#{user.profile.ADMIN}"
                                              th:case="${T(ch.asit_asso.extract.domain.User.Profile).ADMIN}">
                                             {Administrator}
@@ -119,7 +119,7 @@
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.mailInactive}"
                                              th:unless="*{mailActive}">{Inactive}</div>
                                     </td>
-                                    <td th:switch="*{twoFactorStatus}">
+                                    <td th:switch="*{twoFactorStatus}" th:attr="data-2fa-status=*{twoFactorStatus}">
                                         <div class="badge bg-success" th:text="#{user.2faStatus.ACTIVE}"
                                              th:case="${T(ch.asit_asso.extract.domain.User.TwoFactorStatus).ACTIVE}">
                                             {Active}

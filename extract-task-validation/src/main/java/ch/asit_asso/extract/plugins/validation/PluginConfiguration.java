@@ -90,4 +90,10 @@ public class PluginConfiguration {
         return this.properties.getProperty(key);
     }
 
+    public final void dump()
+    {
+        this.properties.entrySet().stream().forEach(e -> {
+            this.logger.info(e.getKey() + " = " + e.getValue());
+        });
+    }
 }

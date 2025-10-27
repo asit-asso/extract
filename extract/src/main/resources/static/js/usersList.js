@@ -91,11 +91,9 @@ $(function() {
             name.indexOf(textFilter) !== -1 || 
             email.indexOf(textFilter) !== -1;
         
-        // Role filter (column 3)
-        var roleText = $(table.row(dataIndex).node()).find('td:eq(3) div').text().trim();
-        var roleMatch = !roleFilter || 
-            (roleFilter === 'ADMIN' && roleText.indexOf('Admin') !== -1) ||
-            (roleFilter === 'OPERATOR' && roleText.indexOf('Opérateur') !== -1);
+        // Role filter (column 3) - Use data-role attribute for language independence
+        var roleValue = $(table.row(dataIndex).node()).find('td:eq(3)').attr('data-role');
+        var roleMatch = !roleFilter || roleFilter === roleValue;
         
         // State filter (column 5) - Use data-state attribute (true/false boolean)
         var stateValue = $(table.row(dataIndex).node()).find('td:eq(5)').attr('data-state');
@@ -109,18 +107,9 @@ $(function() {
             (notificationsFilter === 'active' && notifValue === 'true') ||
             (notificationsFilter === 'inactive' && notifValue === 'false');
         
-        // 2FA filter (column 7)
-        var twoFAText = $(table.row(dataIndex).node()).find('td:eq(7) div').text().trim().toLowerCase();
-        
-        // Debug logging - remove when fixed
-        // if (twoFAFilter) {
-        //     console.log('2FA Filter:', twoFAFilter, 'Text found:', twoFAText);
-        // }
-        
-        var twoFAMatch = !twoFAFilter || 
-            (twoFAFilter === 'ACTIVE' && twoFAText === 'actif') ||
-            (twoFAFilter === 'INACTIVE' && twoFAText === 'inactif') ||
-            (twoFAFilter === 'STANDBY' && (twoFAText.indexOf('attente') !== -1 || twoFAText === 'en attente'));
+        // 2FA filter (column 7) - Use data-2fa-status attribute for language independence
+        var twoFAStatus = $(table.row(dataIndex).node()).find('td:eq(7)').attr('data-2fa-status');
+        var twoFAMatch = !twoFAFilter || twoFAFilter === twoFAStatus;
         
         return textMatch && roleMatch && stateMatch && notifMatch && twoFAMatch;
     });

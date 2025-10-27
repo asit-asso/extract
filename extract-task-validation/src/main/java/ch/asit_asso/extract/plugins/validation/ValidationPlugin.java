@@ -192,6 +192,11 @@ public class ValidationPlugin implements ITaskProcessor {
         ObjectMapper mapper = new ObjectMapper();
         ArrayNode parametersNode = mapper.createArrayNode();
 
+        try {
+            this.messages.dump();
+        } catch (Exception exception) {
+            this.logger.error("An error occurred when the messages were dumped.", exception);
+        }
         ObjectNode validMessagesNode = parametersNode.addObject();
         validMessagesNode.put("code", this.config.getProperty("paramValidMessages"));
         validMessagesNode.put("label", this.messages.getString("paramValidMessages.label"));
@@ -204,7 +209,10 @@ public class ValidationPlugin implements ITaskProcessor {
         rejectMessagesNode.put("type", "list_msgs");
         rejectMessagesNode.put("req", false);
 
+
         try {
+            this.config.dump();
+            this.logger.info(mapper.writeValueAsString(parametersNode));
             return mapper.writeValueAsString(parametersNode);
 
         } catch (JsonProcessingException exception) {

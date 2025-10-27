@@ -80,7 +80,7 @@ public class FmeServerPlugin implements ITaskProcessor {
      * The name of the file that holds the text explaining how to use this plugin in the language of
      * the user interface.
      */
-    private static final String HELP_FILE_NAME = "fmeServerHelp.html";
+    private static final String HELP_FILE_NAME = "help.html";
 
     /**
      * The number returned in an HTTP response to tell that the request resulted in the creation of

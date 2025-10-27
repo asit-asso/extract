@@ -58,14 +58,14 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>core/src/main/resources/connectors</directory>
+                            <directory>extract/src/main/resources/connectors</directory>
                             <includes>
                                 <include>**/*.jar</include>
                             </includes>
                             <followSymlinks>false</followSymlinks>
                         </fileset>
                         <fileset>
-                            <directory>core/src/main/resources/task_processors</directory>
+                            <directory>extract/src/main/resources/task_processors</directory>
                             <includes>
                                 <include>**/*.jar</include>
                             </includes>

@@ -878,7 +878,7 @@ public class UsersController extends BaseController {
             for (Locale locale : localeConfiguration.getAvailableLocales()) {
                 availableLanguages.add(new LanguageOption(
                     locale.toLanguageTag(),
-                    locale.getDisplayName(locale)
+                    capitalizeFirstLetter(locale.getDisplayName(locale))
                 ));
             }
             model.addAttribute("availableLanguages", availableLanguages);
@@ -892,6 +892,12 @@ public class UsersController extends BaseController {
 
     }
 
+    private static String capitalizeFirstLetter(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
 
 
     /**
