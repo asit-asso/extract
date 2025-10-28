@@ -6,75 +6,87 @@
 
     <h4>Verfügbare Platzhalter</h4>
     <p>
-        Der Betreff und der Inhalt der Nachricht verwenden die <strong>Thymeleaf</strong>-Syntax. Sie können die
-        folgenden Platzhalter verwenden, um Informationen aus der Anfrage dynamisch einzufügen:
+        Der Betreff und der Inhalt der Nachricht können <strong>Platzhalter</strong> enthalten, die durch die Werte
+        der Anfrage ersetzt werden. Verwenden Sie die Syntax <code>{feldName}</code> mit geschweiften Klammern.
     </p>
 
     <h5>Grundinformationen</h5>
     <ul>
-        <li><code>${orderLabel}</code> - Name der Bestellung/Anfrage</li>
-        <li><code>${productLabel}</code> - Name des Produkts</li>
-        <li><code>${startDate}</code> - Einreichungsdatum der Anfrage (formatiert)</li>
-        <li><code>${startDateISO}</code> - Einreichungsdatum (ISO 8601 Format)</li>
-        <li><code>${endDate}</code> - Enddatum der Anfrage (formatiert)</li>
-        <li><code>${endDateISO}</code> - Enddatum (ISO 8601 Format)</li>
-        <li><code>${status}</code> - Status der Anfrage (ONGOING, FINISHED, ERROR, usw.)</li>
-        <li><code>${rejected}</code> - Boolean, true wenn die Anfrage abgelehnt wurde</li>
+        <li><code>{orderLabel}</code> - Name der Bestellung/Anfrage</li>
+        <li><code>{productLabel}</code> - Name des Produkts</li>
+        <li><code>{startDate}</code> - Einreichungsdatum der Anfrage (formatiert, z.B. "27 Okt. 2025 14:30:00")</li>
+        <li><code>{startDateISO}</code> - Einreichungsdatum der Anfrage (ISO 8601 Format, z.B. "2025-10-27T14:30:00Z")</li>
+        <li><code>{endDate}</code> - Enddatum der Anfrage (formatiert)</li>
+        <li><code>{endDateISO}</code> - Enddatum der Anfrage (ISO 8601 Format)</li>
+        <li><code>{status}</code> - Status der Anfrage (ONGOING, FINISHED, ERROR, usw.)</li>
+        <li><code>{rejected}</code> - Boolean, true wenn die Anfrage abgelehnt wurde</li>
     </ul>
 
     <h5>Kunde und Organisation</h5>
     <ul>
-        <li><code>${client}</code> oder <code>${clientName}</code> - Name des Kunden</li>
-        <li><code>${clientGuid}</code> - Eindeutige Kennung des Kunden</li>
-        <li><code>${organism}</code> oder <code>${organisationName}</code> - Name der Kundenorganisation</li>
-        <li><code>${organismGuid}</code> - Eindeutige Kennung der Organisation</li>
+        <li><code>{client}</code> oder <code>{clientName}</code> - Name des Kunden</li>
+        <li><code>{clientGuid}</code> - Eindeutige Kennung des Kunden</li>
+        <li><code>{organism}</code> oder <code>{organisationName}</code> - Name der Kundenorganisation</li>
+        <li><code>{organismGuid}</code> - Eindeutige Kennung der Organisation</li>
     </ul>
 
     <h5>Drittpartei</h5>
     <ul>
-        <li><code>${tiers}</code> - Name der Drittorganisation (kann leer sein)</li>
-        <li><code>${tiersDetails}</code> - Zusätzliche Details zur Drittpartei</li>
-        <li><code>${tiersGuid}</code> - Eindeutige Kennung der Drittpartei</li>
+        <li><code>{tiers}</code> - Name der Drittorganisation (kann leer sein)</li>
+        <li><code>{tiersDetails}</code> - Zusätzliche Details zur Drittpartei</li>
+        <li><code>{tiersGuid}</code> - Eindeutige Kennung der Drittpartei</li>
     </ul>
 
     <h5>Geografische Informationen</h5>
     <ul>
-        <li><code>${perimeter}</code> - Geografischer Umkreis (WKT-Format)</li>
-        <li><code>${surface}</code> - Fläche der Bestellung in m²</li>
+        <li><code>{perimeter}</code> - Geografischer Umkreis (WKT-Format)</li>
+        <li><code>{surface}</code> - Fläche der Bestellung</li>
     </ul>
 
     <h5>Bemerkungen</h5>
     <ul>
-        <li><code>${remark}</code> oder <code>${clientRemark}</code> - Bemerkung/Kommentar des Kunden</li>
+        <li><code>{remark}</code> - Bemerkung/Kommentar des Kunden</li>
     </ul>
 
     <h5>Dynamische Parameter</h5>
-    <p>Die JSON-Parameter der Anfrage sind zugänglich über:</p>
+    <p>Die JSON-Parameter der Anfrage sind auf zwei Arten zugänglich:</p>
     <ul>
-        <li><code>${parameters.xxx}</code> - Zugriff mit Schlüssel in Kleinbuchstaben (z.B.: <code>${parameters.format}</code> für den Schlüssel "FORMAT")</li>
-        <li><code>${param_XXX}</code> - Zugriff mit originaler Groß-/Kleinschreibung (z.B.: <code>${param_FORMAT}</code>)</li>
-        <li><code>${parametersJson}</code> - Rohe JSON-Zeichenkette aller Parameter</li>
-        <li><code>${parametersMap}</code> - Map aller Parameter (erhält originale Groß-/Kleinschreibung)</li>
+        <li><code>{parameters.SCHLÜSSEL_NAME}</code> - Zugriff nach Schlüsselname (Groß-/Kleinschreibung beachten)<br/>
+            Beispiel: <code>{parameters.FORMAT}</code> für den Zugriff auf den Schlüssel "FORMAT"</li>
+        <li><code>{param_SCHLÜSSEL_NAME}</code> - Alternative Notation (Groß-/Kleinschreibung beachten)<br/>
+            Beispiel: <code>{param_FORMAT}</code> für den Zugriff auf den Schlüssel "FORMAT"</li>
     </ul>
 
-    <p><strong>Wichtiger Hinweis:</strong> Fehlende oder undefinierte Platzhalter geben eine leere Zeichenkette zurück, anstatt einen Fehler zu verursachen. Die E-Mail wird immer gesendet.</p>
-
-    <h4>Bedingte Anzeige</h4>
-    <p>Verwenden Sie <code>th:if</code>, um Inhalte nur anzuzeigen, wenn ein Platzhalter existiert:</p>
-    <pre>&lt;p th:if="${!parameters.raison.isEmpty()}"&gt;
-    Grund: &lt;span th:text="${parameters.raison}"&gt;&lt;/span&gt;
-&lt;/p&gt;</pre>
+    <p><strong>Wichtiger Hinweis:</strong></p>
+    <ul>
+        <li>Fehlende Standard-Platzhalter ({client}, {orderLabel}, usw.) werden durch eine leere Zeichenkette ersetzt</li>
+        <li>Nicht existierende dynamische Parameter ({parameters.XXX}, {param_XXX}) werden durch die Zeichenkette <code>"null"</code> ersetzt</li>
+        <li>Die E-Mail wird immer gesendet, auch wenn Platzhalter fehlen</li>
+    </ul>
 
     <h4>Beispiele</h4>
+
     <p><strong>Beispiel Betreff:</strong></p>
-    <pre>Neue Anfrage für das Produkt ${productLabel}, Kunde ${client}</pre>
+    <pre>Neue Anfrage für das Produkt {productLabel}, Kunde {client}</pre>
 
     <p><strong>Beispiel Inhalt:</strong></p>
-    <pre>&lt;p&gt;Der Kunde &lt;strong th:text="${client}"&gt;&lt;/strong&gt; (${organism}) hat das Produkt &lt;em th:text="${productLabel}"&gt;&lt;/em&gt; bestellt&lt;/p&gt;
-&lt;ul&gt;
-    &lt;li&gt;Bestellnummer: &lt;span th:text="${orderLabel}"&gt;&lt;/span&gt;&lt;/li&gt;
-    &lt;li&gt;Verarbeitungsdatum: &lt;span th:text="${startDate}"&gt;&lt;/span&gt;&lt;/li&gt;
-    &lt;li&gt;Fläche: &lt;span th:text="${surface}"&gt;&lt;/span&gt; m²&lt;/li&gt;
-    &lt;li th:if="${!parameters.format.isEmpty()}"&gt;Angefordertes Format: &lt;span th:text="${parameters.format}"&gt;&lt;/span&gt;&lt;/li&gt;
-&lt;/ul&gt;</pre>
+    <pre>Guten Tag,
+
+Der Kunde {client} der Organisation {organism} hat das Produkt {productLabel} bestellt.
+
+Bestelldetails:
+- Bestellnummer: {orderLabel}
+- Verarbeitungsdatum: {startDate}
+- Fläche: {surface} m²
+- Angefordertes Format: {parameters.FORMAT}
+- Bemerkung: {remark}
+
+Mit freundlichen Grüßen</pre>
+
+    <p><strong>Beispiel mit bedingten Parametern:</strong></p>
+    <p>Wenn ein Parameter fehlen kann, können Sie HTML für die bedingte Anzeige verwenden:</p>
+    <pre>&lt;p&gt;Kunde: {client}&lt;/p&gt;
+&lt;p&gt;Organisation: {organism}&lt;/p&gt;
+&lt;!-- Der Parameter raison kann leer sein, wenn er fehlt --&gt;
+&lt;p&gt;Grund: {parameters.raison}&lt;/p&gt;</pre>
 </div>
