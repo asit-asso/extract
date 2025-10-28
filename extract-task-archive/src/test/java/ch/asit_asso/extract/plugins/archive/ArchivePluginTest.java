@@ -249,50 +249,47 @@ public class ArchivePluginTest {
     @Test
     @DisplayName("Test path building with property placeholders")
     public void testBuildPathWithPropertyValues() {
-        String pathTemplate = "/archive/{ORDERID}/{CLIENT}/{PRODUCT}";
-        
-        when(mockRequest.getClass()).thenReturn((Class) TestTaskProcessorRequest.class);
+        String pathTemplate = "/archive/{ORDERLABEL}/{CLIENT}/{PRODUCTLABEL}";
+
         TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
-        testRequest.orderId = 12345;
+        testRequest.orderLabel = "ORDER-12345";
         testRequest.client = "Test Client";
-        testRequest.product = "Test Product";
-        
+        testRequest.productLabel = "Test Product";
+
         ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE);
         String result = instance.buildPathWithPropertyValues(pathTemplate, testRequest);
-        
-        assertEquals("/archive/12345/Test_Client/Test_Product", result);
+
+        assertEquals("/archive/ORDER-12345/Test_Client/Test_Product", result);
     }
     
     @Test
     @DisplayName("Test path building with date fields")
     public void testBuildPathWithDateFields() {
-        String pathTemplate = "/archive/{STARTDATE}/{ORDERID}";
-        
-        when(mockRequest.getClass()).thenReturn((Class) TestTaskProcessorRequest.class);
+        String pathTemplate = "/archive/{STARTDATE}/{ORDERLABEL}";
+
         TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
-        testRequest.orderId = 67890;
+        testRequest.orderLabel = "ORDER-67890";
         Calendar cal = Calendar.getInstance();
         cal.set(2024, Calendar.JANUARY, 15);
         testRequest.startDate = cal;
-        
+
         ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE);
         String result = instance.buildPathWithPropertyValues(pathTemplate, testRequest);
-        
-        assertTrue(result.startsWith("/archive/2024-01-15/67890"));
+
+        assertTrue(result.startsWith("/archive/2024-01-15/ORDER-67890"));
     }
     
     @Test
     @DisplayName("Test path building with special characters sanitization")
     public void testBuildPathWithSpecialCharacters() {
         String pathTemplate = "/archive/{CLIENT}";
-        
-        when(mockRequest.getClass()).thenReturn((Class) TestTaskProcessorRequest.class);
+
         TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
         testRequest.client = "Client <with> special*chars/and:spaces";
-        
+
         ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE);
         String result = instance.buildPathWithPropertyValues(pathTemplate, testRequest);
-        
+
         assertEquals("/archive/Client__with__special_chars_and_spaces", result);
     }
     
@@ -300,46 +297,43 @@ public class ArchivePluginTest {
     @DisplayName("Test path building with accented characters")
     public void testBuildPathWithAccentedCharacters() {
         String pathTemplate = "/archive/{CLIENT}";
-        
-        when(mockRequest.getClass()).thenReturn((Class) TestTaskProcessorRequest.class);
+
         TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
         testRequest.client = "Société Générale";
-        
+
         ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE);
         String result = instance.buildPathWithPropertyValues(pathTemplate, testRequest);
-        
+
         assertEquals("/archive/Societe_Generale", result);
     }
     
     @Test
     @DisplayName("Test path building with null field values")
     public void testBuildPathWithNullFields() {
-        String pathTemplate = "/archive/{CLIENT}/{PRODUCT}";
-        
-        when(mockRequest.getClass()).thenReturn((Class) TestTaskProcessorRequest.class);
+        String pathTemplate = "/archive/{CLIENT}/{PRODUCTLABEL}";
+
         TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
         testRequest.client = null;
-        testRequest.product = "Product";
-        
+        testRequest.productLabel = "Product";
+
         ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE);
         String result = instance.buildPathWithPropertyValues(pathTemplate, testRequest);
-        
+
         assertEquals("/archive//Product", result);
     }
     
     @Test
     @DisplayName("Test path building with invalid field names")
     public void testBuildPathWithInvalidFields() {
-        String pathTemplate = "/archive/{INVALIDFIELD}/{ORDERID}";
-        
-        when(mockRequest.getClass()).thenReturn((Class) TestTaskProcessorRequest.class);
+        String pathTemplate = "/archive/{INVALIDFIELD}/{ORDERLABEL}";
+
         TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
-        testRequest.orderId = 999;
-        
+        testRequest.orderLabel = "ORDER-999";
+
         ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE);
         String result = instance.buildPathWithPropertyValues(pathTemplate, testRequest);
-        
-        assertEquals("/archive/{INVALIDFIELD}/999", result);
+
+        assertEquals("/archive/{INVALIDFIELD}/ORDER-999", result);
     }
     
     @Test
@@ -391,13 +385,13 @@ public class ArchivePluginTest {
      * Test helper class implementing ITaskProcessorRequest for testing field access
      */
     private static class TestTaskProcessorRequest implements ITaskProcessorRequest {
-        public Integer orderId;
+        public String orderLabel;
         public String client;
-        public String product;
+        public String productLabel;
         public Calendar startDate;
-        
+
         @Override
-        public int getId() { return orderId != null ? orderId : 0; }
+        public int getId() { return 0; }
         
         @Override
         public String getFolderOut() { return "/test/out"; }

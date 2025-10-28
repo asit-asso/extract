@@ -75,20 +75,17 @@ public class EmailPluginTest {
         taskSettings.put("subject", "Order {orderLabel} - Product {productLabel}");
         taskSettings.put("body", "Client: {client}, Organism: {organism}");
         emailPlugin = new EmailPlugin("fr", taskSettings);
-        
+
         when(mockRequest.getOrderLabel()).thenReturn("ORDER-123");
         when(mockRequest.getProductLabel()).thenReturn("Product XYZ");
         when(mockRequest.getClient()).thenReturn("John Doe");
         when(mockRequest.getOrganism()).thenReturn("ACME Corp");
-        
+
         when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
-        when(mockEmailSettings.isValid()).thenReturn(true);
-        when(mockEmailSettings.getSmtpHost()).thenReturn("smtp.test.com");
-        when(mockEmailSettings.getSmtpPort()).thenReturn(587);
-        
+
         // Act
         ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
-        
+
         // Assert
         assertNotNull(result);
         // The actual sending will fail in test, but we verify the plugin attempted execution
