@@ -3,6 +3,7 @@ package ch.asit_asso.extract.plugins.fmeflowv2;
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
+import ch.asit_asso.extract.plugins.fmeserverv2.FmeServerV2Plugin;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,20 +21,20 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * Unit tests for FmeFlowV2Plugin
+ * Unit tests for FmeServerV2Plugin (formerly known as FmeFlowV2Plugin)
  */
 class FmeFlowV2PluginTest {
-    
+
     @TempDir
     Path tempDir;
-    
+
     @Mock
     private ITaskProcessorRequest mockRequest;
-    
+
     @Mock
     private IEmailSettings mockEmailSettings;
-    
-    private FmeFlowV2Plugin plugin;
+
+    private FmeServerV2Plugin plugin;
     private Map<String, String> taskSettings;
     private ObjectMapper objectMapper;
     
@@ -60,19 +61,19 @@ class FmeFlowV2PluginTest {
     
     @Test
     void testPluginInitialization() {
-        plugin = new FmeFlowV2Plugin("fr");
-        
+        plugin = new FmeServerV2Plugin("fr");
+
         assertNotNull(plugin);
-        assertEquals("FMEFLOWV2", plugin.getCode());
+        assertEquals("FMESERVERV2", plugin.getCode());
         assertNotNull(plugin.getLabel());
         assertNotNull(plugin.getDescription());
         assertNotNull(plugin.getHelp());
         assertEquals("fa-cogs", plugin.getPictoClass());
     }
-    
+
     @Test
     void testGetParams() {
-        plugin = new FmeFlowV2Plugin();
+        plugin = new FmeServerV2Plugin();
         String params = plugin.getParams();
         
         assertNotNull(params);
@@ -111,21 +112,21 @@ class FmeFlowV2PluginTest {
     
     @Test
     void testNewInstanceWithLanguage() {
-        plugin = new FmeFlowV2Plugin();
-        FmeFlowV2Plugin newInstance = (FmeFlowV2Plugin) plugin.newInstance("en");
-        
+        plugin = new FmeServerV2Plugin();
+        FmeServerV2Plugin newInstance = (FmeServerV2Plugin) plugin.newInstance("en");
+
         assertNotNull(newInstance);
         assertNotSame(plugin, newInstance);
     }
-    
+
     @Test
     void testNewInstanceWithLanguageAndInputs() {
         Map<String, String> inputs = new HashMap<>();
         inputs.put("serviceURL", "http://example.com/service");
         inputs.put("apiToken", "test-token");
-        
-        plugin = new FmeFlowV2Plugin();
-        FmeFlowV2Plugin newInstance = (FmeFlowV2Plugin) plugin.newInstance("en", inputs);
+
+        plugin = new FmeServerV2Plugin();
+        FmeServerV2Plugin newInstance = (FmeServerV2Plugin) plugin.newInstance("en", inputs);
         
         assertNotNull(newInstance);
         assertNotSame(plugin, newInstance);
@@ -133,7 +134,7 @@ class FmeFlowV2PluginTest {
     
     @Test
     void testExecuteWithNoInputs() {
-        plugin = new FmeFlowV2Plugin("fr", null);
+        plugin = new FmeServerV2Plugin("fr", null);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -143,7 +144,7 @@ class FmeFlowV2PluginTest {
     
     @Test
     void testExecuteWithEmptyInputs() {
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -154,7 +155,7 @@ class FmeFlowV2PluginTest {
     @Test
     void testExecuteWithMissingServiceUrl() {
         taskSettings.put("apiToken", "test-token");
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
@@ -166,7 +167,7 @@ class FmeFlowV2PluginTest {
     @Test
     void testExecuteWithMissingApiToken() {
         taskSettings.put("serviceURL", "https://valid.example.com/service");
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
@@ -179,7 +180,7 @@ class FmeFlowV2PluginTest {
     void testExecuteWithInvalidUrl() {
         taskSettings.put("serviceURL", "ftp://invalid.example.com");
         taskSettings.put("apiToken", "test-token");
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
@@ -192,7 +193,7 @@ class FmeFlowV2PluginTest {
     void testExecuteWithLocalhostUrl() {
         taskSettings.put("serviceURL", "http://localhost:8080/service");
         taskSettings.put("apiToken", "test-token");
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
@@ -205,7 +206,7 @@ class FmeFlowV2PluginTest {
     void testExecuteWithPrivateNetworkUrl() {
         taskSettings.put("serviceURL", "http://192.168.1.1/service");
         taskSettings.put("apiToken", "test-token");
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
@@ -221,7 +222,7 @@ class FmeFlowV2PluginTest {
         
         when(mockRequest.getParameters()).thenReturn("{\"FORMAT\":\"SHP\",\"PROJECTION\":\"EPSG:2056\"}");
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         
         // We can't easily test the private method, but we can test that the plugin doesn't crash
         // with valid inputs during parameter setup
@@ -238,7 +239,7 @@ class FmeFlowV2PluginTest {
         taskSettings.put("apiToken", "test-token");
         // GeoJSON is now sent as request body, not as a parameter
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -252,7 +253,7 @@ class FmeFlowV2PluginTest {
         
         when(mockRequest.getPerimeter()).thenReturn(null);
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -266,7 +267,7 @@ class FmeFlowV2PluginTest {
         
         when(mockRequest.getPerimeter()).thenReturn("");
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -280,7 +281,7 @@ class FmeFlowV2PluginTest {
         
         when(mockRequest.getPerimeter()).thenReturn("INVALID WKT STRING");
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -294,7 +295,7 @@ class FmeFlowV2PluginTest {
         
         when(mockRequest.getParameters()).thenReturn(null);
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
@@ -308,7 +309,7 @@ class FmeFlowV2PluginTest {
         
         when(mockRequest.getParameters()).thenReturn("invalid json");
         
-        plugin = new FmeFlowV2Plugin("fr", taskSettings);
+        plugin = new FmeServerV2Plugin("fr", taskSettings);
         ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
         
         assertNotNull(result);
