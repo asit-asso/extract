@@ -795,15 +795,17 @@ function _refreshWorkingState() {
 
     $.ajax(_workingStateUrl, {
         cache : false,
-        error : function() {
-            alert("ERROR - Could not fetch the working state information.");
+        error : function(xhr, status, error) {
+            _showAjaxErrorNotification('working state');
         },
         success : function(data) {
 
             if (!data) {
-                alert("ERROR - Could not fetch the working state information.");
+                _showAjaxErrorNotification('working state');
+                return;
             }
 
+            _clearAjaxErrorNotification();
             _scheduledStopDiv.toggle(data === "SCHEDULED_STOP");
             _stoppedDiv.toggle(data === "STOPPED");
             _scheduleConfigErrorDiv.toggle(data === "SCHEDULE_CONFIG_ERROR");
