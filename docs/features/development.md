@@ -11,7 +11,8 @@ Install dependencies:
 ```bash
 docker compose exec node bash  # open a bash session inside the node docker container
 
-./extract/install_dependencies.sh  # run the script to install dependencies
+cd extract
+./install_dependencies.sh  # run the script to install dependencies
 ```
 
 Stop docker compose and generate a WAR of the application, run the following command:
