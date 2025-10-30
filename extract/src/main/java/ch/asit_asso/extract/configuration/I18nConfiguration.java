@@ -66,7 +66,7 @@ public class I18nConfiguration {
     @Bean
     public MessageSource messageSource() {
         this.logger.debug("Configuring the message source for language {}.", this.language);
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        EnvResolvingMessageSource messageSource = new EnvResolvingMessageSource();
         String basename = I18nConfiguration.DEFAULT_MESSAGES_BASENAME;
 
         if (this.language.matches("^[a-z]{2}$")) {
