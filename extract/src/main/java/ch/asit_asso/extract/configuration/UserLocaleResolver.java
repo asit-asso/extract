@@ -19,6 +19,8 @@ package ch.asit_asso.extract.configuration;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -57,6 +59,8 @@ public class UserLocaleResolver implements LocaleResolver {
     private static final String LOCALE_SESSION_ATTRIBUTE = "EXTRACT_LOCALE";
     private static final String USER_SELECTED_LOCALE_ATTRIBUTE = "EXTRACT_USER_SELECTED_LOCALE";
 
+    private final Logger logger = LoggerFactory.getLogger(UserLocaleResolver.class);
+
     @Autowired
     private UsersRepository usersRepository;
 
@@ -73,15 +77,18 @@ public class UserLocaleResolver implements LocaleResolver {
      */
     @Override
     public @NotNull Locale resolveLocale(@NotNull HttpServletRequest request) {
+        logger.debug("Resolving locale. Available locales: {}", availableLocales);
         Locale candidateLocale;
         HttpSession session = request.getSession(false);
 
         // Step 1: Check for explicitly selected locale in session (highest priority)
         candidateLocale = getExplicitlySelectedLocale(session);
         if (candidateLocale != null) {
+            logger.debug("Found explicit locale in session: {}", candidateLocale);
             Locale validatedLocale = validateOrFallback(candidateLocale);
+            logger.debug("Validated locale: {} -> {}", candidateLocale, validatedLocale);
             // Update session with validated locale if needed
-            if (!candidateLocale.equals(validatedLocale)) {
+            if (session != null && !candidateLocale.equals(validatedLocale)) {
                 session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
             }
             return validatedLocale;
@@ -91,6 +98,7 @@ public class UserLocaleResolver implements LocaleResolver {
         if (isUserAuthenticated()) {
             candidateLocale = getUserLocaleFromDatabase();
             if (candidateLocale != null) {
+                logger.debug("Using user locale from database: {}", candidateLocale);
                 // Note: getUserLocaleFromDatabase already validates and updates DB if needed
                 // Store in session for performance
                 if (session != null) {
@@ -103,12 +111,15 @@ public class UserLocaleResolver implements LocaleResolver {
         // Step 3: Check browser locale
         candidateLocale = getBrowserLocale(request);
         if (candidateLocale != null) {
+            logger.debug("Using browser locale: {}", candidateLocale);
             // getBrowserLocale already returns a validated locale
             return candidateLocale;
         }
 
         // Step 4: Return fallback locale
-        return getFallbackLocale();
+        Locale fallback = getFallbackLocale();
+        logger.debug("Using fallback locale: {}", fallback);
+        return fallback;
     }
 
     /**
@@ -217,14 +228,18 @@ public class UserLocaleResolver implements LocaleResolver {
                 User user = usersRepository.findByLoginIgnoreCase(username);
                 if (user != null && user.getLocale() != null && !user.getLocale().trim().isEmpty()) {
                     Locale userLocale = Locale.forLanguageTag(user.getLocale());
+                    logger.debug("User {} has locale {} in database", username, userLocale);
 
                     // Validate that the user's locale is available
                     if (isLocaleAvailable(userLocale)) {
+                        logger.debug("User locale {} is available, using it", userLocale);
                         return userLocale;
                     }
 
                     // Fallback to the first available locale and update DB
                     Locale fallbackLocale = getFallbackLocale();
+                    logger.warn("User locale {} is not available, falling back to {} and updating DB",
+                               userLocale, fallbackLocale);
                     user.setLocale(fallbackLocale.toLanguageTag());
                     usersRepository.save(user);
                     return fallbackLocale;
@@ -243,18 +258,24 @@ public class UserLocaleResolver implements LocaleResolver {
      */
     private boolean isLocaleAvailable(Locale locale) {
         if (availableLocales == null || availableLocales.isEmpty() || locale == null) {
+            logger.debug("isLocaleAvailable: availableLocales is null/empty or locale is null");
             return false;
         }
 
         // Check for exact match
         if (availableLocales.contains(locale)) {
+            logger.debug("Locale {} is available (exact match)", locale);
             return true;
         }
 
         // Check for language match (e.g., "en-US" matches "en")
         String localeLanguage = locale.getLanguage();
-        return availableLocales.stream()
+        boolean languageMatch = availableLocales.stream()
                 .anyMatch(availableLocale -> availableLocale.getLanguage().equals(localeLanguage));
+
+        logger.debug("Locale {} available: {} (language match check for '{}')",
+                    locale, languageMatch, localeLanguage);
+        return languageMatch;
     }
 
     /**
