@@ -77,48 +77,109 @@ public class UserLocaleResolver implements LocaleResolver {
      */
     @Override
     public @NotNull Locale resolveLocale(@NotNull HttpServletRequest request) {
-        logger.debug("Resolving locale. Available locales: {}", availableLocales);
-        Locale candidateLocale;
+        logger.info("============ LOCALE RESOLUTION DEBUG START ============");
+        logger.info("Available locales configured: {}", availableLocales);
+        logger.info("Default locale: {}", defaultLocale);
+
+        // Collect all locale information for debugging
         HttpSession session = request.getSession(false);
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = (auth != null && auth.isAuthenticated()) ? auth.getName() : "anonymous";
+        logger.info("User: {}, Authenticated: {}", username, isUserAuthenticated());
+
+        // Log all possible locale sources
+        logger.info("--- LOCALE SOURCES ---");
+
+        // Session locale
+        Locale sessionLocale = (session != null) ? (Locale) session.getAttribute(LOCALE_SESSION_ATTRIBUTE) : null;
+        Boolean userSelected = (session != null) ? (Boolean) session.getAttribute(USER_SELECTED_LOCALE_ATTRIBUTE) : null;
+        logger.info("Session locale: {} (explicitly selected: {})", sessionLocale, userSelected);
+
+        // Database locale
+        Locale dbLocale = null;
+        if (isUserAuthenticated() && usersRepository != null && !username.equals("anonymousUser")) {
+            User user = usersRepository.findByLoginIgnoreCase(username);
+            if (user != null && user.getLocale() != null && !user.getLocale().trim().isEmpty()) {
+                dbLocale = Locale.forLanguageTag(user.getLocale());
+                logger.info("Database locale for user {}: {}", username, dbLocale);
+            } else {
+                logger.info("Database locale for user {}: NOT SET", username);
+            }
+        }
+
+        // Browser locale
+        Locale browserLocale = request.getLocale();
+        String acceptLanguage = request.getHeader("Accept-Language");
+        logger.info("Browser locale: {} (Accept-Language: {})", browserLocale, acceptLanguage);
+
+        // Now start resolution process
+        logger.info("--- RESOLUTION PROCESS ---");
+        Locale candidateLocale;
+        String decisionReason = "";
 
         // Step 1: Check for explicitly selected locale in session (highest priority)
         candidateLocale = getExplicitlySelectedLocale(session);
         if (candidateLocale != null) {
-            logger.debug("Found explicit locale in session: {}", candidateLocale);
+            logger.info("Step 1: Found explicitly selected locale in session: {}", candidateLocale);
+            boolean isAvailable = isLocaleAvailable(candidateLocale);
+            logger.info("  -> Is {} available? {}", candidateLocale, isAvailable);
+
             Locale validatedLocale = validateOrFallback(candidateLocale);
-            logger.debug("Validated locale: {} -> {}", candidateLocale, validatedLocale);
-            // Update session with validated locale if needed
-            if (session != null && !candidateLocale.equals(validatedLocale)) {
-                session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
+            logger.info("  -> Validated result: {}", validatedLocale);
+
+            if (!candidateLocale.equals(validatedLocale)) {
+                logger.warn("  -> Locale {} was NOT available, falling back to {}", candidateLocale, validatedLocale);
+                if (session != null) {
+                    session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
+                }
             }
+
+            decisionReason = String.format("Explicit session locale (%s -> %s)", candidateLocale, validatedLocale);
+            logger.info("=== DECISION: {} (Reason: {}) ===", validatedLocale, decisionReason);
+            logger.info("============ LOCALE RESOLUTION DEBUG END ============");
             return validatedLocale;
         }
+        logger.info("Step 1: No explicitly selected locale in session");
 
         // Step 2: For authenticated users, check database preference
         if (isUserAuthenticated()) {
+            logger.info("Step 2: Checking database preference for authenticated user");
             candidateLocale = getUserLocaleFromDatabase();
             if (candidateLocale != null) {
-                logger.debug("Using user locale from database: {}", candidateLocale);
-                // Note: getUserLocaleFromDatabase already validates and updates DB if needed
-                // Store in session for performance
+                // getUserLocaleFromDatabase already validates
+                logger.info("  -> Using validated locale from database: {}", candidateLocale);
                 if (session != null) {
                     session.setAttribute(LOCALE_SESSION_ATTRIBUTE, candidateLocale);
                 }
+
+                decisionReason = String.format("Database locale for user %s", username);
+                logger.info("=== DECISION: {} (Reason: {}) ===", candidateLocale, decisionReason);
+                logger.info("============ LOCALE RESOLUTION DEBUG END ============");
                 return candidateLocale;
             }
+            logger.info("  -> No valid database locale found");
+        } else {
+            logger.info("Step 2: User not authenticated, skipping database check");
         }
 
         // Step 3: Check browser locale
+        logger.info("Step 3: Checking browser locale");
         candidateLocale = getBrowserLocale(request);
         if (candidateLocale != null) {
-            logger.debug("Using browser locale: {}", candidateLocale);
-            // getBrowserLocale already returns a validated locale
+            logger.info("  -> Browser locale {} matches available locales", candidateLocale);
+            decisionReason = String.format("Browser locale (Accept-Language: %s)", acceptLanguage);
+            logger.info("=== DECISION: {} (Reason: {}) ===", candidateLocale, decisionReason);
+            logger.info("============ LOCALE RESOLUTION DEBUG END ============");
             return candidateLocale;
         }
+        logger.info("  -> Browser locale {} does not match any available locale", browserLocale);
 
         // Step 4: Return fallback locale
+        logger.info("Step 4: Using fallback locale");
         Locale fallback = getFallbackLocale();
-        logger.debug("Using fallback locale: {}", fallback);
+        decisionReason = "Fallback to first available locale";
+        logger.info("=== DECISION: {} (Reason: {}) ===", fallback, decisionReason);
+        logger.info("============ LOCALE RESOLUTION DEBUG END ============");
         return fallback;
     }
 
@@ -132,13 +193,27 @@ public class UserLocaleResolver implements LocaleResolver {
      */
     @Override
     public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
+        logger.info("============ SET LOCALE DEBUG START ============");
+        logger.info("Request to set locale: {}", locale);
+        logger.info("Available locales: {}", availableLocales);
+
         // Validate the locale and fallback if necessary
+        boolean isAvailable = isLocaleAvailable(locale);
+        logger.info("Is {} available? {}", locale, isAvailable);
+
         Locale validatedLocale = validateOrFallback(locale);
+
+        if (!locale.equals(validatedLocale)) {
+            logger.warn("Requested locale {} is NOT available, using fallback: {}", locale, validatedLocale);
+        } else {
+            logger.info("Requested locale {} is available, using it", locale);
+        }
 
         // Update session
         HttpSession session = request.getSession();
         session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
         session.setAttribute(USER_SELECTED_LOCALE_ATTRIBUTE, true);
+        logger.info("Updated session with locale: {}", validatedLocale);
 
         // Update user's locale preference in database if authenticated
         if (isUserAuthenticated() && usersRepository != null) {
@@ -146,10 +221,14 @@ public class UserLocaleResolver implements LocaleResolver {
             String username = auth.getName();
             User user = usersRepository.findByLoginIgnoreCase(username);
             if (user != null) {
+                String oldLocale = user.getLocale();
                 user.setLocale(validatedLocale.toLanguageTag());
                 usersRepository.save(user);
+                logger.info("Updated database locale for user {} from {} to {}",
+                           username, oldLocale, validatedLocale.toLanguageTag());
             }
         }
+        logger.info("============ SET LOCALE DEBUG END ============");
     }
 
     /**
