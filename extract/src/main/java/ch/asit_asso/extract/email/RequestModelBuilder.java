@@ -119,25 +119,19 @@ public class RequestModelBuilder {
     }
 
     /**
-     * A HashMap that returns an empty string for non-existent keys instead of null.
-     * This prevents Thymeleaf template errors when accessing undefined parameters
-     * like ${parameters.raison} when 'raison' key doesn't exist.
+     * A HashMap that returns null for non-existent keys (standard behavior).
+     * When accessed via bracket notation like ${parametersMap['key']}, Thymeleaf
+     * handles null values gracefully without throwing errors.
      *
      * This addresses the issue raised in #323 where missing dynamic parameters
      * should not cause email sending to fail.
+     *
+     * Note: This map must be accessed using bracket notation ${parametersMap['key']}
+     * and NOT dot notation ${parametersMap.key} which would fail with SpEL.
      */
     private static class SafeParametersMap extends HashMap<String, Object> {
-        @Override
-        public Object get(Object key) {
-            Object value = super.get(key);
-            return value != null ? value : "";
-        }
-
-        @Override
-        public Object getOrDefault(Object key, Object defaultValue) {
-            Object value = super.get(key);
-            return value != null ? value : "";
-        }
+        // Inherits standard HashMap behavior - returns null for missing keys
+        // No override needed, just a marker class for documentation purposes
     }
 
     /**
@@ -157,21 +151,23 @@ public class RequestModelBuilder {
         // Always set the raw parameters string
         context.setVariable("parametersJson", parametersJson != null ? parametersJson : "{}");
 
-        // Initialize empty parameters map
-        Map<String, Object> parametersMap = new HashMap<>();
-
-        // Create a safe parameters object that returns empty string for missing keys
+        // Initialize both maps as SafeParametersMap to ensure missing keys return empty string
+        // This prevents template errors when accessing ${parametersMap['nonExistentKey']}
+        Map<String, Object> parametersMap = new SafeParametersMap();
         Map<String, Object> parametersObject = new SafeParametersMap();
-        
+
         if (parametersJson != null && !parametersJson.trim().isEmpty()) {
             try {
-                // Parse JSON parameters into a map
-                parametersMap = objectMapper.readValue(parametersJson, 
+                // Parse JSON parameters into a temporary map
+                Map<String, Object> tempMap = objectMapper.readValue(parametersJson,
                     new TypeReference<Map<String, Object>>() {});
-                logger.debug("Successfully parsed {} dynamic parameters", parametersMap.size());
-                
+                logger.debug("Successfully parsed {} dynamic parameters", tempMap.size());
+
+                // Copy to SafeParametersMap to guarantee safe access
+                parametersMap.putAll(tempMap);
+
                 // Add each parameter with multiple access patterns
-                for (Map.Entry<String, Object> entry : parametersMap.entrySet()) {
+                for (Map.Entry<String, Object> entry : tempMap.entrySet()) {
                     String originalKey = entry.getKey();
                     Object value = entry.getValue();
                     String valueStr = value != null ? value.toString() : "";

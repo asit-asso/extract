@@ -29,6 +29,7 @@ import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.Email;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.TaskFailedEmail;
 import ch.asit_asso.extract.email.TaskStandbyEmail;
 import ch.asit_asso.extract.exceptions.SystemUserNotFoundException;
@@ -520,39 +521,15 @@ public class RequestTaskRunner implements Runnable {
 
 
     /**
-     * Transmits an electronic message to the users who supervise the current process.
+     * Gets the operators for a given process.
      *
-     * @param messageToSend the electronic message
-     * @param task          the task that triggered the notification
-     * @return <code>true</code> if the message was successfully sent
+     * @param process the process whose operators must be fetched
+     * @return an array of User objects representing the operators
      */
-    private boolean sendEmailToOperators(final Email messageToSend, final Task task) {
-        assert task != null : "The task that failed cannot be null.";
-        assert task.getProcess() != null : "The task process cannot be null.";
-        assert this.request != null : "The request that failed cannot be null.";
-
-        try {
-            final String[] recipients = new HashSet<>(Arrays.asList(this.getProcessOperatorsAddresses(task.getProcess()))).toArray(String[]::new);
-            this.logger.debug("Sending e-mail notification to the following addresses : {}", StringUtils.join(recipients, ","));
-
-            if (recipients == null || recipients.length == 0) {
-                this.logger.error("Could not fetch the addresses of the operators for this process.");
-                this.logger.debug("Task id is {}. Process id is {}. Process operators e-mails are {}.",
-                                  task.getId(), task.getProcess().getId(), StringUtils.join(recipients, ", "));
-                return false;
-            }
-
-            if (!messageToSend.addRecipients(recipients)) {
-                this.logger.error("Unable to add any recipient to the message.");
-                return false;
-            }
-
-            return messageToSend.send();
-
-        } catch (Exception exception) {
-            this.logger.error("An error prevented notifying the operators by e-mail.", exception);
-            return false;
-        }
+    @Transactional(readOnly = true)
+    public User[] getProcessOperators(final Process process) {
+        assert process != null : "The process cannot be null.";
+        return this.applicationRepositories.getProcessesRepository().getProcessOperators(process.getId());
     }
 
 
@@ -570,19 +547,58 @@ public class RequestTaskRunner implements Runnable {
         assert errorMessage != null : "The error message cannot be null.";
         assert failureTime != null : "The failure time cannot be null.";
 
-        this.logger.debug("Sending an e-mail notification to the operators of the process that failed.");
-        final TaskFailedEmail message = new TaskFailedEmail(this.emailSettings);
+        this.logger.debug("Sending e-mail notifications to the operators of the process that failed.");
 
-        if (!message.initializeContent(task, this.request, errorMessage, failureTime)) {
-            this.logger.error("Could not create the message.");
+        // Get operators as User objects
+        final User[] operators = this.getProcessOperators(task.getProcess());
+
+        if (operators == null || operators.length == 0) {
+            this.logger.error("Could not fetch the operators for this process.");
+            this.logger.debug("Task id is {}. Process id is {}.", task.getId(), task.getProcess().getId());
             return;
         }
 
-        if (this.sendEmailToOperators(message, task)) {
-            this.logger.info("The task failure notification was successfully sent.");
+        // Parse available locales from configuration
+        final java.util.List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.language);
+        boolean atLeastOneEmailSent = false;
 
+        // Send individual emails to each operator with their preferred locale
+        for (User operator : operators) {
+            try {
+                final TaskFailedEmail message = new TaskFailedEmail(this.emailSettings);
+
+                // Get validated locale for this operator
+                java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(operator, availableLocales);
+
+                if (!message.initializeContent(task, this.request, errorMessage, failureTime, userLocale)) {
+                    this.logger.error("Could not create the message for user {}.", operator.getLogin());
+                    continue;
+                }
+
+                try {
+                    message.addRecipient(operator.getEmail());
+                } catch (javax.mail.internet.AddressException e) {
+                    this.logger.error("Invalid email address for user {}: {}", operator.getLogin(), operator.getEmail());
+                    continue;
+                }
+
+                if (message.send()) {
+                    this.logger.debug("Task failure notification sent successfully to {} with locale {}.",
+                                    operator.getEmail(), userLocale.toLanguageTag());
+                    atLeastOneEmailSent = true;
+                } else {
+                    this.logger.warn("Failed to send task failure notification to {}.", operator.getEmail());
+                }
+
+            } catch (Exception exception) {
+                this.logger.warn("Error sending notification to user {}: {}", operator.getLogin(), exception.getMessage());
+            }
+        }
+
+        if (atLeastOneEmailSent) {
+            this.logger.info("The task failure notification was successfully sent to at least one operator.");
         } else {
-            this.logger.warn("The task failure notification was not sent.");
+            this.logger.warn("The task failure notification was not sent to any operator.");
         }
     }
 
@@ -598,19 +614,58 @@ public class RequestTaskRunner implements Runnable {
         assert task.getProcess() != null : "The task process cannot be null.";
         assert this.request != null : "The request that failed cannot be null.";
 
-        this.logger.debug("Sending an e-mail notification to the operators of the process is in standby mode.");
-        final TaskStandbyEmail message = new TaskStandbyEmail(this.emailSettings);
+        this.logger.debug("Sending e-mail notifications to the operators of the process is in standby mode.");
 
-        if (!message.initializeContent(this.request)) {
-            this.logger.error("Could not create the message.");
+        // Get operators as User objects
+        final User[] operators = this.getProcessOperators(task.getProcess());
+
+        if (operators == null || operators.length == 0) {
+            this.logger.error("Could not fetch the operators for this process.");
+            this.logger.debug("Task id is {}. Process id is {}.", task.getId(), task.getProcess().getId());
             return;
         }
 
-        if (this.sendEmailToOperators(message, task)) {
-            this.logger.info("The task standby notification was successfully sent.");
+        // Parse available locales from configuration
+        final java.util.List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.language);
+        boolean atLeastOneEmailSent = false;
 
+        // Send individual emails to each operator with their preferred locale
+        for (User operator : operators) {
+            try {
+                final TaskStandbyEmail message = new TaskStandbyEmail(this.emailSettings);
+
+                // Get validated locale for this operator
+                java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(operator, availableLocales);
+
+                if (!message.initializeContent(this.request, userLocale)) {
+                    this.logger.error("Could not create the message for user {}.", operator.getLogin());
+                    continue;
+                }
+
+                try {
+                    message.addRecipient(operator.getEmail());
+                } catch (javax.mail.internet.AddressException e) {
+                    this.logger.error("Invalid email address for user {}: {}", operator.getLogin(), operator.getEmail());
+                    continue;
+                }
+
+                if (message.send()) {
+                    this.logger.debug("Task standby notification sent successfully to {} with locale {}.",
+                                    operator.getEmail(), userLocale.toLanguageTag());
+                    atLeastOneEmailSent = true;
+                } else {
+                    this.logger.warn("Failed to send task standby notification to {}.", operator.getEmail());
+                }
+
+            } catch (Exception exception) {
+                this.logger.warn("Error sending notification to user {}: {}", operator.getLogin(), exception.getMessage());
+            }
+        }
+
+        if (atLeastOneEmailSent) {
+            this.logger.info("The task standby notification was successfully sent to at least one operator.");
         } else {
-            this.logger.warn("The task standby notification was not sent.");
+            this.logger.warn("The task standby notification was not sent to any operator.");
         }
     }
 

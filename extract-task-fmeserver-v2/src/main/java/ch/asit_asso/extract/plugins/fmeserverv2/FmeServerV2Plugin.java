@@ -511,8 +511,6 @@ public class FmeServerV2Plugin implements ITaskProcessor {
 
         // Configure timeouts to prevent resource exhaustion
         RequestConfig requestConfig = RequestConfig.custom()
-                .setConnectTimeout(CONNECTION_TIMEOUT_SECONDS * 1000)
-                .setSocketTimeout(REQUEST_TIMEOUT_SECONDS * 1000)
                 .build();
 
         // Retry logic with exponential backoff

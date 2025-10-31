@@ -265,7 +265,7 @@ public class EmailPlugin implements ITaskProcessor {
             this.logger.debug("Recipients: {}", toAsString);
             this.logger.debug("Subject: {}", rawSubject);
             this.logger.debug("Body: {}", rawBody);
-
+            this.logger.debug("Email settings: {}", request.getParameters());
             if (emailSettings.isNotificationEnabled()) {
 
                 final String[] toAddressesArray = this.parseToAddressesString(toAsString);
@@ -393,50 +393,72 @@ public class EmailPlugin implements ITaskProcessor {
      * @return the value of the property, or <code>null</code> if the value could not be obtained
      */
     private String getRequestFieldValue(final ITaskProcessorRequest request, final String fieldName) {
+        // Handle special alias fields
+        String actualFieldName = fieldName;
+        boolean isISOFormat = false;
+
+        // Map alias fields to their actual field names
+        if (fieldName.equals("clientName")) {
+            actualFieldName = "client";
+        } else if (fieldName.equals("organisationName")) {
+            actualFieldName = "organism";
+        } else if (fieldName.equals("startDateISO")) {
+            actualFieldName = "startDate";
+            isISOFormat = true;
+        } else if (fieldName.equals("endDateISO")) {
+            actualFieldName = "endDate";
+            isISOFormat = true;
+        }
+
         // First, try to use the getter method (preferred approach)
         try {
             // Build getter method name
-            String getterName = "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1);
-            
+            String getterName = "get" + actualFieldName.substring(0, 1).toUpperCase() + actualFieldName.substring(1);
+
             // Special case for boolean fields that might use "is" prefix
-            if (fieldName.equals("rejected")) {
+            if (actualFieldName.equals("rejected")) {
                 getterName = "isRejected";
             }
-            
+
             this.logger.trace("Trying to invoke getter '{}' for field '{}'", getterName, fieldName);
-            
+
             // Try to find and invoke the getter method
             java.lang.reflect.Method getter = request.getClass().getMethod(getterName);
             Object result = getter.invoke(request);
-            
+
             if (result == null) {
                 this.logger.trace("Getter '{}' returned null, returning empty string", getterName);
                 return "";
             }
-            
+
             // Handle Calendar type specially
-            if (result instanceof Calendar) {
-                Calendar calendarResult = (Calendar) result;
-                if (calendarResult.getTime() != null) {
+            if (result instanceof Calendar calendarResult) {
+                if (isISOFormat) {
+                    // Format as ISO 8601
+                    String isoDateStr = calendarResult.getTime().toInstant().toString();
+                    this.logger.trace("Getter '{}' returned Calendar, formatted as ISO 8601: {}", getterName, isoDateStr);
+                    return isoDateStr;
+                } else {
+                    // Format as localized date/time
                     String dateStr = DateFormat.getDateTimeInstance().format(calendarResult.getTime());
                     this.logger.trace("Getter '{}' returned Calendar, formatted as: {}", getterName, dateStr);
                     return dateStr;
                 }
             }
-            
+
             String stringValue = result.toString();
             this.logger.trace("Getter '{}' returned: {}", getterName, stringValue);
             return stringValue;
-            
+
         } catch (Exception e) {
-            this.logger.debug("Could not find or invoke getter method '{}' for field '{}': {}", 
-                "get" + fieldName.substring(0, 1).toUpperCase() + fieldName.substring(1), 
+            this.logger.debug("Could not find or invoke getter method '{}' for field '{}': {}",
+                "get" + actualFieldName.substring(0, 1).toUpperCase() + actualFieldName.substring(1),
                 fieldName, e.getMessage());
         }
 
         // Fallback to direct field access (for fields not exposed via getters)
         try {
-            final Field field = request.getClass().getDeclaredField(fieldName);
+            final Field field = request.getClass().getDeclaredField(actualFieldName);
             field.setAccessible(true);
             final Object fieldInstance = field.get(request);
             field.setAccessible(false);
@@ -449,8 +471,9 @@ public class EmailPlugin implements ITaskProcessor {
 
             if (field.getType().isAssignableFrom(Calendar.class)) {
                 Calendar calendarFieldInstance = (Calendar) fieldInstance;
-
-                if (calendarFieldInstance.getTime() != null) {
+                if (isISOFormat) {
+                    fieldValue = calendarFieldInstance.getTime().toInstant().toString();
+                } else {
                     fieldValue = DateFormat.getDateTimeInstance().format(calendarFieldInstance.getTime());
                 }
             }
@@ -579,47 +602,52 @@ public class EmailPlugin implements ITaskProcessor {
         }
 
         String formattedString = stringToProcess;
-        
+
         try {
             // Get the parameters field value
             final String parametersJson = this.getRequestFieldValue(request, "parameters");
-            
+
             if (parametersJson != null && !parametersJson.trim().isEmpty()) {
                 ObjectMapper mapper = new ObjectMapper();
-                Map<String, Object> parametersMap = mapper.readValue(parametersJson, 
+                Map<String, Object> parametersMap = mapper.readValue(parametersJson,
                     new TypeReference<Map<String, Object>>() {});
-                
+
                 this.logger.debug("Parsed {} dynamic parameters from request", parametersMap.size());
-                
+
                 // Replace placeholders for each parameter
                 for (Map.Entry<String, Object> entry : parametersMap.entrySet()) {
                     String key = entry.getKey();
                     String value = entry.getValue() != null ? entry.getValue().toString() : "";
-                    
+
                     // Support multiple placeholder formats
                     // 1. {parameters.KEY} (original case)
                     String pattern1 = String.format("(?i)\\{parameters\\.%s\\}", key);
                     formattedString = formattedString.replaceAll(pattern1, value);
-                    
+
                     // 2. {parameters.key} (lowercase)
                     String pattern2 = String.format("(?i)\\{parameters\\.%s\\}", key.toLowerCase());
                     formattedString = formattedString.replaceAll(pattern2, value);
-                    
+
                     // 3. {param_KEY} (original case)
                     String pattern3 = String.format("(?i)\\{param_%s\\}", key);
                     formattedString = formattedString.replaceAll(pattern3, value);
-                    
+
                     // 4. {param_key} (lowercase)
                     String pattern4 = String.format("(?i)\\{param_%s\\}", key.toLowerCase());
                     formattedString = formattedString.replaceAll(pattern4, value);
-                    
+
                     this.logger.trace("Replaced parameter {} with value {}", key, value);
                 }
             }
         } catch (Exception e) {
             this.logger.error("Failed to parse and replace dynamic parameters: {}", e.getMessage());
         }
-        
+
+        // Replace any remaining unreplaced {parameters.XXX} or {param_XXX} placeholders with "null"
+        // This handles cases where the parameter key doesn't exist in the JSON
+        formattedString = formattedString.replaceAll("(?i)\\{parameters\\.[^}]+\\}", "null");
+        formattedString = formattedString.replaceAll("(?i)\\{param_[^}]+\\}", "null");
+
         return formattedString;
     }
 

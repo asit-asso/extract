@@ -81,7 +81,7 @@ public class UserLocaleResolver implements LocaleResolver {
         if (candidateLocale != null) {
             Locale validatedLocale = validateOrFallback(candidateLocale);
             // Update session with validated locale if needed
-            if (session != null && !candidateLocale.equals(validatedLocale)) {
+            if (!candidateLocale.equals(validatedLocale)) {
                 session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
             }
             return validatedLocale;

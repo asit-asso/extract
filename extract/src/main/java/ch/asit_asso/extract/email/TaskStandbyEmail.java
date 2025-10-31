@@ -98,6 +98,17 @@ public class TaskStandbyEmail extends Email {
      * @return <code>true</code> if the message content has been successfully initialized
      */
     public final boolean initializeContent(final Request request) {
+        return this.initializeContent(request, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param request the request that was processed by the task that ended in standby mode
+     * @param locale  the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final java.util.Locale locale) {
 
         if (request == null) {
             throw new IllegalArgumentException("The request cannot be null.");
@@ -108,7 +119,7 @@ public class TaskStandbyEmail extends Email {
 
         try {
             this.logger.debug("Defining the message body");
-            this.setContentFromTemplate(TaskStandbyEmail.EMAIL_HTML_TEMPLATE, this.getModel(request));
+            this.setContentFromTemplate(TaskStandbyEmail.EMAIL_HTML_TEMPLATE, this.getModel(request, locale));
 
         } catch (EmailTemplateNotFoundException exception) {
             this.logger.error("Could not define the message body.", exception);
@@ -117,7 +128,7 @@ public class TaskStandbyEmail extends Email {
 
         this.logger.debug("Defining the subject of the message.");
         this.setSubject(this.getMessageString("email.taskStandby.subject",
-                new Object[]{request.getProcess().getName()}));
+                new Object[]{request.getProcess().getName()}, locale));
 
         this.logger.debug("The task failure message content has been sucessfully initilized.");
         return true;
@@ -132,10 +143,21 @@ public class TaskStandbyEmail extends Email {
      * @return the context object to feed to the message body template
      */
     private IContext getModel(final Request request) {
+        return this.getModel(request, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param request the request that was processed by the task that ended in standby mode
+     * @param locale  the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Request request, final java.util.Locale locale) {
         assert request != null : "The request cannot be null";
         assert request.getProcess() != null : "The process attached to the request cannot be null.";
 
-        final Context model = new Context();
+        final Context model = new Context(locale);
         
         // Add all standard request variables using the utility class
         RequestModelBuilder.addRequestVariables(model, request);

@@ -255,8 +255,10 @@
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
-                            <skipTests>true</skipTests>
-                            <includes>ch.asit_asso.extract.unit.**.*Test</includes>
+                            <skipTests>false</skipTests>
+                            <includes>
+                                <include>**/unit/**/*Test.java</include>
+                            </includes>
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
                             </classpathDependencyExcludes>

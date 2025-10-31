@@ -14,7 +14,7 @@
     <ul>
         <li>Publier le workspace dans un repository FME Flow en téléchargeant toutes les données nécessaires à votre script</li>
         <li>Sélectionner le service <i>Data Download</i></li>
-        <li>Utiliser un Reader GeoJSON ou FeatureReader pour lire les données contenues dans le corp de la requête. Le paramètre contenant la source du reader GeoJSON doit être publié mais pas obligatoire. Dans la configuration du service <i>Data Download</i>, séléectionner le reader GeoJSON dans le champ Send HTTP Message <i>Body to Reader</i>.</li>
+        <li>Utiliser un Reader GeoJSON ou FeatureReader pour lire les données contenues dans le corp de la requête. Le paramètre contenant la source du reader GeoJSON doit être publié mais pas obligatoire. Dans la configuration du service <i>Data Download</i>, sélectionner le reader GeoJSON dans le champ Send HTTP Message <i>Body to Reader</i>.</li>
         <li>Configurer les Writers pour produire des fichiers de sortie. L'emplacement des fichiers de sortie n'est pas important.</li>
         <li>Le service Data Download créera automatiquement un ZIP avec les résultats</li>
     </ul>
@@ -28,12 +28,6 @@
         Exemple : <code>https://fme.example.com/fmedatadownload/extract/ProcessGeoData.fmw</code>
     </p>
 
-    <p>Le workspace FME doit être publié sur FME Flow avec :</p>
-    <ul>
-        <li>Un paramètre publié pour recevoir le GeoJSON (par défaut : <code>GEOJSON_INPUT</code>)</li>
-        <li>Configuration pour retourner les résultats via le service Data Download</li>
-    </ul>
-
     <h4>Structure du GeoJSON transmis</h4>
     <p>Le plugin crée un objet GeoJSON de type Feature contenant :</p>
     <ul>
@@ -46,90 +40,177 @@
 
     <table class="popover-table parameter-table">
         <tbody>
-            <tr>
-                <td class="popover-table-header"><p>Paramètre</p></td>
-                <td class="popover-table-header"><p>Description</p></td>
-                <td class="popover-table-header"><p>Type</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>Request</p></td>
-                <td class="popover-table-data"><p>Identifiant de la requête Extract</p></td>
-                <td class="popover-table-data"><p>Entier</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>ClientGuid</p></td>
-                <td class="popover-table-data"><p>Identifiant unique du client</p></td>
-                <td class="popover-table-data"><p>UUID</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>ClientName</p></td>
-                <td class="popover-table-data"><p>Nom du client</p></td>
-                <td class="popover-table-data"><p>Texte</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>OrganismGuid</p></td>
-                <td class="popover-table-data"><p>Identifiant unique de l'organisme</p></td>
-                <td class="popover-table-data"><p>UUID</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>OrganismName</p></td>
-                <td class="popover-table-data"><p>Nom de l'organisme</p></td>
-                <td class="popover-table-data"><p>Texte</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>ProductGuid</p></td>
-                <td class="popover-table-data"><p>Identifiant unique du produit</p></td>
-                <td class="popover-table-data"><p>UUID</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>ProductLabel</p></td>
-                <td class="popover-table-data"><p>Libellé du produit</p></td>
-                <td class="popover-table-data"><p>Texte</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>OrderGuid</p></td>
-                <td class="popover-table-data"><p>Identifiant unique de la commande</p></td>
-                <td class="popover-table-data"><p>UUID</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>OrderLabel</p></td>
-                <td class="popover-table-data"><p>Libellé de la commande</p></td>
-                <td class="popover-table-data"><p>Texte</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>Surface</p></td>
-                <td class="popover-table-data"><p>Surface approximative en mètres carrés</p></td>
-                <td class="popover-table-data"><p>Nombre décimal</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>Parameters</p></td>
-                <td class="popover-table-data"><p>Paramètres personnalisés</p></td>
-                <td class="popover-table-data"><p>Objet JSON</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>FolderIn</p></td>
-                <td class="popover-table-data"><p>Répertoire des données d'entrée</p></td>
-                <td class="popover-table-data"><p>Chemin</p></td>
-            </tr>
-            <tr>
-                <td class="popover-table-data"><p>FolderOut</p></td>
-                <td class="popover-table-data"><p>Répertoire de sortie</p></td>
-                <td class="popover-table-data"><p>Chemin</p></td>
-            </tr>
+        <tr>
+            <td class="popover-table-header">
+                <p>Paramètre</p>
+            </td>
+
+            <td class="popover-table-header">
+                <p>Description</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Type</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Exemple</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Request</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Identifiant de commande interne Extract</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Entier</p>
+            </td>
+            <td class="popover-table-data">
+                <p>365</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>FolderOut</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Répertoire de sortie où doivent être écrits les fichiers créés</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Chaîne</p>
+            </td>
+            <td class="popover-table-data">
+                <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrderGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Identifiant unique de la commande</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrderLabel</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Libellé de commande externe</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Texte</p>
+            </td>
+            <td class="popover-table-data">
+                <p>221587</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ClientGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Identifiant unique du client</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>94d47632-b0e9-57f4-6580-58925e3f9a88</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ClientName</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Nom du client qui a passé la commande</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Texte</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Jean Dupont</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrganismGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Identifiant unique de l'organisme</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>2edc1a50-4837-4c44-1519-3ebc85f14588</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrganismName</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Nom de l'organisme</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Texte</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Service du cadastre</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ProductGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Identifiant unique du produit commandé</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>a049fecb-30d9-9124-ed41-068b566a0855</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ProductLabel</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Libellé du produit commandé</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Texte</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Plan cadastral</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Parameters</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Objet JSON contenant les paramètres personnalisés de la requête</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Objet JSON</p>
+            </td>
+            <td class="popover-table-data">
+                <p>{"FORMAT" : "SHP", "PROJECTION" : "SWITZERLAND95"}</p>
+            </td>
+        </tr>
         </tbody>
     </table>
-
-    <h4>Géométrie</h4>
-    <p>
-        La géométrie du périmètre est automatiquement convertie du format WKT (WGS84) vers GeoJSON.
-        Les types suivants sont supportés :
-    </p>
-    <ul>
-        <li>Polygon (avec support des trous/donuts)</li>
-        <li>MultiPolygon</li>
-        <li>Point</li>
-        <li>LineString</li>
-    </ul>
 
     <h4>Exemple de body GeoJSON</h4>
     <pre>{
@@ -137,30 +218,31 @@
   "geometry": {
     "type": "Polygon",
     "coordinates": [[
-      [6.886727, 46.443720],
-      [6.881351, 46.441265],
-      [6.886480, 46.439198],
-      [6.893221, 46.441705],
-      [6.886727, 46.443720]
+      [6.886727164248283, 46.44372031957538],
+      [6.881351862162561, 46.44126511019801],
+      [6.886480507180103, 46.43919870486726],
+      [6.893221678307809, 46.441705238743005],
+      [6.886727164248283, 46.44372031957538]
     ]]
   },
   "properties": {
-    "Request": 123,
+    "Request": 365,
+    "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
     "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
     "ClientName": "Jean Dupont",
     "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
     "OrganismName": "Service du cadastre",
     "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
     "ProductLabel": "Plan cadastral",
-    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
-    "OrderLabel": "221587",
-    "Surface": 152384.56,
     "Parameters": {
       "FORMAT": "SHP",
-      "PROJECTION": "EPSG:2056"
-    },
-    "FolderIn": "/data/input/",
-    "FolderOut": "/data/output/"
+      "SELECTION" : "PASS_THROUGH",
+      "PROJECTION" : "SWITZERLAND95",
+      "REMARK" : "bla bla bla",
+      "CLIENT_LANG" : "fr"
+    }
   }
 }</pre>
 

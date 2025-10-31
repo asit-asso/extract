@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.StandbyReminderEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import org.slf4j.Logger;
@@ -103,16 +104,16 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
 
             boolean atLeastOneEmailSent = false;
 
+            // Parse available locales from configuration
+            final java.util.List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.applicationLanguage);
+
             // Send individual emails to each operator with their preferred locale
             for (ch.asit_asso.extract.domain.User operator : operators) {
                 try {
                     final StandbyReminderEmail message = new StandbyReminderEmail(this.emailSettings);
-                    
-                    // Determine user's locale
-                    java.util.Locale userLocale = null;
-                    if (operator.getLocale() != null && !operator.getLocale().trim().isEmpty()) {
-                        userLocale = java.util.Locale.forLanguageTag(operator.getLocale());
-                    }
+
+                    // Get validated locale for this operator
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(operator, availableLocales);
 
                     if (!message.initialize(request, new String[]{operator.getEmail()}, userLocale)) {
                         this.logger.error("Could not create the standby reminder message for user {}.", operator.getLogin());
@@ -122,8 +123,8 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
                     final boolean messageSent = message.send();
 
                     if (messageSent) {
-                        this.logger.debug("Standby notification sent successfully to {} with locale {}.", 
-                                operator.getEmail(), userLocale != null ? userLocale.toLanguageTag() : "default");
+                        this.logger.debug("Standby notification sent successfully to {} with locale {}.",
+                                operator.getEmail(), userLocale.toLanguageTag());
                         atLeastOneEmailSent = true;
                     } else {
                         this.logger.warn("Failed to send standby notification to {}.", operator.getEmail());

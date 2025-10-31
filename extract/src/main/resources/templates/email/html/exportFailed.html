@@ -80,8 +80,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                 <tr>
                     <th th:text="Format">{Remark}</th>
-                    <td th:text="${parameters.format}">{Client Remark}</td>
+                    <td th:text="${parametersMap['FORMAT']}">{Client Remark}</td>
                 </tr>
+
+                <tr>
+                    <th>Ration</th>
+                    <td th:text="${parametersMap['ration']}">{Client Remark}</td>
+                </tr>
+
                 <tr>
                     <th th:text="Remarque">{Remark}</th>
                     <td th:text="${parametersMap['REMARK']}">{Client Remark}</td>

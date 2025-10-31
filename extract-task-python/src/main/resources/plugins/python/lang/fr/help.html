@@ -9,7 +9,7 @@
     <h4>Structure du fichier GeoJSON</h4>
     <p>Le fichier est un objet GeoJSON de type Feature contenant :</p>
     <ul>
-        <li><strong>geometry</strong> : La géométrie du périmètre (conversion automatique du WKT en GeoJSON)</li>
+        <li><strong>geometry</strong> : La géométrie du périmètre en WGS84 (conversion automatique du WKT en GeoJSON)</li>
         <li><strong>properties</strong> : Tous les paramètres de la requête</li>
     </ul>
 
@@ -189,12 +189,6 @@
             </tr>
         </tbody>
     </table>
-
-    <h4>Géométrie (geometry)</h4>
-    <p>
-        La géométrie du périmètre est automatiquement convertie du format WKT (WGS84) vers le format GeoJSON.
-        Elle est placée dans la propriété <code>geometry</code> de l'objet Feature.
-    </p>
 
     <h4>Exemple de fichier parameters.json</h4>
     <pre>{

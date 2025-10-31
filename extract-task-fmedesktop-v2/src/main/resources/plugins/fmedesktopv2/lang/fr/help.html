@@ -13,7 +13,7 @@
     <h4>Structure du fichier GeoJSON</h4>
     <p>Le fichier est un objet GeoJSON de type Feature contenant :</p>
     <ul>
-        <li><strong>geometry</strong> : La géométrie du périmètre (convertion automatique du WKT en GeoJSON)</li>
+        <li><strong>geometry</strong> : La géométrie du périmètre en WGS84 (convertion automatique du WKT en GeoJSON)</li>
         <li><strong>properties</strong> : Tous les paramètres de la requête</li>
     </ul>
 
@@ -208,12 +208,6 @@
         </tbody>
     </table>
 
-    <h4>Géométrie (geometry)</h4>
-    <p>
-        La géométrie du périmètre est automatiquement convertie du format WKT (WGS84) vers le format GeoJSON.
-        Elle est placée dans la propriété <code>geometry</code> de l'objet Feature.
-    </p>
-
     <h4>Exemple de fichier parameters.json</h4>
     <pre>{
   "type": "Feature",
@@ -230,7 +224,6 @@
   "properties": {
     "Request": 365,
     "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
-    "FolderIn": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/",
     "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
     "OrderLabel": "221587",
     "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
@@ -252,7 +245,7 @@
     <h4>Utilisation dans FME</h4>
     <p>
         Le workspace FME peut lire ce fichier avec un Reader GeoJSON ou FeatureReader en utilisant le paramètre
-        <code>$(PARAM_FILE)</code> comme source. Les attributs sont directement accessibles et la géométrie
+        <code>$(parametersFile)</code> comme source. Les attributs sont directement accessibles et la géométrie
         est automatiquement importée.
     </p>
 

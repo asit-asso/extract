@@ -109,6 +109,21 @@ public class TaskFailedEmail extends Email {
      */
     public final boolean initializeContent(final Task task, final Request request, final String errorMessage,
             final Calendar failureTime) {
+        return this.initializeContent(task, request, errorMessage, failureTime, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param task         the task that failed
+     * @param request      the request that was processed by the task that failed
+     * @param errorMessage the string returned by the task plugin to explain why it failed
+     * @param failureTime  when the task failed
+     * @param locale       the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Task task, final Request request, final String errorMessage,
+            final Calendar failureTime, final java.util.Locale locale) {
 
         if (task == null) {
             throw new IllegalArgumentException("The task cannot be null.");
@@ -132,7 +147,7 @@ public class TaskFailedEmail extends Email {
         try {
             this.logger.debug("Defining the message body");
             this.setContentFromTemplate(TaskFailedEmail.EMAIL_HTML_TEMPLATE,
-                    this.getModel(task, request, errorMessage, failureTime));
+                    this.getModel(task, request, errorMessage, failureTime, locale));
 
         } catch (EmailTemplateNotFoundException exception) {
             this.logger.error("Could not define the message body.", exception);
@@ -140,7 +155,7 @@ public class TaskFailedEmail extends Email {
         }
 
         this.logger.debug("Defining the subject of the message.");
-        this.setSubject(this.getMessageString("email.taskFailed.subject", new Object[]{task.getLabel()}));
+        this.setSubject(this.getMessageString("email.taskFailed.subject", new Object[]{task.getLabel()}, locale));
 
         this.logger.debug("The task failure message content has been sucessfully initilized.");
         return true;
@@ -159,13 +174,28 @@ public class TaskFailedEmail extends Email {
      */
     private IContext getModel(final Task task, final Request request, final String errorMessage,
             final Calendar failureTime) {
+        return this.getModel(task, request, errorMessage, failureTime, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param task         the task that failed
+     * @param request      the request that was processed by the task
+     * @param errorMessage the string returned by the task plugin to explain why it failed
+     * @param failureTime  when the task failed
+     * @param locale       the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Task task, final Request request, final String errorMessage,
+            final Calendar failureTime, final java.util.Locale locale) {
         assert task != null : "The task cannot be null.";
         assert request != null : "The request cannot be null";
         assert errorMessage != null : "The error message cannot be null";
         assert failureTime != null : "The time of the failure cannot be null.";
         assert new GregorianCalendar().after(failureTime) : "The failure time must be set in the past.";
 
-        final Context model = new Context();
+        final Context model = new Context(locale);
         
         // Add all standard request variables using the utility class
         RequestModelBuilder.addRequestVariables(model, request);
