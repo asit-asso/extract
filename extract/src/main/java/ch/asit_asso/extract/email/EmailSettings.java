@@ -18,8 +18,11 @@ package ch.asit_asso.extract.email;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.utils.EmailUtils;
@@ -114,6 +117,11 @@ public class EmailSettings implements IEmailSettings {
      */
     private final TemplateEngine templateEngine;
 
+    /**
+     * The list of available locales configured in the application.
+     */
+    private List<Locale> availableLocales;
+
 
 
     /**
@@ -148,6 +156,20 @@ public class EmailSettings implements IEmailSettings {
      */
     public EmailSettings(final SystemParametersRepository repository, final TemplateEngine engine,
             final MessageSource messages, final String externalRootUrl) {
+        this(repository, engine, messages, externalRootUrl, null);
+    }
+
+    /**
+     * Creates a new instance of the e-mail settings.
+     *
+     * @param repository      the Spring Data object that links the application parameters with the data source
+     * @param engine          the object that allows to process the e-mail templates
+     * @param messages        the object that gives an access to the application strings
+     * @param externalRootUrl a string that contains the absolute URL of the application
+     * @param languageConfig  the configured languages (comma-separated) from extract.i18n.language
+     */
+    public EmailSettings(final SystemParametersRepository repository, final TemplateEngine engine,
+            final MessageSource messages, final String externalRootUrl, final String languageConfig) {
 
         if (repository == null) {
             throw new IllegalArgumentException("The system parameters repository cannot be null.");
@@ -178,7 +200,63 @@ public class EmailSettings implements IEmailSettings {
         this.templateEngine = engine;
         this.messageSource = messages;
         this.applicationExternalRootUrl = rootUrl;
+
+        // Parse available locales from configuration
+        if (languageConfig != null && !languageConfig.trim().isEmpty()) {
+            this.availableLocales = Arrays.stream(languageConfig.split(","))
+                    .map(String::trim)
+                    .filter(lang -> !lang.isEmpty())
+                    .map(Locale::forLanguageTag)
+                    .collect(Collectors.toList());
+            this.logger.info("EmailSettings initialized with available locales: {}", this.availableLocales);
+        } else {
+            // Default to French if no configuration provided
+            this.availableLocales = Arrays.asList(Locale.forLanguageTag("fr"));
+            this.logger.warn("No language configuration provided, defaulting to French");
+        }
+
         this.setSettingsFromDataSource();
+    }
+
+    /**
+     * Validates a locale against the available locales and returns a valid locale.
+     * If the locale is not available, returns the first available locale.
+     *
+     * @param requestedLocale the locale to validate
+     * @return a valid locale that is available in the system
+     */
+    private Locale validateLocale(Locale requestedLocale) {
+        if (requestedLocale == null) {
+            Locale defaultLocale = Locale.getDefault();
+            this.logger.debug("Requested locale is null, using default: {}", defaultLocale);
+            return validateLocale(defaultLocale);
+        }
+
+        // If no available locales configured, return the requested locale
+        if (availableLocales == null || availableLocales.isEmpty()) {
+            this.logger.warn("No available locales configured, using requested locale: {}", requestedLocale);
+            return requestedLocale;
+        }
+
+        // Check if requested locale is available (exact match)
+        if (availableLocales.contains(requestedLocale)) {
+            this.logger.debug("Locale {} is available (exact match)", requestedLocale);
+            return requestedLocale;
+        }
+
+        // Check for language match (e.g., "fr-FR" matches "fr")
+        String requestedLang = requestedLocale.getLanguage();
+        for (Locale availableLocale : availableLocales) {
+            if (availableLocale.getLanguage().equals(requestedLang)) {
+                this.logger.debug("Locale {} not available, using language match: {}", requestedLocale, availableLocale);
+                return availableLocale;
+            }
+        }
+
+        // Fallback to first available locale
+        Locale fallback = availableLocales.get(0);
+        this.logger.warn("Locale {} is not available, falling back to: {}", requestedLocale, fallback);
+        return fallback;
     }
 
 
@@ -222,8 +300,27 @@ public class EmailSettings implements IEmailSettings {
             throw new IllegalArgumentException("The message key cannot be null.");
         }
 
-        Locale messageLocale = (locale != null) ? locale : Locale.getDefault();
-        return this.messageSource.getMessage(messageKey, arguments, messageLocale);
+        // Validate the locale against available locales
+        Locale requestedLocale = (locale != null) ? locale : Locale.getDefault();
+        Locale validatedLocale = validateLocale(requestedLocale);
+
+        if (!requestedLocale.equals(validatedLocale)) {
+            this.logger.warn("Email message locale changed from {} to {} (not in available locales)",
+                           requestedLocale, validatedLocale);
+        }
+
+        this.logger.debug("Getting message '{}' for locale {} (requested: {}, validated: {}, default: {})",
+                         messageKey, validatedLocale, locale, validatedLocale, Locale.getDefault());
+
+        try {
+            String message = this.messageSource.getMessage(messageKey, arguments, validatedLocale);
+            this.logger.debug("Message '{}' resolved to: '{}'", messageKey,
+                            message != null && message.length() > 50 ? message.substring(0, 50) + "..." : message);
+            return message;
+        } catch (Exception e) {
+            this.logger.error("Failed to get message '{}' for locale {}: {}", messageKey, validatedLocale, e.getMessage());
+            throw e;
+        }
     }
 
 

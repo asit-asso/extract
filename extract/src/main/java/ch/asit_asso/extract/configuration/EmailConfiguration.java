@@ -69,6 +69,12 @@ public class EmailConfiguration {
     private String emailTemplatesPath;
 
     /**
+     * The configured languages from application properties.
+     */
+    @Value("${extract.i18n.language:fr}")
+    private String languageConfig;
+
+    /**
      * The object that gives access to the application strings.
      */
     @Autowired
@@ -90,7 +96,7 @@ public class EmailConfiguration {
     @Bean
     public EmailSettings emailSettings() {
         return new EmailSettings(this.systemParametersRepository, this.emailTemplateEngine(), this.messageSource,
-                this.applicationExternalUrl);
+                this.applicationExternalUrl, this.languageConfig);
     }
 
 
