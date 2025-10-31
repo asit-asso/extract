@@ -18,6 +18,7 @@ package ch.asit_asso.extract.configuration;
 
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.UsersRepository;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -71,67 +72,43 @@ public class UserLocaleResolver implements LocaleResolver {
      * @return the resolved locale (always a valid, available locale)
      */
     @Override
-    public Locale resolveLocale(HttpServletRequest request) {
-        // Check if user is authenticated
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        boolean isAuthenticated = auth != null && auth.isAuthenticated() &&
-                                 !auth.getName().equals("anonymousUser");
+    public @NotNull Locale resolveLocale(@NotNull HttpServletRequest request) {
+        Locale candidateLocale;
+        HttpSession session = request.getSession(false);
 
-        // For authenticated users: check explicit selection first, then user preference
-        if (isAuthenticated) {
-            HttpSession session = request.getSession(false);
-            if (session != null) {
-                Boolean userSelected = (Boolean) session.getAttribute(USER_SELECTED_LOCALE_ATTRIBUTE);
-                if (userSelected != null && userSelected) {
-                    Locale sessionLocale = (Locale) session.getAttribute(LOCALE_SESSION_ATTRIBUTE);
-                    if (sessionLocale != null) {
-                        // Validate session locale against available locales
-                        if (isLocaleAvailable(sessionLocale)) {
-                            return sessionLocale;
-                        }
-                        // Session locale not available, fallback to first available
-                        if (availableLocales != null && !availableLocales.isEmpty()) {
-                            Locale fallbackLocale = availableLocales.get(0);
-                            // Update session with valid locale
-                            session.setAttribute(LOCALE_SESSION_ATTRIBUTE, fallbackLocale);
-                            return fallbackLocale;
-                        }
-                    }
-                }
+        // Step 1: Check for explicitly selected locale in session (highest priority)
+        candidateLocale = getExplicitlySelectedLocale(session);
+        if (candidateLocale != null) {
+            Locale validatedLocale = validateOrFallback(candidateLocale);
+            // Update session with validated locale if needed
+            if (session != null && !candidateLocale.equals(validatedLocale)) {
+                session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
             }
+            return validatedLocale;
+        }
 
-            // For authenticated users: prioritize user preference from database
-            Locale userLocale = getUserLocale();
-            if (userLocale != null) {
+        // Step 2: For authenticated users, check database preference
+        if (isUserAuthenticated()) {
+            candidateLocale = getUserLocaleFromDatabase();
+            if (candidateLocale != null) {
+                // Note: getUserLocaleFromDatabase already validates and updates DB if needed
                 // Store in session for performance
                 if (session != null) {
-                    session.setAttribute(LOCALE_SESSION_ATTRIBUTE, userLocale);
+                    session.setAttribute(LOCALE_SESSION_ATTRIBUTE, candidateLocale);
                 }
-                return userLocale;
+                return candidateLocale;
             }
         }
 
-        // For unauthenticated users: check session first (for explicitly selected locale)
-        HttpSession session = request.getSession(false);
-        if (session != null) {
-            Boolean userSelected = (Boolean) session.getAttribute(USER_SELECTED_LOCALE_ATTRIBUTE);
-            if (userSelected != null && userSelected) {
-                Locale sessionLocale = (Locale) session.getAttribute(LOCALE_SESSION_ATTRIBUTE);
-                if (sessionLocale != null && isLocaleAvailable(sessionLocale)) {
-                    return sessionLocale;
-                }
-            }
+        // Step 3: Check browser locale
+        candidateLocale = getBrowserLocale(request);
+        if (candidateLocale != null) {
+            // getBrowserLocale already returns a validated locale
+            return candidateLocale;
         }
 
-        // Check browser locale
-        Locale browserLocale = getBrowserLocale(request);
-        if (browserLocale != null) {
-            return browserLocale;
-        }
-
-        // Fall back to default locale (which is the first available locale)
-        return this.defaultLocale != null ? this.defaultLocale :
-               (availableLocales != null && !availableLocales.isEmpty() ? availableLocales.get(0) : Locale.forLanguageTag("fr"));
+        // Step 4: Return fallback locale
+        return getFallbackLocale();
     }
 
     /**
@@ -144,40 +121,95 @@ public class UserLocaleResolver implements LocaleResolver {
      */
     @Override
     public void setLocale(HttpServletRequest request, HttpServletResponse response, Locale locale) {
-        // Validate and potentially fallback to first available locale
-        Locale validatedLocale = locale;
-        if (!isLocaleAvailable(locale)) {
-            if (availableLocales != null && !availableLocales.isEmpty()) {
-                validatedLocale = availableLocales.get(0);
-            }
-        }
+        // Validate the locale and fallback if necessary
+        Locale validatedLocale = validateOrFallback(locale);
 
+        // Update session
         HttpSession session = request.getSession();
         session.setAttribute(LOCALE_SESSION_ATTRIBUTE, validatedLocale);
-        // Mark this as explicitly set by the user
         session.setAttribute(USER_SELECTED_LOCALE_ATTRIBUTE, true);
 
-        // Update user's locale preference if logged in
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth != null && auth.isAuthenticated() && usersRepository != null) {
+        // Update user's locale preference in database if authenticated
+        if (isUserAuthenticated() && usersRepository != null) {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String username = auth.getName();
-            if (username != null && !username.equals("anonymousUser")) {
-                User user = usersRepository.findByLoginIgnoreCase(username);
-                if (user != null) {
-                    user.setLocale(validatedLocale.toLanguageTag());
-                    usersRepository.save(user);
-                }
+            User user = usersRepository.findByLoginIgnoreCase(username);
+            if (user != null) {
+                user.setLocale(validatedLocale.toLanguageTag());
+                usersRepository.save(user);
             }
         }
     }
 
     /**
-     * Gets the locale for the currently authenticated user.
+     * Gets the explicitly selected locale from the session.
+     *
+     * @param session the HTTP session (can be null)
+     * @return the explicitly selected locale or null if not set
+     */
+    private Locale getExplicitlySelectedLocale(HttpSession session) {
+        if (session != null) {
+            Boolean userSelected = (Boolean) session.getAttribute(USER_SELECTED_LOCALE_ATTRIBUTE);
+            if (userSelected != null && userSelected) {
+                return (Locale) session.getAttribute(LOCALE_SESSION_ATTRIBUTE);
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Validates a locale against available locales and returns it if valid,
+     * or returns the fallback locale if invalid.
+     *
+     * @param locale the locale to validate
+     * @return the locale if valid, or the fallback locale
+     */
+    private Locale validateOrFallback(Locale locale) {
+        if (isLocaleAvailable(locale)) {
+            return locale;
+        }
+        return getFallbackLocale();
+    }
+
+    /**
+     * Checks if the current user is authenticated.
+     *
+     * @return true if the user is authenticated, false otherwise
+     */
+    private boolean isUserAuthenticated() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        return auth != null && auth.isAuthenticated() &&
+               !auth.getName().equals("anonymousUser");
+    }
+
+    /**
+     * Gets the fallback locale (the first available locale).
+     * If a default locale is set, validates it first.
+     *
+     * @return the fallback locale
+     */
+    private Locale getFallbackLocale() {
+        // If default locale is set and available, use it
+        if (this.defaultLocale != null && isLocaleAvailable(this.defaultLocale)) {
+            return this.defaultLocale;
+        }
+
+        // Otherwise, use the first available locale
+        if (availableLocales != null && !availableLocales.isEmpty()) {
+            return availableLocales.get(0);
+        }
+
+        // Last resort: French
+        return Locale.forLanguageTag("fr");
+    }
+
+    /**
+     * Gets the locale for the currently authenticated user from the database.
      * Validates the stored locale against available locales and falls back to the first available locale if needed.
      *
      * @return the user's locale (validated) or null if not authenticated
      */
-    private Locale getUserLocale() {
+    private Locale getUserLocaleFromDatabase() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth != null && auth.isAuthenticated() && usersRepository != null) {
             String username = auth.getName();
@@ -191,16 +223,11 @@ public class UserLocaleResolver implements LocaleResolver {
                         return userLocale;
                     }
 
-                    // Fallback to the first available locale if user's locale is not available
-                    if (availableLocales != null && !availableLocales.isEmpty()) {
-                        Locale fallbackLocale = availableLocales.get(0);
-
-                        // Update the database with the fallback locale for consistency
-                        user.setLocale(fallbackLocale.toLanguageTag());
-                        usersRepository.save(user);
-
-                        return fallbackLocale;
-                    }
+                    // Fallback to the first available locale and update DB
+                    Locale fallbackLocale = getFallbackLocale();
+                    user.setLocale(fallbackLocale.toLanguageTag());
+                    usersRepository.save(user);
+                    return fallbackLocale;
                 }
             }
         }
