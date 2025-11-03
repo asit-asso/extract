@@ -208,14 +208,293 @@ public class SystemEmailTest {
         String errorMessage = "Connection timeout to external server";
         Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
         String[] recipients = {"admin@test.com", "support@test.com"};
-        
+
         // Act
         boolean initialized = email.initialize(testRequest, errorMessage, exportTime, recipients);
-        
+
         // Assert
         assertTrue(initialized);
     }
-    
+
+    @Test
+    public void testRequestExportFailedEmail_InitializeContent_WithoutLocale() {
+        // Arrange
+        RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
+        String errorMessage = "Connection timeout to external server";
+        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, errorMessage, exportTime);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized without locale");
+    }
+
+    @Test
+    public void testRequestExportFailedEmail_InitializeContent_WithFrenchLocale() {
+        // Arrange
+        RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
+        String errorMessage = "Timeout de connexion au serveur externe";
+        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, errorMessage, exportTime, frenchLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with French locale");
+    }
+
+    @Test
+    public void testRequestExportFailedEmail_InitializeContent_WithGermanLocale() {
+        // Arrange
+        RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
+        String errorMessage = "Verbindungs-Timeout zum externen Server";
+        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, errorMessage, exportTime, germanLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with German locale");
+    }
+
+    @Test
+    public void testRequestExportFailedEmail_ModelVariablesWithLocale() {
+        // Arrange
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+        RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings) {
+            protected void setContentFromTemplate(String template, Context context) {
+                // Verify locale is set in context
+                assertEquals(germanLocale, context.getLocale());
+
+                // Verify RequestModelBuilder variables are present
+                assertEquals("Test Connector", context.getVariable("connectorName"));
+                assertEquals("ORDER-2024-001", context.getVariable("orderLabel"));
+                assertEquals("Cadastral Data Extract", context.getVariable("productLabel"));
+                assertNotNull(context.getVariable("errorMessage"));
+                assertNotNull(context.getVariable("failureTimeString"));
+            }
+        };
+
+        String errorMessage = "Test error";
+        Calendar exportTime = new GregorianCalendar();
+
+        // Act
+        email.initializeContent(testRequest, errorMessage, exportTime, germanLocale);
+    }
+
+    @Test
+    public void testConnectorImportFailedEmail_InitializeContent_WithoutLocale() {
+        // Arrange
+        Connector testConnector = new Connector();
+        testConnector.setName("Test Connector");
+        ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings);
+        String errorMessage = "Connection refused by remote server";
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+
+        // Act
+        boolean initialized = email.initializeContent(testConnector, errorMessage, importTime);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized without locale");
+    }
+
+    @Test
+    public void testConnectorImportFailedEmail_InitializeContent_WithFrenchLocale() {
+        // Arrange
+        Connector testConnector = new Connector();
+        testConnector.setName("Connecteur de Test");
+        ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings);
+        String errorMessage = "Connexion refusée par le serveur distant";
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+        java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
+
+        // Act
+        boolean initialized = email.initializeContent(testConnector, errorMessage, importTime, frenchLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with French locale");
+    }
+
+    @Test
+    public void testConnectorImportFailedEmail_InitializeContent_WithGermanLocale() {
+        // Arrange
+        Connector testConnector = new Connector();
+        testConnector.setName("Test-Konnektor");
+        ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings);
+        String errorMessage = "Verbindung vom entfernten Server abgelehnt";
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+
+        // Act
+        boolean initialized = email.initializeContent(testConnector, errorMessage, importTime, germanLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with German locale");
+    }
+
+    @Test
+    public void testConnectorImportFailedEmail_ModelVariablesWithLocale() {
+        // Arrange
+        Connector testConnector = new Connector();
+        testConnector.setName("Integration Connector");
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+        ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings) {
+            protected void setContentFromTemplate(String template, Context context) {
+                // Verify locale is set in context
+                assertEquals(germanLocale, context.getLocale());
+
+                // Verify connector variables are present
+                assertEquals("Integration Connector", context.getVariable("connectorName"));
+                assertNotNull(context.getVariable("errorMessage"));
+                assertNotNull(context.getVariable("failureTimeString"));
+                assertNotNull(context.getVariable("dashboardUrl"));
+            }
+        };
+
+        String errorMessage = "Test import error";
+        Calendar importTime = new GregorianCalendar();
+
+        // Act
+        email.initializeContent(testConnector, errorMessage, importTime, germanLocale);
+    }
+
+    @Test
+    public void testUnmatchedRequestEmail_InitializeContent_WithoutLocale() {
+        // Arrange
+        UnmatchedRequestEmail email = new UnmatchedRequestEmail(mockEmailSettings);
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized without locale");
+    }
+
+    @Test
+    public void testUnmatchedRequestEmail_InitializeContent_WithFrenchLocale() {
+        // Arrange
+        UnmatchedRequestEmail email = new UnmatchedRequestEmail(mockEmailSettings);
+        java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, frenchLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with French locale");
+    }
+
+    @Test
+    public void testUnmatchedRequestEmail_InitializeContent_WithGermanLocale() {
+        // Arrange
+        UnmatchedRequestEmail email = new UnmatchedRequestEmail(mockEmailSettings);
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, germanLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with German locale");
+    }
+
+    @Test
+    public void testUnmatchedRequestEmail_ModelVariablesWithLocale() {
+        // Arrange
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+        UnmatchedRequestEmail email = new UnmatchedRequestEmail(mockEmailSettings) {
+            protected void setContentFromTemplate(String template, Context context) {
+                // Verify locale is set in context
+                assertEquals(germanLocale, context.getLocale());
+
+                // Verify all RequestModelBuilder variables are present
+                assertEquals("Test Connector", context.getVariable("connectorName"));
+                assertEquals("ORDER-2024-001", context.getVariable("orderLabel"));
+                assertEquals("Cadastral Data Extract", context.getVariable("productLabel"));
+                assertEquals("Municipality of Test City", context.getVariable("client"));
+                assertEquals("Engineering Consultants Ltd", context.getVariable("tiers"));
+                assertNotNull(context.getVariable("parameters"));
+                assertNotNull(context.getVariable("dashboardItemUrl"));
+            }
+        };
+
+        // Act
+        email.initializeContent(testRequest, germanLocale);
+    }
+
+    @Test
+    public void testInvalidProductImportedEmail_InitializeContent_WithoutLocale() {
+        // Arrange
+        InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings);
+        String errorMessage = "Product has no geometry";
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, errorMessage, importTime);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized without locale");
+    }
+
+    @Test
+    public void testInvalidProductImportedEmail_InitializeContent_WithFrenchLocale() {
+        // Arrange
+        InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings);
+        String errorMessage = "Le produit n'a pas de géométrie";
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, errorMessage, importTime, frenchLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with French locale");
+    }
+
+    @Test
+    public void testInvalidProductImportedEmail_InitializeContent_WithGermanLocale() {
+        // Arrange
+        InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings);
+        String errorMessage = "Das Produkt hat keine Geometrie";
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+
+        // Act
+        boolean initialized = email.initializeContent(testRequest, errorMessage, importTime, germanLocale);
+
+        // Assert
+        assertTrue(initialized, "Email should be initialized with German locale");
+    }
+
+    @Test
+    public void testInvalidProductImportedEmail_ModelVariablesWithLocale() {
+        // Arrange
+        java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
+        InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings) {
+            protected void setContentFromTemplate(String template, Context context) {
+                // Verify locale is set in context
+                assertEquals(germanLocale, context.getLocale());
+
+                // Verify RequestModelBuilder integration
+                assertEquals("ORDER-2024-001", context.getVariable("orderLabel"));
+                assertEquals("Cadastral Data Extract", context.getVariable("productLabel"));
+                assertEquals("Test Connector", context.getVariable("connectorName"));
+                assertEquals("Engineering Consultants Ltd", context.getVariable("tiers"));
+                assertEquals("2500.75", context.getVariable("surface"));
+                assertNotNull(context.getVariable("errorMessage"));
+                assertNotNull(context.getVariable("failureTimeString"));
+                assertNotNull(context.getVariable("dashboardItemUrl"));
+            }
+        };
+
+        String errorMessage = "Test product error";
+        Calendar importTime = new GregorianCalendar();
+
+        // Act
+        email.initializeContent(testRequest, errorMessage, importTime, germanLocale);
+    }
+
     @Test
     public void testInvalidProductImportedEmail_ModelVariables() {
         // Arrange

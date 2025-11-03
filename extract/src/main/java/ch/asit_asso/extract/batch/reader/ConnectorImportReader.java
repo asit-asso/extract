@@ -17,16 +17,22 @@
 package ch.asit_asso.extract.batch.reader;
 
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
+import java.util.Set;
 import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.connectors.common.IConnectorImportResult;
 import ch.asit_asso.extract.connectors.common.IProduct;
 import ch.asit_asso.extract.domain.Connector;
+import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.ConnectorImportFailedEmail;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import org.slf4j.Logger;
@@ -276,19 +282,65 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
         assert errorMessage != null : "The error message cannot be null.";
         assert importTime != null : "The import time cannot be null.";
 
-        final ConnectorImportFailedEmail message = new ConnectorImportFailedEmail(this.emailSettings);
+        try {
+            this.logger.debug("Sending e-mail notifications to administrators.");
 
-        if (!message.initialize(connector, errorMessage, importTime,
-                this.usersRepository.getActiveAdministratorsAddresses())) {
-            this.logger.error("Could not create the connector import failure e-mail message.");
-            return;
-        }
+            // Retrieve administrators as User objects
+            final User[] administrators = this.usersRepository.findByProfileAndActiveTrue(User.Profile.ADMIN);
 
-        if (message.send()) {
-            this.logger.info("The connector error import e-mail notification was successfully sent.");
+            if (administrators == null || administrators.length == 0) {
+                this.logger.warn("No administrators found for connector import failure notification.");
+                return;
+            }
 
-        } else {
-            this.logger.warn("The connector error import e-mail notification was not sent.");
+            // Parse available locales from configuration
+            final List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.language);
+            boolean atLeastOneEmailSent = false;
+
+            // Send individual email to each administrator with their preferred locale
+            for (User administrator : administrators) {
+                try {
+                    final ConnectorImportFailedEmail message = new ConnectorImportFailedEmail(this.emailSettings);
+
+                    // Get validated locale for this administrator
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(administrator, availableLocales);
+
+                    if (!message.initializeContent(connector, errorMessage, importTime, userLocale)) {
+                        this.logger.error("Could not create the message for user {}.", administrator.getLogin());
+                        continue;
+                    }
+
+                    try {
+                        message.addRecipient(administrator.getEmail());
+                    } catch (javax.mail.internet.AddressException e) {
+                        this.logger.error("Invalid email address for user {}: {}",
+                            administrator.getLogin(), administrator.getEmail());
+                        continue;
+                    }
+
+                    if (message.send()) {
+                        this.logger.debug("Connector import failure notification sent successfully to {} with locale {}.",
+                                        administrator.getEmail(), userLocale.toLanguageTag());
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send connector import failure notification to {}.",
+                            administrator.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending notification to user {}: {}",
+                        administrator.getLogin(), exception.getMessage());
+                }
+            }
+
+            if (atLeastOneEmailSent) {
+                this.logger.info("The connector error import e-mail notification was sent to at least one administrator.");
+            } else {
+                this.logger.warn("The connector error import e-mail notification was not sent to any administrator.");
+            }
+
+        } catch (Exception exception) {
+            this.logger.warn("An error prevented notifying the administrators by e-mail.", exception);
         }
     }
 

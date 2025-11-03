@@ -219,6 +219,18 @@ public class EmailSettings implements IEmailSettings {
     }
 
     /**
+     * Gets the list of available locales configured for the application.
+     *
+     * @return the list of available locales, never null
+     */
+    public List<Locale> getAvailableLocales() {
+        if (availableLocales == null || availableLocales.isEmpty()) {
+            return Arrays.asList(Locale.forLanguageTag("fr"));
+        }
+        return availableLocales;
+    }
+
+    /**
      * Validates a locale against the available locales and returns a valid locale.
      * If the locale is not available, returns the first available locale.
      *

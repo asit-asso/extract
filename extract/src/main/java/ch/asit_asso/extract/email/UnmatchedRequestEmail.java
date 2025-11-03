@@ -17,6 +17,7 @@
 package ch.asit_asso.extract.email;
 
 import java.net.MalformedURLException;
+import java.util.Locale;
 import ch.asit_asso.extract.domain.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,20 +98,71 @@ public class UnmatchedRequestEmail extends Email {
 
 
     /**
+     * Defines the textual data contained in the message.
+     *
+     * @param request the request that didn't match any rule
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request) {
+        return this.initializeContent(request, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param request the request that didn't match any rule
+     * @param locale  the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final Locale locale) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("The request cannot be null.");
+        }
+
+        this.setContentType(ContentType.HTML);
+
+        try {
+            this.setContentFromTemplate(UnmatchedRequestEmail.EMAIL_TEMPLATE, this.getModel(request, locale));
+
+        } catch (EmailTemplateNotFoundException exception) {
+            this.logger.error("Could not define the body of the message.", exception);
+            return false;
+        }
+
+        this.setSubject(this.getMessageString("email.unmatchedRequest.subject", null, locale));
+
+        return true;
+    }
+
+
+
+    /**
      * Creates an object that assembles the data to display in the message.
      *
      * @param request the request that didn't match any rule
      * @return the template context object
      */
     private IContext getModel(final Request request) {
+        return this.getModel(request, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param request the request that didn't match any rule
+     * @param locale  the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Request request, final Locale locale) {
         assert request != null : "The request must be set.";
         assert request.getConnector() != null : "The request connector must be set";
 
-        Context model = new Context();
-        
+        final Context model = new Context(locale);
+
         // Add all standard request variables using the utility class
         RequestModelBuilder.addRequestVariables(model, request);
-        
+
         // Add email-specific variables
         model.setVariable("connectorName", request.getConnector().getName());
 

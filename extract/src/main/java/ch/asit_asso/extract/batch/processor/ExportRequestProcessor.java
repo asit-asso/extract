@@ -24,7 +24,9 @@ import ch.asit_asso.extract.connectors.implementation.RequestResult;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
+import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.RequestExportFailedEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
@@ -334,32 +336,73 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
         assert resultMessage != null : "The result error message cannot be null.";
 
         try {
-            this.logger.debug("Sending an e-mail notification to the administrators.");
-            final RequestExportFailedEmail message = new RequestExportFailedEmail(this.emailSettings);
-            final String[] operatorsAddresses
-                    = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(request.getProcess().getId());
-            final Set<String> recipientsAddresses
-                    = new HashSet<>(Arrays.asList(operatorsAddresses));
+            this.logger.debug("Sending e-mail notifications to operators and administrators.");
 
-            for (String adminAddress : this.repositories.getUsersRepository().getActiveAdministratorsAddresses()) {
+            // 1. Retrieve operators as User objects
+            final User[] operators = this.repositories.getProcessesRepository()
+                .getProcessOperators(request.getProcess().getId());
 
-                if (adminAddress == null || recipientsAddresses.contains(adminAddress)) {
-                    continue;
-                }
+            // 2. Retrieve administrators as User objects
+            final User[] administrators = this.repositories.getUsersRepository()
+                .findByProfileAndActiveTrue(User.Profile.ADMIN);
 
-                recipientsAddresses.add(adminAddress);
+            // 3. Combine and deduplicate recipients
+            final Set<User> allRecipients = new HashSet<>();
+            if (operators != null) {
+                allRecipients.addAll(Arrays.asList(operators));
+            }
+            if (administrators != null) {
+                allRecipients.addAll(Arrays.asList(administrators));
             }
 
-            if (!message.initialize(request, resultMessage, errorDate, recipientsAddresses.toArray(new String[]{}))) {
-                this.logger.error("Could not create the request export failure message.");
+            if (allRecipients.isEmpty()) {
+                this.logger.warn("No recipients found for export failure notification.");
                 return;
             }
 
-            if (message.send()) {
-                this.logger.info("The request export failure notification was successfully sent to the operators.");
+            // 4. Parse available locales from configuration
+            final List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.applicationLangague);
+            boolean atLeastOneEmailSent = false;
 
+            // 5. Send individual email to each user with their preferred locale
+            for (User recipient : allRecipients) {
+                try {
+                    final RequestExportFailedEmail message = new RequestExportFailedEmail(this.emailSettings);
+
+                    // Get validated locale for this user
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(recipient, availableLocales);
+
+                    if (!message.initializeContent(request, resultMessage, errorDate, userLocale)) {
+                        this.logger.error("Could not create the message for user {}.", recipient.getLogin());
+                        continue;
+                    }
+
+                    try {
+                        message.addRecipient(recipient.getEmail());
+                    } catch (javax.mail.internet.AddressException e) {
+                        this.logger.error("Invalid email address for user {}: {}",
+                            recipient.getLogin(), recipient.getEmail());
+                        continue;
+                    }
+
+                    if (message.send()) {
+                        this.logger.debug("Export failure notification sent successfully to {} with locale {}.",
+                                        recipient.getEmail(), userLocale.toLanguageTag());
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send export failure notification to {}.", recipient.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending notification to user {}: {}",
+                        recipient.getLogin(), exception.getMessage());
+                }
+            }
+
+            if (atLeastOneEmailSent) {
+                this.logger.info("The request export failure notification was sent to at least one recipient.");
             } else {
-                this.logger.warn("The request export failure notification was not sent.");
+                this.logger.warn("The request export failure notification was not sent to any recipient.");
             }
 
         } catch (Exception exception) {

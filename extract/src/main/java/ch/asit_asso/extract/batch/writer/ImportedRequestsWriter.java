@@ -20,6 +20,8 @@ import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.Request;
@@ -232,20 +234,66 @@ public class ImportedRequestsWriter implements ItemWriter<Request> {
         assert request.getConnector() != null : "The request connector cannot be null.";
         assert resultMessage != null : "The result error message cannot be null.";
 
-        this.logger.debug("Sending an e-mail notification to the administrators.");
-        final InvalidProductImportedEmail message = new InvalidProductImportedEmail(this.emailSettings);
+        try {
+            this.logger.debug("Sending e-mail notifications to administrators.");
 
-        if (!message.initialize(request, resultMessage, errorDate,
-                this.repositories.getUsersRepository().getActiveAdministratorsAddresses())) {
-            this.logger.error("Could not create the invalid imported product message.");
-            return;
-        }
+            // Retrieve administrators as User objects
+            final User[] administrators = this.repositories.getUsersRepository()
+                .findByProfileAndActiveTrue(User.Profile.ADMIN);
 
-        if (message.send()) {
-            this.logger.info("The invalid imported product notification was successfully sent to the administrators.");
+            if (administrators == null || administrators.length == 0) {
+                this.logger.warn("No administrators found for invalid product import notification.");
+                return;
+            }
 
-        } else {
-            this.logger.warn("The invalid imported product notification was not sent.");
+            // Get available locales from email settings (configured from extract.i18n.language)
+            final List<java.util.Locale> availableLocales = this.emailSettings.getAvailableLocales();
+            boolean atLeastOneEmailSent = false;
+
+            // Send individual email to each administrator with their preferred locale
+            for (User administrator : administrators) {
+                try {
+                    final InvalidProductImportedEmail message = new InvalidProductImportedEmail(this.emailSettings);
+
+                    // Get validated locale for this administrator
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(administrator, availableLocales);
+
+                    if (!message.initializeContent(request, resultMessage, errorDate, userLocale)) {
+                        this.logger.error("Could not create the message for user {}.", administrator.getLogin());
+                        continue;
+                    }
+
+                    try {
+                        message.addRecipient(administrator.getEmail());
+                    } catch (javax.mail.internet.AddressException e) {
+                        this.logger.error("Invalid email address for user {}: {}",
+                            administrator.getLogin(), administrator.getEmail());
+                        continue;
+                    }
+
+                    if (message.send()) {
+                        this.logger.debug("Invalid product import notification sent successfully to {} with locale {}.",
+                                        administrator.getEmail(), userLocale.toLanguageTag());
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send invalid product import notification to {}.",
+                            administrator.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending notification to user {}: {}",
+                        administrator.getLogin(), exception.getMessage());
+                }
+            }
+
+            if (atLeastOneEmailSent) {
+                this.logger.info("The invalid imported product notification was sent to at least one administrator.");
+            } else {
+                this.logger.warn("The invalid imported product notification was not sent to any administrator.");
+            }
+
+        } catch (Exception exception) {
+            this.logger.warn("An error prevented notifying the administrators by e-mail.", exception);
         }
     }
 
