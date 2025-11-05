@@ -13,7 +13,7 @@
     <h4>GeoJSON-Dateistruktur</h4>
     <p>Die Datei ist ein GeoJSON-Feature-Objekt, das Folgendes enthält:</p>
     <ul>
-        <li><strong>geometry</strong>: Die Perimeter-Geometrie (automatische Konvertierung von WKT zu GeoJSON)</li>
+        <li><strong>geometry</strong>: Die Perimeter-Geometrie in WGS84 (automatische Konvertierung von WKT zu GeoJSON)</li>
         <li><strong>properties</strong>: Alle Anfrageparameter</li>
     </ul>
 
@@ -63,20 +63,6 @@
                 </td>
                 <td class="popover-table-data">
                     <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
-                </td>
-            </tr>
-            <tr>
-                <td class="popover-table-data">
-                    <p>FolderIn</p>
-                </td>
-                <td class="popover-table-data">
-                    <p>Verzeichnis mit Eingabedaten</p>
-                </td>
-                <td class="popover-table-data">
-                    <p>Zeichenfolge</p>
-                </td>
-                <td class="popover-table-data">
-                    <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/</p>
                 </td>
             </tr>
             <tr>
@@ -208,12 +194,6 @@
         </tbody>
     </table>
 
-    <h4>Geometrie</h4>
-    <p>
-        Die Perimeter-Geometrie wird automatisch vom WKT-Format (WGS84) in das GeoJSON-Format konvertiert.
-        Sie wird in der Eigenschaft <code>geometry</code> des Feature-Objekts platziert.
-    </p>
-
     <h4>Beispiel einer parameters.json-Datei</h4>
     <pre>{
   "type": "Feature",
@@ -230,11 +210,10 @@
   "properties": {
     "Request": 365,
     "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
-    "FolderIn": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/",
     "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
     "OrderLabel": "221587",
     "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
-    "ClientName": "Max Mustermann",
+    "ClientName": "Jean Dupont",
     "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
     "OrganismName": "Katasteramt",
     "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
@@ -244,7 +223,7 @@
       "SELECTION" : "PASS_THROUGH",
       "PROJECTION" : "SWITZERLAND95",
       "REMARK" : "bla bla bla",
-      "CLIENT_LANG" : "de"
+      "CLIENT_LANG" : "fr"
     }
   }
 }</pre>
@@ -252,13 +231,13 @@
     <h4>Verwendung in FME</h4>
     <p>
         Der FME-Workspace kann diese Datei mit einem GeoJSON Reader oder FeatureReader lesen, indem der
-        <code>$(PARAM_FILE)</code>-Parameter als Quelle verwendet wird. Attribute sind direkt zugänglich und Geometrie
+        <code>$(parametersFile)</code>-Parameter als Quelle verwendet wird. Attribute sind direkt zugänglich und Geometrie
         wird automatisch importiert.
     </p>
 
     <h4>Ausgabe</h4>
     <p>
-        Skript-Ausgabedateien müssen in das durch <code>FolderOut</code> angegebene Verzeichnis geschrieben werden.
+        Ausgabedateien des Skripts müssen in das durch <code>FolderOut</code> angegebene Verzeichnis geschrieben werden.
         Das Skript muss einen Exit-Code von 0 zurückgeben, wenn die Verarbeitung erfolgreich war.
     </p>
 </div>

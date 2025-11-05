@@ -1,23 +1,23 @@
 <div>
-    <p>The FME Desktop V2 extraction plugin allows executing a script with FME Desktop while overcoming command-line length limitations.</p>
+    <p>The FME Desktop V2 extraction plugin allows you to run a script with FME Desktop by overcoming command line length limitations.</p>
 
     <h4>Parameter Transmission Method</h4>
     <p>
         Unlike the classic version, this plugin transmits parameters via a GeoJSON file named <code>parameters.json</code>
         created in the output directory. The FME workspace receives the path to this file via the <code>--parametersFile</code> parameter.
 
-        The command parameters are saved in a GeoJSON file, with the command's bounding polygon in WGS84 as the only feature. Other parameters are contained in the feature's properties.
+        The command parameters are stored in a GeoJSON file, with the command's bounding box polygon in WGS84 as the only feature. Other parameters are contained in the feature's properties.
         Only the file path is passed to the script with the parametersFile parameter (the FME script must read this file and extract the desired parameters).
     </p>
 
     <h4>GeoJSON File Structure</h4>
     <p>The file is a GeoJSON Feature object containing:</p>
     <ul>
-        <li><strong>geometry</strong>: The perimeter geometry (automatic conversion from WKT to GeoJSON)</li>
+        <li><strong>geometry</strong>: The perimeter geometry in WGS84 (automatic conversion from WKT to GeoJSON)</li>
         <li><strong>properties</strong>: All request parameters</li>
     </ul>
 
-    <h4>Available Parameters in GeoJSON File</h4>
+    <h4>Available Parameters in the GeoJSON File</h4>
     <p>The following properties are available in the GeoJSON file:</p>
 
     <table class="popover-table parameter-table">
@@ -42,7 +42,7 @@
                     <p>Request</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Extract internal order identifier</p>
+                    <p>Internal Extract order identifier</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Integer</p>
@@ -56,27 +56,13 @@
                     <p>FolderOut</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Output directory where created files must be written</p>
+                    <p>Output directory where created files should be written</p>
                 </td>
                 <td class="popover-table-data">
                     <p>String</p>
                 </td>
                 <td class="popover-table-data">
                     <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
-                </td>
-            </tr>
-            <tr>
-                <td class="popover-table-data">
-                    <p>FolderIn</p>
-                </td>
-                <td class="popover-table-data">
-                    <p>Directory containing input data</p>
-                </td>
-                <td class="popover-table-data">
-                    <p>String</p>
-                </td>
-                <td class="popover-table-data">
-                    <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/</p>
                 </td>
             </tr>
             <tr>
@@ -168,7 +154,7 @@
                     <p>ProductGuid</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Unique identifier of ordered product</p>
+                    <p>Unique identifier of the ordered product</p>
                 </td>
                 <td class="popover-table-data">
                     <p>GUID / UUID</p>
@@ -182,13 +168,13 @@
                     <p>ProductLabel</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Label of ordered product</p>
+                    <p>Label of the ordered product</p>
                 </td>
                 <td class="popover-table-data">
                     <p>Text</p>
                 </td>
                 <td class="popover-table-data">
-                    <p>Cadastral Plan</p>
+                    <p>Cadastral plan</p>
                 </td>
             </tr>
             <tr>
@@ -208,13 +194,7 @@
         </tbody>
     </table>
 
-    <h4>Geometry</h4>
-    <p>
-        The perimeter geometry is automatically converted from WKT format (WGS84) to GeoJSON format.
-        It is placed in the <code>geometry</code> property of the Feature object.
-    </p>
-
-    <h4>Example of parameters.json File</h4>
+    <h4>Example of parameters.json file</h4>
     <pre>{
   "type": "Feature",
   "geometry": {
@@ -230,21 +210,20 @@
   "properties": {
     "Request": 365,
     "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
-    "FolderIn": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/input/",
     "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
     "OrderLabel": "221587",
     "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
-    "ClientName": "John Doe",
+    "ClientName": "Jean Dupont",
     "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
     "OrganismName": "Land Registry Office",
     "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
-    "ProductLabel": "Cadastral Plan",
+    "ProductLabel": "Cadastral plan",
     "Parameters": {
       "FORMAT": "SHP",
       "SELECTION" : "PASS_THROUGH",
       "PROJECTION" : "SWITZERLAND95",
       "REMARK" : "bla bla bla",
-      "CLIENT_LANG" : "en"
+      "CLIENT_LANG" : "fr"
     }
   }
 }</pre>
@@ -252,13 +231,13 @@
     <h4>Usage in FME</h4>
     <p>
         The FME workspace can read this file with a GeoJSON Reader or FeatureReader using the
-        <code>$(PARAM_FILE)</code> parameter as source. Attributes are directly accessible and geometry
+        <code>$(parametersFile)</code> parameter as source. Attributes are directly accessible and geometry
         is automatically imported.
     </p>
 
     <h4>Output</h4>
     <p>
-        Script output files must be written to the directory specified by <code>FolderOut</code>.
+        Output files from the script should be written to the directory indicated by <code>FolderOut</code>.
         The script must return an exit code of 0 if processing was successful.
     </p>
 </div>
