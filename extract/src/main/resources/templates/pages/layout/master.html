@@ -148,6 +148,12 @@
                 th:src="@{'/' + ${jsMessagesPath} + '.js'} + '?v=@@extractVersion@@'"
                 type="text/javascript"></script>
 
+        <script type="text/javascript" th:inline="javascript">
+            // Export Thymeleaf variables to JavaScript global scope
+            /*<![CDATA[*/
+            var jsMessagesPath = /*[[${jsMessagesPath}]]*/ 'lang/fr/messages';
+            /*]]>*/
+        </script>
         <script th:src="@{/js/extract.js} + '?v=@@extractVersion@@'" src="../../static/js/extract.js"
                 type="text/javascript">
         </script>
