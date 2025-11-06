@@ -4,11 +4,12 @@
  */
 
 /**
- * Localized messages to be used by scripts.
+ * German translations. These will be merged with the default French translations,
+ * providing fallback for any missing keys.
  *
  * @type Object
  */
-var LANG_MESSAGES = {
+var LANG_MESSAGES_DE = {
     "connectorsList" : {
         "deleteConfirm" : {
             "title" : "Löschung eines Verbinders",
@@ -156,6 +157,14 @@ var LANG_MESSAGES = {
     }
 };
 
+
+// Merge German translations into LANG_MESSAGES (French provides fallback for missing keys)
+// Using jQuery's deep extend to merge nested objects
+if (typeof jQuery !== 'undefined') {
+    jQuery.extend(true, LANG_MESSAGES, LANG_MESSAGES_DE);
+} else {
+    console.warn('jQuery not loaded, German translations may not merge properly with fallback');
+}
 
 var RULE_HELP_CONTENT = 'static/lang/en/rulesHelp.html';
 
