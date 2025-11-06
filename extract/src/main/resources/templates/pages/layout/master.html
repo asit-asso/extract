@@ -138,8 +138,17 @@
                 type="text/javascript"></script>
         <th:block layout:fragment="customScriptIncludes">
         </th:block>
+        <!--
         <script th:if="${jsMessagesPath}" th:src="@{'/' + ${jsMessagesPath} + '.js'} + '?v=@@extractVersion@@'"
-        src="../../static/lang/en/messages.js" type="text/javascript"></script>
+        src="../../static/lang/fr/messages.js" type="text/javascript"></script>-->
+        <script th:src="@{/lang/fr/messages.js} + '?v=@@extractVersion@@'"
+                src="../../static/lang/fr/messages.js"
+                type="text/javascript"></script>
+
+        <!-- Then load user's language if different from French (silently fails if missing) -->
+        <script th:if="${jsMessagesPath != null and !#strings.equals(jsMessagesPath, 'lang/fr/messages')}"
+                th:src="@{'/' + ${jsMessagesPath} + '.js'} + '?v=@@extractVersion@@'"
+                type="text/javascript"></script>
         <script th:src="@{/js/extract.js} + '?v=@@extractVersion@@'" src="../../static/js/extract.js"
                 type="text/javascript">
         </script>

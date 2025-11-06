@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.PasswordResetEmail;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.EmailUtils;
@@ -124,14 +125,15 @@ public class PasswordResetController extends BaseController {
      * Processes the data submitted to ask for a password reset token.
      *
      * @param email              the e-mail address of the user whose password is to be reset
+     * @param request            the HTTP request to determine the user's preferred locale
      * @param model              the data to display in the next view
      * @param redirectAttributes the data to pass to a page that the user may be redirected to
      * @return the string that identifies the view to display next
      */
     @PostMapping("request")
     @Transactional
-    public String requestReset(@RequestParam final String email, final ModelMap model,
-            final RedirectAttributes redirectAttributes) {
+    public String requestReset(@RequestParam final String email, final HttpServletRequest request,
+            final ModelMap model, final RedirectAttributes redirectAttributes) {
         this.logger.debug("A request to send the password reset e-mail has been received.");
 
         if (this.isCurrentUserApplicationUser()) {
@@ -141,7 +143,7 @@ public class PasswordResetController extends BaseController {
             return PasswordResetController.REDIRECT_TO_LOGIN;
         }
 
-        final String errorMessage = this.defineUserToken(email);
+        final String errorMessage = this.defineUserToken(email, request);
 
         if (errorMessage != null) {
             return this.returnToRequestFormWithError(errorMessage, email, model);
@@ -382,10 +384,11 @@ public class PasswordResetController extends BaseController {
     /**
      * Creates a password reset token for the active user that matches the given e-mail address, if any.
      *
-     * @param email the user e-mail address
+     * @param email   the user e-mail address
+     * @param request the HTTP request to determine the user's preferred locale from browser
      * @return the error message produced, or <code>null</code> if the token must successfully set
      */
-    private String defineUserToken(final String email) {
+    private String defineUserToken(final String email, final HttpServletRequest request) {
 
         if (!EmailUtils.isAddressValid(email)) {
             this.logger.debug("The submitted e-mail {} is invalid.", email);
@@ -411,7 +414,7 @@ public class PasswordResetController extends BaseController {
 
         this.logger.info("A password reset token has been defined for user {}", user.getLogin());
         this.definePasswordResetAuthentication(user);
-        this.sendPasswordResetEmail(user);
+        this.sendPasswordResetEmail(user, request);
 
         return null;
     }
@@ -521,9 +524,10 @@ public class PasswordResetController extends BaseController {
     /**
      * Sends an electronic message with a token to a user that asked to reset her password.
      *
-     * @param user the user that asked for a password reset token
+     * @param user    the user that asked for a password reset token
+     * @param request the HTTP request to determine the user's preferred locale from browser
      */
-    private void sendPasswordResetEmail(final User user) {
+    private void sendPasswordResetEmail(final User user, final HttpServletRequest request) {
         assert user != null : "The user cannot be null.";
         assert user.isActive() : "Inactive users are not eligible for password reset.";
         assert user.getPasswordResetToken() != null && new GregorianCalendar().before(user.getTokenExpiration()) :
@@ -532,7 +536,30 @@ public class PasswordResetController extends BaseController {
         this.logger.debug("Preparing the password reset e-mail.");
         PasswordResetEmail message = new PasswordResetEmail(this.emailSettings);
 
-        if (!message.initialize(user.getPasswordResetToken(), user.getEmail())) {
+        // Get browser locale from request
+        java.util.Locale browserLocale = (request != null) ? request.getLocale() : java.util.Locale.getDefault();
+        this.logger.debug("Browser locale for password reset: {}", browserLocale.toLanguageTag());
+
+        // Validate browser locale against available locales
+        java.util.Locale emailLocale = LocaleUtils.getValidatedUserLocale(
+            null,  // Pass null user to skip user locale lookup
+            LocaleUtils.parseAvailableLocales(this.getApplicationLanguage())
+        );
+
+        // Check if browser locale is available
+        List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.getApplicationLanguage());
+        for (java.util.Locale availableLocale : availableLocales) {
+            if (availableLocale.getLanguage().equals(browserLocale.getLanguage())) {
+                emailLocale = availableLocale;
+                this.logger.debug("Using browser locale {} for password reset email", emailLocale.toLanguageTag());
+                break;
+            }
+        }
+
+        this.logger.info("Sending password reset email to user {} with locale {} (browser: {}).",
+                         user.getLogin(), emailLocale.toLanguageTag(), browserLocale.toLanguageTag());
+
+        if (!message.initialize(user.getPasswordResetToken(), user.getEmail(), emailLocale)) {
             this.logger.warn("The password reset e-mail could not be created due to an internal error.");
             return;
         }
