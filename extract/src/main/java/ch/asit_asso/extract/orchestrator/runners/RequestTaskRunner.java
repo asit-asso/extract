@@ -524,11 +524,12 @@ public class RequestTaskRunner implements Runnable {
      * Gets the operators for a given process.
      *
      * @param process the process whose operators must be fetched
-     * @return an array of User objects representing the operators
+     * @return a list of User objects representing the operators
      */
     @Transactional(readOnly = true)
-    public User[] getProcessOperators(final Process process) {
+    public java.util.List<User> getProcessOperators(final Process process) {
         assert process != null : "The process cannot be null.";
+        this.logger.debug("Fetching the operators for process {}.", process.getId());
         return this.applicationRepositories.getProcessesRepository().getProcessOperators(process.getId());
     }
 
@@ -550,13 +551,15 @@ public class RequestTaskRunner implements Runnable {
         this.logger.debug("Sending e-mail notifications to the operators of the process that failed.");
 
         // Get operators as User objects
-        final User[] operators = this.getProcessOperators(task.getProcess());
+        final java.util.List<User> operators = this.getProcessOperators(task.getProcess());
 
-        if (operators == null || operators.length == 0) {
+        if (operators == null || operators.isEmpty()) {
             this.logger.error("Could not fetch the operators for this process.");
             this.logger.debug("Task id is {}. Process id is {}.", task.getId(), task.getProcess().getId());
             return;
         }
+
+        this.logger.debug("Found {} operators for process {}.", operators.size(), task.getProcess().getId());
 
         // Parse available locales from configuration
         final java.util.List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.language);
@@ -617,13 +620,15 @@ public class RequestTaskRunner implements Runnable {
         this.logger.debug("Sending e-mail notifications to the operators of the process is in standby mode.");
 
         // Get operators as User objects
-        final User[] operators = this.getProcessOperators(task.getProcess());
+        final java.util.List<User> operators = this.getProcessOperators(task.getProcess());
 
-        if (operators == null || operators.length == 0) {
+        if (operators == null || operators.isEmpty()) {
             this.logger.error("Could not fetch the operators for this process.");
             this.logger.debug("Task id is {}. Process id is {}.", task.getId(), task.getProcess().getId());
             return;
         }
+
+        this.logger.debug("Found {} operators for process {}.", operators.size(), task.getProcess().getId());
 
         // Parse available locales from configuration
         final java.util.List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.language);

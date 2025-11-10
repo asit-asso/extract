@@ -141,7 +141,9 @@ public abstract class BaseController {
      */
     protected final void addJavascriptMessagesAttribute(final ModelMap model) {
         HttpServletRequest request = this.getCurrentRequest();
-        model.addAttribute("jsMessagesPath", this.getJavascriptMessagesPath(request));
+        String path = this.getJavascriptMessagesPath(request);
+        this.logger.debug("Adding the path [{}] to the model.", path);
+        model.addAttribute("jsMessagesPath", path);
     }
 
     /**

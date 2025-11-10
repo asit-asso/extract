@@ -536,28 +536,14 @@ public class PasswordResetController extends BaseController {
         this.logger.debug("Preparing the password reset e-mail.");
         PasswordResetEmail message = new PasswordResetEmail(this.emailSettings);
 
-        // Get browser locale from request
-        java.util.Locale browserLocale = (request != null) ? request.getLocale() : java.util.Locale.getDefault();
-        this.logger.debug("Browser locale for password reset: {}", browserLocale.toLanguageTag());
-
-        // Validate browser locale against available locales
+        // Get user's locale and validate against available locales
         java.util.Locale emailLocale = LocaleUtils.getValidatedUserLocale(
-            null,  // Pass null user to skip user locale lookup
+            user,
             LocaleUtils.parseAvailableLocales(this.getApplicationLanguage())
         );
 
-        // Check if browser locale is available
-        List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.getApplicationLanguage());
-        for (java.util.Locale availableLocale : availableLocales) {
-            if (availableLocale.getLanguage().equals(browserLocale.getLanguage())) {
-                emailLocale = availableLocale;
-                this.logger.debug("Using browser locale {} for password reset email", emailLocale.toLanguageTag());
-                break;
-            }
-        }
-
-        this.logger.info("Sending password reset email to user {} with locale {} (browser: {}).",
-                         user.getLogin(), emailLocale.toLanguageTag(), browserLocale.toLanguageTag());
+        this.logger.info("Sending password reset email to user {} with locale {}.",
+                         user.getLogin(), emailLocale.toLanguageTag());
 
         if (!message.initialize(user.getPasswordResetToken(), user.getEmail(), emailLocale)) {
             this.logger.warn("The password reset e-mail could not be created due to an internal error.");

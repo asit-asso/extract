@@ -14,156 +14,11 @@ var LANG_MESSAGES = LANG_MESSAGES || {};
 /**
  * Default (French) messages that serve as fallback for missing translations.
  */
-var LANG_MESSAGES_FR = {
+var LANG_MESSAGES_EN = {
     "connectorsList" : {
         "deleteConfirm" : {
-            "title" : "Suppression d'un connecteur",
-            "message" : "Êtes-vous sûr de vouloir supprimer le connecteur \"{0}\" ?"
-        }
-    },
-    "processesList" : {
-        "cloneConfirm" : {
-            "title" : "Duplication d'un traitement",
-            "message" : "Êtes-vous sûr de vouloir dupliquer le traitement \"{0}\" ?"
-        },
-        "deleteConfirm" : {
-            "title" : "Suppression d'un traitement",
-            "message" : "Êtes-vous sûr de vouloir supprimer le traitement \"{0}\" ?"
-        }
-    },
-    "processTask": {
-        "deleteConfirm" : {
-            "title" : "Suppression d'une tâche",
-            "message" : "Êtes-vous sûr de vouloir supprimer cette tâche ?"
-        }
-    },
-    "requestDetails" : {
-        "deleteConfirm" : {
-            "title" : "Suppression d'une demande",
-            "message" : "Êtes-vous sûr de vouloir supprimer la demande \"{0}\" ?\n\nCette action est irréversible."
-        },
-        "deleteFileConfirm" : {
-            "title" : "Suppression d'un fichier de sortie",
-            "message" : "Êtes-vous sûr de vouloir supprimer le fichier \"{0}\" de la demande \"{1}\" ?\n\nCette action est irréversible."
-        },
-        "rejectConfirm" : {
-            "title" : "Annulation d'une demande",
-            "message" : "Êtes-vous sûr de vouloir annuler le traitement de la demande \"{0}\" ?"
-        },
-        "relaunchProcessConfirm" : {
-            "title" : "Redémarrage du traitement",
-            "message" : "Êtes-vous sûr de vouloir redémarrer le traitement de la demande \"{0}\" depuis le début ?"
-        },
-        "restartTaskConfirm" : {
-            "title" : "Redémarrage de la tâche courante",
-            "message" : "Êtes-vous sûr de vouloir redémarrer la tâche courante de la demande \"{0}\" ?"
-        },
-        "retryExportConfirm" : {
-            "title" : "Nouvelle tentative d'export",
-            "message" : "Êtes-vous sûr de vouloir relancer l'export de la demande \"{0}\" ?"
-        },
-        "retryMatchingConfirm" : {
-            "title" : "Nouvelle tentative d'association à un traitement",
-            "message" : "Êtes-vous sûr de vouloir chercher à nouveau un traitement pour la demande \"{0}\" ?"
-        },
-        "skipTaskConfirm" : {
-            "title" : "Abandon de la tâche courante",
-            "message" : "Êtes-vous sûr de vouloir poursuivre le traitement de la demande \"{0}\" en abandonnant la tâche courante ?"
-        },
-        "validateConfirm" : {
-            "title" : "Validation d'une demande",
-            "message" : "Êtes-vous sûr de vouloir valider la demande \"{0}\" ?"
-        },
-        "exportToDxf" : {
-            "label": "DXF",
-            "tooltip": "Télécharger le polygone d'emprise de la commande au format DXF"
-        },
-        "exportToKml" : {
-            "label": "KML",
-            "tooltip": "Télécharger le polygone d'emprise de la commande au format KML"
-        },
-        "fullScreenControl" : {
-          "tooltip": "Afficher la carte en plein écran"
-        },
-        "layerSwitcher" : {
-            "tooltip": "Gestion des couches"
-        },
-        "mapLayers" : {
-            "polygon" : {
-                "title": "Polygone d'emprise"
-            }
-        }
-    },
-    "remarksList" : {
-        "deleteConfirm" : {
-            "title" : "Suppression d'un message",
-            "message" : "Êtes-vous sûr de vouloir supprimer le message \"{0}\" ?"
-        }
-    },
-    "rulesList" : {
-        "deleteConfirm" : {
-            "title" : "Suppression d'une règle",
-            "message" : "Êtes-vous sûr de vouloir supprimer la règle {0} ?"
-        }
-    },
-    "usersList" : {
-        "deleteConfirm" : {
-            "title" : "Suppression d'un utilisateur",
-            "message" : "Êtes-vous sûr de vouloir supprimer l'utilisateur \"{0}\" ?"
-        }
-    },
-    "userDetails": {
-        "migrateConfirm": {
-            "title": "Migration d'un utilisateur vers LDAP",
-            "message": "Êtes vous sûr de vouloir migrer cet utilisateur vers LDAP ?\n\nL'utilisateur devra obligatoirement se connecter avec ses identifiants LDAP\n\nCette action n'est pas réversible.\n\nPar ailleurs, les éventuelles autres modifications seront perdues.",
-            "alertButtons": {
-                "execute": "Migrer l'utilisateur"
-            }
-        },
-        "disable2faConfirm": {
-            "title": "Désactivation de l'authentification à deux facteurs",
-            "message": "Êtes vous sûr de vouloir désactiver l'authentification à deux facteurs pour cet utilisateur ?\n\nLes éventuelles autres modifications seront perdues.",
-            "alertButtons": {
-                "execute": "Désactiver"
-            }
-        },
-        "enable2faConfirm": {
-            "title": "Activation de l'authentification à deux facteurs",
-            "message": "Êtes vous sûr de vouloir activer l'authentification à deux facteurs pour cet utilisateur ?\n\nLes éventuelles autres modifications seront perdues.",
-            "alertButtons": {
-                "execute": "Activer"
-            }
-        },
-        "reset2faConfirm": {
-            "title": "Réinitialisation de l'authentification à deux facteurs",
-            "message": "Êtes vous sûr de vouloir réinitialiser l'authentification à deux facteurs pour cet utilisateur ?\n\nLes éventuelles autres modifications seront perdues.",
-            "alertButtons": {
-                "execute": "Réinitialiser"
-            }
-        }
-    },
-    "userGroupsList" : {
-        "deleteConfirm" : {
-            "title" : "Suppression d'un groupe d'utilisateurs",
-            "message" : "Êtes-vous sûr de vouloir supprimer le groupe d'utilisateurs \"{0}\" ?"
-        }
-    },
-    "generic" : {
-        "alertButtons" : {
-            "cancel" : "Annuler",
-            "no" : "Non",
-            "ok": "OK",
-            "yes": "Oui"
-        },
-        "notImplemented" : {
-            "title" : "Pas encore implémenté",
-            "message" : "Désolé, cette fonction n'est pas encore disponible."
-        }
-    },
-    "errors" : {
-        "ajaxError" : {
-            "title" : "Erreur de connexion",
-            "message" : "Une erreur est survenue lors de la mise à jour des demandes en cours..."
+            "title" : "Delete a connector",
+            "message" : "Are you sure you want to delete the connector \"{0}\" ?"
         }
     }
 };
@@ -172,16 +27,16 @@ var LANG_MESSAGES_FR = {
 // Merge French messages into LANG_MESSAGES (provides default/fallback values)
 // Using jQuery's deep extend to merge nested objects
 if (typeof jQuery !== 'undefined') {
-    jQuery.extend(true, LANG_MESSAGES, LANG_MESSAGES_FR);
+    jQuery.extend(true, LANG_MESSAGES, LANG_MESSAGES_EN);
 } else {
     // Fallback if jQuery is not yet loaded (should not happen in normal usage)
-    LANG_MESSAGES = LANG_MESSAGES_FR;
+    LANG_MESSAGES = LANG_MESSAGES_EN;
 }
 
-var RULE_HELP_CONTENT = 'static/lang/fr/rulesHelp.html';
+//var RULE_HELP_CONTENT = 'static/lang/fr/rulesHelp.html';
 
 // Strings used only during development. What follows will be removed from production code
 LANG_MESSAGES['development'] = {
-    "notImplemented" : "Pas encore développé",
-    "notImplementedLong" : "Cette fonction n'a pas encore été développée."
+    "notImplemented" : "Not yet developed",
+    "notImplementedLong" : "This feature has not yet been developed."
 };

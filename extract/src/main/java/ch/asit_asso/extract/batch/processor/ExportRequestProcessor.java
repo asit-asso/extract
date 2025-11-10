@@ -339,7 +339,7 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
             this.logger.debug("Sending e-mail notifications to operators and administrators.");
 
             // 1. Retrieve operators as User objects
-            final User[] operators = this.repositories.getProcessesRepository()
+            final java.util.List<User> operators = this.repositories.getProcessesRepository()
                 .getProcessOperators(request.getProcess().getId());
 
             // 2. Retrieve administrators as User objects
@@ -348,8 +348,8 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
 
             // 3. Combine and deduplicate recipients
             final Set<User> allRecipients = new HashSet<>();
-            if (operators != null) {
-                allRecipients.addAll(Arrays.asList(operators));
+            if (operators != null && !operators.isEmpty()) {
+                allRecipients.addAll(operators);
             }
             if (administrators != null) {
                 allRecipients.addAll(Arrays.asList(administrators));

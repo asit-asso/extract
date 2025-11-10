@@ -94,10 +94,10 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
             this.logger.debug("Sending an e-mail reminder to the operators.");
             
             // Get process operators as User objects to access their locales
-            final ch.asit_asso.extract.domain.User[] operators
+            final java.util.List<ch.asit_asso.extract.domain.User> operators
                     = this.repositories.getProcessesRepository().getProcessOperators(request.getProcess().getId());
 
-            if (operators == null || operators.length == 0) {
+            if (operators == null || operators.isEmpty()) {
                 this.logger.warn("No operators found for process {}.", request.getProcess().getId());
                 return false;
             }
