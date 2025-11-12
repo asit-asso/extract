@@ -56,9 +56,14 @@ public class LocalizedMessages {
     private static final String MESSAGES_FILE_NAME = "messages.properties";
 
     /**
-     * The language to use for the messages to the user.
+     * The primary language to use for the messages to the user.
      */
     private String language;
+
+    /**
+     * All configured languages for cascading fallback (e.g., ["de", "en", "fr"]).
+     */
+    private final List<String> allLanguages;
 
     /**
      * The writer to the application logs.
@@ -79,48 +84,45 @@ public class LocalizedMessages {
      * Creates a new localized messages access instance using the default language.
      */
     public LocalizedMessages() {
-        this(LocalizedMessages.DEFAULT_LANGUAGE);
+        this.allLanguages = new ArrayList<>();
+        this.allLanguages.add(LocalizedMessages.DEFAULT_LANGUAGE);
+        this.language = LocalizedMessages.DEFAULT_LANGUAGE;
+        this.loadFile(this.language);
     }
 
     /**
-     * Creates a new localized messages access instance with robust error handling.
+     * Creates a new localized messages access instance with cascading language fallback.
+     * If languageCode contains multiple languages (comma-separated), they will all be used for fallback.
      *
-     * @param languageCode the string that identifies the language to use for the messages to the user
+     * @param languageCode the string that identifies the language(s) to use for the messages to the user
+     *                     (e.g., "de,en,fr" for German with English and French fallbacks)
      */
     public LocalizedMessages(final String languageCode) {
-        String primaryLanguage = LocalizedMessages.DEFAULT_LANGUAGE;
-
-        try {
-            if (languageCode != null && !languageCode.trim().isEmpty()) {
-                // Handle comma-separated language codes by taking the first one
-                if (languageCode.contains(",")) {
-                    primaryLanguage = languageCode.split(",")[0].trim();
-                    logger.debug("Multiple languages detected: {}. Using primary: {}",
-                                languageCode, primaryLanguage);
-                } else {
-                    primaryLanguage = languageCode.trim();
+        // Parse all languages from comma-separated string
+        this.allLanguages = new ArrayList<>();
+        if (languageCode != null && languageCode.contains(",")) {
+            String[] languages = languageCode.split(",");
+            for (String lang : languages) {
+                String trimmedLang = lang.trim();
+                if (trimmedLang.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
+                    this.allLanguages.add(trimmedLang);
                 }
-            } else {
-                logger.info("No language specified, using default: {}", DEFAULT_LANGUAGE);
             }
-
-            this.loadFile(primaryLanguage);
-            this.language = primaryLanguage;
-
-        } catch (Exception e) {
-            logger.error("Failed to initialize localized messages for language: {}", primaryLanguage, e);
-            // Try to fall back to default language
-            try {
-                this.loadFile(DEFAULT_LANGUAGE);
-                this.language = DEFAULT_LANGUAGE;
-                logger.info("Fallback to default language successful");
-            } catch (Exception fallbackError) {
-                logger.error("Failed to load even default language", fallbackError);
-                this.language = DEFAULT_LANGUAGE;
-                // Initialize with empty properties to prevent NPE
-                this.propertyFile = new Properties();
-            }
+            logger.debug("Multiple languages configured: {}. Using cascading fallback: {}",
+                            languageCode, this.allLanguages);
+        } else if (languageCode != null && languageCode.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
+            this.allLanguages.add(languageCode.trim());
         }
+
+        // If no valid languages found, use default
+        if (this.allLanguages.isEmpty()) {
+            this.allLanguages.add(LocalizedMessages.DEFAULT_LANGUAGE);
+            logger.warn("No valid language found in '{}', using default: {}",
+                           languageCode, LocalizedMessages.DEFAULT_LANGUAGE);
+        }
+
+        this.language = this.allLanguages.get(0);
+        this.loadFile(this.language);
     }
 
     /**
@@ -333,48 +335,38 @@ public class LocalizedMessages {
     }
 
     /**
-     * Builds a collection of possible paths for a localized file to ensure fallback support.
+     * Builds a collection of possible paths for a localized file with cascading fallback through all
+     * configured languages. For example, if languages are ["de", "en", "fr"] and a regional variant like
+     * "de-CH" is requested, paths will be built for: de-CH, de, en, fr.
      *
      * @param locale   the string that identifies the desired language
      * @param filename the name of the localized file
-     * @return a collection of path strings to try successively
+     * @return a collection of path strings to try successively to find the desired file
      */
     private Collection<String> getFallbackPaths(final String locale, final String filename) {
-        if (locale == null || !locale.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
-            logger.warn("Invalid locale for fallback paths: {}", locale);
-            return Collections.singletonList(
-                String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, DEFAULT_LANGUAGE, filename)
-            );
-        }
-
-        if (StringUtils.isBlank(filename) || filename.contains("../")) {
-            logger.error("Invalid filename for fallback paths: {}", filename);
-            return Collections.emptyList();
-        }
+        assert locale != null && locale.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN) :
+                "The language code is invalid.";
+        assert StringUtils.isNotBlank(filename) && !filename.contains("../");
 
         Set<String> pathsList = new LinkedHashSet<>();
 
-        // Primary language path
+        // Add requested locale with regional variant if present
         pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, locale, filename));
 
-        // Language without region (e.g., "fr" from "fr-CH")
         if (locale.length() > 2) {
-            pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT,
-                         locale.substring(0, 2), filename));
+            pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, locale.substring(0, 2),
+                    filename));
         }
 
-        // English fallback
-        if (!locale.startsWith("en")) {
-            pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, "en", filename));
+        // Add all configured languages for cascading fallback
+        for (String lang : this.allLanguages) {
+            pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, lang, filename));
         }
 
-        // Default language fallback
-        if (!locale.equals(DEFAULT_LANGUAGE)) {
-            pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT,
-                         DEFAULT_LANGUAGE, filename));
-        }
+        // Ensure default language is always included as final fallback
+        pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, LocalizedMessages.DEFAULT_LANGUAGE,
+                filename));
 
-        logger.trace("Fallback paths for '{}' in '{}': {}", filename, locale, pathsList);
         return pathsList;
     }
 }

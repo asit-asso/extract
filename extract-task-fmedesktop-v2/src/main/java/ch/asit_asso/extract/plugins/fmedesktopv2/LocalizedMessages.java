@@ -58,9 +58,14 @@ public class LocalizedMessages {
     private static final String MESSAGES_FILE_NAME = "messages.properties";
 
     /**
-     * The language to use for the messages to the user.
+     * The primary language to use for the messages to the user.
      */
     private final String language;
+
+    /**
+     * All configured languages for cascading fallback (e.g., ["de", "en", "fr"]).
+     */
+    private final List<String> allLanguages;
 
     /**
      * The writer to the application logs.
@@ -78,27 +83,47 @@ public class LocalizedMessages {
      * Creates a new localized messages access instance using the default language.
      */
     public LocalizedMessages() {
-        this.loadFile(LocalizedMessages.DEFAULT_LANGUAGE);
+        this.allLanguages = new ArrayList<>();
+        this.allLanguages.add(LocalizedMessages.DEFAULT_LANGUAGE);
         this.language = LocalizedMessages.DEFAULT_LANGUAGE;
+        this.loadFile(this.language);
     }
 
 
 
     /**
-     * Creates a new localized messages access instance.
+     * Creates a new localized messages access instance with cascading language fallback.
+     * If languageCode contains multiple languages (comma-separated), they will all be used for fallback.
      *
-     * @param languageCode the string that identifies the language to use for the messages to the user
+     * @param languageCode the string that identifies the language(s) to use for the messages to the user
+     *                     (e.g., "de,en,fr" for German with English and French fallbacks)
      */
     public LocalizedMessages(final String languageCode) {
-        // Handle comma-separated language codes by taking the first one
-        String primaryLanguage = languageCode;
+        // Parse all languages from comma-separated string
+        this.allLanguages = new ArrayList<>();
         if (languageCode != null && languageCode.contains(",")) {
-            primaryLanguage = languageCode.split(",")[0].trim();
-            this.logger.debug("Multiple languages detected in config: {}. Using primary language: {}", 
-                            languageCode, primaryLanguage);
+            String[] languages = languageCode.split(",");
+            for (String lang : languages) {
+                String trimmedLang = lang.trim();
+                if (trimmedLang.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
+                    this.allLanguages.add(trimmedLang);
+                }
+            }
+            this.logger.debug("Multiple languages configured: {}. Using cascading fallback: {}",
+                            languageCode, this.allLanguages);
+        } else if (languageCode != null && languageCode.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
+            this.allLanguages.add(languageCode.trim());
         }
-        this.loadFile(primaryLanguage);
-        this.language = primaryLanguage;
+
+        // If no valid languages found, use default
+        if (this.allLanguages.isEmpty()) {
+            this.allLanguages.add(LocalizedMessages.DEFAULT_LANGUAGE);
+            this.logger.warn("No valid language found in '{}', using default: {}",
+                           languageCode, LocalizedMessages.DEFAULT_LANGUAGE);
+        }
+
+        this.language = this.allLanguages.get(0);
+        this.loadFile(this.language);
     }
 
 
@@ -216,10 +241,9 @@ public class LocalizedMessages {
 
 
     /**
-     * Builds a collection of possible paths a localized file to ensure that ne is found even if the
-     * specific language is not available. As an example, if the language is <code>fr-CH</code>, then the paths
-     * will be built for <code>fr-CH</code>, <code>fr</code> and the default language (say, <code>en</code>,
-     * for instance).
+     * Builds a collection of possible paths for a localized file with cascading fallback through all
+     * configured languages. For example, if languages are ["de", "en", "fr"] and a regional variant like
+     * "de-CH" is requested, paths will be built for: de-CH, de, en, fr.
      *
      * @param locale   the string that identifies the desired language
      * @param filename the name of the localized file
@@ -232,6 +256,7 @@ public class LocalizedMessages {
 
         Set<String> pathsList = new LinkedHashSet<>();
 
+        // Add requested locale with regional variant if present
         pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, locale, filename));
 
         if (locale.length() > 2) {
@@ -239,6 +264,12 @@ public class LocalizedMessages {
                     filename));
         }
 
+        // Add all configured languages for cascading fallback
+        for (String lang : this.allLanguages) {
+            pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, lang, filename));
+        }
+
+        // Ensure default language is always included as final fallback
         pathsList.add(String.format(LocalizedMessages.LOCALIZED_FILE_PATH_FORMAT, LocalizedMessages.DEFAULT_LANGUAGE,
                 filename));
 
