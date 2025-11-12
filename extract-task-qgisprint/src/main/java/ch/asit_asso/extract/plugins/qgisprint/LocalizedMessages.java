@@ -205,6 +205,7 @@ public class LocalizedMessages {
 
                 this.propertyFile = new Properties();
                 this.propertyFile.load(languageFileStream);
+                break; // Stop after successfully loading the first available file
 
             } catch (IOException exception) {
                 this.logger.error("Could not load the localization file.");
