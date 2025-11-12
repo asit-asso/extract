@@ -167,9 +167,12 @@ public class IndexController extends BaseController {
             model.addAttribute("baseFolderError", true);
 
         } else {
+
+
             model.addAttribute("processes", this.processesRepository.findAllByOrderByName());
             model.addAttribute("connectors", this.connectorsRepository.findAllByOrderByName());
             model.addAttribute("language", this.getCurrentUserLanguage());
+
             model.addAttribute("refreshInterval",
                     Integer.valueOf(this.parametersRepository.getDashboardRefreshInterval()));
             model.addAttribute("tablePageSize", this.tablePageSize);

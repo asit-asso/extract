@@ -115,6 +115,7 @@ public class PythonPlugin implements ITaskProcessor {
      */
     public PythonPlugin(final String language) {
         this.config = new PluginConfiguration(PythonPlugin.CONFIG_FILE_PATH);
+
         this.messages = new LocalizedMessages(language);
     }
 

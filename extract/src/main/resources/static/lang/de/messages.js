@@ -3,6 +3,8 @@
  * @author Camptocamp
  */
 
+var LANG_MESSAGES = LANG_MESSAGES || {};
+
 /**
  * German translations. These will be merged with the default French translations,
  * providing fallback for any missing keys.

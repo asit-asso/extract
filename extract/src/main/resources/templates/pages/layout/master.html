@@ -138,15 +138,10 @@
                 type="text/javascript"></script>
         <th:block layout:fragment="customScriptIncludes">
         </th:block>
-        <!-- Always load French messages first (provides fallback for missing translations) -->
-        <script th:src="@{/lang/fr/messages.js} + '?v=@@extractVersion@@'"
-                src="../../static/lang/fr/messages.js"
-                type="text/javascript"></script>
+        <script th:src="@{'/lang/' + ${@defaultLocale} + '/messages.js?v=@@extractVersion@@'}"></script>
+        <script th:if="${#locale.language != defaultLocale}"
+                th:src="@{'/lang/' + ${#locale.language} + '/messages.js?v=@@extractVersion@@'}"></script>
 
-        <!-- Then load user's language if different from French (merges with French fallback) -->
-        <script th:if="${jsMessagesPath != null and !#strings.equals(jsMessagesPath, 'lang/fr/messages')}"
-                th:src="@{'/' + ${jsMessagesPath} + '.js'} + '?v=@@extractVersion@@'"
-                type="text/javascript"></script>
 
         <script type="text/javascript" th:inline="javascript">
             // Export Thymeleaf variables to JavaScript global scope

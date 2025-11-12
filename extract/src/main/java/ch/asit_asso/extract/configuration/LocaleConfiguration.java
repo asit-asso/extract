@@ -53,7 +53,7 @@ public class LocaleConfiguration implements WebMvcConfigurer {
     public LocaleResolver localeResolver() {
         UserLocaleResolver resolver = new UserLocaleResolver();
         resolver.setAvailableLocales(getAvailableLocales());
-        resolver.setDefaultLocale(getDefaultLocale());
+        resolver.setDefaultLocale(defaultLocale());
         return resolver;
     }
 
@@ -97,7 +97,8 @@ public class LocaleConfiguration implements WebMvcConfigurer {
      *
      * @return the default locale
      */
-    public Locale getDefaultLocale() {
+    @Bean
+    public Locale defaultLocale() {
         List<Locale> locales = getAvailableLocales();
         return locales.isEmpty() ? Locale.forLanguageTag("fr") : locales.get(0);
     }
