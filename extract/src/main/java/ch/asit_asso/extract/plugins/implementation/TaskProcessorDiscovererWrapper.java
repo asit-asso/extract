@@ -243,24 +243,25 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
     }
 
     /**
-     * Gets the current user's language from the HTTP request context.
-     * Falls back to the default application language if no request context is available.
+     * Gets the current user's language from the HTTP request context with cascading fallbacks.
+     * Returns a comma-separated list with user's language first, followed by configured fallbacks.
+     * Falls back to the application language configuration if no request context is available.
      *
-     * @return the current user's language code
+     * @return the user's language code with fallbacks (e.g., "de,en,fr")
      */
     private String getCurrentUserLanguage() {
         try {
-            ServletRequestAttributes requestAttributes = 
+            ServletRequestAttributes requestAttributes =
                 (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-            
+
             if (requestAttributes != null) {
                 HttpServletRequest request = requestAttributes.getRequest();
                 ServletContext context = this.servletContext != null ? this.servletContext.get() : null;
-                
+
                 if (context != null && request != null) {
-                    WebApplicationContext webAppContext = 
+                    WebApplicationContext webAppContext =
                         WebApplicationContextUtils.getWebApplicationContext(context);
-                    
+
                     if (webAppContext != null) {
                         try {
                             // Try to get LocaleResolver from the application context
@@ -270,8 +271,9 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
                                 if (currentLocale != null) {
                                     String lang = currentLocale.getLanguage();
                                     if (lang != null && !lang.isEmpty() && this.isLanguageSupported(lang)) {
-                                        this.logger.debug("Using user language: {}", lang);
-                                        return lang;
+                                        String languagesWithFallback = this.buildLanguageStringWithUserFirst(lang);
+                                        this.logger.debug("Using user language with fallbacks: {}", languagesWithFallback);
+                                        return languagesWithFallback;
                                     }
                                 }
                             }
@@ -284,11 +286,39 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
         } catch (Exception e) {
             this.logger.debug("Could not get request context, using default language: {}", e.getMessage());
         }
-        
-        // Fallback to default application language
-        String defaultLang = this.getDefaultLanguage();
-        this.logger.debug("Using default language: {}", defaultLang);
-        return defaultLang;
+
+        // Fallback to full application language configuration
+        this.logger.debug("Using application language configuration: {}", this.applicationLanguage);
+        return this.applicationLanguage;
+    }
+
+    /**
+     * Builds a comma-separated language string with the user's language first, followed by other configured languages.
+     * Ensures no duplicates and maintains the order of remaining languages from configuration.
+     *
+     * @param userLanguage the user's preferred language
+     * @return a comma-separated string with user language first (e.g., "de,en,fr")
+     */
+    private String buildLanguageStringWithUserFirst(final String userLanguage) {
+        if (this.applicationLanguage == null || userLanguage == null) {
+            return this.applicationLanguage != null ? this.applicationLanguage : "fr";
+        }
+
+        String[] configuredLanguages = this.applicationLanguage.split(",");
+        List<String> languages = new ArrayList<>();
+
+        // Add user language first
+        languages.add(userLanguage.trim());
+
+        // Add other configured languages (without duplicates)
+        for (String lang : configuredLanguages) {
+            String trimmedLang = lang.trim();
+            if (!trimmedLang.equalsIgnoreCase(userLanguage) && !languages.contains(trimmedLang)) {
+                languages.add(trimmedLang);
+            }
+        }
+
+        return String.join(",", languages);
     }
 
     /**
@@ -301,7 +331,7 @@ public class TaskProcessorDiscovererWrapper implements ServletContextAware {
         if (this.applicationLanguage == null || language == null) {
             return false;
         }
-        
+
         String[] supportedLanguages = this.applicationLanguage.split(",");
         for (String supported : supportedLanguages) {
             if (supported.trim().equalsIgnoreCase(language)) {
