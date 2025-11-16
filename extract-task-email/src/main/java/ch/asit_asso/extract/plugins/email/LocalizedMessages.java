@@ -77,9 +77,10 @@ public class LocalizedMessages {
     private final Logger logger = LoggerFactory.getLogger(LocalizedMessages.class);
 
     /**
-     * The property file that contains the messages in the local language.
+     * All loaded property files in fallback order (primary language first, then fallbacks).
+     * When looking up a key, we check each properties file in order.
      */
-    private Properties propertyFile;
+    private final List<Properties> propertyFiles = new ArrayList<>();
 
 
 
@@ -166,10 +167,12 @@ public class LocalizedMessages {
 
 
     /**
-     * Obtains a localized string in the current language.
+     * Obtains a localized string with cascading fallback through all configured languages.
+     * If the key is not found in the primary language, fallback languages are checked in order.
+     * If the key is not found in any language, the key itself is returned.
      *
      * @param key the string that identifies the localized string
-     * @return the string localized in the current language
+     * @return the string localized in the best available language, or the key itself if not found
      */
     public final String getString(final String key) {
 
@@ -177,25 +180,37 @@ public class LocalizedMessages {
             throw new IllegalArgumentException("The message key cannot be empty.");
         }
 
-        return this.propertyFile.getProperty(key);
+        // Check each properties file in fallback order
+        for (Properties props : this.propertyFiles) {
+            String value = props.getProperty(key);
+            if (value != null) {
+                return value;
+            }
+        }
+
+        // Key not found in any language, return the key itself
+        this.logger.warn("Translation key '{}' not found in any language (checked: {})", key, this.allLanguages);
+        return key;
     }
 
 
 
     /**
-     * Reads the file that holds the application strings in a given language. Fallbacks will be used if the
-     * application string file is not available in the given language.
+     * Loads all available localization files for the configured languages in fallback order.
+     * This enables cascading key fallback: if a key is missing in the primary language,
+     * it will be looked up in fallback languages.
      *
      * @param guiLanguage the string that identifies the language to use for the messages to the user
      */
     private void loadFile(final String guiLanguage) {
-        this.logger.debug("Loading the localization file for language {}.", guiLanguage);
+        this.logger.debug("Loading localization files for language {} with fallbacks.", guiLanguage);
 
         if (guiLanguage == null || !guiLanguage.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
             this.logger.error("The language string \"{}\" is not a valid locale.", guiLanguage);
             throw new IllegalArgumentException(String.format("The language code \"%s\" is invalid.", guiLanguage));
         }
 
+        // Load all available properties files in fallback order
         for (String filePath : this.getFallbackPaths(guiLanguage, LocalizedMessages.MESSAGES_FILE_NAME)) {
 
             try (InputStream languageFileStream = this.getClass().getClassLoader().getResourceAsStream(filePath)) {
@@ -205,22 +220,22 @@ public class LocalizedMessages {
                     continue;
                 }
 
-                this.propertyFile = new Properties();
-                this.propertyFile.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
-                break; // Stop after successfully loading the first available file
+                Properties props = new Properties();
+                props.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
+                this.propertyFiles.add(props);
+                this.logger.info("Loaded localization file from \"{}\" with {} keys.", filePath, props.size());
 
             } catch (IOException exception) {
-                this.logger.error("Could not load the localization file.");
-                this.propertyFile = null;
+                this.logger.error("Could not load the localization file at \"{}\".", filePath, exception);
             }
         }
 
-        if (this.propertyFile == null) {
+        if (this.propertyFiles.isEmpty()) {
             this.logger.error("Could not find any localization file, not even the default.");
             throw new IllegalStateException("Could not find any localization file.");
         }
 
-        this.logger.info("Localized messages loaded.");
+        this.logger.info("Loaded {} localization file(s) for cascading fallback.", this.propertyFiles.size());
     }
 
 

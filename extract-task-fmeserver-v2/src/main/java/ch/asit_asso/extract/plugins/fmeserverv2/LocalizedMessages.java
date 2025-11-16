@@ -71,9 +71,10 @@ public class LocalizedMessages {
     private static final Logger logger = LoggerFactory.getLogger(LocalizedMessages.class);
 
     /**
-     * The property file that contains the messages in the local language.
+     * All loaded property files in fallback order (primary language first, then fallbacks).
+     * When looking up a key, we check each properties file in order.
      */
-    private Properties propertyFile;
+    private final List<Properties> propertyFiles = new ArrayList<>();
 
     /**
      * Flag indicating if messages were successfully loaded.
@@ -166,10 +167,12 @@ public class LocalizedMessages {
     }
 
     /**
-     * Obtains a localized string in the current language with fallback support.
+     * Obtains a localized string with cascading fallback through all configured languages.
+     * If the key is not found in the primary language, fallback languages are checked in order.
+     * If the key is not found in any language, the key is returned in brackets.
      *
      * @param key the string that identifies the localized string
-     * @return the string localized in the current language, or the key itself if not found
+     * @return the string localized in the best available language, or [key] if not found
      */
     public final String getString(final String key) {
         if (StringUtils.isBlank(key)) {
@@ -177,19 +180,22 @@ public class LocalizedMessages {
             return "[EMPTY_KEY]";
         }
 
-        if (this.propertyFile == null) {
-            logger.error("Property file is null when getting key: {}", key);
+        if (this.propertyFiles.isEmpty()) {
+            logger.error("No property files loaded when getting key: {}", key);
             return String.format("[%s]", key);
         }
 
-        String value = this.propertyFile.getProperty(key);
-
-        if (value == null) {
-            logger.warn("Message key not found: {}", key);
-            return String.format("[%s]", key);
+        // Check each properties file in fallback order
+        for (Properties props : this.propertyFiles) {
+            String value = props.getProperty(key);
+            if (value != null) {
+                return value;
+            }
         }
 
-        return value;
+        // Key not found in any language
+        logger.warn("Message key '{}' not found in any language (checked: {})", key, this.allLanguages);
+        return String.format("[%s]", key);
     }
 
     /**
@@ -216,15 +222,21 @@ public class LocalizedMessages {
     }
 
     /**
-     * Checks if a message key exists.
+     * Checks if a message key exists in any of the loaded property files.
      *
      * @param key the message key to check
-     * @return true if the key exists, false otherwise
+     * @return true if the key exists in any language, false otherwise
      */
     public final boolean hasKey(final String key) {
-        return this.propertyFile != null &&
-               !StringUtils.isBlank(key) &&
-               this.propertyFile.containsKey(key);
+        if (StringUtils.isBlank(key)) {
+            return false;
+        }
+        for (Properties props : this.propertyFiles) {
+            if (props.containsKey(key)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -242,25 +254,25 @@ public class LocalizedMessages {
      * @return true if messages are loaded, false otherwise
      */
     public final boolean isLoaded() {
-        return this.isLoaded && this.propertyFile != null && !this.propertyFile.isEmpty();
+        return this.isLoaded && !this.propertyFiles.isEmpty();
     }
 
     /**
-     * Reads the file that holds the application strings in a given language with comprehensive error handling.
+     * Loads all available localization files for the configured languages in fallback order with comprehensive error handling.
+     * This enables cascading key fallback: if a key is missing in the primary language,
+     * it will be looked up in fallback languages.
      *
      * @param guiLanguage the string that identifies the language to use for the messages to the user
      */
     private void loadFile(final String guiLanguage) {
-        logger.debug("Loading localization file for language: {}", guiLanguage);
+        logger.debug("Loading localization files for language {} with fallbacks.", guiLanguage);
 
         if (guiLanguage == null || !guiLanguage.matches(LocalizedMessages.LOCALE_VALIDATION_PATTERN)) {
             logger.error("Invalid language string: '{}'", guiLanguage);
             throw new IllegalArgumentException(String.format("Invalid language code: '%s'", guiLanguage));
         }
 
-        boolean fileLoaded = false;
-        Exception lastException = null;
-
+        // Load all available properties files in fallback order
         for (String filePath : this.getFallbackPaths(guiLanguage, LocalizedMessages.MESSAGES_FILE_NAME)) {
             try (InputStream languageFileStream = this.getClass().getClassLoader().getResourceAsStream(filePath)) {
                 if (languageFileStream == null) {
@@ -268,56 +280,59 @@ public class LocalizedMessages {
                     continue;
                 }
 
-                this.propertyFile = new Properties();
-                this.propertyFile.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
+                Properties props = new Properties();
+                props.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
 
-                if (this.propertyFile.isEmpty()) {
+                if (props.isEmpty()) {
                     logger.warn("Localization file is empty at: {}", filePath);
                     continue;
                 }
 
-                this.isLoaded = true;
-                fileLoaded = true;
-                logger.info("Successfully loaded {} messages from: {}", this.propertyFile.size(), filePath);
-
-                // Add some default error messages if they don't exist
-                ensureDefaultErrorMessages();
-                return;
+                this.propertyFiles.add(props);
+                logger.info("Loaded localization file from \"{}\" with {} keys.", filePath, props.size());
 
             } catch (IOException exception) {
                 logger.error("IO error loading localization file at: {}", filePath, exception);
-                lastException = exception;
             } catch (Exception exception) {
                 logger.error("Unexpected error loading localization file at: {}", filePath, exception);
-                lastException = exception;
             }
         }
 
-        if (!fileLoaded) {
+        if (this.propertyFiles.isEmpty()) {
             logger.error("Could not find any localization file for language: {}", guiLanguage);
             // Initialize with minimal error messages
             initializeMinimalMessages();
             this.isLoaded = false;
+        } else {
+            this.isLoaded = true;
+            // Add default error messages to the first (primary) properties file if they don't exist
+            ensureDefaultErrorMessages();
+            logger.info("Loaded {} localization file(s) for cascading fallback.", this.propertyFiles.size());
         }
     }
 
     /**
      * Ensures that critical error messages exist in the loaded properties.
+     * Adds them to the first (primary) properties file if they don't exist in any.
      */
     private void ensureDefaultErrorMessages() {
-        if (this.propertyFile == null) {
+        if (this.propertyFiles.isEmpty()) {
             return;
         }
 
-        // Add default error messages if they don't exist
+        // Add default error messages to the first properties file if they don't exist anywhere
         Map<String, String> defaults = new HashMap<>();
         defaults.put("plugin.errors.internal.file.blank", "File name is blank");
         defaults.put("plugin.errors.internal.file.invalid", "Invalid file path");
         defaults.put("plugin.errors.internal.file.notfound", "File not found");
         defaults.put("plugin.errors.internal.unexpected", "An unexpected error occurred");
 
+        Properties primaryProps = this.propertyFiles.get(0);
         for (Map.Entry<String, String> entry : defaults.entrySet()) {
-            this.propertyFile.putIfAbsent(entry.getKey(), entry.getValue());
+            // Only add if the key doesn't exist in any properties file
+            if (!hasKey(entry.getKey())) {
+                primaryProps.putIfAbsent(entry.getKey(), entry.getValue());
+            }
         }
     }
 
@@ -325,12 +340,13 @@ public class LocalizedMessages {
      * Initializes minimal messages when no localization file could be loaded.
      */
     private void initializeMinimalMessages() {
-        this.propertyFile = new Properties();
-        this.propertyFile.setProperty("plugin.errors.internal.file.blank", "File name is blank");
-        this.propertyFile.setProperty("plugin.errors.internal.file.invalid", "Invalid file path");
-        this.propertyFile.setProperty("plugin.errors.internal.file.notfound", "File not found");
-        this.propertyFile.setProperty("plugin.errors.internal.unexpected", "An unexpected error occurred");
-        this.propertyFile.setProperty("plugin.errors.configuration.missing", "Configuration is missing");
+        Properties minimalProps = new Properties();
+        minimalProps.setProperty("plugin.errors.internal.file.blank", "File name is blank");
+        minimalProps.setProperty("plugin.errors.internal.file.invalid", "Invalid file path");
+        minimalProps.setProperty("plugin.errors.internal.file.notfound", "File not found");
+        minimalProps.setProperty("plugin.errors.internal.unexpected", "An unexpected error occurred");
+        minimalProps.setProperty("plugin.errors.configuration.missing", "Configuration is missing");
+        this.propertyFiles.add(minimalProps);
         logger.info("Initialized with minimal error messages");
     }
 
