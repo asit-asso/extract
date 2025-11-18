@@ -60,7 +60,7 @@ nav:
     - how-to/fme-form.md
     - how-to/fme-flow.md
     - how-to/python.md
-    # - how-to/qgis-server-atlas.md
+    - how-to/qgis-server-atlas.md
   - Miscellaneous:
     - misc/viageo-test.md 
 

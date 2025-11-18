@@ -2,7 +2,7 @@
 
 !!! info
 
-    This tutorial uses the extraction plugin `Extraction Python` allows you to run a custom Python script. A functional Python interpreter for the script (version, dependencies, etc.) must be provided.
+    This tutorial uses the extraction plugin `Extraction Python` that allows you to run a custom Python script. A functional Python interpreter for the script (version, dependencies, etc.) must be provided.
 
 To follow along with this tutorial, you can download the sample script and data available [here](https://github.com/benoitregamey/extraction-samples). Either by cloning the repo :
 
