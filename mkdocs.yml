@@ -59,7 +59,7 @@ nav:
     - how-to/extract-viageo.md
     - how-to/fme-form.md
     - how-to/python.md
-    # - how-to/fme-flow.md
+    - how-to/fme-flow.md
     # - how-to/qgis-server-atlas.md
   - Miscellaneous:
     - misc/viageo-test.md 

@@ -14,7 +14,7 @@ Or downloading a ZIP archive with the following link : https://github.com/benoit
 
 ## Set up the FME workspace
 
-1. In the downloaded folder, go to the subfolder `fme-form` and open up the `sample-script-FME2024.fmw` FME workspace.
+1. In the downloaded folder, go to the subfolder `fme` and open up the `sample-script-FME2024.fmw` FME workspace.
 
 2. The workspace uses a `creator` as a starting point.
 
@@ -50,12 +50,18 @@ Or downloading a ZIP archive with the following link : https://github.com/benoit
 
 1. In Extract, create a new or use an existing process (see [processes](../features/admin-guide.md#processes)).
 
-2. Drag and drop the task plugin `FME Form Extraction (Version 2)` into the process task list.
+2. Drag and drop the task plugin `Extraction FME Form (Version 2)` into the process task list.
 
 3. In the field `Chemin du workspace FME`, type the path where your FME workspace is. In the field `Chemin du programme FME (fme.exe)`, type the path where your FME executable is. In the field `Nombre de fme.exe lancés par ce workspace (défaut = 1, max = 8)`, type the number of FME executable needed in parallel for your workspace (for our example, only one is needed).
 
     ![plugin](../assets/how-to/fme-form/plugin.png)
 
-4. To the test the extraction, you can link this process to viageo (see [Connect Extract to viageo.ch](../how-to/extract-viageo.md)). With our example, the linked resource can be orderable over the entire Switzerland in the following format : `shapefile`, `geopackage`, `GeoJSON` and `DXF`. 
+4. To test the extraction, you can link this process to viageo (see [Connect Extract to viageo.ch](../how-to/extract-viageo.md)). With our example, the linked resource can be orderable over the entire Switzerland in the following format : `shapefile`, `geopackage`, `GeoJSON` and `DXF`. 
 
 5. Finally, you can order the linked product on viageo, Extract will retrieve the request and run the FME workspace with all request parameters carried out in the GeoJSON parameters file.
+
+<br>
+<br>
+<br>
+<br>
+<br>
