@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,24 +31,23 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
 @Transactional
 @Tag("integration")
-public class CancelledRequestWithoutRulesTest {
+public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Autowired
     private MockMvc mockMvc;
-    
+
     @Autowired
     private RequestsRepository requestsRepository;
-    
+
     @Autowired
     private ConnectorsRepository connectorsRepository;
-    
+
     private Request cancelledRequestWithoutRules;
     private Request normalRequest;
     private Connector testConnector;
-    
+
     @BeforeEach
     public void setUp() {
         // Create a test connector
@@ -56,7 +55,7 @@ public class CancelledRequestWithoutRulesTest {
         testConnector.setName("Test Connector for #337");
         testConnector.setActive(Boolean.TRUE);
         testConnector = connectorsRepository.save(testConnector);
-        
+
         // Create a cancelled request without matching rules (unmatched)
         cancelledRequestWithoutRules = new Request();
         cancelledRequestWithoutRules.setProductLabel("Cancelled Request Without Rules");
@@ -68,7 +67,7 @@ public class CancelledRequestWithoutRulesTest {
         cancelledRequestWithoutRules.setRemark("Cancelled: No matching rules found");
         cancelledRequestWithoutRules.setConnector(testConnector);
         cancelledRequestWithoutRules = requestsRepository.save(cancelledRequestWithoutRules);
-        
+
         // Create a normal request for comparison
         normalRequest = new Request();
         normalRequest.setProductLabel("Normal Request");
@@ -80,8 +79,9 @@ public class CancelledRequestWithoutRulesTest {
         normalRequest.setConnector(testConnector);
         normalRequest = requestsRepository.save(normalRequest);
     }
-    
+
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @DisplayName("Should render details page for cancelled request without matching rules")
     public void testDetailsPageForCancelledRequestWithoutRules() throws Exception {
         mockMvc.perform(get("/requests/details/" + cancelledRequestWithoutRules.getId()))
@@ -95,8 +95,9 @@ public class CancelledRequestWithoutRulesTest {
             .andExpect(xpath("//button[@id='errorRetryMatchingButton']").exists())
             .andExpect(xpath("//button[@id='errorCancelButton']").exists());
     }
-    
+
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @DisplayName("Should handle null outputFiles without errors")
     public void testNullOutputFilesHandling() throws Exception {
         // Create request with explicitly null conditions
@@ -110,7 +111,7 @@ public class CancelledRequestWithoutRulesTest {
         requestWithNulls.setConnector(testConnector);
         requestWithNulls.setRemark("Error: Processing failed");
         requestWithNulls = requestsRepository.save(requestWithNulls);
-        
+
         mockMvc.perform(get("/requests/details/" + requestWithNulls.getId()))
             .andExpect(status().isOk())
             .andExpect(view().name("pages/requests/details"))
@@ -120,8 +121,9 @@ public class CancelledRequestWithoutRulesTest {
             .andExpect(content().string(not(containsString("NullPointerException"))))
             .andExpect(content().string(not(containsString("Error 500"))));
     }
-    
+
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @DisplayName("Should not show download button when outputFiles is null")
     public void testDownloadButtonNotShownForNullFiles() throws Exception {
         mockMvc.perform(get("/requests/details/" + cancelledRequestWithoutRules.getId()))
@@ -129,8 +131,9 @@ public class CancelledRequestWithoutRulesTest {
             // The download button should not be present
             .andExpect(xpath("//button[@id='file-download-button']").doesNotExist());
     }
-    
+
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @DisplayName("Normal request should still work correctly")
     public void testNormalRequestStillWorks() throws Exception {
         mockMvc.perform(get("/requests/details/" + normalRequest.getId()))
@@ -139,8 +142,9 @@ public class CancelledRequestWithoutRulesTest {
             .andExpect(model().attributeExists("request"))
             .andExpect(content().string(containsString("ORDER-337-NORMAL")));
     }
-    
+
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     @DisplayName("Admin should see all details even with null fields")
     public void testAdminViewWithNullFields() throws Exception {
         mockMvc.perform(get("/requests/details/" + cancelledRequestWithoutRules.getId()))
