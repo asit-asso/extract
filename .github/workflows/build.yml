@@ -118,7 +118,7 @@ jobs:
                    verbose: true
                    
              - name: Execute functional tests
-               run: mvn -q verify -Pfunctional-tests --batch-mode
+               run: mvn -q verify -DskipTests=false -Pfunctional-tests --batch-mode
                   
              # - name: "Publish test results"
                # if: success() || failure()
