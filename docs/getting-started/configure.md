@@ -26,7 +26,15 @@ Relative path to directory containing email notification templates. If the path 
 ``WEB-INF/classes`` directory, it must be prefixed with ``classpath:/``.
 
 **extract.i18n.language**<br>
-Language code used by the application. A directory with the same name containing the application's language files must exist in the ``WEB-INF/classes/static/lang`` directory. If this is not the case, you can add a new language (see [Add a new language section](../customize/#add-a-new-language)).
+Language ISO code used by the application. A single code means the application is in monolingual mode. Several codes separated by comma means the application is in multilingual mode (language set in users preferences). In multilingual mode, the first one acts as the default language (e.g. for fallback, creation of first user, etc.). Here are a couple of examples:
+
+* `extract.i18n.language=fr` Extract is in french
+* `extract.i18n.language=de` Extract is in german
+* `extract.i18n.language=fr,de` Extract is in french and german, french being the default language
+
+All codes must have a directory with the same name containing the application's language files under ``WEB-INF/classes/static/lang`` and in all plugin `lang` directory. If this is not the case, you can add a new language (see [Add a new language section](../customize/#add-a-new-language)).
+
+By default, Extract supports french (`fr`) and german (`de`).
 
 **http.proxyHost**<br>
 Server name to be used as proxy for external connections. This property can be omitted if no proxy is used.

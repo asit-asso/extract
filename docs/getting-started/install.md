@@ -28,7 +28,14 @@ It is normal for any automatic start-up of the application after deployment to f
     * **spring.datasource.username** : Database user name
     * **spring.datasource.password** : Database user password
 
-6. (Optional:) If necessary, change the application language using the `extract.i18n.language` property in the `application.properties` file. The value must be the ISO code of the desired language (e.g. `en`). Translation files for this language must exist in a directory of the same name under `WEB-INF\classes\static\lang`. To add a new language, please refer to [Add a new language section](../customize/#add-a-new-language).
+6. (Optional) By default, Extract is in french but you can set it in german or in multilingual mode (french and german). In multilingual mode, users can choose their language preference. To do that, you must change the `extract.i18n.language` property in the `application.properties` file. The value must be the ISO code of the desired language (e.g. `de`). To set it up in multilingual mode, all languages ISO codes must be given separated by comma. The first one acts as the default language (e.g. for fallback, creation of first user, etc.). Here are a couple of examples :
+
+    * `extract.i18n.language=fr` Extract is in french
+    * `extract.i18n.language=de` Extract is in german
+    * `extract.i18n.language=fr,de` Extract is in french and german, french being the default language
+
+    To add a new language, please refer to [Add a new language section](../customize/#add-a-new-language).
+
 7.	Enter the application URL using the `application.external.url` property. The value of this property is used to generate links in notification e-mails.
 8.	Enter a random 32-character ISO-8859-1 string for `database.encryption.secret` and `database.encryption.salt` properties. These strings are used as keys to encrypt certain database values.
 9.	Save the file.
@@ -39,6 +46,8 @@ It is normal for any automatic start-up of the application after deployment to f
 14.	Connect to the application. When logging in for the first time, the user must create an admin account:
 
     ![Create admin user](../assets/install/create_admin.png)
+
+    If the application is in multilingual mode, the language preference of the admin user will be the language of the browser, if it exists in the Extract languages. If not, it will be the default language of Extract. The language can be changed later on (see [Current user administration](../features/user-guide.md#current-user-administration)).
 
 15.	Fill in the fields and click `Créer le compte`.
 16.	Go to `Paramètres`.
