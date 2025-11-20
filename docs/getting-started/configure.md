@@ -32,7 +32,7 @@ Language ISO code used by the application. A single code means the application i
 * `extract.i18n.language=de` Extract is in german
 * `extract.i18n.language=fr,de` Extract is in french and german, french being the default language
 
-All codes must have a directory with the same name containing the application's language files under ``WEB-INF/classes/static/lang`` and in all plugin `lang` directory. If this is not the case, you can add a new language (see [Add a new language section](../customize/#add-a-new-language)).
+All codes must have corresponding application's language files (usually `messages.properties`, `messages.js` and `*Help.html`) under ``WEB-INF/classes``, `WEB-INF/classes/static/lang` and in all plugin `lang` directory. If this is not the case, you can add a new language (see [Add a new language section](../customize/#add-a-new-language)).
 
 By default, Extract supports french (`fr`) and german (`de`).
 

@@ -66,6 +66,7 @@ By clicking on the user’s name, the following settings can be managed:
 
 * Enable or disable two-factor authentication
 * Choose whether to receive email notifications
+* Change the language preference (if Extract is in multilingual mode)
 
 **For local (non-LDAP) users only:**
 

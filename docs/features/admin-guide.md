@@ -13,6 +13,20 @@ This page lists all users, whether active or inactive. You can:
     * A user directly associated with a process
     * The last active user of a group associated with a process
 
+It includes a filtering feature based on the following criteria:
+
+* Text search (partial and case insensitive) in the following fields:
+    * Login
+    * Name
+    * Email address
+
+* User's role
+* User's state
+* User's notifications status
+* User's 2FA status
+
+The search is executed only when you click the green **search button** (magnifying glass icon). Alternatively, you can start the search by pressing **Enter** while focused on a search field.
+
 ### User settings
 ![Users settings](../assets/admin-guide/users-settings.png){width="1000"}
 
@@ -26,6 +40,7 @@ User's settings are:
 * Whether email notifications are enabled. Only operator-type notifications are affected. Even if notifications are deactivated, the user will continue to receive emails allowing them to reset their password. All notifications for administrators are not affected by this setting.
 * The password they use to log in. If the password is changed, it must follow the password policy.
 * Whether two-factor authentication should be required for the user. In this case, the user will have to register with Google Authenticator (or compatible) the next time they log in, without the option to cancel the registration. If you choose not to require two-factor authentication, the user can still choose to enable it.
+* User language preference (if Extract is in multilingual mode)
 
 <br>
 Using the buttons at the top of the page, administrators can:
@@ -40,6 +55,7 @@ If the user is an LDAP user, the only changes available in Extract are:
 
 * Email notifications status
 * Two-factor authentication status (including the option to enforce it or not)
+* User language preference (if Extract is in multilingual mode)
 
 ### Users groups
 User groups allow operators to be grouped together to be assigned to a process as a group. Group settings are accessed from the user list.
@@ -73,6 +89,8 @@ This page lists all processes whether or not they are associated with a rule. Fo
 * **Edit a process** by clicking on its name
 * **Duplicate a process** by clicking on the green button with a copy icon. An identical copy of the process will be created, including its tasks and settings.
 * **Delete a process** by clicking on the red button with a cross. Processes associated with a request that is not completed or associated with a connector's rule cannot be deleted (grayed out button).
+
+It includes a filtering feature based on the name of the process. The search is executed only when you click the green **search button** (magnifying glass icon). Alternatively, you can start the search by pressing **Enter** while focused on the search field.
 
 ### Process details
 
@@ -113,6 +131,8 @@ This page lists all defined connectors, whether active or not. Following actions
 * **Create** a new connector by clicking the ``Nouveau connecteur`` button, then choosing a server type from the drop-down list
 * **Edit** a connector by clicking on its name
 * **Delete** a connector by clicking the red button with the cross. It is not possible to delete a connector with running requests (grayed out button).
+
+It includes a filtering feature based on the name of the process and the connector's type. The search is executed only when you click the green **search button** (magnifying glass icon). Alternatively, you can start the search by pressing **Enter** while focused on the search field.
 
 ### Connector details
 
