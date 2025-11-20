@@ -265,9 +265,6 @@
                             <includes>
                                 <include>**/unit/**/*Test.java</include>
                             </includes>
-                            <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
-                            </classpathDependencyExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -287,10 +284,6 @@
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
-
-                            <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
-                            </classpathDependencyExcludes>
                             <systemPropertyVariables>
                                 <extract.log.path>/tmp/log/extract</extract.log.path>
                             </systemPropertyVariables>
