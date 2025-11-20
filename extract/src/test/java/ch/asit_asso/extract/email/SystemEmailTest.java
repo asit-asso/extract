@@ -29,13 +29,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
+import org.thymeleaf.context.IContext;
+import org.thymeleaf.templatemode.TemplateMode;
+import org.thymeleaf.templateresolver.StringTemplateResolver;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -55,9 +57,21 @@ public class SystemEmailTest {
     public void setUp() throws Exception {
         // Create mock objects for testing
         SystemParametersRepository mockRepo = Mockito.mock(SystemParametersRepository.class);
-        MessageSource mockMessageSource = Mockito.mock(MessageSource.class);
-        mockTemplateEngine = Mockito.mock(TemplateEngine.class);
-        
+
+        // Create a real TemplateEngine with a StringTemplateResolver for testing
+        mockTemplateEngine = new TemplateEngine();
+        StringTemplateResolver templateResolver = new StringTemplateResolver();
+        templateResolver.setTemplateMode(TemplateMode.HTML);
+        mockTemplateEngine.setTemplateResolver(templateResolver);
+
+        // Create mockMessageSource with Answer that returns the message key
+        MessageSource mockMessageSource = Mockito.mock(MessageSource.class, invocation -> {
+            if ("getMessage".equals(invocation.getMethod().getName())) {
+                return invocation.getArgument(0); // Return the message key as the message
+            }
+            return Mockito.RETURNS_DEFAULTS.answer(invocation);
+        });
+
         // Mock the repository to return our test email settings
         when(mockRepo.isEmailNotificationEnabled()).thenReturn("true");
         when(mockRepo.getSmtpServer()).thenReturn("smtp.test.com");
@@ -67,7 +81,7 @@ public class SystemEmailTest {
         when(mockRepo.getSmtpUser()).thenReturn(null);
         when(mockRepo.getSmtpPassword()).thenReturn(null);
         when(mockRepo.getSmtpSSL()).thenReturn("NONE");
-        
+
         // Create EmailSettings with correct constructor parameters
         mockEmailSettings = new EmailSettings(mockRepo, mockTemplateEngine, mockMessageSource, "http://localhost:8080");
         

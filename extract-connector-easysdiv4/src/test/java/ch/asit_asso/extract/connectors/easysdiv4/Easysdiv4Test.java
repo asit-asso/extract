@@ -230,7 +230,7 @@ public class Easysdiv4Test {
     @DisplayName("Check the help file name")
     public final void testGetHelp() {
         Easysdiv4 instance = new Easysdiv4(Easysdiv4Test.INSTANCE_LANGUAGE);
-        String expResult = this.messages.getString(Easysdiv4Test.HELP_STRING_IDENTIFIER);
+        String expResult = this.messages.getFileContent("help.html");
 
         String result = instance.getHelp();
 
