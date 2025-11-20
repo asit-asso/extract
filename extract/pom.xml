@@ -285,6 +285,9 @@
                             <classpathDependencyExcludes>
                                 <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
                             </classpathDependencyExcludes>
+                            <systemPropertyVariables>
+                                <extract.log.path>/tmp/log/extract</extract.log.path>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -303,6 +306,9 @@
                             <includes>
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>
                             </includes>
+                            <systemPropertyVariables>
+                                <extract.log.path>/tmp/log/extract</extract.log.path>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>

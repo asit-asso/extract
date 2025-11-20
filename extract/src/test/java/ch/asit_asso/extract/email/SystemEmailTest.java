@@ -126,12 +126,13 @@ public class SystemEmailTest {
         // Arrange
         TaskFailedEmail email = new TaskFailedEmail(mockEmailSettings);
         String errorMessage = "Export failed: Invalid coordinate system";
-        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+        Calendar failureTime = new GregorianCalendar();
+        failureTime.add(Calendar.HOUR, -1); // 1 hour ago
         String[] recipients = {"admin@test.com", "operator@test.com"};
-        
+
         // Act
         boolean initialized = email.initialize(testTask, testRequest, errorMessage, failureTime, recipients);
-        
+
         // Assert
         assertTrue(initialized);
     }
@@ -144,9 +145,9 @@ public class SystemEmailTest {
                 // Verify the context contains all expected variables
                 assertNotNull(context.getVariable("taskName"));
                 assertEquals("Data Export Task", context.getVariable("taskName"));
-                
+
                 assertNotNull(context.getVariable("errorMessage"));
-                
+
                 // Check RequestModelBuilder variables
                 assertEquals("ORDER-2024-001", context.getVariable("orderLabel"));
                 assertEquals("Cadastral Data Extract", context.getVariable("productLabel"));
@@ -154,11 +155,11 @@ public class SystemEmailTest {
                 assertEquals("Regional Planning Office", context.getVariable("organism"));
                 assertEquals("Engineering Consultants Ltd", context.getVariable("tiers"));
                 assertEquals("2500.75", context.getVariable("surface"));
-                
+
                 // Check dynamic parameters
                 assertNotNull(context.getVariable("parameters"));
                 assertNotNull(context.getVariable("parametersJson"));
-                
+
                 // Parameters should be accessible with lowercase keys
                 @SuppressWarnings("unchecked")
                 java.util.Map<String, Object> params = (java.util.Map<String, Object>) context.getVariable("parameters");
@@ -167,9 +168,10 @@ public class SystemEmailTest {
                 assertEquals("500", params.get("scale"));
             }
         };
-        
+
         String errorMessage = "Processing failed";
-        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+        Calendar failureTime = new GregorianCalendar();
+        failureTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         email.initializeContent(testTask, testRequest, errorMessage, failureTime);
@@ -220,7 +222,8 @@ public class SystemEmailTest {
         // Arrange
         RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
         String errorMessage = "Connection timeout to external server";
-        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        Calendar exportTime = new GregorianCalendar();
+        exportTime.add(Calendar.HOUR, -1); // 1 hour ago
         String[] recipients = {"admin@test.com", "support@test.com"};
 
         // Act
@@ -235,7 +238,8 @@ public class SystemEmailTest {
         // Arrange
         RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
         String errorMessage = "Connection timeout to external server";
-        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        Calendar exportTime = new GregorianCalendar();
+        exportTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         boolean initialized = email.initializeContent(testRequest, errorMessage, exportTime);
@@ -249,7 +253,8 @@ public class SystemEmailTest {
         // Arrange
         RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
         String errorMessage = "Timeout de connexion au serveur externe";
-        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        Calendar exportTime = new GregorianCalendar();
+        exportTime.add(Calendar.HOUR, -1); // 1 hour ago
         java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
 
         // Act
@@ -264,7 +269,8 @@ public class SystemEmailTest {
         // Arrange
         RequestExportFailedEmail email = new RequestExportFailedEmail(mockEmailSettings);
         String errorMessage = "Verbindungs-Timeout zum externen Server";
-        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        Calendar exportTime = new GregorianCalendar();
+        exportTime.add(Calendar.HOUR, -1); // 1 hour ago
         java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
 
         // Act
@@ -293,7 +299,8 @@ public class SystemEmailTest {
         };
 
         String errorMessage = "Test error";
-        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
+        Calendar exportTime = new GregorianCalendar();
+        exportTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         email.initializeContent(testRequest, errorMessage, exportTime, germanLocale);
@@ -306,7 +313,8 @@ public class SystemEmailTest {
         testConnector.setName("Test Connector");
         ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings);
         String errorMessage = "Connection refused by remote server";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         boolean initialized = email.initializeContent(testConnector, errorMessage, importTime);
@@ -322,7 +330,8 @@ public class SystemEmailTest {
         testConnector.setName("Connecteur de Test");
         ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings);
         String errorMessage = "Connexion refusée par le serveur distant";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
         java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
 
         // Act
@@ -339,7 +348,8 @@ public class SystemEmailTest {
         testConnector.setName("Test-Konnektor");
         ConnectorImportFailedEmail email = new ConnectorImportFailedEmail(mockEmailSettings);
         String errorMessage = "Verbindung vom entfernten Server abgelehnt";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
         java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
 
         // Act
@@ -369,7 +379,8 @@ public class SystemEmailTest {
         };
 
         String errorMessage = "Test import error";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         email.initializeContent(testConnector, errorMessage, importTime, germanLocale);
@@ -442,7 +453,8 @@ public class SystemEmailTest {
         // Arrange
         InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings);
         String errorMessage = "Product has no geometry";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         boolean initialized = email.initializeContent(testRequest, errorMessage, importTime);
@@ -456,7 +468,8 @@ public class SystemEmailTest {
         // Arrange
         InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings);
         String errorMessage = "Le produit n'a pas de géométrie";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
         java.util.Locale frenchLocale = java.util.Locale.forLanguageTag("fr");
 
         // Act
@@ -471,7 +484,8 @@ public class SystemEmailTest {
         // Arrange
         InvalidProductImportedEmail email = new InvalidProductImportedEmail(mockEmailSettings);
         String errorMessage = "Das Produkt hat keine Geometrie";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
         java.util.Locale germanLocale = java.util.Locale.forLanguageTag("de");
 
         // Act
@@ -503,7 +517,8 @@ public class SystemEmailTest {
         };
 
         String errorMessage = "Test product error";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         email.initializeContent(testRequest, errorMessage, importTime, germanLocale);
@@ -518,21 +533,22 @@ public class SystemEmailTest {
                 assertEquals("ORDER-2024-001", context.getVariable("orderLabel"));
                 assertEquals("Cadastral Data Extract", context.getVariable("productLabel"));
                 assertEquals("Test Connector", context.getVariable("connectorName"));
-                
+
                 // Verify all extended fields
                 assertEquals("Engineering Consultants Ltd", context.getVariable("tiers"));
                 assertEquals("2500.75", context.getVariable("surface"));
                 assertNotNull(context.getVariable("startDate"));
                 assertNotNull(context.getVariable("endDate"));
-                
+
                 // Check aliases for backward compatibility
                 assertEquals("Municipality of Test City", context.getVariable("clientName"));
                 assertEquals("Regional Planning Office", context.getVariable("organisationName"));
             }
         };
-        
+
         String errorMessage = "Product configuration invalid";
-        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
+        Calendar importTime = new GregorianCalendar();
+        importTime.add(Calendar.HOUR, -1); // 1 hour ago
         String[] recipients = {"admin@test.com"};
 
         // Act
@@ -626,7 +642,7 @@ public class SystemEmailTest {
         Request minimalRequest = new Request();
         minimalRequest.setOrderLabel("MIN-ORDER");
         minimalRequest.setProductLabel("Basic Product");
-        
+
         TaskFailedEmail email = new TaskFailedEmail(mockEmailSettings) {
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify null values are handled as empty strings
@@ -639,7 +655,7 @@ public class SystemEmailTest {
                 assertEquals("", context.getVariable("perimeter"));
                 assertEquals("", context.getVariable("startDate"));
                 assertEquals("", context.getVariable("endDate"));
-                
+
                 // Parameters should be empty map when null
                 @SuppressWarnings("unchecked")
                 java.util.Map<String, Object> params = (java.util.Map<String, Object>) context.getVariable("parameters");
@@ -647,14 +663,15 @@ public class SystemEmailTest {
                 assertTrue(params.isEmpty());
             }
         };
-        
+
         Connector connector = new Connector();
         connector.setName("Test");
         minimalRequest.setConnector(connector);
-        
+
         Task task = new Task();
         task.setLabel("Test Task");
-        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+        Calendar failureTime = new GregorianCalendar();
+        failureTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         email.initializeContent(task, minimalRequest, "Error", failureTime);
@@ -682,22 +699,23 @@ public class SystemEmailTest {
     public void testEmailWithInvalidJSON() {
         // Arrange
         testRequest.setParameters("not valid json {");
-        
+
         TaskFailedEmail email = new TaskFailedEmail(mockEmailSettings) {
             protected void setContentFromTemplate(String template, Context context) {
                 // Should handle invalid JSON gracefully
                 assertEquals("not valid json {", context.getVariable("parametersJson"));
-                
+
                 @SuppressWarnings("unchecked")
                 java.util.Map<String, Object> params = (java.util.Map<String, Object>) context.getVariable("parameters");
                 assertNotNull(params);
                 assertTrue(params.isEmpty());
             }
         };
-        
+
         Task task = new Task();
         task.setLabel("Task");
-        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+        Calendar failureTime = new GregorianCalendar();
+        failureTime.add(Calendar.HOUR, -1); // 1 hour ago
 
         // Act
         email.initializeContent(task, testRequest, "Error", failureTime);

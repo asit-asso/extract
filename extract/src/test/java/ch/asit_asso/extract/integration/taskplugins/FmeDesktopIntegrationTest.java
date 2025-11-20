@@ -34,7 +34,7 @@ public class FmeDesktopIntegrationTest {
 
     public static final ITaskProcessorResult.Status EXPECTED_SUCCESS_STATUS = ITaskProcessorResult.Status.SUCCESS;
 
-    public static final String EXPECTED_FR_NO_FILES_MESSAGE = "L’extraction FME n’a généré aucun fichier.";
+    public static final String EXPECTED_FR_NO_FILES_MESSAGE = "L'extraction FME n'a généré aucun fichier.";
 
     public static final ITaskProcessorResult.Status EXPECTED_ERROR_STATUS = ITaskProcessorResult.Status.ERROR;
 
