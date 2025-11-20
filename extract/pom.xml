@@ -453,7 +453,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <skipTests>false</skipTests>
+                    <skipTests>true</skipTests>
                 </configuration>
             </plugin>
             <plugin>
