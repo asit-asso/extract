@@ -169,8 +169,8 @@ public class SystemEmailTest {
         };
         
         String errorMessage = "Processing failed";
-        Calendar failureTime = new GregorianCalendar();
-        
+        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+
         // Act
         email.initializeContent(testTask, testRequest, errorMessage, failureTime);
     }
@@ -293,7 +293,7 @@ public class SystemEmailTest {
         };
 
         String errorMessage = "Test error";
-        Calendar exportTime = new GregorianCalendar();
+        Calendar exportTime = new GregorianCalendar(2024, Calendar.MARCH, 6, 10, 15);
 
         // Act
         email.initializeContent(testRequest, errorMessage, exportTime, germanLocale);
@@ -369,7 +369,7 @@ public class SystemEmailTest {
         };
 
         String errorMessage = "Test import error";
-        Calendar importTime = new GregorianCalendar();
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 10, 8, 30);
 
         // Act
         email.initializeContent(testConnector, errorMessage, importTime, germanLocale);
@@ -503,7 +503,7 @@ public class SystemEmailTest {
         };
 
         String errorMessage = "Test product error";
-        Calendar importTime = new GregorianCalendar();
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
 
         // Act
         email.initializeContent(testRequest, errorMessage, importTime, germanLocale);
@@ -532,9 +532,9 @@ public class SystemEmailTest {
         };
         
         String errorMessage = "Product configuration invalid";
-        Calendar importTime = new GregorianCalendar();
+        Calendar importTime = new GregorianCalendar(2024, Calendar.MARCH, 12, 11, 45);
         String[] recipients = {"admin@test.com"};
-        
+
         // Act
         email.initialize(testRequest, errorMessage, importTime, recipients);
     }
@@ -544,7 +544,8 @@ public class SystemEmailTest {
         // Arrange
         ch.asit_asso.extract.domain.Process process = new ch.asit_asso.extract.domain.Process();
         process.setName("Standard Export Process");
-        
+        testRequest.setProcess(process);
+
         TaskStandbyEmail email = new TaskStandbyEmail(mockEmailSettings) {
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify process-specific variable
@@ -575,7 +576,8 @@ public class SystemEmailTest {
         // Arrange
         ch.asit_asso.extract.domain.Process process = new ch.asit_asso.extract.domain.Process();
         process.setName("Manual Validation Process");
-        
+        testRequest.setProcess(process);
+
         StandbyReminderEmail email = new StandbyReminderEmail(mockEmailSettings) {
             protected void setContentFromTemplate(String template, Context context) {
                 // Verify all variables including new ones from issue #323
@@ -652,9 +654,10 @@ public class SystemEmailTest {
         
         Task task = new Task();
         task.setLabel("Test Task");
-        
+        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+
         // Act
-        email.initializeContent(task, minimalRequest, "Error", new GregorianCalendar());
+        email.initializeContent(task, minimalRequest, "Error", failureTime);
     }
     
     @Test
@@ -694,8 +697,9 @@ public class SystemEmailTest {
         
         Task task = new Task();
         task.setLabel("Task");
-        
+        Calendar failureTime = new GregorianCalendar(2024, Calendar.MARCH, 5, 14, 30);
+
         // Act
-        email.initializeContent(task, testRequest, "Error", new GregorianCalendar());
+        email.initializeContent(task, testRequest, "Error", failureTime);
     }
 }
