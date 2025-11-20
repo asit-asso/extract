@@ -37,18 +37,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <th th:text="#{email.taskFailed.failureTime.label}">{Time of failure}</th>
                     <td th:text="${failureTimeString}">{2017-04-10 11:43:58}</td>
                 </tr>
-                <tr th:if="${!#strings.isEmpty(clientName)}">
-                    <th th:text="#{email.common.client.label}">{Client}</th>
-                    <td th:text="${clientName}">{Client Name}</td>
-                </tr>
-                <tr th:if="${!#strings.isEmpty(organisationName)}">
-                    <th th:text="#{email.common.organisation.label}">{Organisation}</th>
-                    <td th:text="${organisationName}">{Organisation Name}</td>
-                </tr>
-                <tr th:if="${!#strings.isEmpty(clientRemark)}">
-                    <th th:text="#{email.common.remark.label}">{Remark}</th>
-                    <td th:text="${clientRemark}">{Client Remark}</td>
-                </tr>
             </table>
             <p>
                 <span th:text="#{email.taskFailed.action}">{Please go the dashboard.}</span>
