@@ -107,8 +107,8 @@ jobs:
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
                
              - name: Execute integration tests
-               run: mvn -q verify -Pintegration-tests --batch-mode
-               
+               run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
+
              - name: Wait on Extract application deployment
                uses: iFaxity/wait-on-action@v1.2.1
                with:
@@ -116,9 +116,9 @@ jobs:
                    interval: 5000
                    timeout: 150000
                    verbose: true
-                   
+
              - name: Execute functional tests
-               run: mvn -q verify -Pfunctional-tests --batch-mode
+               run: mvn -q verify -Pfunctional-tests --batch-mode --fail-at-end
                   
              # - name: "Publish test results"
                # if: success() || failure()
@@ -137,15 +137,15 @@ jobs:
                if: success() || failure()
                with:
                    name: "Integration tests"
-                   path: "**/failsafe-reports/TEST-*.integration.*.xml"
+                   path: "**/failsafe-reports/TEST-*IntegrationTest.xml"
                    reporter: "java-junit"
-                 
+
              - name: "Publish functional test results"
                uses: dorny/test-reporter@v1
                if: success() || failure()
                with:
                    name: "Functional tests"
-                   path: "**/failsafe-reports/TEST-*.functional.*.xml"
+                   path: "**/failsafe-reports/TEST-*FunctionalTest.xml"
                    reporter: "java-junit"
                  
              # - name: Change tomcat log permissions (so we can upload them)
