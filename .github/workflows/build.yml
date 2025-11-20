@@ -1,6 +1,6 @@
 name: build-extract-actions
 run-name: Testing Extract after pull request by ${{ github.actor }}
-on: 
+on:
     workflow_dispatch : ~
     pull_request:
         types: [opened, reopened]

@@ -28,6 +28,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -81,25 +82,28 @@ public class I18nConfiguration {
         this.logger.debug("Configuring the message source for languages: {}.", this.language);
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
 
+        // la collection des base names
+        List<String> basenames = new ArrayList<>();
+
         // Use standard Spring basename for messages with locale suffixes
-        // This will look for messages.properties, messa_uk_fr.properties, messa_uk_en.properties, etc.
-        String basename = "classpath:messages";
+        // This will look for messages.properties, messages_fr.properties, messages_en.properties, etc.
+        basenames.add("classpath:messages");
 
         // For backward compatibility, also check the old path structure
-        String defaultLang = this.language.split(",")[0].trim();
-        String extractBasename = null;
-        if (defaultLang.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
-            extractBasename = String.format(I18nConfiguration.EXTRACT_MESSAGES_BASENAME_FORMAT, defaultLang);
+        String[] configuredLanguages = this.language.split(",");
+        for(var lang : configuredLanguages) {
+            String trimmedLang = lang.trim();
+            if (trimmedLang.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
+                String extractBaseName = String.format(I18nConfiguration.EXTRACT_MESSAGES_BASENAME_FORMAT, trimmedLang);
+                basenames.add(extractBaseName);
+                this.logger.debug("Adding backward compatibility basename: {}", extractBaseName);
+            }
         }
 
         // Set both basenames if the old structure exists
-        if (extractBasename != null) {
-            this.logger.debug("The message source basenames are \"{}\" and \"{}\".", basename, extractBasename);
-            messageSource.setBasenames(basename, extractBasename);
-        } else {
-            this.logger.debug("The message source basename is \"{}\".", basename);
-            messageSource.setBasenames(basename);
-        }
+        String[] basenamesArray = basenames.toArray(new String[0]);
+        this.logger.debug("Setting {} basenames: {}", basenamesArray.length, Arrays.toString(basenamesArray));
+        messageSource.setBasenames(basenamesArray);
 
         // Disable fallback to messages.properties (without locale suffix)
         messageSource.setFallbackToSystemLocale(false);
