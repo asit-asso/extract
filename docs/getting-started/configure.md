@@ -37,7 +37,7 @@ All codes must have corresponding application's language files (usually `message
 By default, Extract supports french (`fr`) and german (`de`).
 
 **check.authenticity**<br>
-Boolean value defining if the signature of executable binaries run by Extract are checked or not. By default, the value is true `check.authenticity=false` but you can set it on `false` (it 's known to cause antivirus alerts when activated).
+Boolean value defining if the signature of executable binaries run by Extract are checked or not. By default, the value is true `check.authenticity=true` but you can set it on `false` (it's known to cause antivirus alerts when set to `true`).
 
 **http.proxyHost**<br>
 Server name to be used as proxy for external connections. This property can be omitted if no proxy is used.
