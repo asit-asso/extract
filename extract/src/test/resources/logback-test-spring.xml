@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="ch.asit_asso.extract" level="INFO"/>
+    <logger name="ch.asit_asso.extract.batch" level="INFO"/>
+    <logger name="ch.asit_asso.extract.connectors" level="INFO"/>
+    <logger name="ch.asit_asso.extract.email" level="INFO"/>
+    <logger name="ch.asit_asso.extract.orchestrator" level="INFO"/>
+    <logger name="ch.asit_asso.extract.plugins" level="INFO"/>
+    <logger name="ch.asit_asso.extract.web" level="INFO"/>
+
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.thymeleaf" level="WARN"/>
+    <logger name="nz.net.ultraq.thymeleaf" level="WARN"/>
+    <logger name="javax.persistence" level="WARN"/>
+
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.test" level="INFO"/>
+
+    <root level="WARN">
+        <appender-ref ref="STDOUT"/>
+    </root>
+
+</configuration>

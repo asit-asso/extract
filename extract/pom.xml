@@ -285,7 +285,7 @@
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
                             <systemPropertyVariables>
-                                <extract.log.path>/tmp/log/extract</extract.log.path>
+                                <extract.log.path>${project.build.directory}/logs</extract.log.path>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
@@ -307,7 +307,7 @@
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>
                             </includes>
                             <systemPropertyVariables>
-                                <extract.log.path>/tmp/log/extract</extract.log.path>
+                                <extract.log.path>${project.build.directory}/logs</extract.log.path>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>
