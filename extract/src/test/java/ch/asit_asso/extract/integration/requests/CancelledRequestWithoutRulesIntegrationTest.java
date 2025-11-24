@@ -2,8 +2,6 @@ package ch.asit_asso.extract.integration.requests;
 
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
-import ch.asit_asso.extract.integration.TestSecurityConfig;
-import ch.asit_asso.extract.integration.WithMockApplicationUser;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
@@ -42,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(TestSecurityConfig.class)
 @Tag("integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class CancelledRequestWithoutRulesIntegrationTest {
@@ -106,7 +102,6 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     }
 
     @Test
-    @WithMockApplicationUser
     @DisplayName("Should render details page for cancelled request without matching rules")
     public void testDetailsPageForCancelledRequestWithoutRules() throws Exception {
         mockMvc.perform(get("/requests/" + cancelledRequestId))
@@ -128,7 +123,6 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     }
 
     @Test
-    @WithMockApplicationUser
     @DisplayName("Should handle null outputFiles without errors")
     public void testNullOutputFilesHandling() throws Exception {
         // Use the cancelled request which has null folder
@@ -143,7 +137,6 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     }
 
     @Test
-    @WithMockApplicationUser
     @DisplayName("Should not show download button when outputFiles is null")
     public void testDownloadButtonNotShownForNullFiles() throws Exception {
         mockMvc.perform(get("/requests/" + cancelledRequestId))
@@ -153,7 +146,6 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     }
 
     @Test
-    @WithMockApplicationUser
     @DisplayName("Normal request should still work correctly")
     public void testNormalRequestStillWorks() throws Exception {
         mockMvc.perform(get("/requests/" + normalRequestId))
@@ -164,7 +156,6 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     }
 
     @Test
-    @WithMockApplicationUser
     @DisplayName("Admin should see all details even with null fields")
     public void testAdminViewWithNullFields() throws Exception {
         mockMvc.perform(get("/requests/" + cancelledRequestId))
