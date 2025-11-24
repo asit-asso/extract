@@ -75,86 +75,50 @@ jobs:
                    
              - name: Install Chromium (for functional tests)
                uses: browser-actions/setup-chrome@v1
-
+               
              - name: Download artifact generated in build job
                uses: actions/download-artifact@v4
                with:
                    name: java-app
                    path: /tmp/
-
+                   
              - name: Rename artifact file to version-agnostic name
                run: find /tmp -maxdepth 1 -type f -name extract*.war | xargs -I {} mv {} /tmp/extract.war
-
+               
              - name: Create local Extract folders
-               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders
-
+               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders                       
+               
              - name: Give all permissions on Extract log folder
                run: chmod 0777 /tmp/log/extract
 
              - name: Give all permissions on Extract order folders (to create data during tests)
                run: chmod 0777 /tmp/extract/orders
-
+               
              - name: Make FME Desktop dummy executable (for integration tests)
                run: chmod +x /home/runner/work/extract/extract/extract/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest
-
-             - name: Pull Docker base images for test containers
-               run: docker compose -f docker-compose-test-ci.yaml pull --ignore-pull-failures || true
-
-             - name: Build custom Docker images
-               run: docker compose -f docker-compose-test-ci.yaml build
-
-             - name: Start Docker Compose test containers
-               run: docker compose -f docker-compose-test-ci.yaml up -d --wait
-               timeout-minutes: 10
-
+               
+             - name: Running Docker Compose file with test containers (for functional tests)
+               uses: hoverkraft-tech/compose-action@v1.5.1
+               with:
+                   compose-file: "./docker-compose-test-ci.yaml"
+                   up-flags: "--wait"
+                   
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
-
-             - name: Wait for PostgreSQL to be ready
-               run: |
-                   for i in {1..30}; do
-                     if docker exec $(docker ps -qf "ancestor=postgres:12-alpine") pg_isready -U extractuser -d extract > /dev/null 2>&1; then
-                       echo "PostgreSQL is ready"
-                       exit 0
-                     fi
-                     echo "Waiting for PostgreSQL... ($i/30)"
-                     sleep 2
-                   done
-                   echo "PostgreSQL did not become ready in time"
-                   exit 1
-
+               
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
-
-             - name: Wait for Tomcat to start
-               run: |
-                   echo "Waiting for Tomcat to deploy the application..."
-                   for i in {1..60}; do
-                     if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/extract/login | grep -q "200\|302"; then
-                       echo "Application deployed successfully"
-                       exit 0
-                     fi
-                     echo "Waiting for application deployment... ($i/60)"
-                     sleep 5
-                   done
-                   echo "Application failed to deploy - showing Tomcat logs:"
-                   docker logs tomcat
-                   echo "Extract application logs:"
-                   sudo cat /tmp/log/extract/*.log 2>/dev/null || echo "No Extract logs found"
-                   exit 1
-
+               
+             - name: Wait on Extract application deployment
+               uses: iFaxity/wait-on-action@v1.2.1
+               with:
+                   resource: http://localhost:8080/extract/login
+                   interval: 5000
+                   timeout: 150000
+                   verbose: true
+                   
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode --fail-at-end
-
-             - name: Show logs on failure
-               if: failure()
-               run: |
-                   echo "========== Tomcat logs =========="
-                   docker logs tomcat || echo "Cannot get Tomcat logs"
-                   echo "========== Extract logs =========="
-                   sudo cat /tmp/log/extract/*.log 2>/dev/null || echo "No Extract logs found"
-                   echo "========== PostgreSQL logs =========="
-                   docker logs $(docker ps -qf "ancestor=postgres:12-alpine") || echo "Cannot get PostgreSQL logs"
                   
              # - name: "Publish test results"
                # if: success() || failure()
