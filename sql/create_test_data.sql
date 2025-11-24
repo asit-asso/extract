@@ -1,5 +1,5 @@
 INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
-VALUES(2, TRUE, 'monadmin@monmail.com', 'admin', FALSE, 'Administrateur', 'e3a1803bc5fc7851c84995ca9fa3ab9b42529f911170df6a4fd96b8b9db6de21ab75eb34bb462be2',
+VALUES(2, TRUE, 'monadmin@monmail.com', 'admin', FALSE, 'Administrateur', 'c92bb53f6ac7efebb63c2ab68b87c11ab66ba104d355f9083daad5579d4265c7a892e4bc58e9b8de',
 		'ADMIN', FALSE, 'INACTIVE', 'LOCAL');
 
 INSERT INTO connectors(id_connector, active, connector_code, connector_label, connector_params, import_freq,

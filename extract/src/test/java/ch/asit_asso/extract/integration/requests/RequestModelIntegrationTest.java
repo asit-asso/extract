@@ -16,6 +16,7 @@ import org.springframework.context.MessageSource;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.nio.file.Paths;
 import java.util.GregorianCalendar;
 import java.util.Locale;
@@ -50,6 +51,9 @@ public class RequestModelIntegrationTest {
     
     @BeforeEach
     public void setUp() {
+        // Note: We don't actually need to create the folder for these tests,
+        // as RequestModel just uses it to construct paths
+
         // Create a test connector
         testConnector = new Connector();
         testConnector.setName("Test Connector");
@@ -89,10 +93,11 @@ public class RequestModelIntegrationTest {
         assertEquals(Request.Status.IMPORTFAIL, testRequestWithNullFolder.getStatus());
         
         // When: Creating a RequestModel from the database entity
+        // Use temp directory which should exist
         RequestModel model = new RequestModel(
             testRequestWithNullFolder,
             historyRepository.findByRequestOrderByStep(testRequestWithNullFolder).toArray(new ch.asit_asso.extract.domain.RequestHistoryRecord[0]),
-            Paths.get("/var/extract/data"),
+            Paths.get(System.getProperty("java.io.tmpdir")),
             messageSource,
             new String[]{}
         );
@@ -114,10 +119,11 @@ public class RequestModelIntegrationTest {
         assertEquals(Request.Status.ONGOING, testRequestWithFolder.getStatus());
         
         // When: Creating a RequestModel from the database entity
+        // Use temp directory which should exist
         RequestModel model = new RequestModel(
             testRequestWithFolder,
             historyRepository.findByRequestOrderByStep(testRequestWithFolder).toArray(new ch.asit_asso.extract.domain.RequestHistoryRecord[0]),
-            Paths.get("/var/extract/data"),
+            Paths.get(System.getProperty("java.io.tmpdir")),
             messageSource,
             new String[]{}
         );
@@ -141,10 +147,12 @@ public class RequestModelIntegrationTest {
         assertTrue(requestList.size() >= 2, "Should have at least 2 requests");
         
         // When: Creating RequestModels from the collection
+        // Use the system temp directory which should exist
+        String tempDir = System.getProperty("java.io.tmpdir");
         RequestModel[] models = RequestModel.fromDomainRequestsCollection(
             requestList,
             historyRepository,
-            "/var/extract/data",
+            tempDir,
             messageSource,
             new String[]{}
         );
