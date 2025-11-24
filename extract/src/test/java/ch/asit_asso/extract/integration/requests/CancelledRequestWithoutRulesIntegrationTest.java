@@ -2,6 +2,7 @@ package ch.asit_asso.extract.integration.requests;
 
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.integration.WithMockApplicationUser;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -41,6 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @Tag("integration")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@WithMockApplicationUser(username = "admin", role = "ADMIN")
 public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Autowired
