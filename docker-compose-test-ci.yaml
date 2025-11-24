@@ -19,6 +19,8 @@ services:
                 condition: service_started
             mailhog:
                 condition: service_started
+            update_db_on_start:
+                condition: service_completed_successfully
         volumes:
             - /tmp/extract.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
@@ -47,8 +49,8 @@ services:
     update_db_on_start:
         build: ./docker/update-db
         depends_on:
-            tomcat:
-                condition: service_healthy
+            pgsql:
+                condition: service_started
         volumes:
             - ./sql/update_db.sql:/update_db.sql
             - ./sql/create_test_data.sql:/create_test_data.sql

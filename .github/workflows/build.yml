@@ -97,11 +97,15 @@ jobs:
              - name: Make FME Desktop dummy executable (for integration tests)
                run: chmod +x /home/runner/work/extract/extract/extract/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest
 
-             - name: Running Docker Compose file with test containers
-               uses: hoverkraft-tech/compose-action@v1.5.1
-               with:
-                   compose-file: "./docker-compose-test-ci.yaml"
-                   up-flags: "--wait"
+             - name: Pull Docker base images for test containers
+               run: docker compose -f docker-compose-test-ci.yaml pull --ignore-pull-failures || true
+
+             - name: Build custom Docker images
+               run: docker compose -f docker-compose-test-ci.yaml build
+
+             - name: Start Docker Compose test containers
+               run: docker compose -f docker-compose-test-ci.yaml up -d --wait
+               timeout-minutes: 10
 
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
