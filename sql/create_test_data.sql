@@ -1,3 +1,9 @@
+-- System user (id=1) used for background tasks
+INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
+VALUES(1, FALSE, 'extract@asit-asso.ch', 'system', FALSE, 'Système', 'c92bb53f6ac7efebb63c2ab68b87c11ab66ba104d355f9083daad5579d4265c7a892e4bc58e9b8de',
+		'ADMIN', FALSE, 'INACTIVE', 'LOCAL');
+
+-- Admin user (id=2) for testing
 INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
 VALUES(2, TRUE, 'monadmin@monmail.com', 'admin', FALSE, 'Administrateur', 'c92bb53f6ac7efebb63c2ab68b87c11ab66ba104d355f9083daad5579d4265c7a892e4bc58e9b8de',
 		'ADMIN', FALSE, 'INACTIVE', 'LOCAL');
