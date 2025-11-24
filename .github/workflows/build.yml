@@ -75,37 +75,50 @@ jobs:
                    
              - name: Install Chromium (for functional tests)
                uses: browser-actions/setup-chrome@v1
-               
+
              - name: Download artifact generated in build job
                uses: actions/download-artifact@v4
                with:
                    name: java-app
                    path: /tmp/
-                   
+
              - name: Rename artifact file to version-agnostic name
                run: find /tmp -maxdepth 1 -type f -name extract*.war | xargs -I {} mv {} /tmp/extract.war
-               
+
              - name: Create local Extract folders
-               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders                       
-               
+               run: mkdir -p /tmp/log/extract; mkdir -p /tmp/log/tomcat; mkdir -p /tmp/extract/orders
+
              - name: Give all permissions on Extract log folder
                run: chmod 0777 /tmp/log/extract
 
              - name: Give all permissions on Extract order folders (to create data during tests)
                run: chmod 0777 /tmp/extract/orders
-               
+
              - name: Make FME Desktop dummy executable (for integration tests)
                run: chmod +x /home/runner/work/extract/extract/extract/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest
-               
-             - name: Running Docker Compose file with test containers (for functional tests)
+
+             - name: Running Docker Compose file with test containers
                uses: hoverkraft-tech/compose-action@v1.5.1
                with:
                    compose-file: "./docker-compose-test-ci.yaml"
                    up-flags: "--wait"
-                   
+
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
-               
+
+             - name: Wait for PostgreSQL to be ready
+               run: |
+                   for i in {1..30}; do
+                     if docker exec $(docker ps -qf "ancestor=postgres:12-alpine") pg_isready -U extractuser -d extract > /dev/null 2>&1; then
+                       echo "PostgreSQL is ready"
+                       exit 0
+                     fi
+                     echo "Waiting for PostgreSQL... ($i/30)"
+                     sleep 2
+                   done
+                   echo "PostgreSQL did not become ready in time"
+                   exit 1
+
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
 
