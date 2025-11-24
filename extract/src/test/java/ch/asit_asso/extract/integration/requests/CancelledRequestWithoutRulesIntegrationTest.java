@@ -1,18 +1,16 @@
 package ch.asit_asso.extract.integration.requests;
 
+import ch.asit_asso.extract.authentication.ApplicationUser;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.SystemParameter;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.integration.TestSecurityConfig;
-import ch.asit_asso.extract.integration.WithMockApplicationUser;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -21,13 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.jdbc.Sql;
-import org.springframework.test.context.jdbc.SqlConfig;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import javax.persistence.EntityManager;
 
 import java.util.GregorianCalendar;
@@ -73,6 +67,7 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     // Test data IDs
     private Integer cancelledRequestId;
     private Integer normalRequestId;
+    private ApplicationUser mockAdminUser;
 
     @BeforeAll
     public void setUpTestData() {
@@ -81,17 +76,19 @@ public class CancelledRequestWithoutRulesIntegrationTest {
         connectorsRepository.deleteAll();
 
         // Create admin user to avoid redirect to /setup
-        if (usersRepository.count() == 0) {
-            User adminUser = new User();
-            adminUser.setLogin("admin");
-            adminUser.setName("Test Admin");
-            adminUser.setEmail("admin@test.com");
-            adminUser.setProfile(User.Profile.ADMIN);
-            adminUser.setActive(true);
-            adminUser.setPassword("$2a$10$dummyHashedPassword");
-            adminUser.setUserType(User.UserType.LOCAL);
-            usersRepository.save(adminUser);
-        }
+        User adminUser = new User();
+        adminUser.setId(1);
+        adminUser.setLogin("admin");
+        adminUser.setName("Test Admin");
+        adminUser.setEmail("admin@test.com");
+        adminUser.setProfile(User.Profile.ADMIN);
+        adminUser.setActive(true);
+        adminUser.setPassword("$2a$10$dummyHashedPassword");
+        adminUser.setUserType(User.UserType.LOCAL);
+        adminUser = usersRepository.save(adminUser);
+
+        // Create ApplicationUser for authentication
+        mockAdminUser = new ApplicationUser(adminUser);
 
         // Create minimal system parameters to avoid redirect to /setup
         if (systemParametersRepository.count() == 0) {
@@ -137,15 +134,9 @@ public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Test
     @DisplayName("Should render details page for cancelled request without matching rules")
-    @WithMockApplicationUser(username = "admin", role = "ADMIN")
     public void testDetailsPageForCancelledRequestWithoutRules() throws Exception {
-        mockMvc.perform(get("/requests/" + cancelledRequestId))
-            .andDo(result -> {
-                System.err.println("Response status: " + result.getResponse().getStatus());
-                System.err.println("Redirect URL: " + result.getResponse().getRedirectedUrl());
-                System.err.println("Response headers: " + result.getResponse().getHeaderNames());
-                System.err.println("Response content: " + result.getResponse().getContentAsString());
-            })
+        mockMvc.perform(get("/requests/" + cancelledRequestId)
+            .with(user(mockAdminUser)))
             .andExpect(status().isOk())
             .andExpect(view().name("requests/details"))
             .andExpect(model().attributeExists("request"))
@@ -159,10 +150,10 @@ public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Test
     @DisplayName("Should handle null outputFiles without errors")
-    @WithMockApplicationUser(username = "admin", role = "ADMIN")
     public void testNullOutputFilesHandling() throws Exception {
         // Use the cancelled request which has null folder
-        mockMvc.perform(get("/requests/" + cancelledRequestId))
+        mockMvc.perform(get("/requests/" + cancelledRequestId)
+            .with(user(mockAdminUser)))
             .andExpect(status().isOk())
             .andExpect(view().name("requests/details"))
             // Verify the response panel shows with remark but no file errors
@@ -174,9 +165,9 @@ public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Test
     @DisplayName("Should not show download button when outputFiles is null")
-    @WithMockApplicationUser(username = "admin", role = "ADMIN")
     public void testDownloadButtonNotShownForNullFiles() throws Exception {
-        mockMvc.perform(get("/requests/" + cancelledRequestId))
+        mockMvc.perform(get("/requests/" + cancelledRequestId)
+            .with(user(mockAdminUser)))
             .andExpect(status().isOk())
             // The download button should not be present (check that the ID doesn't exist)
             .andExpect(content().string(not(containsString("id=\"file-download-button\""))));
@@ -184,9 +175,9 @@ public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Test
     @DisplayName("Normal request should still work correctly")
-    @WithMockApplicationUser(username = "admin", role = "ADMIN")
     public void testNormalRequestStillWorks() throws Exception {
-        mockMvc.perform(get("/requests/" + normalRequestId))
+        mockMvc.perform(get("/requests/" + normalRequestId)
+            .with(user(mockAdminUser)))
             .andExpect(status().isOk())
             .andExpect(view().name("requests/details"))
             .andExpect(model().attributeExists("request"))
@@ -195,13 +186,9 @@ public class CancelledRequestWithoutRulesIntegrationTest {
 
     @Test
     @DisplayName("Admin should see all details even with null fields")
-    @WithMockApplicationUser(username = "admin", role = "ADMIN")
     public void testAdminViewWithNullFields() throws Exception {
-        mockMvc.perform(get("/requests/" + cancelledRequestId))
-            .andDo(result -> {
-                System.err.println("testAdminViewWithNullFields - Response status: " + result.getResponse().getStatus());
-                System.err.println("testAdminViewWithNullFields - Redirect URL: " + result.getResponse().getRedirectedUrl());
-            })
+        mockMvc.perform(get("/requests/" + cancelledRequestId)
+            .with(user(mockAdminUser)))
             .andExpect(status().isOk())
             .andExpect(view().name("requests/details"))
             // Admin should have access to all functionality
