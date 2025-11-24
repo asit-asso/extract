@@ -103,4 +103,9 @@ INSERT INTO request_history(id_record, end_date, last_msg, process_step, start_d
                             id_request, id_user)
 VALUES(10, '2022-11-21 16:57:02.126', '', 2, '2022-11-21 16:56:02.126', 'FINISHED', 3, 'Exportation', 4, 1);
 
-UPDATE system SET value = 20 WHERE key = 'dashboard_interval';
+-- Insert required system parameters for CI/CD tests
+INSERT INTO system (key, value) VALUES ('base_path', '/tmp/extract/orders')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+INSERT INTO system (key, value) VALUES ('dashboard_interval', '20')
+ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
