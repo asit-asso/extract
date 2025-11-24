@@ -122,16 +122,35 @@ jobs:
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
 
-             - name: Wait on Extract application deployment
-               uses: iFaxity/wait-on-action@v1.2.1
-               with:
-                   resource: http://localhost:8080/extract/login
-                   interval: 5000
-                   timeout: 150000
-                   verbose: true
+             - name: Wait for Tomcat to start
+               run: |
+                   echo "Waiting for Tomcat to deploy the application..."
+                   for i in {1..60}; do
+                     if curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/extract/login | grep -q "200\|302"; then
+                       echo "Application deployed successfully"
+                       exit 0
+                     fi
+                     echo "Waiting for application deployment... ($i/60)"
+                     sleep 5
+                   done
+                   echo "Application failed to deploy - showing Tomcat logs:"
+                   docker logs tomcat
+                   echo "Extract application logs:"
+                   sudo cat /tmp/log/extract/*.log 2>/dev/null || echo "No Extract logs found"
+                   exit 1
 
              - name: Execute functional tests
                run: mvn -q verify -Pfunctional-tests --batch-mode --fail-at-end
+
+             - name: Show logs on failure
+               if: failure()
+               run: |
+                   echo "========== Tomcat logs =========="
+                   docker logs tomcat || echo "Cannot get Tomcat logs"
+                   echo "========== Extract logs =========="
+                   sudo cat /tmp/log/extract/*.log 2>/dev/null || echo "No Extract logs found"
+                   echo "========== PostgreSQL logs =========="
+                   docker logs $(docker ps -qf "ancestor=postgres:12-alpine") || echo "Cannot get PostgreSQL logs"
                   
              # - name: "Publish test results"
                # if: success() || failure()
