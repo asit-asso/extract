@@ -129,7 +129,8 @@ VALUES(10, '2022-11-21 16:57:02.126', '', 2, '2022-11-21 16:56:02.126', 'FINISHE
 ON CONFLICT (id_record) DO NOTHING;
 
 -- Insert required system parameters for CI/CD tests
-INSERT INTO system (key, value) VALUES ('base_path', '/tmp/extract/orders')
+-- Note: /var/extract is the path INSIDE the Docker container (mapped from host /tmp/extract)
+INSERT INTO system (key, value) VALUES ('base_path', '/var/extract/orders')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 INSERT INTO system (key, value) VALUES ('dashboard_interval', '20')
