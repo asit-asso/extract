@@ -97,11 +97,23 @@ jobs:
              - name: Make FME Desktop dummy executable (for integration tests)
                run: chmod +x /home/runner/work/extract/extract/extract/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest
                
-             - name: Running Docker Compose file with test containers (for functional tests)
-               uses: hoverkraft-tech/compose-action@v1.5.1
-               with:
-                   compose-file: "./docker-compose-test-ci.yaml"
-                   up-flags: "--wait"
+             - name: Pull Docker images (with retry)
+               run: |
+                   for i in 1 2 3; do
+                       docker compose -f ./docker-compose-test-ci.yaml pull && break
+                       echo "Retry $i failed, waiting 10s..."
+                       sleep 10
+                   done
+
+             - name: Build custom Docker images
+               run: docker compose -f ./docker-compose-test-ci.yaml build
+
+             - name: Start Docker Compose services
+               run: docker compose -f ./docker-compose-test-ci.yaml up -d --wait
+
+             - name: Show Docker Compose status
+               if: always()
+               run: docker compose -f ./docker-compose-test-ci.yaml ps -a
                    
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
