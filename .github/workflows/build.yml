@@ -124,7 +124,12 @@ jobs:
              - name: Restore test data after integration tests
                run: |
                    echo "Restoring test data that may have been deleted by integration tests..."
-                   cat sql/create_test_data.sql | docker exec -i extract-pgsql-1 psql -U extractuser -d extract
+                   echo "Listing Docker containers..."
+                   docker ps
+                   echo "Executing SQL script..."
+                   docker compose -f ./docker-compose-test-ci.yaml exec -T pgsql psql -U extractuser -d extract -f /dev/stdin < sql/create_test_data.sql
+                   echo "Verifying data was inserted..."
+                   docker compose -f ./docker-compose-test-ci.yaml exec -T pgsql psql -U extractuser -d extract -c "SELECT id_request, status FROM requests ORDER BY id_request;"
 
              - name: Wait on Extract application deployment
                uses: iFaxity/wait-on-action@v1.2.1
