@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
 Test script that verifies GeoJSON format and geometry conversion
+The plugin passes the parameters file path as the first argument.
 """
 import sys
 import json
 import os
 
-params_file = os.path.join(os.environ.get('FOLDER_IN', '.'), 'parameters.json')
+# Get parameters file path from command line argument
+if len(sys.argv) < 2:
+    print("ERROR: parameters.json path not provided as argument", file=sys.stderr)
+    sys.exit(1)
+
+params_file = sys.argv[1]
 
 try:
     with open(params_file, 'r', encoding='utf-8') as f:

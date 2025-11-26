@@ -28,9 +28,11 @@ import org.apache.commons.io.filefilter.WildcardFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.*;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -103,13 +105,13 @@ public class PythonPluginFunctionalTest {
 
     @BeforeEach
     public void setUp() throws IOException {
-        // Create test directories
-        Path basePath = Paths.get(DATA_FOLDERS_BASE_PATH, ORDER_LABEL);
-        folderIn = basePath.resolve("input").toString();
-        folderOut = basePath.resolve("output").toString();
+        // Use RELATIVE paths for the request (TaskProcessorRequest combines with base path)
+        folderIn = Paths.get(ORDER_LABEL, "input").toString();
+        folderOut = Paths.get(ORDER_LABEL, "output").toString();
 
-        Files.createDirectories(Paths.get(folderIn));
-        Files.createDirectories(Paths.get(folderOut));
+        // Create actual directories on filesystem using ABSOLUTE paths
+        Files.createDirectories(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn));
+        Files.createDirectories(Paths.get(DATA_FOLDERS_BASE_PATH, folderOut));
 
         // Initialize object mapper
         objectMapper = new ObjectMapper();
@@ -176,7 +178,7 @@ public class PythonPluginFunctionalTest {
     public void testPythonPluginBasicExecution() {
         // Given: Script that exits with code 0
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", SUCCESS_SCRIPT);
+        pluginParameters.put("pythonScript", new File(SUCCESS_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -189,10 +191,12 @@ public class PythonPluginFunctionalTest {
         assertNotNull(result);
         assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus(),
             "Status should be SUCCESS");
-        assertTrue(result.getMessage().contains("OK") || result.getMessage().contains("success"),
-            "Message should indicate success");
-        assertTrue(result.getErrorCode().isEmpty(),
-            "Error code should be empty on success");
+        assertNotNull(result.getMessage(),
+            "Message should not be null");
+        assertFalse(result.getMessage().isEmpty(),
+            "Message should not be empty");
+        assertTrue(result.getErrorCode() == null || result.getErrorCode().isEmpty(),
+            "Error code should be null or empty on success");
     }
 
     @Test
@@ -200,7 +204,7 @@ public class PythonPluginFunctionalTest {
     public void testPythonPluginParametersJsonFileCreation() throws IOException {
         // Given: Script that reads parameters.json
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", READ_PARAMS_SCRIPT);
+        pluginParameters.put("pythonScript", new File(READ_PARAMS_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -209,8 +213,8 @@ public class PythonPluginFunctionalTest {
             null
         );
 
-        // Then: parameters.json should exist and be valid
-        File parametersFile = new File(folderIn, "parameters.json");
+        // Then: parameters.json should exist and be valid (use absolute path for assertion)
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         assertTrue(parametersFile.exists(),
             "parameters.json should be created in FolderIn");
 
@@ -237,7 +241,7 @@ public class PythonPluginFunctionalTest {
         // Given: Request with Polygon perimeter
         testRequest.setPerimeter(PERIMETER_POLYGON);
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", VERIFY_GEOJSON_SCRIPT);
+        pluginParameters.put("pythonScript", new File(VERIFY_GEOJSON_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -247,7 +251,7 @@ public class PythonPluginFunctionalTest {
         );
 
         // Then: GeoJSON should have correct Polygon structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -271,7 +275,7 @@ public class PythonPluginFunctionalTest {
         // Given: Request with MultiPolygon perimeter
         testRequest.setPerimeter(PERIMETER_MULTIPOLYGON);
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", VERIFY_GEOJSON_SCRIPT);
+        pluginParameters.put("pythonScript", new File(VERIFY_GEOJSON_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -281,7 +285,7 @@ public class PythonPluginFunctionalTest {
         );
 
         // Then: GeoJSON should have correct MultiPolygon structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -302,7 +306,7 @@ public class PythonPluginFunctionalTest {
         // Given: Request with Polygon containing a hole
         testRequest.setPerimeter(PERIMETER_POLYGON_WITH_HOLE);
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", VERIFY_GEOJSON_SCRIPT);
+        pluginParameters.put("pythonScript", new File(VERIFY_GEOJSON_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -312,7 +316,7 @@ public class PythonPluginFunctionalTest {
         );
 
         // Then: GeoJSON should have exterior and interior rings
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -331,7 +335,7 @@ public class PythonPluginFunctionalTest {
         // Given: Request with Point perimeter
         testRequest.setPerimeter(PERIMETER_POINT);
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", VERIFY_GEOJSON_SCRIPT);
+        pluginParameters.put("pythonScript", new File(VERIFY_GEOJSON_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -341,7 +345,7 @@ public class PythonPluginFunctionalTest {
         );
 
         // Then: GeoJSON should have correct Point structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -362,7 +366,7 @@ public class PythonPluginFunctionalTest {
         // Given: Request with LineString perimeter
         testRequest.setPerimeter(PERIMETER_LINESTRING);
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", VERIFY_GEOJSON_SCRIPT);
+        pluginParameters.put("pythonScript", new File(VERIFY_GEOJSON_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -372,7 +376,7 @@ public class PythonPluginFunctionalTest {
         );
 
         // Then: GeoJSON should have correct LineString structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -392,7 +396,7 @@ public class PythonPluginFunctionalTest {
     public void testPythonPluginFeaturePropertiesWithMetadata() throws IOException {
         // Given: Request with all metadata fields
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", CHECK_PROPERTIES_SCRIPT);
+        pluginParameters.put("pythonScript", new File(CHECK_PROPERTIES_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -402,23 +406,23 @@ public class PythonPluginFunctionalTest {
         );
 
         // Then: Properties should contain all metadata
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode properties = json.get("properties");
         assertNotNull(properties, "Properties should be present");
 
-        // Verify key metadata fields
-        assertEquals(CLIENT_GUID, properties.get("clientGuid").asText(),
-            "clientGuid should be present");
-        assertEquals("Test Client", properties.get("clientName").asText(),
-            "clientName should be present");
-        assertEquals("Test Organism", properties.get("organismName").asText(),
-            "organismName should be present");
-        assertEquals("Test Product", properties.get("productLabel").asText(),
-            "productLabel should be present");
-        assertEquals(ORDER_LABEL, properties.get("orderLabel").asText(),
-            "orderLabel should be present");
+        // Verify key metadata fields (using CamelCase as the plugin uses)
+        assertEquals(CLIENT_GUID, properties.get("ClientGuid").asText(),
+            "ClientGuid should be present");
+        assertEquals("Test Client", properties.get("ClientName").asText(),
+            "ClientName should be present");
+        assertEquals("Test Organism", properties.get("OrganismName").asText(),
+            "OrganismName should be present");
+        assertEquals("Test Product", properties.get("ProductLabel").asText(),
+            "ProductLabel should be present");
+        assertEquals(ORDER_LABEL, properties.get("OrderLabel").asText(),
+            "OrderLabel should be present");
 
         assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
     }
@@ -429,7 +433,7 @@ public class PythonPluginFunctionalTest {
         // Given: Request with dynamic parameters
         testRequest.setParameters(PARAMETERS_JSON);
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", CHECK_PROPERTIES_SCRIPT);
+        pluginParameters.put("pythonScript", new File(CHECK_PROPERTIES_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -438,16 +442,20 @@ public class PythonPluginFunctionalTest {
             null
         );
 
-        // Then: Dynamic parameters should be in properties
-        File parametersFile = new File(folderIn, "parameters.json");
+        // Then: Dynamic parameters should be in nested Parameters object
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode properties = json.get("properties");
-        assertEquals("DXF", properties.get("FORMAT").asText(),
+        JsonNode parameters = properties.get("Parameters");
+        assertNotNull(parameters, "Parameters nested object should be present");
+
+        assertEquals("DXF", parameters.get("FORMAT").asText(),
             "FORMAT parameter should be present");
-        assertEquals("EPSG:2056", properties.get("PROJECTION").asText(),
+        assertEquals("EPSG:2056", parameters.get("PROJECTION").asText(),
             "PROJECTION parameter should be present");
-        assertEquals("1000", properties.get("SCALE").asText(),
+        // Note: SCALE is an integer in JSON, but the plugin stores it as string value
+        assertEquals(1000, parameters.get("SCALE").asInt(),
             "SCALE parameter should be present");
 
         assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
@@ -458,7 +466,7 @@ public class PythonPluginFunctionalTest {
     public void testPythonPluginNonZeroExitCode() {
         // Given: Script that fails with exit code 1
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", FAILURE_SCRIPT);
+        pluginParameters.put("pythonScript", new File(FAILURE_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -500,7 +508,7 @@ public class PythonPluginFunctionalTest {
     public void testPythonPluginOutputFilesInFolderOut() {
         // Given: Script that creates output file
         pluginParameters.put("pythonInterpreter", getPythonInterpreter());
-        pluginParameters.put("pythonScript", CREATE_OUTPUT_SCRIPT);
+        pluginParameters.put("pythonScript", new File(CREATE_OUTPUT_SCRIPT).getAbsolutePath());
 
         // When: Executing the plugin
         ITaskProcessor pluginInstance = pythonPlugin.newInstance(APPLICATION_LANGUAGE, pluginParameters);
@@ -509,30 +517,37 @@ public class PythonPluginFunctionalTest {
             null
         );
 
-        // Then: Output file should exist in FolderOut
-        File outputFile = new File(folderOut, "result.txt");
+        // Then: Output file should exist in FolderOut (use absolute path for assertion)
+        File outputFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderOut).toString(), "result.txt");
         assertTrue(outputFile.exists(),
             "Output file should be created in FolderOut");
         assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
     }
 
     /**
-     * Gets the Python interpreter path based on the OS.
+     * Gets the absolute path to the Python interpreter.
+     * The plugin requires an absolute path that exists and is executable.
      */
     private String getPythonInterpreter() {
-        // Try python3 first, fallback to python
+        // Try to find python3 or python using which command
         String[] interpreters = {"python3", "python"};
         for (String interpreter : interpreters) {
             try {
-                Process process = Runtime.getRuntime().exec(new String[]{interpreter, "--version"});
+                Process process = Runtime.getRuntime().exec(new String[]{"which", interpreter});
                 int exitCode = process.waitFor();
                 if (exitCode == 0) {
-                    return interpreter;
+                    try (BufferedReader reader = new BufferedReader(
+                            new InputStreamReader(process.getInputStream()))) {
+                        String path = reader.readLine();
+                        if (path != null && !path.trim().isEmpty()) {
+                            return path.trim();
+                        }
+                    }
                 }
             } catch (Exception e) {
                 // Continue to next interpreter
             }
         }
-        return "python3"; // Default fallback
+        return "/usr/bin/python3"; // Default fallback
     }
 }

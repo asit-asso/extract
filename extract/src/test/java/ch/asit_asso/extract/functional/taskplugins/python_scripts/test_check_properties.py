@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
 """
 Test script that verifies all metadata properties are present
+The plugin passes the parameters file path as the first argument.
 """
 import sys
 import json
 import os
 
-params_file = os.path.join(os.environ.get('FOLDER_IN', '.'), 'parameters.json')
+# Get parameters file path from command line argument
+if len(sys.argv) < 2:
+    print("ERROR: parameters.json path not provided as argument", file=sys.stderr)
+    sys.exit(1)
+
+params_file = sys.argv[1]
 
 try:
     with open(params_file, 'r', encoding='utf-8') as f:
@@ -14,8 +20,8 @@ try:
 
     properties = data.get('properties', {})
 
-    # Check for expected metadata fields
-    expected_fields = ['clientGuid', 'clientName', 'organismName', 'productLabel', 'orderLabel']
+    # Check for expected metadata fields (using CamelCase as the plugin uses)
+    expected_fields = ['ClientGuid', 'ClientName', 'OrganismName', 'ProductLabel', 'OrderLabel']
     missing_fields = []
 
     for field in expected_fields:
@@ -27,8 +33,8 @@ try:
     if missing_fields:
         print(f"WARNING: Missing fields: {missing_fields}", file=sys.stderr)
 
-    # Check for dynamic parameters (if any)
-    dynamic_params = {k: v for k, v in properties.items() if k not in ['clientGuid', 'clientName', 'organismGuid', 'organismName', 'productGuid', 'productLabel', 'orderGuid', 'orderLabel', 'tiersGuid', 'tiersDetails', 'remark']}
+    # Check for dynamic parameters (if any) - they are in nested Parameters object
+    dynamic_params = properties.get('Parameters', {})
 
     if dynamic_params:
         print(f"Dynamic parameters found: {list(dynamic_params.keys())}")

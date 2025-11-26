@@ -1,13 +1,18 @@
 #!/usr/bin/env python3
 """
 Test script that reads and validates parameters.json file
+The plugin passes the parameters file path as the first argument.
 """
 import sys
 import json
 import os
 
-# Check if parameters.json exists
-params_file = os.path.join(os.environ.get('FOLDER_IN', '.'), 'parameters.json')
+# Get parameters file path from command line argument
+if len(sys.argv) < 2:
+    print("ERROR: parameters.json path not provided as argument", file=sys.stderr)
+    sys.exit(1)
+
+params_file = sys.argv[1]
 if not os.path.exists(params_file):
     print(f"ERROR: parameters.json not found at {params_file}", file=sys.stderr)
     sys.exit(1)
