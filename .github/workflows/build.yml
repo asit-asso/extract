@@ -111,10 +111,6 @@ jobs:
              - name: Start Docker Compose services
                run: docker compose -f ./docker-compose-test-ci.yaml up -d --wait
 
-             - name: Show Docker Compose status
-               if: always()
-               run: docker compose -f ./docker-compose-test-ci.yaml ps -a
-                   
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
                
