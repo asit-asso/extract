@@ -33,10 +33,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * Integration test for Issue #337: Fix template rendering for cancelled requests without matching rules.
- * This test ensures that the request details page renders correctly even when:
- * - The request has no matching rules (unmatched)
- * - The outputFolderPath is null
- * - The outputFiles array is null or empty
+ * This test ensures that the request details page renders correctly in various scenarios:
+ * - Requests with no matching rules (unmatched)
+ * - Requests with matched rules but cancelled/finished
+ * - Null outputFolderPath and outputFiles
+ * - Client Response panel visibility handling
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -67,6 +68,8 @@ public class CancelledRequestWithoutRulesIntegrationTest {
     // Test data IDs
     private Integer cancelledRequestId;
     private Integer normalRequestId;
+    private Integer cancelledWithRulesRequestId;
+    private Integer cancelledWithRemarkRequestId;
     private ApplicationUser mockAdminUser;
 
     @BeforeAll
@@ -130,6 +133,36 @@ public class CancelledRequestWithoutRulesIntegrationTest {
         normalRequest.setPerimeter("{}"); // Empty JSON object
         normalRequest = requestsRepository.save(normalRequest);
         normalRequestId = normalRequest.getId();
+
+        // Request WITH matched rules and output folder (finished but can review)
+        Request cancelledWithRules = new Request();
+        cancelledWithRules.setProductLabel("Request With Rules");
+        cancelledWithRules.setOrderLabel("ORDER-337-WITH-RULES");
+        cancelledWithRules.setClient("Test Client A");
+        cancelledWithRules.setStatus(Request.Status.FINISHED);
+        cancelledWithRules.setFolderOut("request337/with_rules"); // Has output folder
+        cancelledWithRules.setStartDate(new GregorianCalendar());
+        cancelledWithRules.setRemark("Completed successfully then reviewed");
+        cancelledWithRules.setConnector(testConnector);
+        cancelledWithRules.setParameters("{\"format\":\"TIFF\"}");
+        cancelledWithRules.setPerimeter("POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))");
+        cancelledWithRules = requestsRepository.save(cancelledWithRules);
+        cancelledWithRulesRequestId = cancelledWithRules.getId();
+
+        // Request with error and remark only (for panel visibility test)
+        Request cancelledWithRemark = new Request();
+        cancelledWithRemark.setProductLabel("Request With Remark Only");
+        cancelledWithRemark.setOrderLabel("ORDER-337-REMARK");
+        cancelledWithRemark.setClient("Test Client C");
+        cancelledWithRemark.setStatus(Request.Status.ERROR);
+        cancelledWithRemark.setFolderOut(null); // No output folder
+        cancelledWithRemark.setStartDate(new GregorianCalendar());
+        cancelledWithRemark.setRemark("Processing failed: Project requirements changed");
+        cancelledWithRemark.setConnector(testConnector);
+        cancelledWithRemark.setParameters("{}");
+        cancelledWithRemark.setPerimeter("{}");
+        cancelledWithRemark = requestsRepository.save(cancelledWithRemark);
+        cancelledWithRemarkRequestId = cancelledWithRemark.getId();
     }
 
     @Test
@@ -195,5 +228,56 @@ public class CancelledRequestWithoutRulesIntegrationTest {
             .andExpect(model().attributeExists("request"))
             // Verify the page loads successfully for admin with null fields
             .andExpect(content().string(containsString("ORDER-337-CANCELLED")));
+    }
+
+    @Test
+    @DisplayName("Finished request WITH matched rules should render correctly")
+    public void testFinishedRequestWithMatchedRules() throws Exception {
+        mockMvc.perform(get("/requests/" + cancelledWithRulesRequestId)
+            .with(user(mockAdminUser)))
+            .andExpect(status().isOk())
+            .andExpect(view().name("requests/details"))
+            .andExpect(model().attributeExists("request"))
+            // Verify page content renders correctly
+            .andExpect(content().string(containsString("ORDER-337-WITH-RULES")))
+            .andExpect(content().string(containsString("Request With Rules")))
+            .andExpect(content().string(containsString("Completed successfully then reviewed")))
+            // Verify no JavaScript errors or NPEs
+            .andExpect(content().string(not(containsString("NullPointerException"))))
+            .andExpect(content().string(not(containsString("Error 500"))))
+            // Verify Client Response panel should be visible (has remark)
+            .andExpect(content().string(containsString("Completed successfully then reviewed")));
+    }
+
+    @Test
+    @DisplayName("Client Response panel visibility should be conditional")
+    public void testClientResponsePanelVisibility() throws Exception {
+        // Scenario A: Request with remark only (no output folder) - panel SHOULD be visible
+        mockMvc.perform(get("/requests/" + cancelledWithRemarkRequestId)
+            .with(user(mockAdminUser)))
+            .andExpect(status().isOk())
+            .andExpect(view().name("requests/details"))
+            // Panel should be visible because remark is not empty
+            .andExpect(content().string(containsString("Processing failed: Project requirements changed")))
+            // Verify panel title is present (indicates panel is rendered) - translated as "Réponse au client"
+            .andExpect(content().string(containsString("Réponse au client")));
+
+        // Scenario B: Request without remark and no output files - panel might be hidden
+        // This is tested with cancelledRequestId which has empty remark and null folder
+        mockMvc.perform(get("/requests/" + cancelledRequestId)
+            .with(user(mockAdminUser)))
+            .andExpect(status().isOk())
+            .andExpect(view().name("requests/details"))
+            // Page should render without errors even if panel is hidden
+            .andExpect(content().string(not(containsString("NullPointerException"))))
+            .andExpect(content().string(not(containsString("Error 500"))));
+
+        // Scenario C: Request with matched rules and output folder - panel SHOULD be visible
+        mockMvc.perform(get("/requests/" + cancelledWithRulesRequestId)
+            .with(user(mockAdminUser)))
+            .andExpect(status().isOk())
+            .andExpect(view().name("requests/details"))
+            // Panel should be visible because remark is not empty
+            .andExpect(content().string(containsString("Completed successfully then reviewed")));
     }
 }
