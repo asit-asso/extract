@@ -117,9 +117,68 @@ INSERT INTO system (key, value) VALUES ('dashboard_interval', '20')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- Update sequences to avoid primary key conflicts with Hibernate auto-generated IDs
-SELECT setval('users_id_user_seq', COALESCE((SELECT MAX(id_user) FROM users), 1) + 1, false);
-SELECT setval('connectors_id_connector_seq', COALESCE((SELECT MAX(id_connector) FROM connectors), 1) + 1, false);
-SELECT setval('processes_id_process_seq', COALESCE((SELECT MAX(id_process) FROM processes), 1) + 1, false);
-SELECT setval('tasks_id_task_seq', COALESCE((SELECT MAX(id_task) FROM tasks), 1) + 1, false);
-SELECT setval('requests_id_request_seq', COALESCE((SELECT MAX(id_request) FROM requests), 1) + 1, false);
-SELECT setval('request_history_id_record_seq', COALESCE((SELECT MAX(id_record) FROM request_history), 1) + 1, false);
+-- Hibernate with hibernate.id.new_generator_mappings=true uses {entity_name}_seq pattern
+-- We need to update both PostgreSQL SERIAL-style and Hibernate-style sequences
+DO $$
+DECLARE
+    max_user_id INTEGER;
+    max_connector_id INTEGER;
+    max_process_id INTEGER;
+    max_task_id INTEGER;
+    max_request_id INTEGER;
+    max_history_id INTEGER;
+BEGIN
+    -- Get max IDs
+    SELECT COALESCE(MAX(id_user), 0) + 1 INTO max_user_id FROM users;
+    SELECT COALESCE(MAX(id_connector), 0) + 1 INTO max_connector_id FROM connectors;
+    SELECT COALESCE(MAX(id_process), 0) + 1 INTO max_process_id FROM processes;
+    SELECT COALESCE(MAX(id_task), 0) + 1 INTO max_task_id FROM tasks;
+    SELECT COALESCE(MAX(id_request), 0) + 1 INTO max_request_id FROM requests;
+    SELECT COALESCE(MAX(id_record), 0) + 1 INTO max_history_id FROM request_history;
+
+    -- Update PostgreSQL SERIAL-style sequences (if they exist)
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'users_id_user_seq') THEN
+        PERFORM setval('users_id_user_seq', max_user_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'connectors_id_connector_seq') THEN
+        PERFORM setval('connectors_id_connector_seq', max_connector_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'processes_id_process_seq') THEN
+        PERFORM setval('processes_id_process_seq', max_process_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'tasks_id_task_seq') THEN
+        PERFORM setval('tasks_id_task_seq', max_task_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'requests_id_request_seq') THEN
+        PERFORM setval('requests_id_request_seq', max_request_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'request_history_id_record_seq') THEN
+        PERFORM setval('request_history_id_record_seq', max_history_id, false);
+    END IF;
+
+    -- Update Hibernate-style sequences (entity_seq pattern)
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'user_seq') THEN
+        PERFORM setval('user_seq', max_user_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'connector_seq') THEN
+        PERFORM setval('connector_seq', max_connector_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'process_seq') THEN
+        PERFORM setval('process_seq', max_process_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'task_seq') THEN
+        PERFORM setval('task_seq', max_task_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'request_seq') THEN
+        PERFORM setval('request_seq', max_request_id, false);
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'requesthistoryrecord_seq') THEN
+        PERFORM setval('requesthistoryrecord_seq', max_history_id, false);
+    END IF;
+
+    -- Also check for hibernate_sequence (shared sequence in some configurations)
+    IF EXISTS (SELECT 1 FROM pg_sequences WHERE sequencename = 'hibernate_sequence') THEN
+        PERFORM setval('hibernate_sequence', GREATEST(max_user_id, max_connector_id, max_process_id, max_task_id, max_request_id, max_history_id), false);
+    END IF;
+END
+$$;

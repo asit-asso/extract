@@ -6,20 +6,18 @@ import ch.asit_asso.extract.persistence.ConnectorsRepository;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.web.model.RequestModel;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.MessageSource;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.GregorianCalendar;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,38 +27,38 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 @SpringBootTest
 @ActiveProfiles("test")
-@Transactional
 @Tag("integration")
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RequestModelIntegrationTest {
 
     @Autowired
     private RequestsRepository requestsRepository;
-    
+
     @Autowired
     private ConnectorsRepository connectorsRepository;
-    
+
     @Autowired
     private RequestHistoryRepository historyRepository;
-    
+
     @Autowired
     private MessageSource messageSource;
-    
+
     private Request testRequestWithNullFolder;
     private Request testRequestWithFolder;
     private Connector testConnector;
-    
-    @BeforeEach
-    public void setUp() {
-        // Note: We don't actually need to create the folder for these tests,
-        // as RequestModel just uses it to construct paths
+
+    @BeforeAll
+    public void setUpTestData() {
+        // Clean up any existing test data to avoid conflicts with other integration tests
+        requestsRepository.deleteAll();
+        connectorsRepository.deleteAll();
 
         // Create a test connector
         testConnector = new Connector();
-        testConnector.setName("Test Connector");
-        // testConnector.setLogin("test"); // Login is not a field on Connector
+        testConnector.setName("Test Connector for RequestModel");
         testConnector.setActive(Boolean.TRUE);
         testConnector = connectorsRepository.save(testConnector);
-        
+
         // Create a request with null folder (IMPORTFAIL status)
         testRequestWithNullFolder = new Request();
         testRequestWithNullFolder.setProductLabel("Test Request Without Perimeter");
@@ -70,8 +68,10 @@ public class RequestModelIntegrationTest {
         testRequestWithNullFolder.setFolderOut(null); // This is the key - null folder
         testRequestWithNullFolder.setStartDate(new GregorianCalendar());
         testRequestWithNullFolder.setConnector(testConnector);
+        testRequestWithNullFolder.setParameters("{}");
+        testRequestWithNullFolder.setPerimeter("{}");
         testRequestWithNullFolder = requestsRepository.save(testRequestWithNullFolder);
-        
+
         // Create a normal request with folder
         testRequestWithFolder = new Request();
         testRequestWithFolder.setProductLabel("Normal Request");
@@ -81,9 +81,11 @@ public class RequestModelIntegrationTest {
         testRequestWithFolder.setFolderOut("request123/output");
         testRequestWithFolder.setStartDate(new GregorianCalendar());
         testRequestWithFolder.setConnector(testConnector);
+        testRequestWithFolder.setParameters("{}");
+        testRequestWithFolder.setPerimeter("{}");
         testRequestWithFolder = requestsRepository.save(testRequestWithFolder);
     }
-    
+
     @Test
     @DisplayName("RequestModel should handle IMPORTFAIL request with null folder path")
     public void testRequestModelWithNullFolderPath() {
@@ -91,7 +93,7 @@ public class RequestModelIntegrationTest {
         assertNotNull(testRequestWithNullFolder);
         assertNull(testRequestWithNullFolder.getFolderOut());
         assertEquals(Request.Status.IMPORTFAIL, testRequestWithNullFolder.getStatus());
-        
+
         // When: Creating a RequestModel from the database entity
         // Use temp directory which should exist
         RequestModel model = new RequestModel(
@@ -101,7 +103,7 @@ public class RequestModelIntegrationTest {
             messageSource,
             new String[]{}
         );
-        
+
         // Then: The model should be created successfully with null outputFolderPath
         assertNotNull(model, "RequestModel should be created even with null folderOut");
         assertNull(model.getOutputFolderPath(), "OutputFolderPath should be null when folderOut is null");
@@ -109,7 +111,7 @@ public class RequestModelIntegrationTest {
         assertTrue(model.isInError(), "Should be identified as in error");
         assertEquals(0, model.getOutputFiles().length, "Should have no output files");
     }
-    
+
     @Test
     @DisplayName("RequestModel should handle normal request with valid folder path")
     public void testRequestModelWithValidFolderPath() {
@@ -117,7 +119,7 @@ public class RequestModelIntegrationTest {
         assertNotNull(testRequestWithFolder);
         assertNotNull(testRequestWithFolder.getFolderOut());
         assertEquals(Request.Status.ONGOING, testRequestWithFolder.getStatus());
-        
+
         // When: Creating a RequestModel from the database entity
         // Use temp directory which should exist
         RequestModel model = new RequestModel(
@@ -127,7 +129,7 @@ public class RequestModelIntegrationTest {
             messageSource,
             new String[]{}
         );
-        
+
         // Then: The model should be created with valid outputFolderPath
         assertNotNull(model, "RequestModel should be created with valid folderOut");
         assertNotNull(model.getOutputFolderPath(), "OutputFolderPath should not be null with valid folderOut");
@@ -135,7 +137,7 @@ public class RequestModelIntegrationTest {
         assertFalse(model.isImportFail(), "Should not be identified as IMPORTFAIL");
         assertFalse(model.isInError(), "Should not be identified as in error");
     }
-    
+
     @Test
     @DisplayName("RequestModel.fromDomainRequestsCollection should handle mixed requests")
     public void testFromDomainRequestsCollectionWithMixedRequests() {
@@ -145,7 +147,7 @@ public class RequestModelIntegrationTest {
         var requestList = new java.util.ArrayList<Request>();
         requests.forEach(requestList::add);
         assertTrue(requestList.size() >= 2, "Should have at least 2 requests");
-        
+
         // When: Creating RequestModels from the collection
         // Use the system temp directory which should exist
         String tempDir = System.getProperty("java.io.tmpdir");
@@ -156,11 +158,11 @@ public class RequestModelIntegrationTest {
             messageSource,
             new String[]{}
         );
-        
+
         // Then: All models should be created successfully
         assertNotNull(models, "Models array should not be null");
         assertEquals(requestList.size(), models.length, "Should create model for each request");
-        
+
         // Verify we have both types
         boolean hasNullPath = false;
         boolean hasValidPath = false;
