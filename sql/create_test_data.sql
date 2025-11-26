@@ -115,3 +115,11 @@ ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 INSERT INTO system (key, value) VALUES ('dashboard_interval', '20')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
+
+-- Update sequences to avoid primary key conflicts with Hibernate auto-generated IDs
+SELECT setval('users_id_user_seq', COALESCE((SELECT MAX(id_user) FROM users), 1) + 1, false);
+SELECT setval('connectors_id_connector_seq', COALESCE((SELECT MAX(id_connector) FROM connectors), 1) + 1, false);
+SELECT setval('processes_id_process_seq', COALESCE((SELECT MAX(id_process) FROM processes), 1) + 1, false);
+SELECT setval('tasks_id_task_seq', COALESCE((SELECT MAX(id_task) FROM tasks), 1) + 1, false);
+SELECT setval('requests_id_request_seq', COALESCE((SELECT MAX(id_request) FROM requests), 1) + 1, false);
+SELECT setval('request_history_id_record_seq', COALESCE((SELECT MAX(id_record) FROM request_history), 1) + 1, false);

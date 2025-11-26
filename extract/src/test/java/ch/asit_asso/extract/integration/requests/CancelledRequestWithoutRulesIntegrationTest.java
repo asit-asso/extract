@@ -74,21 +74,23 @@ public class CancelledRequestWithoutRulesIntegrationTest {
 
     @BeforeAll
     public void setUpTestData() {
-        // Clean up any existing test data
+        // Clean up any existing test data (except users to avoid FK issues)
         requestsRepository.deleteAll();
         connectorsRepository.deleteAll();
 
-        // Create admin user to avoid redirect to /setup
-        User adminUser = new User();
-        adminUser.setId(1);
-        adminUser.setLogin("admin");
-        adminUser.setName("Test Admin");
-        adminUser.setEmail("admin@test.com");
-        adminUser.setProfile(User.Profile.ADMIN);
-        adminUser.setActive(true);
-        adminUser.setPassword("$2a$10$dummyHashedPassword");
-        adminUser.setUserType(User.UserType.LOCAL);
-        adminUser = usersRepository.save(adminUser);
+        // Use existing admin user or create one if it doesn't exist
+        User adminUser = usersRepository.findByLoginIgnoreCase("admin");
+        if (adminUser == null) {
+            adminUser = new User();
+            adminUser.setLogin("admin");
+            adminUser.setName("Test Admin");
+            adminUser.setEmail("admin@test.com");
+            adminUser.setProfile(User.Profile.ADMIN);
+            adminUser.setActive(true);
+            adminUser.setPassword("$2a$10$dummyHashedPassword");
+            adminUser.setUserType(User.UserType.LOCAL);
+            adminUser = usersRepository.save(adminUser);
+        }
 
         // Create ApplicationUser for authentication
         mockAdminUser = new ApplicationUser(adminUser);
