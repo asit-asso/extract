@@ -120,7 +120,12 @@ jobs:
                
              - name: Execute integration tests
                run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
-               
+
+             - name: Restore test data after integration tests
+               run: |
+                   echo "Restoring test data that may have been deleted by integration tests..."
+                   cat sql/create_test_data.sql | docker exec -i extract-pgsql-1 psql -U extractuser -d extract
+
              - name: Wait on Extract application deployment
                uses: iFaxity/wait-on-action@v1.2.1
                with:
