@@ -75,6 +75,9 @@ public class ProcessesListFilteringIntegrationTest {
         createSystemParameterIfNotExists("freq_scheduler_sec", "60");
         createSystemParameterIfNotExists("op_mode", "AUTO");
 
+        // Create admin user to satisfy AppInitializationService.isConfigured()
+        createAdminUserIfNotExists();
+
         // Create test processes with different names for filtering
         testProcess1 = new Process();
         testProcess1.setName("Extraction MO");
@@ -210,6 +213,18 @@ public class ProcessesListFilteringIntegrationTest {
             param.setKey(key);
             param.setValue(value);
             systemParametersRepository.save(param);
+        }
+    }
+
+    private void createAdminUserIfNotExists() {
+        if (usersRepository.findByLogin("admin").isEmpty()) {
+            User admin = new User();
+            admin.setLogin("admin");
+            admin.setName("Test Admin");
+            admin.setEmail("admin@test.local");
+            admin.setProfile(User.Profile.ADMIN);
+            admin.setActive(true);
+            usersRepository.save(admin);
         }
     }
 }

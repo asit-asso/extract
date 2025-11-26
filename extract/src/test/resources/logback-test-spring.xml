@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Simple console appender for tests -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Root logger - only console, no files -->
+    <root level="WARN">
+        <appender-ref ref="CONSOLE" />
+    </root>
+
+    <!-- Application loggers -->
+    <logger name="ch.asit_asso.extract" level="INFO" />
+    <logger name="org.springframework" level="WARN" />
+    <logger name="org.hibernate" level="WARN" />
+</configuration>
