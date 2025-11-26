@@ -217,7 +217,7 @@ public class ProcessesListFilteringIntegrationTest {
     }
 
     private void createAdminUserIfNotExists() {
-        if (usersRepository.findByLogin("admin").isEmpty()) {
+        if (usersRepository.findByLoginIgnoreCase("admin") == null) {
             User admin = new User();
             admin.setLogin("admin");
             admin.setName("Test Admin");

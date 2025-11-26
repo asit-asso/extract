@@ -17,7 +17,11 @@
 package ch.asit_asso.extract.integration.web;
 
 import ch.asit_asso.extract.domain.Connector;
+import ch.asit_asso.extract.domain.SystemParameter;
+import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
+import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.persistence.UsersRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,11 +59,26 @@ public class ConnectorsListFilteringIntegrationTest {
     @Autowired
     private ConnectorsRepository connectorsRepository;
 
+    @Autowired
+    private SystemParametersRepository systemParametersRepository;
+
+    @Autowired
+    private UsersRepository usersRepository;
+
     private Connector testConnector1;
     private Connector testConnector2;
 
     @BeforeEach
     public void setUp() {
+        // Initialize minimal system parameters to avoid redirect to /setup
+        createSystemParameterIfNotExists("base_path", "/tmp/extract");
+        createSystemParameterIfNotExists("mails_enable", "false");
+        createSystemParameterIfNotExists("freq_scheduler_sec", "60");
+        createSystemParameterIfNotExists("op_mode", "AUTO");
+
+        // Create admin user to satisfy AppInitializationService.isConfigured()
+        createAdminUserIfNotExists();
+
         // Create test connectors with different names for filtering
         testConnector1 = new Connector();
         testConnector1.setName("easySDI v4 Connector");
@@ -202,5 +221,26 @@ public class ConnectorsListFilteringIntegrationTest {
             .andExpect(status().isOk())
             // Verify type filter has data-placeholder attribute for Select2
             .andExpect(content().string(containsString("data-placeholder")));
+    }
+
+    private void createSystemParameterIfNotExists(String key, String value) {
+        if (systemParametersRepository.findById(key).isEmpty()) {
+            SystemParameter param = new SystemParameter();
+            param.setKey(key);
+            param.setValue(value);
+            systemParametersRepository.save(param);
+        }
+    }
+
+    private void createAdminUserIfNotExists() {
+        if (usersRepository.findByLoginIgnoreCase("admin") == null) {
+            User admin = new User();
+            admin.setLogin("admin");
+            admin.setName("Test Admin");
+            admin.setEmail("admin@test.local");
+            admin.setProfile(User.Profile.ADMIN);
+            admin.setActive(true);
+            usersRepository.save(admin);
+        }
     }
 }

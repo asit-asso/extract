@@ -16,7 +16,9 @@
  */
 package ch.asit_asso.extract.integration.web;
 
+import ch.asit_asso.extract.domain.SystemParameter;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -57,6 +59,9 @@ public class UsersListFilteringIntegrationTest {
     private UsersRepository usersRepository;
 
     @Autowired
+    private SystemParametersRepository systemParametersRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     private User testUser1;
@@ -64,6 +69,15 @@ public class UsersListFilteringIntegrationTest {
 
     @BeforeEach
     public void setUp() {
+        // Initialize minimal system parameters to avoid redirect to /setup
+        createSystemParameterIfNotExists("base_path", "/tmp/extract");
+        createSystemParameterIfNotExists("mails_enable", "false");
+        createSystemParameterIfNotExists("freq_scheduler_sec", "60");
+        createSystemParameterIfNotExists("op_mode", "AUTO");
+
+        // Create admin user to satisfy AppInitializationService.isConfigured()
+        createAdminUserIfNotExists();
+
         // Create test users with different attributes for filtering
         testUser1 = new User();
         testUser1.setLogin("testuser1");
@@ -269,5 +283,26 @@ public class UsersListFilteringIntegrationTest {
             .andExpect(content().string(containsString("data-role")))
             // Verify badge classes exist for roles
             .andExpect(content().string(containsString("class=\"badge")));
+    }
+
+    private void createSystemParameterIfNotExists(String key, String value) {
+        if (systemParametersRepository.findById(key).isEmpty()) {
+            SystemParameter param = new SystemParameter();
+            param.setKey(key);
+            param.setValue(value);
+            systemParametersRepository.save(param);
+        }
+    }
+
+    private void createAdminUserIfNotExists() {
+        if (usersRepository.findByLoginIgnoreCase("admin") == null) {
+            User admin = new User();
+            admin.setLogin("admin");
+            admin.setName("Test Admin");
+            admin.setEmail("admin@test.local");
+            admin.setProfile(User.Profile.ADMIN);
+            admin.setActive(true);
+            usersRepository.save(admin);
+        }
     }
 }
