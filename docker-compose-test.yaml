@@ -35,14 +35,14 @@ services:
             retries: 15
 
     mailhog:
-        image: mailhog/mailhog
+        image: axllent/mailpit:latest
         tty: true
         ports:
             - "1025:1025"
             - "8025:8025"
-        volumes:
-            - ./docker/mailhog:/home/mailhog/conf
-        entrypoint: MailHog -auth-file=/home/mailhog/conf/auth-users
+        environment:
+            - MP_SMTP_AUTH_ACCEPT_ANY=true
+            - MP_SMTP_AUTH_ALLOW_INSECURE=true
 
     update_db_on_start:
         build: ./docker/update-db
