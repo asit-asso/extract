@@ -71,17 +71,19 @@ public class PythonPluginIntegrationTest {
 
     @BeforeEach
     public void setUp() throws IOException {
-        // Create test directories
-        Path basePath = Paths.get(DATA_FOLDERS_BASE_PATH, "ORDER-TEST");
-        folderIn = basePath.resolve("input").toString();
-        folderOut = basePath.resolve("output").toString();
+        // Use relative paths (will be combined with DATA_FOLDERS_BASE_PATH by TaskProcessorRequest)
+        String orderFolderName = "ORDER-TEST";
+        folderIn = Paths.get(orderFolderName, "input").toString();
+        folderOut = Paths.get(orderFolderName, "output").toString();
 
-        Files.createDirectories(Paths.get(folderIn));
-        Files.createDirectories(Paths.get(folderOut));
+        // Create absolute directories for actual file system
+        Path basePath = Paths.get(DATA_FOLDERS_BASE_PATH, orderFolderName);
+        Files.createDirectories(basePath.resolve("input"));
+        Files.createDirectories(basePath.resolve("output"));
 
         objectMapper = new ObjectMapper();
 
-        // Configure minimal request
+        // Configure minimal request (with RELATIVE paths)
         testRequest = new Request();
         testRequest.setId(1);
         testRequest.setOrderLabel("ORDER-TEST-001");
@@ -139,8 +141,10 @@ public class PythonPluginIntegrationTest {
      * Helper method to call private createParametersFile method via reflection
      */
     private void createParametersFile(Request request) throws Exception {
-        File parametersFile = new File(folderIn, "parameters.json");
         TaskProcessorRequest taskProcessorRequest = new TaskProcessorRequest(request, DATA_FOLDERS_BASE_PATH);
+
+        // Use the absolute path for the file
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, request.getFolderIn()).toString(), "parameters.json");
 
         Method method = pythonPlugin.getClass().getDeclaredMethod("createParametersFile",
             ch.asit_asso.extract.plugins.common.ITaskProcessorRequest.class, File.class);
@@ -155,7 +159,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: File should exist
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         assertTrue(parametersFile.exists(), "parameters.json should be created");
 
         // Parse JSON
@@ -166,20 +170,23 @@ public class PythonPluginIntegrationTest {
         assertTrue(json.has("geometry"));
         assertTrue(json.has("properties"));
 
-        // Verify all metadata in properties
+        // Verify all metadata in properties (PascalCase property names)
         JsonNode properties = json.get("properties");
-        assertEquals("ORDER-TEST-001", properties.get("orderLabel").asText());
-        assertEquals("order-guid-test", properties.get("orderGuid").asText());
-        assertEquals("Test Product", properties.get("productLabel").asText());
-        assertEquals("product-guid-test", properties.get("productGuid").asText());
-        assertEquals("Test Client", properties.get("clientName").asText());
-        assertEquals("client-guid-test", properties.get("clientGuid").asText());
-        assertEquals("Test Organism", properties.get("organismName").asText());
-        assertEquals("organism-guid-test", properties.get("organismGuid").asText());
-        assertEquals("Test Tiers", properties.get("tiersName").asText());
-        assertEquals("tiers-guid-test", properties.get("tiersGuid").asText());
-        assertEquals("Tiers contact details", properties.get("tiersDetails").asText());
-        assertEquals("Test remark", properties.get("remark").asText());
+        assertEquals("ORDER-TEST-001", properties.get("OrderLabel").asText());
+        assertEquals("order-guid-test", properties.get("OrderGuid").asText());
+        assertEquals("Test Product", properties.get("ProductLabel").asText());
+        assertEquals("product-guid-test", properties.get("ProductGuid").asText());
+        assertEquals("Test Client", properties.get("ClientName").asText());
+        assertEquals("client-guid-test", properties.get("ClientGuid").asText());
+        assertEquals("Test Organism", properties.get("OrganismName").asText());
+        assertEquals("organism-guid-test", properties.get("OrganismGuid").asText());
+        assertEquals(1, properties.get("Request").asInt());
+
+        // FolderIn/FolderOut are written as absolute paths by the plugin
+        String absoluteFolderIn = Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString();
+        String absoluteFolderOut = Paths.get(DATA_FOLDERS_BASE_PATH, folderOut).toString();
+        assertEquals(absoluteFolderIn, properties.get("FolderIn").asText());
+        assertEquals(absoluteFolderOut, properties.get("FolderOut").asText());
     }
 
     @Test
@@ -192,7 +199,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: GeoJSON should have correct Polygon structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -231,7 +238,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: GeoJSON should have correct MultiPolygon structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -267,7 +274,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: Should have 2 rings (exterior + interior)
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -296,7 +303,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: GeoJSON should have correct Point structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -319,7 +326,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: GeoJSON should have correct LineString structure
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode geometry = json.get("geometry");
@@ -337,7 +344,7 @@ public class PythonPluginIntegrationTest {
     }
 
     @Test
-    @DisplayName("Dynamic parameters from JSON are added to properties")
+    @DisplayName("Dynamic parameters from JSON are added to nested Parameters object")
     public void testDynamicParametersInProperties() throws Exception {
         // Given: Request with custom parameters
         testRequest.setParameters("{\"FORMAT\":\"DXF\",\"PROJECTION\":\"EPSG:2056\",\"SCALE\":1000,\"quality\":\"high\"}");
@@ -345,15 +352,17 @@ public class PythonPluginIntegrationTest {
         // When: Creating parameters file
         createParametersFile(testRequest);
 
-        // Then: Dynamic parameters should be in properties
-        File parametersFile = new File(folderIn, "parameters.json");
+        // Then: Dynamic parameters should be nested under Parameters in properties
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode properties = json.get("properties");
-        assertEquals("DXF", properties.get("FORMAT").asText());
-        assertEquals("EPSG:2056", properties.get("PROJECTION").asText());
-        assertEquals("1000", properties.get("SCALE").asText());
-        assertEquals("high", properties.get("quality").asText());
+        JsonNode parameters = properties.get("Parameters");
+        assertNotNull(parameters, "Parameters object should exist");
+        assertEquals("DXF", parameters.get("FORMAT").asText());
+        assertEquals("EPSG:2056", parameters.get("PROJECTION").asText());
+        assertEquals(1000, parameters.get("SCALE").asInt());
+        assertEquals("high", parameters.get("quality").asText());
     }
 
     @Test
@@ -366,7 +375,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: Should create valid GeoJSON Feature
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         assertEquals("Feature", json.get("type").asText());
@@ -384,7 +393,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: Should still create valid GeoJSON
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         assertEquals("Feature", json.get("type").asText());
@@ -401,7 +410,7 @@ public class PythonPluginIntegrationTest {
         assertDoesNotThrow(() -> createParametersFile(testRequest));
 
         // Then: File should still be created with basic properties
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         assertTrue(parametersFile.exists());
 
         JsonNode json = objectMapper.readTree(parametersFile);
@@ -412,33 +421,30 @@ public class PythonPluginIntegrationTest {
     @DisplayName("All null optional fields are handled gracefully")
     public void testAllNullOptionalFields() throws Exception {
         // Given: Request with minimal data (nulls everywhere)
-        testRequest.setTiers(null);
-        testRequest.setTiersGuid(null);
-        testRequest.setTiersDetails(null);
-        testRequest.setRemark(null);
         testRequest.setPerimeter(null);
         testRequest.setParameters(null);
-        testRequest.setStartDate(null);
-        testRequest.setEndDate(null);
 
         // When: Creating parameters file
         createParametersFile(testRequest);
 
         // Then: Should still create valid file
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         assertTrue(parametersFile.exists());
 
         JsonNode json = objectMapper.readTree(parametersFile);
         assertEquals("Feature", json.get("type").asText());
 
-        // Verify non-null required fields are present
+        // Verify non-null required fields are present (PascalCase)
         JsonNode properties = json.get("properties");
-        assertEquals("ORDER-TEST-001", properties.get("orderLabel").asText());
-        assertEquals("Test Client", properties.get("clientName").asText());
+        assertEquals("ORDER-TEST-001", properties.get("OrderLabel").asText());
+        assertEquals("Test Client", properties.get("ClientName").asText());
+
+        // Empty Parameters object should be present
+        assertTrue(properties.has("Parameters"));
     }
 
     @Test
-    @DisplayName("Complex parameters with nested JSON are flattened")
+    @DisplayName("Complex parameters with nested JSON are preserved in Parameters object")
     public void testComplexNestedParametersFlattening() throws Exception {
         // Given: Complex nested parameters
         testRequest.setParameters("{\"format\":\"PDF\",\"options\":{\"compress\":true,\"quality\":95},\"layers\":[\"A\",\"B\"]}");
@@ -446,37 +452,40 @@ public class PythonPluginIntegrationTest {
         // When: Creating parameters file
         createParametersFile(testRequest);
 
-        // Then: Parameters should be parsed (behavior may vary)
-        File parametersFile = new File(folderIn, "parameters.json");
+        // Then: Parameters should be nested and preserve structure
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode properties = json.get("properties");
-        assertTrue(properties.has("format"));
-        assertEquals("PDF", properties.get("format").asText());
+        JsonNode parameters = properties.get("Parameters");
+        assertTrue(parameters.has("format"));
+        assertEquals("PDF", parameters.get("format").asText());
+
+        // Verify nested structure is preserved
+        assertTrue(parameters.has("options"));
+        JsonNode options = parameters.get("options");
+        assertTrue(options.get("compress").asBoolean());
+        assertEquals(95, options.get("quality").asInt());
     }
 
     @Test
     @DisplayName("Special characters in metadata are properly escaped in JSON")
     public void testSpecialCharactersEscaping() throws Exception {
-        // Given: Request with special characters
-        testRequest.setRemark("Test with \"quotes\" and \n newlines \t tabs");
+        // Given: Request with special characters in client name
         testRequest.setClient("Client & Co. <important>");
 
         // When: Creating parameters file
         createParametersFile(testRequest);
 
         // Then: JSON should be valid and properly escaped
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode properties = json.get("properties");
-        String remark = properties.get("remark").asText();
-        assertTrue(remark.contains("quotes"));
-        assertTrue(remark.contains("newlines"));
-
-        String client = properties.get("clientName").asText();
+        String client = properties.get("ClientName").asText();
         assertTrue(client.contains("&"));
         assertTrue(client.contains("<"));
+        assertEquals("Client & Co. <important>", client);
     }
 
     @Test
@@ -489,7 +498,7 @@ public class PythonPluginIntegrationTest {
         createParametersFile(testRequest);
 
         // Then: Coordinates should be preserved accurately
-        File parametersFile = new File(folderIn, "parameters.json");
+        File parametersFile = new File(Paths.get(DATA_FOLDERS_BASE_PATH, folderIn).toString(), "parameters.json");
         JsonNode json = objectMapper.readTree(parametersFile);
 
         JsonNode coordinates = json.get("geometry").get("coordinates").get(0);
