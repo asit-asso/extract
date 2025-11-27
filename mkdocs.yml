@@ -1,0 +1,74 @@
+site_name: Extract Documentation
+site_url: https://asit-asso.github.io/extract/
+theme:
+  name: material
+  palette:
+    primary: custom
+  
+  font:
+    text: Asap
+    code: JetBrains Mono
+  
+  logo: assets/asit_extract_blanc.png
+  favicon: assets/extract_favicon64.png
+
+  features:
+    - navigation.sections
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - search.suggest
+    - toc.integrate
+    - navigation.path
+    - content.code.copy
+
+  icon:
+    repo: fontawesome/brands/github
+
+repo_url: https://github.com/asit-asso/extract
+repo_name: asit-asso/extract
+
+markdown_extensions:
+  - attr_list
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - tables
+  - pymdownx.magiclink
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - index.md
+  - Getting Started:
+    - getting-started/install.md
+    - getting-started/configure.md
+    - getting-started/network-integration.md
+    - getting-started/customize.md
+    - getting-started/cybersecurity-win.md
+    - getting-started/cybersecurity-linux.md
+  - features/user-guide.md
+  - features/admin-guide.md
+  - Dev guide:
+    - features/development.md
+    - features/architecture.md
+  - How-To:
+    - how-to/extract-viageo.md
+    - how-to/fme-form.md
+    - how-to/fme-flow.md
+    - how-to/python.md
+    - how-to/qgis-server-atlas.md
+  - Miscellaneous:
+    - misc/viageo-test.md 
+
+plugins:
+  - search
+  - exclude-search:
+      exclude:
+        - mitigations/*
+        - extract-connector-sample/*
+        - extract-task-sample/*
+        - changelog/*
