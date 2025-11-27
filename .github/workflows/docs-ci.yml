@@ -1,10 +1,9 @@
 name: Build documentation
 run-name: Building static documentation website after push by ${{ github.actor }}
 on:
-    workflow_dispatch : ~
-    pull_request:
-        types: [opened, reopened]
-        
+  push:
+    branches:
+      - master
 permissions:
   contents: write
 jobs:
