@@ -71,3 +71,4 @@ plugins:
         - mitigations/*
         - extract-connector-sample/*
         - extract-task-sample/*
+        - changelog/*

@@ -1,6 +1,7 @@
 name: Build documentation
 run-name: Building static documentation website after push by ${{ github.actor }}
 on:
+  workflow_dispatch : ~
   push:
     branches:
       - new-documentation
