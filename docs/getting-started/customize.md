@@ -46,7 +46,7 @@ After making changes to the plugins, the Tomcat Extract application must be rest
 
 ### Development of a new connector plugin
 !!! Info
-    Documented sample code is available to help you create a new connector. You'll find it in the docs folder of the application repository : [https://github.com/benoitregamey/extract/tree/new-documentation/docs/extract-connector-sample](https://github.com/benoitregamey/extract/tree/new-documentation/docs/extract-connector-sample){target="_blank"}.
+    Documented sample code is available to help you create a new connector. You'll find it in the docs folder of the application repository : [https://github.com/asit-asso/extract/tree/master/docs/extract-connector-sample](https://github.com/asit-asso/extract/tree/master/docs/extract-connector-sample){target="_blank"}.
 
 * The project must be structured as a Java module, requiring the inclusion of a ``module-info.java`` file that declares its dependencies
 * The new connector project must define a dependency on the ``extract-interface`` project
@@ -59,7 +59,7 @@ After making changes to the plugins, the Tomcat Extract application must be rest
 
 ### Development of a new task plugin
 !!! Info
-    Documented sample code is available to help you create a new connector. You'll find it in the docs folder of the application repository : [https://github.com/benoitregamey/extract/tree/new-documentation/docs/extract-task-sample](https://github.com/benoitregamey/extract/tree/new-documentation/docs/extract-task-sample){target="_blank"}.
+    Documented sample code is available to help you create a new connector. You'll find it in the docs folder of the application repository : [https://github.com/asit-asso/extract/tree/master/docs/extract-task-sample](https://github.com/asit-asso/extract/tree/master/docs/extract-task-sample){target="_blank"}.
 
 * The project must be structured as a Java module, requiring the inclusion of a ``module-info.java`` file that declares its dependencies
 * The new task project must define a dependency on the ``extract-interface`` project

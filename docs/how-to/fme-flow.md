@@ -4,13 +4,13 @@
 
     This tutorial uses the extraction plugin `Extraction FME Flow (Version 2)` which allows unlimited parameters length, thus allowing request with precise geometries like municipalities boundary.
 
-To follow along with this tutorial, download the sample script and data available [here](https://github.com/benoitregamey/extraction-samples). Either by cloning the repo :
+To follow along with this tutorial, download the sample script and data available [here](https://github.com/asit-asso/extraction-samples). Either by cloning the repo :
 
 ```
-git clone https://github.com/benoitregamey/extraction-samples.git
+git clone https://github.com/asit-asso/extraction-samples.git
 ```
 
-Or downloading a ZIP archive with the following link : https://github.com/benoitregamey/extraction-samples/archive/refs/heads/main.zip
+Or downloading a ZIP archive with the following link : https://github.com/asit-asso/extraction-samples/archive/refs/heads/main.zip
 
 ## Set up the FME workspace inside FME Flow
 
