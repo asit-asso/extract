@@ -1,0 +1,190 @@
+<div>
+    <p>The Python extraction plugin allows you to run a custom Python script while overcoming command-line length limitations. A functional Python interpreter for the script (version, dependencies, etc.) must be provided.</p>
+
+    <h4>Parameter Transmission Method</h4>
+    <p>The command parameters are stored in a GeoJSON file named <code>parameters.json</code>, which contains a single feature — the polygon representing the request area in WGS84.
+        All other parameters are stored in the feature’s properties.
+        Only the path to this file is passed to the script as a positional command-line argument (the Python script must read this file and extract the desired parameters).
+    </p>
+
+    <h4>GeoJSON File Structure</h4>
+    <p>The file is a GeoJSON object of type <em>Feature</em> containing:</p>
+    <ul>
+        <li><strong>geometry</strong>: The geometry of the area (automatic conversion from WKT to GeoJSON)</li>
+        <li><strong>properties</strong>: All request parameters</li>
+    </ul>
+
+    <h4>Parameters Available in the GeoJSON File</h4>
+    <p>The following properties are available in the GeoJSON file:</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+        <tr>
+            <td class="popover-table-header"><p>Parameter</p></td>
+            <td class="popover-table-header"><p>Description</p></td>
+            <td class="popover-table-header"><p>Type</p></td>
+            <td class="popover-table-header"><p>Example</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>Request</p></td>
+            <td class="popover-table-data"><p>Internal Extract request identifier</p></td>
+            <td class="popover-table-data"><p>Integer</p></td>
+            <td class="popover-table-data"><p>365</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>FolderOut</p></td>
+            <td class="popover-table-data"><p>Output directory where generated files must be written</p></td>
+            <td class="popover-table-data"><p>String</p></td>
+            <td class="popover-table-data"><p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrderGuid</p></td>
+            <td class="popover-table-data"><p>Unique order identifier</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrderLabel</p></td>
+            <td class="popover-table-data"><p>External order label</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>221587</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ClientGuid</p></td>
+            <td class="popover-table-data"><p>Unique client identifier</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>94d47632-b0e9-57f4-6580-58925e3f9a88</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ClientName</p></td>
+            <td class="popover-table-data"><p>Name of the client who placed the order</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>Jean Dupont</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrganismGuid</p></td>
+            <td class="popover-table-data"><p>Unique organization identifier</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>2edc1a50-4837-4c44-1519-3ebc85f14588</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrganismName</p></td>
+            <td class="popover-table-data"><p>Name of the organization</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>Cadastral Service</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ProductGuid</p></td>
+            <td class="popover-table-data"><p>Unique identifier of the ordered product</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>a049fecb-30d9-9124-ed41-068b566a0855</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ProductLabel</p></td>
+            <td class="popover-table-data"><p>Label of the ordered product</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>Cadastral map</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>Parameters</p></td>
+            <td class="popover-table-data"><p>JSON object containing the custom request parameters</p></td>
+            <td class="popover-table-data"><p>JSON object</p></td>
+            <td class="popover-table-data"><p>{"FORMAT" : "SHP", "PROJECTION" : "SWITZERLAND95"}</p></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h4>Geometry (<code>geometry</code>)</h4>
+    <p>
+        The geometry of the area is automatically converted from WKT (WGS84) to GeoJSON format.
+        It is stored in the <code>geometry</code> property of the Feature object.
+    </p>
+
+    <h4>Example of a parameters.json File</h4>
+    <pre>{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727164248283, 46.44372031957538],
+      [6.881351862162561, 46.44126511019801],
+      [6.886480507180103, 46.43919870486726],
+      [6.893221678307809, 46.441705238743005],
+      [6.886727164248283, 46.44372031957538]
+    ]]
+  },
+  "properties": {
+    "Request": 365,
+    "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "Jean Dupont",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Service du cadastre",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Plan cadastral",
+    "Parameters": {
+      "FORMAT": "SHP",
+      "SELECTION" : "PASS_THROUGH",
+      "PROJECTION" : "SWITZERLAND95",
+      "REMARK" : "bla bla bla",
+      "CLIENT_LANG" : "fr"
+    }
+  }
+}</pre>
+
+    <h4>Usage in Python</h4>
+    <p>
+        The Python script can read this file as a standard GeoJSON. The properties are accessible through <code>feature['properties']</code>, and the geometry through <code>feature['geometry']</code>.
+    </p>
+
+    <h4>Example Python Script</h4>
+    <pre>#!/usr/bin/env python3
+import json
+import sys
+import os
+
+def main():
+    if len(sys.argv) < 2:
+        print("Error: path to parameters.json file required")
+        return 1
+
+    # Load the GeoJSON file
+    with open(sys.argv[1], 'r') as f:
+        feature = json.load(f)
+
+    # Retrieve parameters
+    props = feature['properties']
+    output_dir = props['FolderOut']
+    geometry = feature['geometry']
+
+    # Process the request
+    # ... your code here ...
+
+    # Save results in FolderOut
+    result_file = os.path.join(output_dir, 'result.txt')
+    with open(result_file, 'w') as f:
+        f.write("Processing completed successfully")
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
+</pre>
+
+    <h4>Output</h4>
+    <p>
+        The output files generated by the script must be written in the directory specified by <code>FolderOut</code>.
+        The script must return an exit code of 0 if processing was successful.
+    </p>
+
+    <h4>Important Notes</h4>
+    <ul>
+        <li>The script runs in the directory where the Python script itself is located</li>
+        <li>This allows the use of relative paths within the script</li>
+        <li>The <code>parameters.json</code> file is created in FolderIn and deleted at the end of the process</li>
+        <li>The Python interpreter must be installed on the Extract server</li>
+        <li>All required Python dependencies must be installed</li>
+    </ul>
+</div>

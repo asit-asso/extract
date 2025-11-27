@@ -1,31 +1,90 @@
 <div>
-    <p>Le plugin de notification e-mail permet d'envoyer un message &agrave; un ou plusieurs destinataires.</p>
+    <h4>Description</h4>
+    <p>Le plugin de notification e-mail permet d'envoyer un message personnalisé à un ou plusieurs destinataires.</p>
 
-    <p>Les e-mails des destinataires doivent &ecirc;tre s&eacute;par&eacute;s par des points-virgules.</p>
+    <p>Les e-mails des destinataires doivent être séparés par des points-virgules.</p>
 
+    <h4>Placeholders disponibles</h4>
     <p>
-        L'objet et le contenu du message peuvent contenir des variables qui seront remplac&eacute;es par les
-        propri&eacute;t&eacute;s de la requ&ecirc;te. Les propri&eacute;t&eacute;s dynamiques autoris&eacute;es
-        sont les suivantes&nbsp;:
+        L'objet et le contenu du message peuvent contenir des <strong>placeholders</strong> qui seront remplacés par les valeurs
+        de la requête. Utilisez la syntaxe <code>{nomDuChamp}</code> avec des accolades.
     </p>
 
+    <h5>Informations de base</h5>
     <ul>
-        <li>orderLabel</li>
-        <li>orderGuid</li>
-        <li>productGuid</li>
-        <li>productLabel</li>
-        <li>startDate</li>
-        <li>organism</li>
-        <li>client</li>
+        <li><code>{orderLabel}</code> - Nom de la commande/requête</li>
+        <li><code>{productLabel}</code> - Nom du produit</li>
+        <li><code>{startDate}</code> - Date de soumission (formatée, ex: "27 oct. 2025 14:30:00")</li>
+        <li><code>{startDateISO}</code> - Date de soumission (format ISO 8601, ex: "2025-10-27T14:30:00Z")</li>
+        <li><code>{endDate}</code> - Date de fin (formatée)</li>
+        <li><code>{endDateISO}</code> - Date de fin (format ISO 8601)</li>
+        <li><code>{status}</code> - Statut de la requête (ONGOING, FINISHED, ERROR, etc.)</li>
+        <li><code>{rejected}</code> - Booléen, true si la requête a été rejetée</li>
     </ul>
 
-    <p><i>Exemple d'objet&nbsp;:</i> "Nouvelle demande pour le produit {productLabel}, client {client}"</p>
+    <h5>Client et organisation</h5>
+    <ul>
+        <li><code>{client}</code> ou <code>{clientName}</code> - Nom du client</li>
+        <li><code>{clientGuid}</code> - Identifiant unique du client</li>
+        <li><code>{organism}</code> ou <code>{organisationName}</code> - Nom de l'organisme du client</li>
+        <li><code>{organismGuid}</code> - Identifiant unique de l'organisme</li>
+    </ul>
 
-    <p><i>Exemple de contenu&nbsp;:</i></p>
-    <p>
-        "Le client {client} ({organism}) a command&eacute; le produit {productLabel}<br />
-        N° de commande : {orderLabel}<br />
-        Date de traitement : {startDate}<br />
-        Les donn&eacute;es livr&eacute;es ont &eacute;t&eacute; archiv&eacute;es vers : /home/data/extract/archive/{orderLabel}/{productLabel}"
-    </p>
+    <h5>Tiers</h5>
+    <ul>
+        <li><code>{tiers}</code> - Nom de l'organisation tierce (peut être vide)</li>
+    </ul>
+
+    <h5>Informations géographiques</h5>
+    <ul>
+        <li><code>{perimeter}</code> - Périmètre géographique (format WKT)</li>
+        <li><code>{surface}</code> - Surface de la commande</li>
+    </ul>
+
+    <h5>Remarques</h5>
+    <ul>
+        <li><code>{remark}</code> - Remarque/commentaire du client</li>
+    </ul>
+
+    <h5>Paramètres dynamiques</h5>
+    <p>Les paramètres JSON de la requête sont accessibles de deux façons :</p>
+    <ul>
+        <li><code>{parameters.NOM_CLE}</code> - Accès par nom de clé (sensible à la casse)<br/>
+            Exemple : <code>{parameters.FORMAT}</code> pour accéder à la clé "FORMAT"</li>
+        <li><code>{param_NOM_CLE}</code> - Notation alternative (sensible à la casse)<br/>
+            Exemple : <code>{param_FORMAT}</code> pour accéder à la clé "FORMAT"</li>
+    </ul>
+
+    <p><strong>Note importante :</strong></p>
+    <ul>
+        <li>Les placeholders de champs standards manquants ({client}, {orderLabel}, etc.) sont remplacés par une chaîne vide</li>
+        <li>Les paramètres dynamiques inexistants ({parameters.XXX}, {param_XXX}) sont remplacés par la chaîne <code>"null"</code></li>
+        <li>L'email sera toujours envoyé, même si des placeholders sont manquants</li>
+    </ul>
+
+    <h4>Exemples</h4>
+
+    <p><strong>Exemple d'objet :</strong></p>
+    <pre>Nouvelle demande pour le produit {productLabel}, client {client}</pre>
+
+    <p><strong>Exemple de contenu :</strong></p>
+    <pre>Bonjour,
+
+Le client {client} de l'organisme {organism} a commandé le produit {productLabel}.
+
+Détails de la commande :
+- N° de commande : {orderLabel}
+- Date de traitement : {startDate}
+- Surface : {surface} m²
+- Format demandé : {parameters.FORMAT}
+- Remarque : {remark}
+
+Cordialement</pre>
+
+    <p><strong>Exemple avec paramètres conditionnels :</strong></p>
+    <p>Si un paramètre peut être absent, vous pouvez utiliser du HTML pour l'affichage conditionnel :</p>
+    <pre>&lt;p&gt;Client : {client}&lt;/p&gt;
+&lt;p&gt;Organisme : {organism}&lt;/p&gt;
+&lt;!-- Le paramètre raison peut être vide si absent --&gt;
+&lt;p&gt;Raison : {parameters.raison}&lt;/p&gt;</pre>
 </div>

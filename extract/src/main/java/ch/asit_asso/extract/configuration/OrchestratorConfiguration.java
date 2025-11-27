@@ -24,6 +24,7 @@ import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.services.MessageService;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,6 +70,11 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
      */
     private final EmailSettings emailSettings;
 
+    /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
+
     private final LdapSettings ldapSettings;
 
     /**
@@ -91,13 +97,15 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
     public OrchestratorConfiguration(ApplicationRepositories repositories,
                                      ConnectorDiscovererWrapper connectorsDiscoverer,
                                      TaskProcessorDiscovererWrapper taskPluginDiscoverer, EmailSettings emailSettings,
-                                     LdapSettings ldapSettings, SystemParametersRepository parametersRepository) {
+                                     LdapSettings ldapSettings, SystemParametersRepository parametersRepository,
+                                     MessageService messageService) {
         this.applicationRepositories = repositories;
         this.connectorsDiscoverer = connectorsDiscoverer;
         this.emailSettings = emailSettings;
         this.ldapSettings = ldapSettings;
         this.taskPluginDiscoverer = taskPluginDiscoverer;
         this.systemParametersRepository = parametersRepository;
+        this.messageService = messageService;
     }
 
 
@@ -114,7 +122,7 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
 
         if (!orchestrator.initializeComponents(taskRegistrar, this.applicationLanguage, this.applicationRepositories,
                                                this.connectorsDiscoverer, this.taskPluginDiscoverer, this.emailSettings,
-                                               this.ldapSettings, new OrchestratorSettings(this.systemParametersRepository))) {
+                                               this.ldapSettings, new OrchestratorSettings(this.systemParametersRepository), this.messageService)) {
             this.logger.error("The background tasks are not scheduled because it was impossible to properly initialize"
                     + " the orchestrator.");
             return;

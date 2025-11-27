@@ -194,7 +194,8 @@
                     th:src="@{/lib/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js} + '?v=@@datepickerLibVersion@@'"
                     type="text/javascript">
             </script>
-            <script src="../../static/lib/bootstrap-datepicker/dist/locales/bootstrap-datepicker.en.min.js"
+            <!-- Load datepicker locale only if not English (English is the default) -->
+            <script th:if="${language != null and language != 'en'}"
                     th:src="@{'/lib/bootstrap-datepicker/dist/locales/bootstrap-datepicker.' + ${language} + '.min.js?v=@@datepickerLibVersion@@'}"
                     type="text/javascript">
             </script>

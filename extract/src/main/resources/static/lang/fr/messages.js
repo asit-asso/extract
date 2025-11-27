@@ -5,10 +5,16 @@
 
 /**
  * Localized messages to be used by scripts.
- * 
+ * This is the default (fallback) language.
+ *
  * @type Object
  */
-var LANG_MESSAGES = {
+var LANG_MESSAGES = LANG_MESSAGES || {};
+
+/**
+ * Default (French) messages that serve as fallback for missing translations.
+ */
+var LANG_MESSAGES_FR = {
     "connectorsList" : {
         "deleteConfirm" : {
             "title" : "Suppression d'un connecteur",
@@ -153,9 +159,24 @@ var LANG_MESSAGES = {
             "title" : "Pas encore implémenté",
             "message" : "Désolé, cette fonction n'est pas encore disponible."
         }
+    },
+    "errors" : {
+        "ajaxError" : {
+            "title" : "Erreur de connexion",
+            "message" : "Une erreur est survenue lors de la mise à jour des demandes en cours..."
+        }
     }
 };
 
+
+// Merge French messages into LANG_MESSAGES (provides default/fallback values)
+// Using jQuery's deep extend to merge nested objects
+if (typeof jQuery !== 'undefined') {
+    jQuery.extend(true, LANG_MESSAGES, LANG_MESSAGES_FR);
+} else {
+    // Fallback if jQuery is not yet loaded (should not happen in normal usage)
+    LANG_MESSAGES = LANG_MESSAGES_FR;
+}
 
 var RULE_HELP_CONTENT = 'static/lang/fr/rulesHelp.html';
 

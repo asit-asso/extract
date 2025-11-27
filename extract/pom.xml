@@ -5,7 +5,7 @@
 
     <groupId>ch.asit_asso</groupId>
     <artifactId>extract</artifactId>
-    <version>2.2.0</version>
+    <version>2.3.0</version>
     <packaging>war</packaging>
 
     <name>extract</name>
@@ -44,13 +44,14 @@
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <skipTests>true</skipTests>
     </properties>
 
     <dependencies>
         <dependency>
             <groupId>ch.asit_asso</groupId>
             <artifactId>extract-plugin-commoninterface</artifactId>
-            <version>2.2.0</version>
+            <version>2.3.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -130,6 +131,17 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>5.5.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -250,10 +262,9 @@
                         <artifactId>maven-surefire-plugin</artifactId>
                         <configuration>
                             <skipTests>false</skipTests>
-                            <includes>ch.asit_asso.extract.unit.**.*Test</includes>
-                            <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
-                            </classpathDependencyExcludes>
+                            <includes>
+                                <include>**/unit/**/*Test.java</include>
+                            </includes>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -268,14 +279,14 @@
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <skipTests>false</skipTests>
                             <summaryFile>target/failsafe-reports/failsafe-summary-integration.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
-
-                            <classpathDependencyExcludes>
-                                <classpathDependencyExcludes>ch.qos.logback:logback-classic</classpathDependencyExcludes>
-                            </classpathDependencyExcludes>
+                            <systemPropertyVariables>
+                                <extract.log.path>${project.build.directory}/logs</extract.log.path>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -290,10 +301,14 @@
                         <artifactId>maven-failsafe-plugin</artifactId>
                         <configuration>
                             <skip>false</skip>
+                            <skipTests>false</skipTests>
                             <summaryFile>target/failsafe-reports/failsafe-summary-functional.xml</summaryFile>
                             <includes>
                                 <include>ch.asit_asso.extract.functional.**.*FunctionalTest</include>
                             </includes>
+                            <systemPropertyVariables>
+                                <extract.log.path>${project.build.directory}/logs</extract.log.path>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>
@@ -438,7 +453,7 @@
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <skipTests>true</skipTests>
+                    <skipTests>${skipTests}</skipTests>
                 </configuration>
             </plugin>
             <plugin>

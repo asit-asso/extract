@@ -1,0 +1,276 @@
+<div>
+    <p>Das FME Flow V2-Extraktions-Plugin (ehemals FME Server) ermöglicht die Ausführung von Geodatenverarbeitungen auf einem Remote-FME Flow-Server über REST-API mit Token-Authentifizierung.</p>
+
+    <h4>Funktionsweise</h4>
+    <p>
+        Dieses Plugin verwendet den FME Data Download-Dienst, um Workspaces auf FME Flow auszuführen.
+        Es überträgt Parameter über GeoJSON im POST-Request-Body und gibt eine ZIP-Datei mit den Ergebnissen zurück.
+    </p>
+
+    <h4>Konfiguration des FME-Workspace</h4>
+    <p>
+        Der FME Flow-Workspace muss für die Verwendung des Data Download-Dienstes konfiguriert werden:
+    </p>
+    <ul>
+        <li>Veröffentlichen Sie den Workspace in einem FME Flow-Repository, indem Sie alle für Ihr Skript erforderlichen Daten hochladen</li>
+        <li>Wählen Sie den <i>Data Download</i>-Dienst</li>
+        <li>Verwenden Sie einen GeoJSON Reader oder FeatureReader, um die im Request-Body enthaltenen Daten zu lesen. Der Parameter mit der GeoJSON-Reader-Quelle muss veröffentlicht, aber nicht zwingend erforderlich sein. Wählen Sie in der Konfiguration des <i>Data Download</i>-Dienstes den GeoJSON Reader im Feld Send HTTP Message <i>Body to Reader</i>.</li>
+        <li>Konfigurieren Sie Writer zur Erstellung von Ausgabedateien. Der Speicherort der Ausgabedateien ist nicht wichtig.</li>
+        <li>Der Data Download-Dienst erstellt automatisch ein ZIP mit den Ergebnissen</li>
+    </ul>
+
+    <h4>Dienst-URL</h4>
+    <p>
+        Die URL muss dem Standard-Data Download-Service-Format folgen:
+    </p>
+    <pre>https://&lt;server&gt;/fmedatadownload/&lt;repository&gt;/&lt;workspace&gt;.fmw</pre>
+    <p>
+        Beispiel: <code>https://fme.example.com/fmedatadownload/extract/ProcessGeoData.fmw</code>
+    </p>
+
+    <h4>Struktur des übertragenen GeoJSON</h4>
+    <p>Das Plugin erstellt ein GeoJSON-Feature-Objekt mit:</p>
+    <ul>
+        <li><strong>geometry</strong>: Die Perimeter-Geometrie in WGS84 (automatische Konvertierung von WKT zu GeoJSON)</li>
+        <li><strong>properties</strong>: Alle Anfrageparameter</li>
+    </ul>
+
+    <h4>Verfügbare Parameter im GeoJSON</h4>
+    <p>Die folgenden Eigenschaften sind im GeoJSON-Objekt verfügbar, das an den Workspace übermittelt wird:</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+        <tr>
+            <td class="popover-table-header">
+                <p>Parameter</p>
+            </td>
+
+            <td class="popover-table-header">
+                <p>Beschreibung</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Typ</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Beispiel</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Request</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Interne Bestellkennung von Extract</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Ganzzahl</p>
+            </td>
+            <td class="popover-table-data">
+                <p>365</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>FolderOut</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Ausgabeverzeichnis, in das erstellte Dateien geschrieben werden müssen</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Zeichenfolge</p>
+            </td>
+            <td class="popover-table-data">
+                <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrderGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Eindeutige Bestellkennung</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrderLabel</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Externe Bestellbezeichnung</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+            <td class="popover-table-data">
+                <p>221587</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ClientGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Eindeutige Kundenkennung</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>94d47632-b0e9-57f4-6580-58925e3f9a88</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ClientName</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Name des Kunden, der die Bestellung aufgegeben hat</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Jean Dupont</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrganismGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Eindeutige Organisationskennung</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>2edc1a50-4837-4c44-1519-3ebc85f14588</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>OrganismName</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Organisationsname</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Katasteramt</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ProductGuid</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Eindeutige Kennung des bestellten Produkts</p>
+            </td>
+            <td class="popover-table-data">
+                <p>GUID / UUID</p>
+            </td>
+            <td class="popover-table-data">
+                <p>a049fecb-30d9-9124-ed41-068b566a0855</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>ProductLabel</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Bezeichnung des bestellten Produkts</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Katasterplan</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Parameters</p>
+            </td>
+            <td class="popover-table-data">
+                <p>JSON-Objekt mit benutzerdefinierten Anfrageparametern</p>
+            </td>
+            <td class="popover-table-data">
+                <p>JSON-Objekt</p>
+            </td>
+            <td class="popover-table-data">
+                <p>{"FORMAT" : "SHP", "PROJECTION" : "SWITZERLAND95"}</p>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h4>Beispiel eines GeoJSON-Bodys</h4>
+    <pre>{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727164248283, 46.44372031957538],
+      [6.881351862162561, 46.44126511019801],
+      [6.886480507180103, 46.43919870486726],
+      [6.893221678307809, 46.441705238743005],
+      [6.886727164248283, 46.44372031957538]
+    ]]
+  },
+  "properties": {
+    "Request": 365,
+    "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "Jean Dupont",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Katasteramt",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Katasterplan",
+    "Parameters": {
+      "FORMAT": "SHP",
+      "SELECTION" : "PASS_THROUGH",
+      "PROJECTION" : "SWITZERLAND95",
+      "REMARK" : "bla bla bla",
+      "CLIENT_LANG" : "fr"
+    }
+  }
+}</pre>
+
+    <h4>Sicherheit</h4>
+    <p>
+        Dieses Plugin implementiert mehrere Sicherheitsmaßnahmen:
+    </p>
+    <ul>
+        <li>URL-Validierung zur Verhinderung von SSRF-Angriffen</li>
+        <li>API-Token wird sicher im Header übertragen</li>
+        <li>Automatische Wiederholung mit exponentiellem Backoff</li>
+        <li>Validierung und Bereinigung aller Eingaben</li>
+    </ul>
+
+    <h4>Ergebnis</h4>
+    <p>
+        Das Plugin lädt die resultierende ZIP-Datei automatisch in das Ausgabeverzeichnis herunter.
+        Der Dateiname wird automatisch mit einem Zeitstempel generiert, um Konflikte zu vermeiden.
+    </p>
+
+    <h4>Fehlerbehandlung</h4>
+    <p>
+        Das Plugin behandelt folgende Fehler:
+    </p>
+    <ul>
+        <li>Ungültige oder nicht erreichbare Dienst-URL</li>
+        <li>Ungültiges oder abgelaufenes API-Token</li>
+        <li>Ungültige WKT-Geometrie</li>
+        <li>HTTP-Fehler (mit automatischer Wiederholung für 5xx-Fehler)</li>
+    </ul>
+</div>

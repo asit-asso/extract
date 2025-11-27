@@ -7,10 +7,12 @@
         </encoder>
     </appender>
 
+    <property name="LOG_PATH" value="${extract.log.path:-/var/log/extract}"/>
+
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/extract.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/extract.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>10</maxHistory>
             <totalSizeCap>3GB</totalSizeCap>
         </rollingPolicy>
@@ -23,7 +25,7 @@
     <appender name="EMAIL-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/email.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/email.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -36,7 +38,7 @@
     <appender name="HIBERNATE-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/hibernate.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/hibernate.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -49,7 +51,7 @@
     <appender name="CONNECTORS-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/connectors.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/connectors.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -62,7 +64,7 @@
     <appender name="ORCHESTRATOR-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/orchestrator.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/orchestrator.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -75,7 +77,7 @@
     <appender name="TASKS-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/task-plugins.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/task-plugins.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -88,7 +90,7 @@
     <appender name="THYMELEAF-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/thymeleaf.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/thymeleaf.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -101,7 +103,7 @@
     <appender name="WEB-FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <prudent>true</prudent>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>/var/log/extract/web.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/web.%d{yyyy-MM-dd}.log</fileNamePattern>
             <maxHistory>3</maxHistory>
             <totalSizeCap>100MB</totalSizeCap>
         </rollingPolicy>
@@ -140,6 +142,13 @@
     </logger>
 
     <logger name="ch.asit_asso.extract.plugins" level="DEBUG" additivity="false">
+        <appender-ref ref="TASKS-FILE" />
+    </logger>
+    
+    <!-- Configuration spécifique pour le plugin Email -->
+    <logger name="ch.asit_asso.extract.plugins.email" level="DEBUG" additivity="false">
+        <appender-ref ref="STDOUT" />
+        <appender-ref ref="EMAIL-FILE" />
         <appender-ref ref="TASKS-FILE" />
     </logger>
 

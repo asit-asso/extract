@@ -1,6 +1,6 @@
 name: build-extract-actions
 run-name: Testing Extract after pull request by ${{ github.actor }}
-on: 
+on:
     workflow_dispatch : ~
     pull_request:
         types: [opened, reopened]
@@ -97,18 +97,40 @@ jobs:
              - name: Make FME Desktop dummy executable (for integration tests)
                run: chmod +x /home/runner/work/extract/extract/extract/src/test/java/ch/asit_asso/extract/integration/taskplugins/FmeDesktopTest
                
-             - name: Running Docker Compose file with test containers (for functional tests)
-               uses: hoverkraft-tech/compose-action@v1.5.1
-               with:
-                   compose-file: "./docker-compose-test-ci.yaml"
-                   up-flags: "--wait"
-                   
+             - name: Pull Docker images (with retry)
+               run: |
+                   for i in 1 2 3; do
+                       docker compose -f ./docker-compose-test-ci.yaml pull && break
+                       echo "Retry $i failed, waiting 10s..."
+                       sleep 10
+                   done
+
+             - name: Build custom Docker images
+               run: docker compose -f ./docker-compose-test-ci.yaml build
+
+             - name: Start Docker Compose services
+               run: docker compose -f ./docker-compose-test-ci.yaml up -d
+
+             - name: Show Docker Compose logs on failure
+               if: failure()
+               run: docker compose -f ./docker-compose-test-ci.yaml logs
+
              - name: Execute unit tests
                run: mvn -q test -Punit-tests --batch-mode --fail-at-end
                
              - name: Execute integration tests
-               run: mvn -q verify -Pintegration-tests --batch-mode
-               
+               run: mvn -q verify -Pintegration-tests --batch-mode --fail-at-end
+
+             - name: Restore test data after integration tests
+               run: |
+                   echo "Restoring test data that may have been deleted by integration tests..."
+                   echo "Listing Docker containers..."
+                   docker ps
+                   echo "Executing SQL script..."
+                   docker compose -f ./docker-compose-test-ci.yaml exec -T pgsql psql -U extractuser -d extract -f /dev/stdin < sql/create_test_data.sql
+                   echo "Verifying data was inserted..."
+                   docker compose -f ./docker-compose-test-ci.yaml exec -T pgsql psql -U extractuser -d extract -c "SELECT id_request, status FROM requests ORDER BY id_request;"
+
              - name: Wait on Extract application deployment
                uses: iFaxity/wait-on-action@v1.2.1
                with:
@@ -118,7 +140,7 @@ jobs:
                    verbose: true
                    
              - name: Execute functional tests
-               run: mvn -q verify -Pfunctional-tests --batch-mode
+               run: mvn -q verify -Pfunctional-tests --batch-mode --fail-at-end
                   
              # - name: "Publish test results"
                # if: success() || failure()
@@ -131,22 +153,25 @@ jobs:
                    name: "Unit tests"
                    path: "**/surefire-reports/TEST-*.xml"
                    reporter: "java-junit"
-                 
+                   fail-on-error: false
+
              - name: "Publish integration tests results"
                uses: dorny/test-reporter@v1
                if: success() || failure()
                with:
                    name: "Integration tests"
-                   path: "**/failsafe-reports/TEST-*.integration.*.xml"
+                   path: "**/failsafe-reports/TEST-*IntegrationTest.xml"
                    reporter: "java-junit"
-                 
+                   fail-on-error: false
+
              - name: "Publish functional test results"
                uses: dorny/test-reporter@v1
                if: success() || failure()
                with:
                    name: "Functional tests"
-                   path: "**/failsafe-reports/TEST-*.functional.*.xml"
+                   path: "**/failsafe-reports/TEST-*FunctionalTest.xml"
                    reporter: "java-junit"
+                   fail-on-error: false
                  
              # - name: Change tomcat log permissions (so we can upload them)
                # if: always()

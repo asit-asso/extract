@@ -48,7 +48,10 @@ public class RequestsStateFunctionalTest {
     }
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws InterruptedException {
+        // Small delay to ensure previous test cleanup is complete
+        Thread.sleep(500);
+
         ChromeOptions options = new ChromeOptions();
         options.addArguments(
                 List.of("--disable-gpu",
@@ -68,7 +71,7 @@ public class RequestsStateFunctionalTest {
 
         this.driver.get(RequestsStateFunctionalTest.APPLICATION_URL);
         this.driver.manage().window().maximize();
-        this.driver.manage().timeouts().implicitlyWait(Duration.of(120, ChronoUnit.MILLIS));
+        this.driver.manage().timeouts().implicitlyWait(Duration.of(10, ChronoUnit.SECONDS));
         LoginPage loginPage = new LoginPage(this.driver);
         this.homePage = loginPage.loginAs(RequestsStateFunctionalTest.ADMIN_USERNAME,
                                           RequestsStateFunctionalTest.ADMIN_PASSWORD);

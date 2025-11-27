@@ -536,7 +536,7 @@ public class ConnectorsController extends BaseController {
 
         model.addAttribute("processes", this.getAllProcesses());
         model.addAttribute("isNew", isNew);
-        model.addAttribute("language", this.applicationLanguage);
+        model.addAttribute("language", this.getCurrentUserLanguage());
         this.addCurrentSectionToModel(ConnectorsController.CURRENT_SECTION_IDENTIFIER, model);
         this.addJavascriptMessagesAttribute(model);
 

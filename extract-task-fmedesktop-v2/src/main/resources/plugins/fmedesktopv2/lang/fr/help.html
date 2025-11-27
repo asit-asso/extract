@@ -1,0 +1,243 @@
+<div>
+    <p>Le plugin d'extraction FME Desktop V2 permet d'exécuter un script avec FME Desktop en surmontant les limitations de longueur de ligne de commande.</p>
+
+    <h4>Méthode de transmission des paramètres</h4>
+    <p>
+        Contrairement à la version classique, ce plugin transmet les paramètres via un fichier GeoJSON nommé <code>parameters.json</code>
+        créé dans le répertoire de sortie. Le workspace FME reçoit le chemin de ce fichier via le paramètre <code>--parametersFile</code>.
+
+        Les paramètres de la commande sont enregistrés dans un fichier GeoJson, avec pour seule feature, le polygone d’emprise de la commande en WGS84. Les autres paramètres sont contenus dans les properties de la feature.
+        Seul le chemin du fichier est passé au script avec le paramètre parametersFile (le script FME doit lire ce fichier et extraire les paramètres désirés).
+    </p>
+
+    <h4>Structure du fichier GeoJSON</h4>
+    <p>Le fichier est un objet GeoJSON de type Feature contenant :</p>
+    <ul>
+        <li><strong>geometry</strong> : La géométrie du périmètre en WGS84 (convertion automatique du WKT en GeoJSON)</li>
+        <li><strong>properties</strong> : Tous les paramètres de la requête</li>
+    </ul>
+
+    <h4>Paramètres disponibles dans le fichier GeoJSON</h4>
+    <p>Les propriétés suivantes sont disponibles dans le fichier GeoJSON :</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+            <tr>
+                <td class="popover-table-header">
+                    <p>Paramètre</p>
+                </td>
+
+                <td class="popover-table-header">
+                    <p>Description</p>
+                </td>
+                <td class="popover-table-header">
+                    <p>Type</p>
+                </td>
+                <td class="popover-table-header">
+                    <p>Exemple</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Request</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant de commande interne Extract</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Entier</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>365</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>FolderOut</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Répertoire de sortie où doivent être écrits les fichiers créés</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Chaîne</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrderGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique de la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrderLabel</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Libellé de commande externe</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>221587</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ClientGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique du client</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>94d47632-b0e9-57f4-6580-58925e3f9a88</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ClientName</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Nom du client qui a passé la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Jean Dupont</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrganismGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique de l'organisme</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>2edc1a50-4837-4c44-1519-3ebc85f14588</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrganismName</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Nom de l'organisme</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Service du cadastre</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ProductGuid</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant unique du produit commandé</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>a049fecb-30d9-9124-ed41-068b566a0855</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>ProductLabel</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Libellé du produit commandé</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Plan cadastral</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Parameters</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Objet JSON contenant les paramètres personnalisés de la requête</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Objet JSON</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>{"FORMAT" : "SHP", "PROJECTION" : "EPSG:2056"}</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h4>Exemple de fichier parameters.json</h4>
+    <pre>{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727164248283, 46.44372031957538],
+      [6.881351862162561, 46.44126511019801],
+      [6.886480507180103, 46.43919870486726],
+      [6.893221678307809, 46.441705238743005],
+      [6.886727164248283, 46.44372031957538]
+    ]]
+  },
+  "properties": {
+    "Request": 365,
+    "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "Jean Dupont",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Service du cadastre",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Plan cadastral",
+    "Parameters": {
+      "FORMAT": "SHP",
+      "SELECTION" : "PASS_THROUGH",
+      "PROJECTION" : "SWITZERLAND95",
+      "REMARK" : "bla bla bla",
+      "CLIENT_LANG" : "fr"
+    }
+  }
+}</pre>
+
+    <h4>Utilisation dans FME</h4>
+    <p>
+        Le workspace FME peut lire ce fichier avec un Reader GeoJSON ou FeatureReader en utilisant le paramètre
+        <code>$(parametersFile)</code> comme source. Les attributs sont directement accessibles et la géométrie
+        est automatiquement importée.
+    </p>
+
+    <h4>Sortie</h4>
+    <p>
+        Les fichiers de sortie du script doivent être écrits dans le répertoire indiqué par <code>FolderOut</code>.
+        Le script doit retourner un code de sortie de 0 si le traitement a réussi.
+    </p>
+</div>

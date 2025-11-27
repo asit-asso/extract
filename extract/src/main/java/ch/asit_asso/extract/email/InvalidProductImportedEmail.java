@@ -20,8 +20,10 @@ import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.Request;
+import ch.asit_asso.extract.email.RequestModelBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.context.Context;
@@ -123,6 +125,69 @@ public class InvalidProductImportedEmail extends Email {
 
 
     /**
+     * Defines the textual data contained in the message.
+     *
+     * @param request      the request that could not be imported
+     * @param errorMessage the string that explains why the import failed
+     * @param importTime   when the import failed
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final String errorMessage,
+            final Calendar importTime) {
+        return this.initializeContent(request, errorMessage, importTime, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param request      the request that could not be imported
+     * @param errorMessage the string that explains why the import failed
+     * @param importTime   when the import failed
+     * @param locale       the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final String errorMessage,
+            final Calendar importTime, final Locale locale) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("The request cannot be null.");
+        }
+
+        if (request.getConnector() == null) {
+            throw new IllegalStateException("The request connector must be set.");
+        }
+
+        if (errorMessage == null) {
+            throw new IllegalArgumentException("The error message cannot be null.");
+        }
+
+        if (importTime == null || new GregorianCalendar().before(importTime)) {
+            throw new IllegalArgumentException("The import time must be defined and set in the past.");
+        }
+
+        this.logger.debug("Defining the content type to HTML.");
+        this.setContentType(Email.ContentType.HTML);
+
+        try {
+            this.logger.debug("Defining the message body");
+            this.setContentFromTemplate(InvalidProductImportedEmail.EMAIL_HTML_TEMPLATE,
+                    this.getModel(request, errorMessage, importTime, locale));
+
+        } catch (EmailTemplateNotFoundException exception) {
+            this.logger.error("Could not define the message body.", exception);
+            return false;
+        }
+
+        this.logger.debug("Defining the subject of the message.");
+        this.setSubject(this.getMessageString("email.invalidProductImported.subject", null, locale));
+
+        this.logger.debug("The request import failure message content has been successfully initialized.");
+        return true;
+    }
+
+
+
+    /**
      * Creates an object that assembles the data to display in this message.
      *
      * @param request      the request that could not be imported
@@ -131,15 +196,32 @@ public class InvalidProductImportedEmail extends Email {
      * @return the context object to feed to the message body template
      */
     private IContext getModel(final Request request, final String errorMessage, final Calendar importTime) {
+        return this.getModel(request, errorMessage, importTime, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param request      the request that could not be imported
+     * @param errorMessage the string that explains why the import failed
+     * @param importTime   when the import failed
+     * @param locale       the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Request request, final String errorMessage, final Calendar importTime,
+            final Locale locale) {
         assert request != null : "The request cannot be null.";
         assert request.getConnector() != null : "The request connector cannot be null.";
         assert errorMessage != null : "The import message cannot be null.";
         assert importTime != null : "The time of the failed import cannot be null.";
         assert new GregorianCalendar().after(importTime) : "The time of the failed import must be set in the past.";
 
-        Context model = new Context();
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
+        final Context model = new Context(locale);
+
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+
+        // Add email-specific variables
         model.setVariable("connectorName", request.getConnector().getName());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(importTime.getTime()));

@@ -78,6 +78,11 @@ public class FmeDesktopRequest implements ITaskProcessorRequest {
     private String parameters;
 
     /**
+     * The surface area of the extraction.
+     */
+    private String surface;
+
+    /**
      * The geographical area of the data to extract, as a WKT geometry with WGS84 coordinates.
      */
     private String perimeter;
@@ -459,6 +464,24 @@ public class FmeDesktopRequest implements ITaskProcessorRequest {
      */
     public final void setOrganismGuid(final String guid) {
         this.organismGuid = guid;
+    }
+
+
+
+    @Override
+    public final String getSurface() {
+        return this.surface;
+    }
+
+
+
+    /**
+     * Defines the surface area of the extraction.
+     *
+     * @param surface the surface area value as a string
+     */
+    public final void setSurface(final String surface) {
+        this.surface = surface;
     }
 
 }

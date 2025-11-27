@@ -191,4 +191,12 @@ public interface ITaskProcessorRequest {
      */
     String getTiers();
 
+
+    /**
+     * Obtains the surface area of the extraction.
+     *
+     * @return the surface area value as a string
+     */
+    String getSurface();
+
 }

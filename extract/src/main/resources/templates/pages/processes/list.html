@@ -36,6 +36,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                 </div>
                 <h1 class="page-header" th:text="#{processesList.body.title}">{Processes}</h1>
                 <div class="card card-default">
+                    <div class="card-header">
+                        <form class="filter-form-inline float-end" role="form">
+                            <div class="col">
+                                <label for="textFilter" class="form-label" th:text="#{common.filter.label}">Filtrer&nbsp;:</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control process-filter-control" id="textFilter" th:placeholder="#{processesList.filter.placeholder}">
+                            </div>
+                            <div class="col">
+                                <a id="filterButton" class="btn btn-extract-filled" href="#">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                            </div>
+                        </form>
+                        <h3 th:text="#{processesList.card.title}">Traitements</h3>
+                    </div>
                     <div class="card-body">
                         <table class="table table-striped table-hover dataTables dataTable">
                             <thead>
@@ -103,7 +119,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
             <script type="text/javascript">
                 var dataTablesProperties = getDataTableBaseProperties();
                 dataTablesProperties.paging = false;
-                dataTablesProperties.searching = false;
+                dataTablesProperties.searching = true;
                 dataTablesProperties.columnDefs = [
                     {
                         targets : 0,

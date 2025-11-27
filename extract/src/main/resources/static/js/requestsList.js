@@ -18,6 +18,7 @@
 var REQUESTS_LIST_CONNECTOR_STATUS_OK = "OK";
 var REQUESTS_LIST_CONNECTOR_STATUS_ERROR = "ERROR";
 
+var _ajaxErrorNotificationId = null;
 
 function addSortAndSearchInfo(data) {
     _addSortInfo(data);
@@ -116,6 +117,25 @@ function loadDatepickers(language) {
  */
 function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSearching, isServerSide, pagingSize,
         dataFunction) {
+
+    // configure DataTables to suppress default error alerts
+    $.fn.dataTable.ext.errMode = 'none';
+
+    const selector = '#' + tableId
+
+    // Handle DataTables errors gracefully
+    $(selector).on('dt-error.dt', function(e, settings, techNote, message) {
+        console.warn('DataTables error on table ' + tableId + ':', message);
+        _showAjaxErrorNotification(tableId);
+    });
+
+    // Clear error notification on successful load
+    $(selector).on('xhr.dt', function(e, settings, json, xhr) {
+        if (xhr && xhr.status === 200) {
+            _clearAjaxErrorNotification();
+        }
+    });
+
     var configuration = _getRequestsTableConfiguration(ajaxUrl, withPaging, withSearching, isServerSide, pagingSize,
             dataFunction);
     var $table = $('#' + tableId);
@@ -143,6 +163,61 @@ function loadRequestsTable(tableId, ajaxUrl, refreshInterval, withPaging, withSe
     return requestsTable;
 }
 
+/**
+  * Shows a non-intrusive error notification for AJAX failures.
+  *
+  * @param {String} tableId the identifier of the table that failed to load
+  * @private
+  */
+function _showAjaxErrorNotification(tableId) {
+
+    // Check if notification already exists - don't create duplicate
+    if (_ajaxErrorNotificationId && $('#' + _ajaxErrorNotificationId).length > 0) {
+        return;
+    }
+
+    // Remove any existing notification first (just in case)
+    _clearAjaxErrorNotification();
+
+    // Get localized messages or use defaults
+    var title = 'Connection Error';
+    var message = 'An error occurred while updating requests';
+
+    // Check if LANG_MESSAGES is available (set by masterWithTable.html)
+    if (typeof LANG_MESSAGES !== 'undefined' && LANG_MESSAGES && LANG_MESSAGES.errors && LANG_MESSAGES.errors.ajaxError) {
+        title = LANG_MESSAGES.errors.ajaxError.title || title;
+        message = LANG_MESSAGES.errors.ajaxError.message || message;
+    }
+
+    // Create notification element
+    var notificationHtml = '<div id="ajaxErrorNotification" class="alert alert-warning alert-dismissible" ' +
+        'style="position: fixed; top: 10px; right: 10px; z-index: 9999; min-width: 300px;">' +
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
+        '<strong><i class="fa fa-exclamation-triangle"></i> ' + title + '</strong>' +
+        '<div>' + message + '</div></div>';
+
+    $('body').append(notificationHtml);
+    _ajaxErrorNotificationId = 'ajaxErrorNotification';
+
+    // Auto-dismiss after 10 seconds
+    setTimeout(function() {
+        _clearAjaxErrorNotification();
+    }, 10000);
+}
+
+/**
+ + * Clears the AJAX error notification if present.
+ + *
+ + * @private
+ + */
+function _clearAjaxErrorNotification() {
+    if (_ajaxErrorNotificationId) {
+        $('#' + _ajaxErrorNotificationId).fadeOut(300, function() {
+            $(this).remove();
+        });
+        _ajaxErrorNotificationId = null;
+    }
+}
 
 
 /**
@@ -530,7 +605,14 @@ function _getRequestsTableConfiguration(ajaxUrl, withPaging, withSearching, isSe
     tableProperties.paging = withPaging;
     tableProperties.searching = withSearching;
     tableProperties.serverSide = isServerSide;
-    tableProperties.order = [[2, 'asc']];
+    // Use conditional ordering to prevent index out of bounds errors
+    if (ajaxUrl.includes('getCurrentRequests')) {
+        // For current requests, avoid default ordering to prevent column index errors
+        tableProperties.order = [];
+    } else {
+        // For finished requests, use default ordering
+        tableProperties.order = [[2, 'asc']];
+    }
     var pageLength = parseInt(pagingSize);
 
     if (!isNaN(pageLength) && pageLength > 0) {
@@ -540,9 +622,52 @@ function _getRequestsTableConfiguration(ajaxUrl, withPaging, withSearching, isSe
     tableProperties.ajax = {
         url : ajaxUrl,
         type : "GET",
-        data : dataFunction
+        data : dataFunction,
+        dataSrc: function(json) {
+            // Enhanced data validation and logging
+            if (json && json.data && Array.isArray(json.data)) {
+                const tableType = ajaxUrl.includes('getCurrentRequests') ? 'currentRequestsTable' : 'finishedRequestsTable';
+                console.log('Table ' + tableType + ' received ' + json.data.length + ' rows');
+                
+                if (json.data.length > 0) {
+                    const sampleRow = json.data[0];
+                    const properties = Object.keys(sampleRow);
+                    console.log('Sample row properties:', properties);
+                    
+                    // Validate that we have the expected properties for DataTables columns
+                    const expectedProperties = ['index', 'state', 'taskInfo', 'orderInfo', 'customerName', 'processInfo', 'startDateInfo'];
+                    const missingProperties = expectedProperties.filter(prop => !properties.includes(prop));
+                    
+                    if (missingProperties.length > 0) {
+                        console.warn('Missing expected properties:', missingProperties);
+                        console.warn('Available properties:', properties);
+                    }
+                }
+                
+                return json.data;
+            } else {
+                console.warn('Invalid or empty data received for table');
+                return [];
+            }
+        },
+        error: function(xhr, error, code) {
+            console.error('AJAX error for table:', ajaxUrl, error, code);
+            if (xhr.responseText) {
+                console.error('Response text:', xhr.responseText);
+            }
+        }
     };
     tableProperties.columnDefs = _getRequestsTableColumnsConfiguration();
+    
+    // Enhanced error handling for column definitions
+    tableProperties.columnDefs.forEach(function(columnDef) {
+        if (columnDef.targets !== undefined) {
+            // Add default content for all columns to prevent undefined errors
+            if (!columnDef.defaultContent) {
+                columnDef.defaultContent = "";
+            }
+        }
+    });
 
     return tableProperties;
 }
@@ -618,15 +743,40 @@ function _refreshConnectorsState() {
 
     $.ajax(_connectorsUrl, {
         cache : false,
-        error : function() {
-            alert("ERROR - Could not fetch the connectors information.");
+        dataType: 'json',
+        error : function(xhr, status, error) {
+            // Check if it's a redirect to login (authentication issue)
+            if (xhr.status === 0 || xhr.status === 302 || xhr.status === 401 || xhr.status === 403) {
+                console.warn("Authentication issue when fetching connectors. User may need to log in again.");
+                // Check if we got HTML (likely login page) instead of JSON
+                if (xhr.responseText && xhr.responseText.indexOf('<!DOCTYPE') > -1) {
+                    console.warn("Received HTML instead of JSON - likely redirected to login page");
+                    window.location.href = '/extract/login';
+                    return;
+                }
+                // Show a non-intrusive notification instead of an alert
+                _showAjaxErrorNotification('connectors');
+            } else {
+                console.error("Error fetching connectors:", status, error);
+                _showAjaxErrorNotification('connectors');
+            }
         },
-        success : function(data) {
-
-            if (!data || !Array.isArray(data)) {
-                alert("ERROR - Could not fetch the connectors information.");
+        success : function(data, textStatus, xhr) {
+            // Check if we got HTML instead of JSON (can happen with some redirects)
+            var contentType = xhr.getResponseHeader("content-type") || "";
+            if (contentType.indexOf('html') > -1) {
+                console.warn("Received HTML instead of JSON - likely redirected to login page");
+                window.location.href = '/extract/login';
+                return;
             }
 
+            if (!data || !Array.isArray(data)) {
+                console.error("Invalid connectors data received:", data);
+                _showAjaxErrorNotification('connectors');
+                return;
+            }
+
+            _clearAjaxErrorNotification();
             _updateConnectorsState(data);
         }
     });
@@ -645,15 +795,17 @@ function _refreshWorkingState() {
 
     $.ajax(_workingStateUrl, {
         cache : false,
-        error : function() {
-            alert("ERROR - Could not fetch the working state information.");
+        error : function(xhr, status, error) {
+            _showAjaxErrorNotification('working state');
         },
         success : function(data) {
 
             if (!data) {
-                alert("ERROR - Could not fetch the working state information.");
+                _showAjaxErrorNotification('working state');
+                return;
             }
 
+            _clearAjaxErrorNotification();
             _scheduledStopDiv.toggle(data === "SCHEDULED_STOP");
             _stoppedDiv.toggle(data === "STOPPED");
             _scheduleConfigErrorDiv.toggle(data === "SCHEDULE_CONFIG_ERROR");

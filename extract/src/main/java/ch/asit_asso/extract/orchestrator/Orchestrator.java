@@ -26,6 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.orchestrator.schedulers.RequestsProcessingScheduler;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.config.FixedDelayTask;
@@ -71,6 +72,11 @@ public final class Orchestrator {
      * The objects required to create and send e-mail messages.
      */
     private EmailSettings emailSettings;
+
+    /**
+     * The service for obtaining localized messages.
+     */
+    private MessageService messageService;
 
     /**
      * The objects that keeps track of the planified connector background tasks.
@@ -199,6 +205,19 @@ public final class Orchestrator {
         this.emailSettings = settings;
     }
 
+    /**
+     * Defines the service for obtaining localized messages. No (re)scheduling will be done.
+     *
+     * @param messageService the message service object
+     */
+    public void setMessageService(final MessageService messageService) {
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
+        this.messageService = messageService;
+    }
+
 
 
     public void setLdapSettings(final LdapSettings ldapSettings) {
@@ -322,7 +341,7 @@ public final class Orchestrator {
 
         return this.taskRegistrar != null && this.repositories != null && this.connectorPlugins != null
                && this.taskPlugins != null && this.emailSettings != null  && this.ldapSettings != null
-               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage);
+               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage) && this.messageService != null;
     }
 
 
@@ -339,13 +358,14 @@ public final class Orchestrator {
      * @param taskPluginsDiscoverer      the object that gives access to the currently available task processing plugins
      * @param smtpSettings               the object that assembles the configuration objects required to create and send
      *                                   an e-mail message
+     * @param messageService             the service for obtaining localized messages
      * @return <code>true</code> if this orchestrator is in a properly initialized state
      */
     public boolean initializeComponents(final ScheduledTaskRegistrar registrar, final String applicationLanguage,
             final ApplicationRepositories applicationRepositories,
             final ConnectorDiscovererWrapper connectorPluginsDiscoverer,
             final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final EmailSettings smtpSettings,
-            final LdapSettings ldapSettings, final OrchestratorSettings orchestratorSettings) {
+            final LdapSettings ldapSettings, final OrchestratorSettings orchestratorSettings, final MessageService messageService) {
 
         this.logger.debug("Initializing the orchestrator components.");
         this.setTaskRegistrar(registrar);
@@ -356,6 +376,7 @@ public final class Orchestrator {
         this.setEmailSettings(smtpSettings);
         this.setLdapSettings(ldapSettings);
         this.setOrchestratorSettings(orchestratorSettings);
+        this.setMessageService(messageService);
 
         return this.isInitialized();
     }
@@ -508,7 +529,7 @@ public final class Orchestrator {
         }
 
         this.importsScheduler = new ImportJobsScheduler(this.taskRegistrar, this.repositories, this.connectorPlugins,
-                                                        this.emailSettings, this.applicationLanguage, this.settings);
+                                                        this.emailSettings, this.applicationLanguage, this.settings, this.messageService);
         this.importsScheduler.scheduleJobs();
 
         this.setConnectorsMonitoringScheduled(true);
@@ -582,7 +603,7 @@ public final class Orchestrator {
 
         this.requestsScheduler = new RequestsProcessingScheduler(this.taskRegistrar,
                                                                  this.repositories, this.connectorPlugins, this.taskPlugins, this.emailSettings,
-                                                                 this.applicationLanguage, this.settings);
+                                                                 this.applicationLanguage, this.settings, this.messageService);
         this.requestsScheduler.scheduleJobs();
 
         this.setRequestsMonitoringScheduled(true);

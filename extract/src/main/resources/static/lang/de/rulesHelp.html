@@ -1,0 +1,481 @@
+<p class="rule-paragraph"><span>Die Lösung implementiert eine syntaktische Sprache, die darauf abzielt, eingehende
+        Befehle zu interpretieren, um sie spezifischen Verarbeitungen zuzuordnen. Der Benutzer kann so Regeln
+        definieren, die aus einem oder mehreren Kriterien bestehen, getrennt durch einen booleschen Operator:</span></p>
+
+<p class="rule-paragraph"><i><span>Kriterium1 <b>and/or</b>
+            Kriterium2 <b>and/or</b> Kriterium3 <b>and/or</b> &hellip; <b>and/or</b> KriteriumN</span></i></p>
+
+<p class="rule-paragraph"><span>Jedes Kriterium
+        folgt der folgenden Syntax:</span></p>
+
+<p class="rule-paragraph"><i><span>&lt;Eigenschaft&gt;
+            &lt;Operator&gt; &lt;Wert&gt;</span></i></p>
+
+<p class="rule-paragraph"><span>Beispiel:
+        <i>productguid == "708e932b-81c3-2ce4-b907-ed07e61ac5f9"</i></span></p>
+
+<p class="rule-paragraph"><i><span>&nbsp;</span></i></p>
+
+<h3 class="rule-title">Eigenschaften</h3>
+
+<p class="rule-paragraph"><span>Die verwendbaren Eigenschaften
+        sind in der untenstehenden Tabelle aufgelistet. Für jede wird der mögliche Operatortyp (attributiv /
+        geografisch) und der einzugebende Werttyp (Text / numerisch / Geometrie) angegeben.</span></p>
+
+<table class="popover-table property-table">
+    <tbody>
+        <tr>
+            <td class="popover-table-header">
+                <p>Eigenschaft</p>
+            </td>
+
+            <td class="popover-table-header">
+                <p>Beschreibung / Bemerkung</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Operatortyp</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Werttyp</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>orderlabel</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Bezeichnung des Befehls</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>orderguid</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Identifikator des Befehls</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>productguid</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Identifikator des bestellten Produkts</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>productlabel</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Bezeichnung des bestellten Produkts</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>client</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Kunde, der das Anfrageelement bestellt hat</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>clientguid</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Identifikator des Kunden, der das Anfrageelement bestellt hat</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>tiers</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Dritter, für den das Anfrageelement bestellt wurde</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>tiersguid</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Identifikator des Dritten, für den das Anfrageelement bestellt wurde</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>surface</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Fläche des Umfangs des Anfrageelements in m²</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Numerisch</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>organism</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Organisationseinheit des Kunden, der das Anfrageelement bestellt hat</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>organismguid</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>Identifikator der Organisationseinheit des Kunden, der das Anfrageelement bestellt hat</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>perimeter</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>
+                    Umfang des Anfrageelements, d.h. das Export-Polygon im WKT-Format. Die Koordinaten sind in WGS84.
+                </p>
+            </td>
+            <td class="popover-table-data">
+                <p>Geografisch</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Geometrie</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>parameters.xxx</p>
+            </td>
+
+            <td class="popover-table-data">
+                <p>
+                    Dynamische Eigenschaft des Anfrageelements. Das xxx ist durch die gewünschte Eigenschaft zu ersetzen
+                    (z.B. <i>format</i>,
+                    <i>projection</i>, &hellip;) je nach Import-Verbinder
+                </p>
+            </td>
+            <td class="popover-table-data">
+                <p>Attributiv</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Je nach Typ der dynamischen Eigenschaft: Text oder numerisch</p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p class="rule-paragraph"><span>&nbsp;</span></p>
+
+<h3 class="rule-title">Operatoren</h3>
+
+<p class="Normal60"><span>Zwei Arten von Operatoren sind möglich: attributiv und geografisch, je nach verwendeter
+        Eigenschaft.</span></p>
+
+<p class="Normal60"><span>Die untenstehende Tabelle enthält die Liste der verwendbaren attributiven Operatoren.</span>
+</p>
+
+<table class="popover-table operator-table">
+    <tbody>
+        <tr>
+            <td class="popover-table-header">
+                <p>Att. Operatoren</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Beschreibung / Bemerkung</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>==</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist gleich dem Wert </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>!=</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist verschieden vom Wert</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>&gt;&nbsp;</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist grösser als der Wert</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>&lt;&nbsp;</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist kleiner als der Wert</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>&gt;=</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist grösser oder gleich dem Wert</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>&lt;=</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist kleiner oder gleich dem Wert</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>IN</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist in einer Liste von Werten enthalten</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>NOT IN</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Eigenschaft ist nicht in einer Liste von Werten enthalten</p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p class="rule-paragraph"><span>&nbsp;</span></p>
+
+<p class="Normal60"><span>Die untenstehende Tabelle enthält die Liste der verwendbaren geometrischen Operatoren.</span>
+</p>
+
+<table class="popover-table operator-table">
+    <tbody>
+        <tr>
+            <td class="popover-table-header">
+                <p>Geo. Operatoren</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Beschreibung / Bemerkung</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>intersects</p>
+            </td>
+            <td class="popover-table-data">
+                <p>
+                    Die in der Eigenschaft enthaltene Geometrie schneidet die als Wert übergebene Geometrie
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>contains</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Die Geometrie enthält die als Wert übergebene Geometrie</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>disjoint</p>
+            </td>
+            <td class="popover-table-data">
+                <p>
+                    Die Geometrie ist vollständig disjunkt von der als Wert übergebenen Geometrie
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>equals</p>
+            </td>
+            <td class="popover-table-data">
+                <p>
+                    Die Geometrie ist gleich der als Wert übergebenen Geometrie
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>within</p>
+            </td>
+            <td class="popover-table-data">
+                <p>
+                    Die Geometrie ist in der als Wert übergebenen Geometrie enthalten
+                </p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p class="rule-paragraph">&nbsp;</p>
+
+<h3 class="rule-title">Werte</h3>
+
+<p class="Normal60"><span>Je nach Eigenschaft und Operator können die
+        Werte von drei Typen sein.</span></p>
+
+<table class="popover-table value-table">
+    <tbody>
+        <tr>
+            <td class="popover-table-header">
+                <p>Werttyp</p>
+            </td>
+            <td class="popover-table-header">
+                <p>Beschreibung </p>
+            </td>
+            <td class="popover-table-header">
+                <p>Beispiel</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Text</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Text, der zwischen Anführungszeichen anzugeben ist</p>
+            </td>
+            <td class="popover-table-data">
+                <p>"PDF"</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Numerisch</p>
+            </td>
+            <td class="popover-table-data">
+                <p>Zahl (ganz oder dezimal)</p>
+            </td>
+            <td class="popover-table-data">
+                <p>1234</p>
+            </td>
+        </tr>
+        <tr>
+            <td class="popover-table-data">
+                <p>Geometrie</p>
+            </td>
+            <td class="popover-table-data">
+                <p>
+                    Geometrie im WKT-Format ohne Anführungszeichen. Die Koordinaten müssen
+                    in WGS84 sein.
+                </p>
+            </td>
+            <td class="popover-table-data">
+                <p>POLYGON((6.82 46.39,6.92 46.39,6.92 46.19,6.92 46.19,6.82 46.39))</p>
+                <p>LINESTRING(6.82 46.39, 6.92 46.39, 6.92 46.19)</p>
+                <p>POINT(6.82 46.39)</p>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<p class="Titre4">&nbsp;</p>
+
+<h3 class="rule-title">Beispiele</h3>
+
+<p class="rule-paragraph">Einige typische Regelbeispiele:</p>
+
+<ul>
+    <li>
+        <b>orderlabel</b> <i>==</i> "92445" <i>AND</i> <b>perimeter</b> <i>intersects</i> POLYGON((6.82
+        46.39,6.92 46.39,6.92 46.19,6.92 46.19,6.82 46.39))
+    </li>
+
+    <li><b>orderlabel</b> <i>==</i> "92445" <i>AND</i> <b>parameters.format </b><i>==</i> "PDF"</li>
+
+    <li>
+        <b>productguid</b> <i>IN</i> ("a049fecb-30d9-9124-ed41-068b566a0855", "e0a491cc-a8f3-3e64-0590-c534ce6b0144")
+        <i>AND</i> <b>surface</b> <i>
+        </i> 10000
+    </li>
+
+    <li><b>parameters.format</b> <i>NOT IN</i> ("DWG", "DXF", "PDF")</li>
+</ul>

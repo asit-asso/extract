@@ -10,3 +10,6 @@ extract-task-remark/target/
 extract-task-validation/target/
 .idea/
 *.iml
+CLAUDE.md
+INTEGRATION_TESTS_PLAN.md
+.claude/

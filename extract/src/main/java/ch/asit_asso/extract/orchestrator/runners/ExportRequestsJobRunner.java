@@ -24,6 +24,7 @@ import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Request.Status;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
+import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
@@ -61,6 +62,11 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
     private final EmailSettings emailSettings;
 
     /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(ExportRequestsJobRunner.class);
@@ -76,9 +82,11 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
      * @param connectorsPluginDiscoverer the object providing access to the available connector plugins
      * @param smtpSettings               the objects required to create and send an e-mail message
      * @param applicationLanguage        the locale code of the language used by the application to display messages
+     * @param messageService             the service for obtaining localized messages
      */
     public ExportRequestsJobRunner(final EmailSettings smtpSettings, final ApplicationRepositories repositories,
-            final ConnectorDiscovererWrapper connectorsPluginDiscoverer, final String applicationLanguage) {
+            final ConnectorDiscovererWrapper connectorsPluginDiscoverer, final String applicationLanguage,
+            final MessageService messageService) {
 
         if (repositories == null) {
             throw new IllegalArgumentException("The application repositories object cannot be null.");
@@ -104,10 +112,15 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
             throw new IllegalArgumentException("The application language code cannot be null.");
         }
 
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
         this.applicationRepositories = repositories;
         this.connectorPluginDiscoverer = connectorsPluginDiscoverer;
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
+        this.messageService = messageService;
     }
 
 
@@ -166,7 +179,7 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
         final String basePath = this.applicationRepositories.getParametersRepository().getBasePath();
 
         return new ExportRequestProcessor(this.applicationRepositories, this.connectorPluginDiscoverer, basePath,
-                this.emailSettings, this.applicationLangague);
+                this.emailSettings, this.applicationLangague, this.messageService);
     }
 
 

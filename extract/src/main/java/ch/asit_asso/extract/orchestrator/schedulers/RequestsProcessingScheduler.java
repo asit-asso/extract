@@ -35,6 +35,7 @@ import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.config.FixedDelayTask;
@@ -69,6 +70,11 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      * The object that assembles the configuration objects required to create and send an e-mail message.
      */
     private final EmailSettings emailSettings;
+
+    /**
+     * The service for obtaining localized messages.
+     */
+    private final MessageService messageService;
 
     /**
      * The writer to the application logs.
@@ -118,11 +124,12 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      * @param tasksDiscoverer      an access to the available task plugins
      * @param smtpSettings         an object that contains the configuration objects to send an e-mail message
      * @param applicationLanguage  the locale code of the language used by the application to display messages
+     * @param messageService       the service for obtaining localized messages
      */
     public RequestsProcessingScheduler(final ScheduledTaskRegistrar taskRegistrar,
             final ApplicationRepositories repositories, final ConnectorDiscovererWrapper connectorsDiscoverer,
             final TaskProcessorDiscovererWrapper tasksDiscoverer, final EmailSettings smtpSettings,
-            final String applicationLanguage, final OrchestratorSettings orchestratorSettings) {
+            final String applicationLanguage, final OrchestratorSettings orchestratorSettings, final MessageService messageService) {
 
         super(taskRegistrar);
 
@@ -150,12 +157,17 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
             throw new IllegalArgumentException("The orchestrator settings cannot be null.");
         }
 
+        if (messageService == null) {
+            throw new IllegalArgumentException("The message service cannot be null.");
+        }
+
         this.applicationRepositories = repositories;
         this.connectorPluginDiscoverer = connectorsDiscoverer;
         this.taskPluginDiscoverer = tasksDiscoverer;
         this.requestsWithRunningTask = new CopyOnWriteArraySet<>();
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
+        this.messageService = messageService;
         this.taskExecutorService = Executors.newCachedThreadPool();
         this.setSchedulingStep(orchestratorSettings.getFrequency());
     }
@@ -392,7 +404,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.logger.debug("Scheduling the request export job.");
         final ExportRequestsJobRunner exportJobRunner = new ExportRequestsJobRunner(/*this.getJobRunnerComponents(),*/
                 this.emailSettings, this.applicationRepositories, this.connectorPluginDiscoverer,
-                this.applicationLangague);
+                this.applicationLangague, this.messageService);
         final var recurringTask = new FixedDelayTask(exportJobRunner, this.getSchedulingStepInMilliseconds(), 0);
         this.taskExportScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
         this.logger.debug("The request export job is scheduled with a {} second(s) delay.", this.getSchedulingStep());

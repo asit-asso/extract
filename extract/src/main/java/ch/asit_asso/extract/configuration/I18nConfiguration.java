@@ -16,14 +16,23 @@
  */
 package ch.asit_asso.extract.configuration;
 
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
+import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ReloadableResourceBundleMessageSource;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
 
 
 /**
@@ -44,6 +53,11 @@ public class I18nConfiguration {
      * application language.
      */
     private static final String EXTRACT_MESSAGES_BASENAME_FORMAT = "classpath:static/lang/%s/messages";
+    
+    /**
+     * The standard Spring basename for messages with locale suffixes.
+     */
+    private static final String SPRING_MESSAGES_BASENAME = "classpath:messages";
 
     /**
      * The code of the language to use to localize the application strings.
@@ -65,21 +79,148 @@ public class I18nConfiguration {
      */
     @Bean
     public MessageSource messageSource() {
-        this.logger.debug("Configuring the message source for language {}.", this.language);
+        this.logger.debug("Configuring the message source for languages: {}.", this.language);
         ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
-        String basename = I18nConfiguration.DEFAULT_MESSAGES_BASENAME;
 
-        if (this.language.matches("^[a-z]{2}$")) {
-            basename = String.format(I18nConfiguration.EXTRACT_MESSAGES_BASENAME_FORMAT, this.language);
+        // la collection des base names
+        List<String> basenames = new ArrayList<>();
+
+        // Use standard Spring basename for messages with locale suffixes
+        // This will look for messages.properties, messages_fr.properties, messages_en.properties, etc.
+        basenames.add("classpath:messages");
+
+        // For backward compatibility, also check the old path structure
+        String[] configuredLanguages = this.language.split(",");
+        for(var lang : configuredLanguages) {
+            String trimmedLang = lang.trim();
+            if (trimmedLang.matches("^[a-z]{2}(-[A-Z]{2})?$")) {
+                String extractBaseName = String.format(I18nConfiguration.EXTRACT_MESSAGES_BASENAME_FORMAT, trimmedLang);
+                basenames.add(extractBaseName);
+                this.logger.debug("Adding backward compatibility basename: {}", extractBaseName);
+            }
         }
 
-        this.logger.debug("The message source basename is \"{}\".", basename);
-        messageSource.setBasenames(basename);
-        messageSource.setUseCodeAsDefaultMessage(true);
+        // Set both basenames if the old structure exists
+        String[] basenamesArray = basenames.toArray(new String[0]);
+        this.logger.debug("Setting {} basenames: {}", basenamesArray.length, Arrays.toString(basenamesArray));
+        messageSource.setBasenames(basenamesArray);
+
+        // Disable fallback to messages.properties (without locale suffix)
+        messageSource.setFallbackToSystemLocale(false);
+        messageSource.setUseCodeAsDefaultMessage(false);
         messageSource.setDefaultEncoding("UTF-8");
         messageSource.setCacheSeconds(-1);
 
         this.logger.debug("The message source is configured.");
-        return messageSource;
+
+        // Wrap with our custom fallback handler
+        // Parse all languages from extract.i18n.language and create fallback locale list
+        List<Locale> fallbackLocales = Arrays.stream(this.language.split(","))
+            .map(String::trim)
+            .filter(lang -> lang.matches("^[a-z]{2}(-[A-Z]{2})?$"))
+            .map(Locale::forLanguageTag)
+            .collect(Collectors.toList());
+
+        this.logger.debug("Locale set to: {}", messageSource);
+        this.logger.debug("Fallback locales set to: {}", fallbackLocales);
+        return new FallbackMessageSource(messageSource, fallbackLocales);
+    }
+
+    /**
+     * Custom MessageSource that implements cascading fallback through all languages from extract.i18n.language
+     * instead of falling back to messages.properties.
+     * Tries each fallback locale in order until a message is found, or returns the code if none are found.
+     */
+    private static class FallbackMessageSource implements MessageSource {
+
+        private final ReloadableResourceBundleMessageSource delegate;
+        private final List<Locale> fallbackLocales;
+        private final Logger logger = LoggerFactory.getLogger(FallbackMessageSource.class);
+
+        public FallbackMessageSource(ReloadableResourceBundleMessageSource delegate, List<Locale> fallbackLocales) {
+            this.delegate = delegate;
+            this.fallbackLocales = fallbackLocales;
+            this.logger.debug("Fallback locales set to: {}", fallbackLocales);
+        }
+
+        @Override
+        public String getMessage(@NotNull String code, Object[] args, String defaultMessage, @NotNull Locale locale) {
+            try {
+                return this.delegate.getMessage(code, args, null, locale);
+            } catch (NoSuchMessageException e) {
+                logKeyNotFound(code, locale);
+            }
+
+            // Try each fallback locale in order until we find the key
+            for (Locale fallbackLocale : this.fallbackLocales) {
+                if (!locale.equals(fallbackLocale)) {
+                    try {
+                        logTryingFallback(code, locale, fallbackLocale);
+                        return this.delegate.getMessage(code, args, null, fallbackLocale);
+                    } catch (NoSuchMessageException e) {
+                        logKeyNotFound(code, locale);
+                    }
+                }
+            }
+
+            // If still not found, return default message or code
+            return (defaultMessage != null) ? defaultMessage : code;
+        }
+
+        private void logKeyNotFound(String code, Locale locale) {
+            this.logger.debug("Message key '{}' not found for locale '{}'", code, locale);
+        }
+
+        private void logTryingFallback(String code, Locale fromLocale, Locale toLocale) {
+            this.logger.debug("Message key '{}' not found for locale '{}', trying fallback locale '{}'",
+                    code, fromLocale, toLocale);
+        }
+
+        @Override
+        public @NotNull String getMessage(@NotNull String code, Object[] args, @NotNull Locale locale) throws NoSuchMessageException {
+            try {
+                // Try to get message in requested locale
+                return this.delegate.getMessage(code, args, locale);
+            } catch (NoSuchMessageException e) {
+                // Try each fallback locale in order until we find the key
+                for (Locale fallbackLocale : this.fallbackLocales) {
+                    if (!locale.equals(fallbackLocale)) {
+                        try {
+                            logTryingFallback(code, locale, fallbackLocale);
+                            return this.delegate.getMessage(code, args, fallbackLocale);
+                        } catch (NoSuchMessageException ex) {
+                            logKeyNotFound(code, locale);
+                        }
+                    }
+                }
+                // None of the fallbacks worked, throw the original exception
+                throw e;
+            }
+        }
+
+        @Override
+        public @NotNull String getMessage(@NotNull MessageSourceResolvable resolvable, @NotNull Locale locale) throws NoSuchMessageException {
+            try {
+                // Try to get message in requested locale
+                return this.delegate.getMessage(resolvable, locale);
+            } catch (NoSuchMessageException e) {
+                // Try each fallback locale in order until we find the key
+                for (Locale fallbackLocale : this.fallbackLocales) {
+                    if (!locale.equals(fallbackLocale)) {
+                        try {
+                            String[] codes = resolvable.getCodes();
+                            this.logger.debug("Keys '{}' not found in locale '{}', trying fallback locale '{}'",
+                                            codes != null && codes.length > 0 ? codes[0] : "unknown",
+                                            locale, fallbackLocale);
+                            return this.delegate.getMessage(resolvable, fallbackLocale);
+                        } catch (NoSuchMessageException ex) {
+                            // Not found in this fallback, continue to next
+                        }
+                    }
+                }
+                // None of the fallbacks worked, throw the original exception
+                throw e;
+            }
+        }
     }
 }

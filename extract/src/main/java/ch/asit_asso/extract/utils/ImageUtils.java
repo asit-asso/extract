@@ -1,9 +1,11 @@
 package ch.asit_asso.extract.utils;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -22,6 +24,11 @@ public abstract class ImageUtils {
     private static final String DATA_URL_PREFIX = "data:";
 
     private static final Pattern DATA_URL_REGEX = Pattern.compile("^data:(?<mimeType>[^;]+);(?<encoding>[^,]+),(?<content>.+)$");
+
+    /**
+     * Pattern to detect SVG content by looking for the svg root element.
+     */
+    private static final Pattern SVG_PATTERN = Pattern.compile("(<svg[^>]*>|<\\?xml[^>]*>.*<svg[^>]*>)", Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
 
 
@@ -42,9 +49,8 @@ public abstract class ImageUtils {
                 return true;
             }
 
-            ImageUtils.logger.debug("Image read from the URL is null.");
-            // TODO Check for SVG
-            return false;
+            ImageUtils.logger.debug("Image read from the URL is null. Checking for SVG format.");
+            return ImageUtils.checkSvgUrl(url);
 
         } catch (IOException exception) {
             ImageUtils.logger.debug(String.format("Checking URL %s produced an error.", url), exception);
@@ -101,6 +107,11 @@ public abstract class ImageUtils {
             return false;
         }
 
+        // For SVG data URLs, check the MIME type first
+        if ("image/svg+xml".equals(mimeType)) {
+            return ImageUtils.checkSvgFromBase64(base64Content);
+        }
+        
         return ImageUtils.loadImageFromBase64(base64Content);
     }
 
@@ -128,6 +139,58 @@ public abstract class ImageUtils {
 
         } catch (IOException exception) {
             ImageUtils.logger.debug("Checking data string produced an error.", exception);
+            return false;
+        }
+    }
+
+    /**
+     * Checks if a URL points to a valid SVG image by attempting to read its content.
+     *
+     * @param url the URL to check
+     * @return true if the URL contains valid SVG content, false otherwise
+     */
+    private static boolean checkSvgUrl(@NotNull String url) {
+        try {
+            URL svgUrl = new URL(url);
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(svgUrl.openStream(), StandardCharsets.UTF_8))) {
+                StringBuilder content = new StringBuilder();
+                String line;
+                int linesRead = 0;
+                
+                // Read up to 50 lines to check for SVG content (reasonable limit for headers)
+                while ((line = reader.readLine()) != null && linesRead < 50) {
+                    content.append(line).append('\n');
+                    linesRead++;
+                }
+                
+                boolean isSvg = ImageUtils.SVG_PATTERN.matcher(content.toString()).find();
+                ImageUtils.logger.debug("SVG check result for URL: {}", isSvg);
+                return isSvg;
+            }
+        } catch (IOException exception) {
+            ImageUtils.logger.debug("Error checking SVG URL: {}", exception.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Checks if Base64 content represents valid SVG data.
+     *
+     * @param base64String the Base64 encoded SVG content
+     * @return true if the content is valid SVG, false otherwise
+     */
+    private static boolean checkSvgFromBase64(@NotNull String base64String) {
+        try {
+            Base64.Decoder decoder = Base64.getDecoder();
+            byte[] decodedBytes = decoder.decode(base64String);
+            String svgContent = new String(decodedBytes, StandardCharsets.UTF_8);
+            
+            boolean isSvg = ImageUtils.SVG_PATTERN.matcher(svgContent).find();
+            ImageUtils.logger.debug("SVG check result for Base64 content: {}", isSvg);
+            return isSvg;
+            
+        } catch (IllegalArgumentException exception) {
+            ImageUtils.logger.debug("Invalid Base64 content for SVG check.", exception);
             return false;
         }
     }

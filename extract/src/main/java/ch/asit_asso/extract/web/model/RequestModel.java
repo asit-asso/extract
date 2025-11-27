@@ -230,16 +230,26 @@ public class RequestModel {
      * @return the string that describes the current step
      */
     public final String getCurrentStepName() {
+        return getCurrentStepName(Locale.getDefault());
+    }
+
+    /**
+     * Obtains the label of the task that is currently executing or that executed last.
+     *
+     * @param locale the locale to use for localized messages
+     * @return the string that describes the current step
+     */
+    public final String getCurrentStepName(final Locale locale) {
         Request.Status status = this.request.getStatus();
 
         if (status == Request.Status.IMPORTED || status == Request.Status.UNMATCHED) {
-            return this.messageSource.getMessage(RequestModel.IMPORT_TASK_LABEL_KEY, null, Locale.getDefault());
+            return this.messageSource.getMessage(RequestModel.IMPORT_TASK_LABEL_KEY, null, locale);
         }
 
         if (status == Request.Status.FINISHED) {
             final String key = (this.isRejected())
                     ? RequestModel.REJECTED_PROCESS_LABEL_KEY : RequestModel.FINISHED_PROCESS_LABEL_KEY;
-            return this.messageSource.getMessage(key, null, Locale.getDefault());
+            return this.messageSource.getMessage(key, null, locale);
         }
 
         final RequestHistoryRecord currentStep = this.getCurrentStep();
@@ -247,10 +257,10 @@ public class RequestModel {
         if (currentStep == null) {
 
             if (status == Request.Status.TOEXPORT) {
-                return this.messageSource.getMessage(RequestModel.EXPORT_TASK_LABEL_KEY, null, Locale.getDefault());
+                return this.messageSource.getMessage(RequestModel.EXPORT_TASK_LABEL_KEY, null, locale);
             }
 
-            return this.messageSource.getMessage(RequestModel.UNKNOWN_TASK_LABEL_KEY, null, Locale.getDefault());
+            return this.messageSource.getMessage(RequestModel.UNKNOWN_TASK_LABEL_KEY, null, locale);
         }
 
         return currentStep.getTaskLabel();
@@ -368,7 +378,9 @@ public class RequestModel {
 
 
 
-    public final String getOutputFolderPath() { return this.outputFolderPath.toString(); }
+    public final String getOutputFolderPath() { 
+        return this.outputFolderPath != null ? this.outputFolderPath.toString() : null; 
+    }
 
 
 
@@ -582,7 +594,17 @@ public class RequestModel {
      * @return the start date span string
      */
     public final String getStartDateSpanToNow() {
-        return this.getTimeSpanStringTo(this.getStartDate(), new GregorianCalendar());
+        return this.getTimeSpanStringTo(this.getStartDate(), new GregorianCalendar(), Locale.getDefault());
+    }
+
+    /**
+     * Obtains a localized string that describe how much time passed since this request started.
+     *
+     * @param locale the locale to use for formatting
+     * @return the start date span string
+     */
+    public final String getStartDateSpanToNow(final Locale locale) {
+        return this.getTimeSpanStringTo(this.getStartDate(), new GregorianCalendar(), locale);
     }
 
 
@@ -601,7 +623,7 @@ public class RequestModel {
             throw new IllegalArgumentException("The date to compare the start date to cannot be null.");
         }
 
-        return this.getTimeSpanStringTo(this.getStartDate(), laterDate);
+        return this.getTimeSpanStringTo(this.getStartDate(), laterDate, Locale.getDefault());
     }
 
 
@@ -646,7 +668,18 @@ public class RequestModel {
      * @return the task date span string
      */
     public final String getTaskDateSpanToNow() {
-        return this.getTimeSpanStringTo(this.getTaskDate(), new GregorianCalendar());
+        return this.getTimeSpanStringTo(this.getTaskDate(), new GregorianCalendar(), Locale.getDefault());
+    }
+
+    /**
+     * Obtains a localized string that describe how much time passed since the current task for this
+     * request ended if it is stopped or started if it is running.
+     *
+     * @param locale the locale to use for formatting
+     * @return the task date span string
+     */
+    public final String getTaskDateSpanToNow(final Locale locale) {
+        return this.getTimeSpanStringTo(this.getTaskDate(), new GregorianCalendar(), locale);
     }
 
 
@@ -663,7 +696,7 @@ public class RequestModel {
             throw new IllegalArgumentException("The date to compare the task date to cannot be null.");
         }
 
-        return this.getTimeSpanStringTo(this.getTaskDate(), laterDate);
+        return this.getTimeSpanStringTo(this.getTaskDate(), laterDate, Locale.getDefault());
     }
 
 
@@ -991,11 +1024,13 @@ public class RequestModel {
      *
      * @param earlierDate the point in time that occurred first
      * @param laterDate   the point in time that occurred last
+     * @param locale      the locale to use for formatting
      * @return the span string
      */
-    private String getTimeSpanStringTo(final Calendar earlierDate, final Calendar laterDate) {
+    private String getTimeSpanStringTo(final Calendar earlierDate, final Calendar laterDate, final Locale locale) {
         assert earlierDate != null : "The earlier date cannot be null.";
         assert laterDate != null : "The later date cannot be null.";
+        assert locale != null : "The locale cannot be null.";
 
         if (laterDate.before(earlierDate)) {
             throw new IllegalArgumentException("The earlier date is set to a later point in time than the later date.");
@@ -1003,7 +1038,7 @@ public class RequestModel {
 
         final SimpleTemporalSpan span = DateTimeUtils.getFloorDifference(earlierDate, laterDate);
 
-        return this.getTemporalSpanFormatter().format(span);
+        return this.getTemporalSpanFormatter().format(span, locale);
     }
 
 
@@ -1088,16 +1123,23 @@ public class RequestModel {
                             Locale.getDefault());
 
                 } else {
-                    Task task = processTasks[historyIndex - 1];
+                    int taskIndex = historyIndex - 1;
+                    
+                    if (taskIndex < processTasks.length) {
+                        Task task = processTasks[taskIndex];
 
-                    if (task != null) {
-                        taskLabel = task.getLabel();
-                        this.logger.debug("The task has been found. Its label is {}.", taskLabel);
+                        if (task != null) {
+                            taskLabel = task.getLabel();
+                            this.logger.debug("The task has been found. Its label is {}.", taskLabel);
 
+                        } else {
+                            this.logger.error("Cannot find a task at step {} in the process {} when building the history"
+                                    + " for request {}.", historyIndex + 1, this.request.getProcess().getName(),
+                                    this.request.getId());
+                        }
                     } else {
-                        this.logger.error("Cannot find a task at step {} in the process {} when building the history"
-                                + " for request {}.", historyIndex + 1, this.request.getProcess().getName(),
-                                this.request.getId());
+                        this.logger.warn("Task index {} exceeds process tasks array length {} for request {}. Using unknown task label.",
+                                taskIndex, processTasks.length, this.request.getId());
                     }
                 }
             }
@@ -1200,6 +1242,13 @@ public class RequestModel {
             final RequestHistoryRecord historyRecord = this.fullHistory[historyIndex];
             final int historyRecordStep = historyRecord.getProcessStep();
             this.logger.debug("The process step for the currently-read record is {}.", historyRecordStep);
+            
+            if (historyRecordStep < 0 || historyRecordStep >= tasksStatus.length) {
+                this.logger.warn("Process step {} is out of bounds for tasks status array of length {}. Skipping this history record.", 
+                    historyRecordStep, tasksStatus.length);
+                continue;
+            }
+            
             final RequestHistoryRecord taskRecord = tasksStatus[historyRecordStep];
 
             if (taskRecord != null) {
@@ -1288,8 +1337,11 @@ public class RequestModel {
     private RequestHistoryRecord getCurrentStep() {
 
         if (this.processHistory.length > 0) {
+            
+            // Ensure currentProcessStep is within bounds
+            int maxIndex = Math.min(this.currentProcessStep, this.processHistory.length - 1);
 
-            for (int processHistoryIndex = this.currentProcessStep; processHistoryIndex >= 0; processHistoryIndex--) {
+            for (int processHistoryIndex = maxIndex; processHistoryIndex >= 0; processHistoryIndex--) {
                 RequestHistoryRecord processStep = this.processHistory[processHistoryIndex];
 
                 if (processStep.getStatus() == RequestHistoryRecord.Status.SKIPPED) {
@@ -1299,7 +1351,10 @@ public class RequestModel {
                 return processStep;
             }
 
-            return this.processHistory[this.currentProcessStep];
+            // Return the last available step if all are skipped
+            if (maxIndex >= 0) {
+                return this.processHistory[maxIndex];
+            }
         }
 
         if (this.fullHistory.length > 0) {

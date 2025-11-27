@@ -41,7 +41,7 @@ class ImageUtilsTest {
     private static final String NOT_AN_IMAGE_URL = "https://google.com";
 
     private static final String PNG_URL
-            = "https://upload.wikimedia.org/wikipedia/commons/7/70/Wikipedia_logo_for_dark_screens.png";
+            = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
 
 
 

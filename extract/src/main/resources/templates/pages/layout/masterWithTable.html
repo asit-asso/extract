@@ -24,42 +24,39 @@
             <script th:src="@{/lib/datatables.net-bs5/js/dataTables.bootstrap5.min.js} + '?v=@@datatablesLibVersion@@'"
                     src="../../static/lib/datatables.net-bs5/js/dataTables.bootstrap5.min.js"
             type="text/javascript"></script>
+            <script th:src="@{/js/datatableConfig.js} + '?v=@@applicationVersion@@'"
+                    src="../../static/js/datatableConfig.js"
+            type="text/javascript"></script>
             <th:block layout:fragment="additionalScriptIncludes"></th:block>
         </th:block>
         <th:block layout:fragment="customScripts">
             <script type="text/javascript" th:inline="javascript">
-                function getDataTableBaseProperties() {
-                    return {
-                        "language" : {
-                            "sProcessing" : /*[[#{table.processing}]]*/ "{Processing}",
-                            "sSearch" : /*[[#{table.searchBox.label}]]*/ "{Search:}",
-                            "sLengthMenu" : /*[[${#messages.msg('table.paging.control.text', '_MENU_')}]]*/ "{Show _MENU_ items}",
-                            "sInfo" : /*[[${#messages.msg('table.paging.info', '_START_', '_END_', '_TOTAL_')}]]*/ "{Showing items _START_ to _END_ from _TOTAL_}",
-                            "sInfoEmpty" : /*[[#{table.paging.info.empty}]]*/ "{No item shown}",
-                            "sInfoFiltered" : /*[[${#messages.msg('table.filter.info', '_MAX_')}]]*/ "{(filtered from _MAX_ total items)}",
-                            "sInfoPostFix" : "",
-                            "sLoadingRecords" : /*[[#{table.loading}]]*/ "{Loading}",
-                            "sZeroRecords" : /*[[#{table.empty}]]*/ "{No item to display}",
-                            "sEmptyTable" : /*[[#{table.empty}]]*/ "{No item to display}",
-                            "oPaginate" : {
-                                "sFirst" : /*[[#{table.paging.first}]]*/ "{First}",
-                                "sPrevious" : /*[[#{table.paging.previous}]]*/ "{Previous}",
-                                "sNext" : /*[[#{table.paging.next}]]*/ "{Next}",
-                                "sLast" : /*[[#{table.paging.last}]]*/ "{Last}"
-                            },
-                            "oAria" : {
-                                "sSortAscending" : /*[[#{table.sorting.ascending.alt}]]*/ "{: activate to sort the column in ascending order}",
-                                "sSortDescending" : /*[[#{table.sorting.descending.alt}]]*/ "{: activate to sort the column in descending order}"
+                /**
+                 * Global configuration object for Extract application
+                 * Contains i18n messages and paths injected by Thymeleaf template
+                 */
+                var EXTRACT_CONFIG = {
+                    language: /*[[${language}]]*/ 'fr',
+                    datatables: {
+                        i18nPath: /*[[@{/lib/datatables.net-plugins/i18n/}]]*/ '/lib/datatables.net-plugins/i18n/'
+                    },
+                    messages: {
+                        errors: {
+                            ajaxError: {
+                                title: /*[[#{errors.ajax.title}]]*/ 'Erreur de connexion',
+                                message: /*[[#{errors.ajax.message}]]*/ 'Une erreur est survenue lors de la mise à jour des demandes en cours'
                             }
-                        },
-                        "pagingType" : "simple_numbers",
-                        "info" : false,
-                        "lengthChange" : false,
-                        "layout": {
-                            "topEnd": null
                         }
-                    };
+                    }
+                };
+
+                // Legacy support: LANG_MESSAGES should already be defined by messages.js
+                // Extend it with EXTRACT_CONFIG.messages instead of overwriting
+                if (typeof LANG_MESSAGES === 'undefined') {
+                    var LANG_MESSAGES = {};
                 }
+                // Merge EXTRACT_CONFIG.messages into LANG_MESSAGES without overwriting existing properties
+                Object.assign(LANG_MESSAGES, EXTRACT_CONFIG.messages);
             </script>
             <th:block layout:fragment="additionalScripts"></th:block>
         </th:block>

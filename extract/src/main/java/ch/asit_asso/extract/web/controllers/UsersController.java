@@ -16,6 +16,9 @@
  */
 package ch.asit_asso.extract.web.controllers;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -25,6 +28,7 @@ import ch.asit_asso.extract.authentication.twofactor.TwoFactorApplication;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorBackupCodes;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorRememberMe;
 import ch.asit_asso.extract.authentication.twofactor.TwoFactorService;
+import ch.asit_asso.extract.configuration.LocaleConfiguration;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.domain.User.UserType;
 import ch.asit_asso.extract.domain.UserGroup;
@@ -53,6 +57,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 
@@ -118,11 +123,22 @@ public class UsersController extends BaseController {
 
     private final LdapSettings ldapSettings;
 
+    /**
+     * The locale configuration for internationalization support.
+     */
+    private final LocaleConfiguration localeConfiguration;
+
+    /**
+     * The locale resolver for managing language changes.
+     */
+    private final LocaleResolver localeResolver;
+
 
 
     public UsersController(RecoveryCodeRepository codesRepository, Secrets secrets,
                            RememberMeTokenRepository tokensRepository, TwoFactorService twoFactorService,
-                           UsersRepository usersRepository, LdapSettings ldapSettings, Environment environment) {
+                           UsersRepository usersRepository, LdapSettings ldapSettings, Environment environment,
+                           LocaleConfiguration localeConfiguration, LocaleResolver localeResolver) {
         this.backupCodesRepository = codesRepository;
         this.secrets = secrets;
         this.rememberMeRepository = tokensRepository;
@@ -130,6 +146,8 @@ public class UsersController extends BaseController {
         this.usersRepository = usersRepository;
         this.ldapSettings = ldapSettings;
         this.applicationPath = UrlUtils.getApplicationPath(environment.getProperty("application.external.url"));
+        this.localeConfiguration = localeConfiguration;
+        this.localeResolver = localeResolver;
     }
 
 
@@ -391,6 +409,13 @@ public class UsersController extends BaseController {
             this.addStatusMessage(model, "userDetails.errors.user.update.failed", MessageType.ERROR);
 
             return this.prepareModelForDetailsView(model, false, id, redirectAttributes);
+        }
+
+        // If the current user changed their own language, update the locale in the session
+        if (this.isEditingCurrentUser(userModel) && userModel.getLocale() != null) {
+            Locale newLocale = Locale.forLanguageTag(userModel.getLocale());
+            this.localeResolver.setLocale(request, response, newLocale);
+            this.logger.debug("Updated locale for user {} to {}", userModel.getLogin(), newLocale);
         }
 
         this.addStatusMessage(redirectAttributes, "usersList.user.updated", MessageType.SUCCESS);
@@ -847,12 +872,32 @@ public class UsersController extends BaseController {
             }
         }
 
+        // Add available languages if in multilingual mode
+        if (localeConfiguration.isMultilingualMode()) {
+            List<LanguageOption> availableLanguages = new ArrayList<>();
+            for (Locale locale : localeConfiguration.getAvailableLocales()) {
+                availableLanguages.add(new LanguageOption(
+                    locale.toLanguageTag(),
+                    capitalizeFirstLetter(locale.getDisplayName(locale))
+                ));
+            }
+            model.addAttribute("availableLanguages", availableLanguages);
+        } else {
+            model.addAttribute("availableLanguages", new ArrayList<>());
+        }
+
         this.addCurrentSectionToModel(currentSection, model);
 
         return UsersController.DETAILS_VIEW;
 
     }
 
+    private static String capitalizeFirstLetter(String str) {
+        if (str == null || str.isEmpty()) {
+            return str;
+        }
+        return str.substring(0, 1).toUpperCase() + str.substring(1);
+    }
 
 
     /**
@@ -868,6 +913,27 @@ public class UsersController extends BaseController {
         this.addCurrentSectionToModel(UsersController.CURRENT_SECTION_IDENTIFIER, model);
 
         return UsersController.LIST_VIEW;
+    }
+
+    /**
+     * Helper class for representing language options in the UI.
+     */
+    public static class LanguageOption {
+        private final String code;
+        private final String displayName;
+
+        public LanguageOption(String code, String displayName) {
+            this.code = code;
+            this.displayName = displayName;
+        }
+
+        public String getCode() {
+            return code;
+        }
+
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
 }

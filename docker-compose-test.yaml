@@ -20,7 +20,7 @@ services:
             mailhog:
                 condition: service_started
         volumes:
-            - ./extract/target/extract##2.2.0.war:/usr/local/tomcat/webapps/extract.war
+            - ./extract/target/extract##2.3.0.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
             - /tmp/log/tomcat:/usr/local/tomcat/logs
             - /tmp/extract:/var/extract
@@ -35,14 +35,14 @@ services:
             retries: 15
 
     mailhog:
-        image: mailhog/mailhog
+        image: axllent/mailpit:latest
         tty: true
         ports:
             - "1025:1025"
             - "8025:8025"
-        volumes:
-            - ./docker/mailhog:/home/mailhog/conf
-        entrypoint: MailHog -auth-file=/home/mailhog/conf/auth-users
+        environment:
+            - MP_SMTP_AUTH_ACCEPT_ANY=true
+            - MP_SMTP_AUTH_ALLOW_INSECURE=true
 
     update_db_on_start:
         build: ./docker/update-db
@@ -79,3 +79,24 @@ services:
             - ./docker/ldap-ad/users.ldif:/ldap/users.ldif
         ports:
             - "10389:10389"
+    
+    # Service Maven pour exécuter les tests
+    maven-tests:
+        image: maven:3.8-openjdk-17
+        volumes:
+            - .:/workspace
+            - ~/.m2:/root/.m2
+        working_dir: /workspace/extract
+        depends_on:
+            - pgsql
+            - mailhog
+            - openldap
+            - ldap-ad
+        environment:
+            - SPRING_DATASOURCE_URL=jdbc:postgresql://pgsql:5432/extract
+            - SPRING_DATASOURCE_USERNAME=extractuser
+            - SPRING_DATASOURCE_PASSWORD=demopassword
+            - SPRING_PROFILES_ACTIVE=test
+        command: mvn verify --batch-mode
+        profiles:
+            - test

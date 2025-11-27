@@ -20,6 +20,8 @@ import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
+
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.Request;
 import org.slf4j.Logger;
@@ -120,6 +122,67 @@ public class RequestExportFailedEmail extends Email {
         return true;
     }
 
+    /**
+     * Defines the textual data contained in the message.
+     *
+     * @param request      the request that could not be exported
+     * @param errorMessage the string returned by the connector to explain why the export failed
+     * @param exportTime   when the export failed
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final String errorMessage,
+            final Calendar exportTime) {
+        return this.initializeContent(request, errorMessage, exportTime, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param request      the request that could not be exported
+     * @param errorMessage the string returned by the connector to explain why the export failed
+     * @param exportTime   when the export failed
+     * @param locale       the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Request request, final String errorMessage,
+            final Calendar exportTime, final Locale locale) {
+
+        if (request == null) {
+            throw new IllegalArgumentException("The request cannot be null.");
+        }
+
+        if (request.getConnector() == null) {
+            throw new IllegalStateException("The request connector must be set.");
+        }
+
+        if (errorMessage == null) {
+            throw new IllegalArgumentException("The error message cannot be null.");
+        }
+
+        if (exportTime == null || new GregorianCalendar().before(exportTime)) {
+            throw new IllegalArgumentException("The export time must be defined and set in the past.");
+        }
+
+        this.logger.debug("Defining the content type to HTML.");
+        this.setContentType(ContentType.HTML);
+
+        try {
+            this.logger.debug("Defining the message body");
+            this.setContentFromTemplate(RequestExportFailedEmail.EMAIL_HTML_TEMPLATE,
+                    this.getModel(request, errorMessage, exportTime, locale));
+
+        } catch (EmailTemplateNotFoundException exception) {
+            this.logger.error("Could not define the message body.", exception);
+            return false;
+        }
+
+        this.logger.debug("Defining the subject of the message.");
+        this.setSubject(this.getMessageString("email.requestExportFailed.subject", null, locale));
+
+        this.logger.debug("The request export failure message content has been successfully initialized.");
+        return true;
+    }
+
 
 
     /**
@@ -131,15 +194,32 @@ public class RequestExportFailedEmail extends Email {
      * @return the context object to feed to the message body template
      */
     private IContext getModel(final Request request, final String errorMessage, final Calendar exportTime) {
+        return this.getModel(request, errorMessage, exportTime, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param request      the request that could not be exported
+     * @param errorMessage the string returned by the connector to explain why the export failed
+     * @param exportTime   when the export failed
+     * @param locale       the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Request request, final String errorMessage, final Calendar exportTime,
+            final Locale locale) {
         assert request != null : "The request cannot be null.";
         assert request.getConnector() != null : "The request connector cannot be null.";
         assert errorMessage != null : "The export result cannot be null.";
         assert exportTime != null : "The time of the failed export cannot be null.";
         assert new GregorianCalendar().after(exportTime) : "The time of the failed export must be set in the past.";
 
-        Context model = new Context();
-        model.setVariable("productLabel", request.getProductLabel());
-        model.setVariable("orderLabel", request.getOrderLabel());
+        final Context model = new Context(locale);
+
+        // Add all standard request variables using the utility class
+        RequestModelBuilder.addRequestVariables(model, request);
+
+        // Add email-specific variables
         model.setVariable("connectorName", request.getConnector().getName());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(exportTime.getTime()));

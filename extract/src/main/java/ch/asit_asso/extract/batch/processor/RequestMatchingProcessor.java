@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.UUID;
 
 import ch.asit_asso.extract.domain.Process;
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.UnmatchedRequestEmail;
 import ch.asit_asso.extract.persistence.RulesRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
@@ -249,17 +251,65 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
     private void sendEmailToAdmins(final Request request) {
         assert request != null : "The request must be set.";
 
-        UnmatchedRequestEmail email = new UnmatchedRequestEmail(this.emailSettings);
+        try {
+            this.logger.debug("Sending e-mail notifications to administrators.");
 
-        if (!email.initialize(request, this.usersRepository.getActiveAdministratorsAddresses())) {
-            this.logger.error("Could not create the unmatched request e-mail.");
-            return;
-        }
+            // Retrieve administrators as User objects
+            final User[] administrators = this.usersRepository.findByProfileAndActiveTrue(User.Profile.ADMIN);
 
-        if (email.send()) {
-            this.logger.info("The unmatched request e-mail notification was successfully sent.");
-        } else {
-            this.logger.warn("The unmatched request e-mail notification was not sent.");
+            if (administrators == null || administrators.length == 0) {
+                this.logger.warn("No administrators found for unmatched request notification.");
+                return;
+            }
+
+            // Get available locales from email settings (configured from extract.i18n.language)
+            final List<java.util.Locale> availableLocales = this.emailSettings.getAvailableLocales();
+            boolean atLeastOneEmailSent = false;
+
+            // Send individual email to each administrator with their preferred locale
+            for (User administrator : administrators) {
+                try {
+                    final UnmatchedRequestEmail message = new UnmatchedRequestEmail(this.emailSettings);
+
+                    // Get validated locale for this administrator
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(administrator, availableLocales);
+
+                    if (!message.initializeContent(request, userLocale)) {
+                        this.logger.error("Could not create the message for user {}.", administrator.getLogin());
+                        continue;
+                    }
+
+                    try {
+                        message.addRecipient(administrator.getEmail());
+                    } catch (javax.mail.internet.AddressException e) {
+                        this.logger.error("Invalid email address for user {}: {}",
+                            administrator.getLogin(), administrator.getEmail());
+                        continue;
+                    }
+
+                    if (message.send()) {
+                        this.logger.debug("Unmatched request notification sent successfully to {} with locale {}.",
+                                        administrator.getEmail(), userLocale.toLanguageTag());
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send unmatched request notification to {}.",
+                            administrator.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending notification to user {}: {}",
+                        administrator.getLogin(), exception.getMessage());
+                }
+            }
+
+            if (atLeastOneEmailSent) {
+                this.logger.info("The unmatched request e-mail notification was sent to at least one administrator.");
+            } else {
+                this.logger.warn("The unmatched request e-mail notification was not sent to any administrator.");
+            }
+
+        } catch (Exception exception) {
+            this.logger.warn("An error prevented notifying the administrators by e-mail.", exception);
         }
     }
 //
@@ -291,7 +341,6 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
     private Request setRequestToUnmatched(final Request request) {
         assert request != null : "The request must not be null.";
 
-        // TODO Send mail, etc.
         this.logger.debug("Setting request status to unmatched,");
         request.setStatus(Status.UNMATCHED);
 

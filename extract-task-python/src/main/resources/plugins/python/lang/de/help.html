@@ -1,0 +1,186 @@
+<div>
+    <p>Das Python-Extraktions-Plugin ermöglicht die Ausführung eines benutzerdefinierten Python-Skripts und umgeht dabei die Einschränkungen der Befehlszeilenlänge. Ein funktionsfähiger Python-Interpreter (Version, Abhängigkeiten usw.) muss für das Skript bereitgestellt werden.</p>
+
+    <h4>Übertragungsmethode der Parameter</h4>
+    <p>Die Befehlsparameter werden in einer GeoJSON-Datei mit dem Namen <code>parameters.json</code> gespeichert. Diese enthält nur ein Feature – das Polygon des Auftragsgebiets in WGS84. Alle anderen Parameter befinden sich in den Eigenschaften (<em>properties</em>) des Features.
+        Nur der Pfad zu dieser Datei wird dem Skript als positionsabhängiges Befehlszeilenargument übergeben (das Python-Skript muss diese Datei lesen und die gewünschten Parameter daraus extrahieren).
+    </p>
+
+    <h4>Struktur der GeoJSON-Datei</h4>
+    <p>Die Datei ist ein GeoJSON-Objekt des Typs <em>Feature</em> und enthält:</p>
+    <ul>
+        <li><strong>geometry</strong>: Die Geometrie des Gebiets (automatische Umwandlung von WKT in GeoJSON)</li>
+        <li><strong>properties</strong>: Alle Parameter der Anfrage</li>
+    </ul>
+
+    <h4>Verfügbare Parameter in der GeoJSON-Datei</h4>
+    <p>Die folgenden Eigenschaften sind in der GeoJSON-Datei verfügbar:</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+        <tr>
+            <td class="popover-table-header"><p>Parameter</p></td>
+            <td class="popover-table-header"><p>Beschreibung</p></td>
+            <td class="popover-table-header"><p>Typ</p></td>
+            <td class="popover-table-header"><p>Beispiel</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>Request</p></td>
+            <td class="popover-table-data"><p>Interne Auftragskennung von Extract</p></td>
+            <td class="popover-table-data"><p>Ganzzahl</p></td>
+            <td class="popover-table-data"><p>365</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>FolderOut</p></td>
+            <td class="popover-table-data"><p>Ausgabeverzeichnis, in dem die erzeugten Dateien gespeichert werden</p></td>
+            <td class="popover-table-data"><p>Zeichenkette</p></td>
+            <td class="popover-table-data"><p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrderGuid</p></td>
+            <td class="popover-table-data"><p>Eindeutige Kennung des Auftrags</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>5382e46f-9d5d-4fdd-adbc-828165d4be82</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrderLabel</p></td>
+            <td class="popover-table-data"><p>Externe Auftragsbezeichnung</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>221587</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ClientGuid</p></td>
+            <td class="popover-table-data"><p>Eindeutige Kennung des Kunden</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>94d47632-b0e9-57f4-6580-58925e3f9a88</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ClientName</p></td>
+            <td class="popover-table-data"><p>Name des Kunden, der den Auftrag erteilt hat</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>Jean Dupont</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrganismGuid</p></td>
+            <td class="popover-table-data"><p>Eindeutige Kennung der Organisation</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>2edc1a50-4837-4c44-1519-3ebc85f14588</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>OrganismName</p></td>
+            <td class="popover-table-data"><p>Name der Organisation</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>Katasterdienst</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ProductGuid</p></td>
+            <td class="popover-table-data"><p>Eindeutige Kennung des bestellten Produkts</p></td>
+            <td class="popover-table-data"><p>GUID / UUID</p></td>
+            <td class="popover-table-data"><p>a049fecb-30d9-9124-ed41-068b566a0855</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>ProductLabel</p></td>
+            <td class="popover-table-data"><p>Bezeichnung des bestellten Produkts</p></td>
+            <td class="popover-table-data"><p>Text</p></td>
+            <td class="popover-table-data"><p>Katasterplan</p></td>
+        </tr>
+        <tr>
+            <td class="popover-table-data"><p>Parameters</p></td>
+            <td class="popover-table-data"><p>JSON-Objekt mit den benutzerdefinierten Parametern der Anfrage</p></td>
+            <td class="popover-table-data"><p>JSON-Objekt</p></td>
+            <td class="popover-table-data"><p>{"FORMAT" : "SHP", "PROJECTION" : "SWITZERLAND95"}</p></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h4>Geometrie (<code>geometry</code>)</h4>
+    <p>
+        Die Geometrie des Gebiets wird automatisch vom WKT-Format (WGS84) in das GeoJSON-Format konvertiert.
+        Sie wird in der Eigenschaft <code>geometry</code> des Feature-Objekts gespeichert.
+    </p>
+
+    <h4>Beispiel der Datei parameters.json</h4>
+    <pre>{
+  "type": "Feature",
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [6.886727164248283, 46.44372031957538],
+      [6.881351862162561, 46.44126511019801],
+      [6.886480507180103, 46.43919870486726],
+      [6.893221678307809, 46.441705238743005],
+      [6.886727164248283, 46.44372031957538]
+    ]]
+  },
+  "properties": {
+    "Request": 365,
+    "FolderOut": "/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/",
+    "OrderGuid": "5382e46f-9d5d-4fdd-adbc-828165d4be82",
+    "OrderLabel": "221587",
+    "ClientGuid": "94d47632-b0e9-57f4-6580-58925e3f9a88",
+    "ClientName": "Jean Dupont",
+    "OrganismGuid": "2edc1a50-4837-4c44-1519-3ebc85f14588",
+    "OrganismName": "Service du cadastre",
+    "ProductGuid": "a049fecb-30d9-9124-ed41-068b566a0855",
+    "ProductLabel": "Plan cadastral",
+    "Parameters": {
+      "FORMAT": "SHP",
+      "SELECTION" : "PASS_THROUGH",
+      "PROJECTION" : "SWITZERLAND95",
+      "REMARK" : "bla bla bla",
+      "CLIENT_LANG" : "fr"
+    }
+  }
+}</pre>
+
+    <h4>Verwendung in Python</h4>
+    <p>
+        Das Python-Skript kann diese Datei wie ein Standard-GeoJSON lesen. Die Eigenschaften sind über <code>feature['properties']</code> und die Geometrie über <code>feature['geometry']</code> zugänglich.
+    </p>
+
+    <h4>Beispiel eines Python-Skripts</h4>
+    <pre>#!/usr/bin/env python3
+import json
+import sys
+import os
+
+def main():
+    if len(sys.argv) < 2:
+        print("Fehler: Pfad zur Datei parameters.json erforderlich")
+        return 1
+
+    with open(sys.argv[1], 'r') as f:
+        feature = json.load(f)
+
+    props = feature['properties']
+    output_dir = props['FolderOut']
+    geometry = feature['geometry']
+
+    # Verarbeitung der Anfrage
+    # ... Ihr Code hier ...
+
+    result_file = os.path.join(output_dir, 'result.txt')
+    with open(result_file, 'w') as f:
+        f.write("Verarbeitung erfolgreich abgeschlossen")
+
+    return 0
+
+if __name__ == '__main__':
+    sys.exit(main())
+</pre>
+
+    <h4>Ausgabe</h4>
+    <p>
+        Die Ausgabedateien des Skripts müssen im durch <code>FolderOut</code> angegebenen Verzeichnis gespeichert werden.
+        Das Skript sollte einen Rückgabewert von 0 liefern, wenn die Verarbeitung erfolgreich war.
+    </p>
+
+    <h4>Wichtige Hinweise</h4>
+    <ul>
+        <li>Das Skript wird im Verzeichnis ausgeführt, in dem sich das Python-Skript befindet</li>
+        <li>Dadurch können relative Pfade im Skript verwendet werden</li>
+        <li>Die Datei parameters.json wird im Ordner <code>FolderIn</code> erstellt und am Ende des Prozesses gelöscht</li>
+        <li>Der Python-Interpreter muss auf dem Extract-Server installiert sein</li>
+        <li>Die erforderlichen Python-Abhängigkeiten müssen installiert sein</li>
+    </ul>
+</div>

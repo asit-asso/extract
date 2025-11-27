@@ -122,6 +122,11 @@ public class RejectRequest implements ITaskProcessorRequest {
      */
     private Calendar endDate;
 
+    /**
+     * The surface area of the extraction.
+     */
+    private String surface;
+
 
 
     /**
@@ -157,6 +162,7 @@ public class RejectRequest implements ITaskProcessorRequest {
         this.remark = originalRequest.getRemark();
         this.startDate = originalRequest.getStartDate();
         this.status = originalRequest.getStatus();
+        this.surface = originalRequest.getSurface();
         this.tiers = originalRequest.getTiers();
     }
 
@@ -497,6 +503,24 @@ public class RejectRequest implements ITaskProcessorRequest {
      */
     public final void setOrganismGuid(final String guid) {
         this.organismGuid = guid;
+    }
+
+
+
+    @Override
+    public final String getSurface() {
+        return this.surface;
+    }
+
+
+
+    /**
+     * Defines the surface area of the extraction.
+     *
+     * @param surface the surface area value as a string
+     */
+    public final void setSurface(final String surface) {
+        this.surface = surface;
     }
 
 }

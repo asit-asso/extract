@@ -233,6 +233,19 @@ public abstract class Email {
         return this.emailSettings.getMessageString(messageKey, arguments);
     }
 
+    /**
+     * Obtains the application string that matches the given key for a specific locale.
+     *
+     * @param messageKey the key that identifies the desired message
+     * @param arguments  an array of object that will replace the placeholders in the message string, or
+     *                   <code>null</code> if no substitution is needed
+     * @param locale     the locale to use for the message, or <code>null</code> to use the default locale
+     * @return the message
+     */
+    protected final String getMessageString(final String messageKey, final Object[] arguments, final java.util.Locale locale) {
+        return this.emailSettings.getMessageString(messageKey, arguments, locale);
+    }
+
 
 
     /**

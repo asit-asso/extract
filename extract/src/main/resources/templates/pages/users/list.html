@@ -25,6 +25,51 @@
                 </div>
                 <h1 class="page-header" th:text="#{usersList.body.title}">{Users and permissions}</h1>
                 <div class="card card-default">
+                    <div class="card-header">
+                        <form class="filter-form-inline float-end" role="form">
+                            <div class="col">
+                                <label for="textFilter" class="form-label" th:text="#{common.filter.label}">Filtrer&nbsp;:</label>
+                            </div>
+                            <div class="col">
+                                <input type="text" class="form-control user-filter-control" id="textFilter" th:placeholder="#{usersList.filter.user.placeholder}">
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="roleFilter" th:attr="data-placeholder=#{usersList.filter.role.placeholder}">
+                                    <option value=""></option>
+                                    <option value="ADMIN" th:text="#{user.profile.ADMIN}">Administrateur</option>
+                                    <option value="OPERATOR" th:text="#{user.profile.OPERATOR}">Opérateur</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="stateFilter" th:attr="data-placeholder=#{usersList.filter.state.placeholder}">
+                                    <option value=""></option>
+                                    <option value="active" th:text="#{common.filter.state.active}">Actif</option>
+                                    <option value="inactive" th:text="#{common.filter.state.inactive}">Inactif</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="notificationsFilter" th:attr="data-placeholder=#{usersList.filter.notifications.placeholder}">
+                                    <option value=""></option>
+                                    <option value="active" th:text="#{common.filter.yes}">Oui</option>
+                                    <option value="inactive" th:text="#{common.filter.no}">Non</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <select class="select2 form-control user-filter-control" id="2faFilter" th:attr="data-placeholder=#{usersList.filter.2fa.placeholder}">
+                                    <option value=""></option>
+                                    <option value="ACTIVE" th:text="#{user.2faStatus.ACTIVE}">Actif</option>
+                                    <option value="INACTIVE" th:text="#{user.2faStatus.INACTIVE}">Inactif</option>
+                                    <option value="STANDBY" th:text="#{user.2faStatus.STANDBY}">En attente</option>
+                                </select>
+                            </div>
+                            <div class="col">
+                                <a id="filterButton" class="btn btn-extract-filled" href="#">
+                                    <i class="fa fa-search"></i>
+                                </a>
+                            </div>
+                        </form>
+                        <h3 th:text="#{usersList.card.title}">Utilisateurs et droits</h3>
+                    </div>
                     <div class="card-body">
                         <table class="table table-striped table-hover dataTables dataTable">
                             <thead>
@@ -47,7 +92,7 @@
                                     </td>
                                     <td th:text="*{name}">{Titi Toto}</td>
                                     <td th:text="*{email}">{toto@tata.com}</td>
-                                    <td th:switch="*{profile}">
+                                    <td th:switch="*{profile}" th:attr="data-role=*{profile}">
                                         <div class="badge bg-success" th:text="#{user.profile.ADMIN}"
                                              th:case="${T(ch.asit_asso.extract.domain.User.Profile).ADMIN}">
                                             {Administrator}
@@ -62,19 +107,19 @@
                                             {Local}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td th:attr="data-state=*{active}">
                                         <div class="badge bg-success" th:text="#{usersList.table.item.active}"
                                              th:if="*{active}">{Active}</div>
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.inactive}"
                                              th:unless="*{active}">{Inactive}</div>
                                     </td>
-                                    <td>
+                                    <td th:attr="data-notifications=*{mailActive}">
                                         <div class="badge bg-success" th:text="#{usersList.table.item.mailActive}"
                                              th:if="*{mailActive}">{Active}</div>
                                         <div class="badge bg-danger" th:text="#{usersList.table.item.mailInactive}"
                                              th:unless="*{mailActive}">{Inactive}</div>
                                     </td>
-                                    <td th:switch="*{twoFactorStatus}">
+                                    <td th:switch="*{twoFactorStatus}" th:attr="data-2fa-status=*{twoFactorStatus}">
                                         <div class="badge bg-success" th:text="#{user.2faStatus.ACTIVE}"
                                              th:case="${T(ch.asit_asso.extract.domain.User.TwoFactorStatus).ACTIVE}">
                                             {Active}
@@ -121,7 +166,7 @@
             <script type="text/javascript">
                 var dataTablesProperties = getDataTableBaseProperties();
                 dataTablesProperties.paging = false;
-                dataTablesProperties.searching = false;
+                dataTablesProperties.searching = true;
                 dataTablesProperties.columnDefs = [
                     {
                         targets : 3,

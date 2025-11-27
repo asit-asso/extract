@@ -54,4 +54,15 @@ public interface ProcessesRepository extends PagingAndSortingRepository<Process,
     @Query(nativeQuery = true)
     int[] getProcessOperatorsIds(@Param("processId") int processId);
 
+    /**
+     * Obtains the User objects for the operators associated to a given process.
+     *
+     * @param processId the integer that identifies the process
+     * @return a list containing the User objects for each active operator with email notifications enabled
+     */
+    @Query("SELECT DISTINCT u FROM User u WHERE (u.id IN (SELECT pu.id FROM Process p JOIN p.usersCollection pu WHERE p.id = :processId) "
+            + " OR u.id IN (SELECT uu.id FROM Process p JOIN p.userGroupsCollection ug JOIN ug.usersCollection uu WHERE p.id = :processId))"
+            + " AND u.active = true AND u.mailActive = true")
+    java.util.List<ch.asit_asso.extract.domain.User> getProcessOperators(@Param("processId") int processId);
+
 }

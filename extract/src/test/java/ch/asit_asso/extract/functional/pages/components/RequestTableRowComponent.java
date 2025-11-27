@@ -43,14 +43,19 @@ public class RequestTableRowComponent {
 
 
     public RequestDetailsPage openDetails() {
-//        ((JavascriptExecutor) this.driver).executeScript("arguments[0].scrollIntoView();", this.row);
-//
-//        try {
-//            Thread.sleep(500);
-//
-//        } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//        }
+        // Scroll the element into view to avoid ElementClickInterceptedException
+        ((org.openqa.selenium.JavascriptExecutor) this.driver).executeScript(
+            "arguments[0].scrollIntoView({behavior: 'instant', block: 'center'});",
+            this.row
+        );
+
+        // Wait a short moment for any animations or overlays to clear
+        try {
+            Thread.sleep(300);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Thread interrupted during scroll wait", e);
+        }
 
         this.row.click();
 

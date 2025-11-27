@@ -34,7 +34,7 @@ public class FmeDesktopIntegrationTest {
 
     public static final ITaskProcessorResult.Status EXPECTED_SUCCESS_STATUS = ITaskProcessorResult.Status.SUCCESS;
 
-    public static final String EXPECTED_FR_NO_FILES_MESSAGE = "L’extraction FME n’a généré aucun fichier.";
+   public static final String EXPECTED_FR_NO_FILES_MESSAGE = "L'extraction FME n'a généré aucun fichier.";
 
     public static final ITaskProcessorResult.Status EXPECTED_ERROR_STATUS = ITaskProcessorResult.Status.ERROR;
 
@@ -48,7 +48,7 @@ public class FmeDesktopIntegrationTest {
 
     private HashMap<String, String> plugin_parameters;
 
-    private static final String DATA_FOLDERS_BASE_PATH = "/tmp/extract/orders"; // TODO Trouver un moyen de paramétrer ?
+    private static final String DATA_FOLDERS_BASE_PATH = "/tmp/extract-test-fmedesktop";
 
     private static final String SUCCESS_WORKSPACE = "src/test/java/ch/asit_asso/extract/integration/taskplugins/my_workspace.fmw";
 

@@ -1,0 +1,156 @@
+<div>
+    <p>Le plugin d'extraction FME Server permet d'exécuter un traitement déployé sur FME Server.</p>
+
+    <p>Les paramètres suivants sont passés au script :</p>
+
+    <table class="popover-table parameter-table">
+        <tbody>
+            <tr>
+                <td class="popover-table-header">
+                    <p>Paramètre</p>
+                </td>
+
+                <td class="popover-table-header">
+                    <p>Description</p>
+                </td>
+                <td class="popover-table-header">
+                    <p>Type</p>
+                </td>
+                <td class="popover-table-header">
+                    <p>Exemple</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Client</p>
+                </td>
+                <td class="popover-table-data">
+                   <p>Identifiant du client qui a passé la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>94d47632-b0e9-57f4-6580-58925e3f9a88</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>FolderOut</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>
+                        Répertoire de sortie où doivent être écrits les fichiers
+                        créés par le script
+                    </p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Chaîne</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>/var/extract/orders/5382e46f-9d5d-4fdd-adbc-828165d4be82/output/</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>OrderLabel</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant de commande externe</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Texte</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>221587</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Organism</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant de l'organisme auquel appartient la personne qui a passé la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>2edc1a50-4837-4c44-1519-3ebc85f14588</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Parameters</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>
+                        Propriétés dynamiques de la requête, tels que formats
+                        désirés, projection, etc.
+                    </p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Chaîne JSON</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>{"FORMAT" : "SHP","SELECTION" : "PASS_THROUGH","PROJECTION" : "SWITZERLAND"}</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Perimeter</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Polygone d'emprise de la commande</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Chaîne WKT avec coordonnées en WGS84</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>
+                        POLYGON((6.886727164248283 46.44372031957538,6.881351862162561
+                        46.44126511019801,6.886480507180103 46.43919870486726,6.893221678307809
+                        46.441705238743005,6.886727164248283 46.44372031957538))
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Product</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant du produit commandé</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>GUID / UUID</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>a049fecb-30d9-9124-ed41-068b566a0855</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="popover-table-data">
+                    <p>Request</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Identifiant de commande interne Extract</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>Entier</p>
+                </td>
+                <td class="popover-table-data">
+                    <p>365</p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <p>
+        Le script doit retourner un fichier ZIP contenant le resultat du traitement.
+    </p>
+
+    <p>
+        <b>Important :</b> Le script doit être exécuté en mode "Data Download" afin que le
+        plugin puisse télécharger le résultat du traitement.
+    </p>
+</div>

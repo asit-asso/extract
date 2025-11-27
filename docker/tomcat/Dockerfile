@@ -1,4 +1,4 @@
-FROM tomcat:9.0.64-jre17
+FROM tomcat:9.0.97-jdk17-temurin-jammy
 
 #RUN apk add --no-cache tzdata
 ENV TZ="Europe/Zurich"

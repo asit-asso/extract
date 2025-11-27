@@ -9,6 +9,7 @@ import java.util.Set;
 import javax.validation.constraints.NotNull;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.StandbyReminderEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import org.slf4j.Logger;
@@ -81,9 +82,9 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
 
 
     /**
-     * Notifies the administrator by e-mail that the export failed.
+     * Notifies the operators by e-mail that a request is in standby and requires intervention.
      *
-     * @param request   the request that could not be exported
+     * @param request   the request that is in standby mode
      */
     private boolean sendEmailNotification(final Request request) {
         assert request != null : "The request cannot be null.";
@@ -91,26 +92,56 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
 
         try {
             this.logger.debug("Sending an e-mail reminder to the operators.");
-            final StandbyReminderEmail message = new StandbyReminderEmail(this.emailSettings);
-            final String[] operatorsAddresses
-                    = this.repositories.getProcessesRepository().getProcessOperatorsAddresses(request.getProcess().getId());
-            final Set<String> recipientsAddresses
-                    = new HashSet<>(Arrays.asList(operatorsAddresses));
+            
+            // Get process operators as User objects to access their locales
+            final java.util.List<ch.asit_asso.extract.domain.User> operators
+                    = this.repositories.getProcessesRepository().getProcessOperators(request.getProcess().getId());
 
-            if (!message.initialize(request, recipientsAddresses.toArray(new String[]{}))) {
-                this.logger.error("Could not create the request export failure message.");
+            if (operators == null || operators.isEmpty()) {
+                this.logger.warn("No operators found for process {}.", request.getProcess().getId());
                 return false;
             }
 
-            final boolean messageSent = message.send();
+            boolean atLeastOneEmailSent = false;
 
-            if (!messageSent) {
-                this.logger.warn("The request export failure notification was not sent.");
-                return false;
+            // Parse available locales from configuration
+            final java.util.List<java.util.Locale> availableLocales = LocaleUtils.parseAvailableLocales(this.applicationLanguage);
+
+            // Send individual emails to each operator with their preferred locale
+            for (ch.asit_asso.extract.domain.User operator : operators) {
+                try {
+                    final StandbyReminderEmail message = new StandbyReminderEmail(this.emailSettings);
+
+                    // Get validated locale for this operator
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(operator, availableLocales);
+
+                    if (!message.initialize(request, new String[]{operator.getEmail()}, userLocale)) {
+                        this.logger.error("Could not create the standby reminder message for user {}.", operator.getLogin());
+                        continue;
+                    }
+
+                    final boolean messageSent = message.send();
+
+                    if (messageSent) {
+                        this.logger.debug("Standby notification sent successfully to {} with locale {}.",
+                                operator.getEmail(), userLocale.toLanguageTag());
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send standby notification to {}.", operator.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending notification to user {}: {}", operator.getLogin(), exception.getMessage());
+                }
             }
 
-            this.logger.info("The request export failure notification was successfully sent to the operators.");
-            return true;
+            if (atLeastOneEmailSent) {
+                this.logger.info("At least one standby notification was successfully sent to the operators.");
+                return true;
+            } else {
+                this.logger.warn("No standby notifications could be sent to any operators.");
+                return false;
+            }
 
         } catch (Exception exception) {
             this.logger.warn("An error prevented notifying the operators by e-mail.", exception);

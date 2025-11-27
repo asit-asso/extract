@@ -52,6 +52,13 @@ function deleteTask(taskcard, id) {
         return;
     }
 
+    // Check if LANG_MESSAGES is defined
+    if (typeof LANG_MESSAGES === 'undefined') {
+        // Show Bootstrap alert for missing language messages
+        showAlert('Error', 'Language messages not loaded. Please refresh the page.');
+        return;
+    }
+
     var deleteConfirmTexts = LANG_MESSAGES.processTask.deleteConfirm;
     var alertButtonsTexts = LANG_MESSAGES.generic.alertButtons;
     var message = deleteConfirmTexts.message;

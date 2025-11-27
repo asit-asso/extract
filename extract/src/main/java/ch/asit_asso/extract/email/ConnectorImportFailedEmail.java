@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.domain.Connector;
 import org.slf4j.Logger;
@@ -118,6 +119,65 @@ public class ConnectorImportFailedEmail extends Email {
 
 
     /**
+     * Defines the textual data contained in the message.
+     *
+     * @param connector        the connector instance used by the failed import
+     * @param errorMessage     the string returned by the connector to explain why the import failed
+     * @param failedImportTime when the import failed
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Connector connector, final String errorMessage,
+            final Calendar failedImportTime) {
+        return this.initializeContent(connector, errorMessage, failedImportTime, null);
+    }
+
+    /**
+     * Defines the textual data contained in the message for a specific locale.
+     *
+     * @param connector        the connector instance used by the failed import
+     * @param errorMessage     the string returned by the connector to explain why the import failed
+     * @param failedImportTime when the import failed
+     * @param locale           the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message content has been successfully initialized
+     */
+    public final boolean initializeContent(final Connector connector, final String errorMessage,
+            final Calendar failedImportTime, final Locale locale) {
+
+        if (connector == null) {
+            throw new IllegalArgumentException("The connector cannot be null.");
+        }
+
+        if (errorMessage == null) {
+            throw new IllegalArgumentException("The error message cannot be null.");
+        }
+
+        if (failedImportTime == null || new GregorianCalendar().before(failedImportTime)) {
+            throw new IllegalArgumentException("The failure time is invalid.");
+        }
+
+        this.logger.debug("Defining the content type to HTML.");
+        this.setContentType(ContentType.HTML);
+
+        try {
+            this.logger.debug("Defining the message body");
+            this.setContentFromTemplate(ConnectorImportFailedEmail.EMAIL_TEMPLATE,
+                    this.getModel(connector, errorMessage, failedImportTime, locale));
+
+        } catch (EmailTemplateNotFoundException exception) {
+            this.logger.error("Could not define the message body.", exception);
+            return false;
+        }
+
+        this.logger.debug("Defining the subject of the message.");
+        this.setSubject(this.getMessageString("email.connectorImportFailed.subject", null, locale));
+
+        this.logger.debug("The import failure message content has been successfully initialized.");
+        return true;
+    }
+
+
+
+    /**
      * Creates an object that assembles the data to display in the message body.
      *
      * @param connector        the connector instance used by the failed import
@@ -126,13 +186,27 @@ public class ConnectorImportFailedEmail extends Email {
      * @return the context object to feed to the body template
      */
     private IContext getModel(final Connector connector, final String errorMessage, final Calendar failedImportTime) {
+        return this.getModel(connector, errorMessage, failedImportTime, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the body of this message for a specific locale.
+     *
+     * @param connector        the connector instance used by the failed import
+     * @param errorMessage     the string returned by the connector to explain why the import failed
+     * @param failedImportTime when the import failed
+     * @param locale           the locale to use for the template context, or null to use default
+     * @return the context object to feed to the message body template
+     */
+    private IContext getModel(final Connector connector, final String errorMessage, final Calendar failedImportTime,
+            final Locale locale) {
         assert connector != null : "The connector cannot be null.";
         assert errorMessage != null : "The error message cannot be null.";
         assert failedImportTime != null : "The import failure time cannot be null.";
         assert new GregorianCalendar().after(failedImportTime) : "The import failure time must be set in the past.";
 
         this.logger.debug("Defining the data model to merge with the template.");
-        final Context model = new Context();
+        final Context model = new Context(locale);
         model.setVariable("connectorName", connector.getName());
         model.setVariable("errorMessage", errorMessage);
         model.setVariable("failureTimeString", DateFormat.getDateTimeInstance().format(failedImportTime.getTime()));

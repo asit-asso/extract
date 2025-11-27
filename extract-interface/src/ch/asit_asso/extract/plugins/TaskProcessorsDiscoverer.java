@@ -174,7 +174,15 @@ public final class TaskProcessorsDiscoverer {
             throw new IllegalArgumentException("The application language code cannot be null.");
         }
 
-        this.applicationLanguage = languageCode;
+        // If the language has changed, force reinitialization of plugins
+        if (!languageCode.equals(this.applicationLanguage)) {
+            this.applicationLanguage = languageCode;
+            this.logger.debug("Application language changed to {}. Forcing plugin reinitialization.", languageCode);
+            this.arePluginsInitialized = false;
+            this.pluginsMap.clear();
+        } else {
+            this.applicationLanguage = languageCode;
+        }
     }
 
 

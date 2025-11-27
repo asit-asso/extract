@@ -46,8 +46,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.LocaleResolver;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -128,6 +130,12 @@ public class IndexController extends BaseController {
     @Autowired
     private UsersRepository usersRepository;
 
+    /**
+     * The locale resolver to determine the current user's locale.
+     */
+    @Autowired
+    private LocaleResolver localeResolver;
+
 
 
     /**
@@ -159,9 +167,12 @@ public class IndexController extends BaseController {
             model.addAttribute("baseFolderError", true);
 
         } else {
+
+
             model.addAttribute("processes", this.processesRepository.findAllByOrderByName());
             model.addAttribute("connectors", this.connectorsRepository.findAllByOrderByName());
-            model.addAttribute("language", this.getApplicationLanguage());
+            model.addAttribute("language", this.getCurrentUserLanguage());
+
             model.addAttribute("refreshInterval",
                     Integer.valueOf(this.parametersRepository.getDashboardRefreshInterval()));
             model.addAttribute("tablePageSize", this.tablePageSize);
@@ -243,24 +254,30 @@ public class IndexController extends BaseController {
     @JsonView(PublicField.class)
     @GetMapping("getCurrentRequests")
     @ResponseBody
-    public final DataTableResponse handleGetCurrentRequests(/*@RequestParam int draw*/) {
-
-        if (!this.isCurrentUserApplicationUser()) {
-            return null;
-        }
+    public final DataTableResponse handleGetCurrentRequests(HttpServletRequest request /*@RequestParam int draw*/) {
 
         try {
-            RequestJsonModel[] requestsData
-                    = RequestJsonModel.fromRequestModelsArray(this.getCurrentRequests(), this.messageSource);
 
+        this.logger.info("Processing request to get current requests.");
+        if (!this.isCurrentUserApplicationUser()) {
+            this.logger.debug("User {} is not an application user.", this.getCurrentUserLogin());
+            return null;
+        }
+        this.logger.info("What's up");
+
+            Locale currentLocale = this.localeResolver.resolveLocale(request);
+            RequestJsonModel[] requestsData
+                    = RequestJsonModel.fromRequestModelsArray(this.getCurrentRequests(), this.messageSource, currentLocale);
+            this.logger.info("Branch 1");
             return new DataTableResponse(1, requestsData.length, requestsData.length, requestsData);
 
         } catch (BaseFolderNotFoundException baseFolderException) {
             this.logger.error("The finished requests retrieval failed.", baseFolderException);
-
+            this.logger.info("Branch 2");
             return new DataTableResponse(1);
 
         } catch (Exception exception) {
+            this.logger.info("Branch 3");
             this.logger.error("The current requests retrieval failed.", exception);
 
             return new DataTableResponse(1, exception.getMessage());
@@ -297,7 +314,7 @@ public class IndexController extends BaseController {
     @JsonView(PublicField.class)
     @GetMapping("getFinishedRequests")
     @ResponseBody
-    public final DataTableResponse handleGetFinishedRequests(@RequestParam final int draw,
+    public final DataTableResponse handleGetFinishedRequests(HttpServletRequest request, @RequestParam final int draw,
             @RequestParam("start") final int pageStart, @RequestParam final String sortFields,
             @RequestParam final String sortDirection, @RequestParam final String filterText,
             @RequestParam("filterConnector") final String filterConnectorIdString,
@@ -334,8 +351,9 @@ public class IndexController extends BaseController {
             RequestModel[] requestModelArray = RequestModel.fromDomainRequestsPage(pagedResult,
                     this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource,
                     this.parametersRepository.getValidationFocusProperties().split(","));
+            Locale currentLocale = this.localeResolver.resolveLocale(request);
             RequestJsonModel[] requestsData
-                    = RequestJsonModel.fromRequestModelsArray(requestModelArray, this.messageSource);
+                    = RequestJsonModel.fromRequestModelsArray(requestModelArray, this.messageSource, currentLocale);
 
             return new DataTableResponse(draw, this.requestsRepository.count(), pagedResult.getTotalElements(),
                     requestsData);
@@ -393,6 +411,8 @@ public class IndexController extends BaseController {
             currentDomainRequests = this.usersRepository.getUserAssociatedRequestsByStatusNot(this.getCurrentUserId(),
                     Status.FINISHED);
         }
+
+        logger.info("There are " + currentDomainRequests.size() + " current requests.");
 
         RequestModel[] currentRequests = RequestModel.fromDomainRequestsCollection(currentDomainRequests,
                 this.requestsHistoryRepository, this.parametersRepository.getBasePath(), this.messageSource,

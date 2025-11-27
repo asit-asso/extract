@@ -63,6 +63,18 @@ public class PasswordResetEmail extends Email {
      * @return <code>true</code> if the message has been successfully initialized
      */
     public final boolean initialize(final String token, final String recipient) {
+        return this.initialize(token, recipient, null);
+    }
+
+    /**
+     * Configures the message so it is ready to be sent with a specific locale.
+     *
+     * @param token     the code that allows the user to reset his password
+     * @param recipient the user's e-mail address
+     * @param locale    the locale to use for the message content, or null to use default
+     * @return <code>true</code> if the message has been successfully initialized
+     */
+    public final boolean initialize(final String token, final String recipient, final java.util.Locale locale) {
 
         if (StringUtils.isEmpty(token)) {
             throw new IllegalArgumentException("The token cannot be empty.");
@@ -79,14 +91,14 @@ public class PasswordResetEmail extends Email {
         this.setContentType(ContentType.HTML);
 
         try {
-            this.setContentFromTemplate(PasswordResetEmail.TEMPLATE_NAME, this.getModel(token));
+            this.setContentFromTemplate(PasswordResetEmail.TEMPLATE_NAME, this.getModel(token, locale));
 
         } catch (EmailTemplateNotFoundException exception) {
             this.logger.error("Could not define the body of the e-mail message.", exception);
             return false;
         }
 
-        this.setSubject(this.getMessageString("email.passwordReset.subject"));
+        this.setSubject(this.getMessageString("email.passwordReset.subject", null, locale));
 
         return true;
     }
@@ -100,9 +112,20 @@ public class PasswordResetEmail extends Email {
      * @return the template context object
      */
     private IContext getModel(final String token) {
+        return this.getModel(token, null);
+    }
+
+    /**
+     * Creates an object that assembles the data to display in the message for a specific locale.
+     *
+     * @param token  the code that allows the user to change her password
+     * @param locale the locale to use for the template context, or null to use default
+     * @return the template context object
+     */
+    private IContext getModel(final String token, final java.util.Locale locale) {
         assert token != null : "The token must be set.";
 
-        Context model = new Context();
+        Context model = new Context(locale);
         model.setVariable("token", token);
 
         return model;
