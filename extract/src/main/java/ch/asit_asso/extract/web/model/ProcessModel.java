@@ -36,7 +36,7 @@ import java.util.*;
  *
  * @author Florent Krin
  */
-public class ProcessModel {
+public class ProcessModel extends OwnedObjectModel {
 
     /**
      * The number that uniquely identifies this process.
@@ -67,26 +67,6 @@ public class ProcessModel {
      * The steps of this process.
      */
     private final List<TaskModel> tasksList;
-
-    /**
-     * The operators groups associated to this process.
-     */
-    private final List<UserGroup> userGroupsList;
-
-    /**
-     * An array that contains the identifiers of the operators groups associated with this process.
-     */
-    private String[] userGroupsIds;
-
-    /**
-     * The operators associated to this process.
-     */
-    private final List<UserModel> usersList;
-
-    /**
-     * An array that contains the identifiers of the operators associated with this process.
-     */
-    private String[] usersIds;
 
     /**
      * The vertical scroll position of the page.
@@ -191,51 +171,6 @@ public class ProcessModel {
         return null;
     }
 
-
-
-    /**
-     * Obtains the users of this process.
-     *
-     * @return an array containing the users that make up this process
-     */
-    public final UserGroup[] getUserGroups() {
-        return this.userGroupsList.toArray(new UserGroup[]{});
-    }
-
-
-    /**
-     * Obtains the identifiers of the operators groups associated to this process.
-     *
-     * @return a string with the identifiers separated by commas
-     */
-    public final String getUserGroupsIds() {
-        return StringUtils.join(this.userGroupsIds, ',');
-    }
-
-
-
-    /**
-     * Obtains the users of this process.
-     *
-     * @return an array containing the users that make up this process
-     */
-    public final UserModel[] getUsers() {
-        return this.usersList.toArray(new UserModel[]{});
-    }
-
-
-
-    /**
-     * Obtains the identifiers of the operators associated to this process.
-     *
-     * @return a string with the identifiers separated by commas
-     */
-    public final String getUsersIds() {
-        return StringUtils.join(this.usersIds, ',');
-    }
-
-
-
     /**
      * Gets the data objects for the tasks that compose this process.
      *
@@ -264,67 +199,6 @@ public class ProcessModel {
         this.tasksList.clear();
         this.tasksList.addAll(Arrays.asList(tasks));
     }
-
-
-
-    /**
-     * Defines the users groups of this process.
-     *
-     * @param userGroups an array containing the user groups that operate on this process
-     */
-    public final void setUserGroups(final UserGroup[] userGroups) {
-        this.userGroupsList.clear();
-        this.userGroupsList.addAll(Arrays.asList(userGroups));
-
-        List<String> list = new ArrayList<>();
-
-        for (UserGroup userGroup : this.userGroupsList) {
-            list.add(userGroup.getId().toString());
-        }
-        this.usersIds = list.toArray(new String[]{});
-    }
-
-
-
-    /**
-     * Defines the identifiers of the operators groups associated with this process.
-     *
-     * @param joinedUserGroupsIds a string with the operator group identifiers separated by commas
-     */
-    public final void setUserGroupsIds(final String joinedUserGroupsIds) {
-        this.userGroupsIds = joinedUserGroupsIds.split(",");
-    }
-
-
-
-    /**
-     * Defines the users of this process.
-     *
-     * @param users an array containing the operators directly attached to this process
-     */
-    public final void setUsers(final UserModel[] users) {
-        this.usersList.clear();
-        this.usersList.addAll(Arrays.asList(users));
-
-        List<String> list = new ArrayList<>();
-        for (UserModel user : this.usersList) {
-            list.add(user.getId().toString());
-        }
-        this.usersIds = list.toArray(new String[]{});
-    }
-
-
-
-    /**
-     * Defines the identifiers of the operators associated with this process.
-     *
-     * @param joinedUsersIds a string with the operator identifiers separated by commas
-     */
-    public final void setUsersIds(final String joinedUsersIds) {
-        this.usersIds = joinedUsersIds.split(",");
-    }
-
-
 
     /**
      * Inserts a task in this process.
@@ -418,9 +292,8 @@ public class ProcessModel {
      * Creates a new instance of this model.
      */
     public ProcessModel() {
+        super();
         this.tasksList = new ArrayList<>();
-        this.userGroupsList = new ArrayList<>();
-        this.usersList = new ArrayList<>();
     }
 
 
@@ -473,8 +346,8 @@ public class ProcessModel {
         this.deletable = (requestsRepository != null) ? domainProcess.canBeDeleted(requestsRepository)
                 : domainProcess.canBeDeleted();
         this.setTasksFromDomainObject(domainProcess, taskPluginsDiscoverer);
-        this.setUserGroupsFromDomainObject(domainProcess);
-        this.setUsersFromDomainObject(domainProcess);
+        setUsersFromDomainObject(domainProcess.getUsersCollection());
+        setUserGroupsFromDomainObject(domainProcess.getUserGroupsCollection());        
     }
 
 
@@ -620,46 +493,6 @@ public class ProcessModel {
         }
 
     }
-
-
-
-    /**
-     * Defines the process operators groups in this model based on what is in the data source.
-     *
-     * @param domainProcess the data object for this process
-     */
-    private void setUserGroupsFromDomainObject(final Process domainProcess) {
-        assert domainProcess != null : "The process data object must not be null.";
-
-        List<String> userGroupsIdsList = new ArrayList<>();
-
-        for (UserGroup userGroup : domainProcess.getUserGroupsCollection()) {
-            this.userGroupsList.add(userGroup);
-            userGroupsIdsList.add(userGroup.getId().toString());
-        }
-
-        this.userGroupsIds = userGroupsIdsList.toArray(String[]::new);
-    }
-
-
-
-    /**
-     * Defines the process operators in this model based on what is in the data source.
-     *
-     * @param domainProcess the data object for this process
-     */
-    private void setUsersFromDomainObject(final Process domainProcess) {
-        assert domainProcess != null : "The process data object must not be null.";
-
-        List<String> usersIdsList = new ArrayList<>();
-        for (User user : domainProcess.getUsersCollection()) {
-            this.usersList.add(new UserModel(user));
-            usersIdsList.add(user.getId().toString());
-        }
-        this.usersIds = usersIdsList.toArray(String[]::new);
-    }
-
-
 
     /**
      * Removes the task that matches the provided identifier. (There should only be one

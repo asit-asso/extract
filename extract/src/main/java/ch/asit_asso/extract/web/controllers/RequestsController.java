@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.List;
@@ -32,6 +33,7 @@ import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
 import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.UserGroup;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.persistence.ProcessesRepository;
 import ch.asit_asso.extract.persistence.RemarkRepository;
@@ -39,6 +41,7 @@ import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.persistence.TasksRepository;
+import ch.asit_asso.extract.persistence.UserGroupsRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.utils.FileSystemUtils;
 import ch.asit_asso.extract.utils.FileSystemUtils.RequestDataFolder;
@@ -46,6 +49,10 @@ import ch.asit_asso.extract.utils.ZipUtils;
 import ch.asit_asso.extract.web.Message;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.RequestModel;
+import ch.asit_asso.extract.web.model.UserModel;
+import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -169,7 +176,11 @@ public class RequestsController extends BaseController {
     @Autowired
     private UsersRepository usersRepository;
 
-
+    /**
+     * The Spring Data object that links the user data objects with the data source.
+     */
+    @Autowired
+    private UserGroupsRepository userGroupsRepository;
 
     /**
      * Processes a request to display detailed information about an order.
@@ -207,6 +218,9 @@ public class RequestsController extends BaseController {
                 this.parametersRepository.getValidationFocusProperties().split(","));
 
         model.addAttribute("request", requestModel);
+        model.addAttribute("allactiveusers", this.getAllActiveUsers());
+        model.addAttribute("allusergroups", this.getAllUserGroups());
+
         Task currentTask = this.getCurrentTask(requestModel);
 
         if (currentTask != null) {
@@ -977,7 +991,7 @@ public class RequestsController extends BaseController {
             this.addStatusMessage(redirectAttributes, "requestDetails.error.request.notAllowed", MessageType.ERROR);
 
             return REDIRECT_TO_ACCESS_DENIED;
-        }
+        }        
 
         if (!this.canRequestBeValidated(request, currentStep, redirectAttributes)) {
             return RequestsController.REDIRECT_TO_LIST;
@@ -996,6 +1010,38 @@ public class RequestsController extends BaseController {
     }
 
 
+    @PostMapping("{requestId}/assign")
+    public final synchronized String handleAssignRequest(
+            @PathVariable final int requestId,
+            @RequestParam List<Integer> usersIds,
+            @RequestParam List<Integer> userGroupsIds) {
+        var request = getDomainRequest(requestId);
+        assert request != null : "The request cannot be null.";
+        assert request.getProcess() != null : "The request must be associated with a process.";
+        if (!this.canCurrentUserViewRequestDetails(request)) {
+            this.logger.warn("The user {} tried to assign users to the request {} but is not allowed to.",
+                    this.getCurrentUserLogin(), request.getId());
+            return REDIRECT_TO_ACCESS_DENIED;
+        }
+
+        var usersToAdd = usersIds.stream().map(this.usersRepository::findById)
+                .distinct()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+        
+        var groupsToAdd = userGroupsIds.stream().map(this.userGroupsRepository::findById)
+                .distinct()
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .collect(Collectors.toList());
+
+        request.setUsersCollection(usersToAdd);
+        request.setUserGroupsCollection(groupsToAdd);
+        this.requestsRepository.save(request);
+
+        return String.format(RequestsController.REDIRECT_TO_DETAILS_FORMAT, requestId);
+    }
 
     /**
      * Adds record entries for the remaining tasks when a requests is set to skip to the end of its process.
@@ -1162,8 +1208,11 @@ public class RequestsController extends BaseController {
             return false;
         }
 
-        Integer[] operatorsIds = process.getDistinctOperators().stream().map(User::getId).toArray(Integer[]::new);
-        return ArrayUtils.contains(operatorsIds, this.getCurrentUserId());
+        var currentId = this.getCurrentUserId();
+        return Stream.concat(
+                process.getDistinctOperators().stream(),
+                request.getDistinctOperators().stream()
+        ).map(User::getId).anyMatch((id) -> currentId == id);
     }
 
 
@@ -1904,5 +1953,24 @@ public class RequestsController extends BaseController {
     private Request getDomainRequest(int requestId) {
         return this.requestsRepository.findById(requestId).orElse(null);
     }
+    
+    /**
+     * Fetches a list of users from the repository and returns a collection of active user objects.
+     *
+     * @return a list of existing active users
+     */
+    private List<UserModel> getAllActiveUsers() {
+        final List<UserModel> usersList = new ArrayList<>();
 
+        for (User domainUser : this.usersRepository.findAllActiveApplicationUsers()) {
+
+            usersList.add(new UserModel(domainUser));
+        }
+
+        return usersList;
+    }
+    
+    private Collection<UserGroup> getAllUserGroups() {
+        return this.userGroupsRepository.findAllByOrderByName();
+    }
 }
