@@ -349,6 +349,65 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <input type="file" id="filesToAdd" name="filesToAdd" multiple="multiple"
                            class="hidden-file-upload-control"/>
                 </form>
+                <div class="card card-default">
+                    <div class="card-header">
+                        <b th:text="#{requestDetails.panels.ownership.title}">{Additional owners}</b>
+                    </div>            
+                    <div class="card-body">
+                        <div class="form-group form-group-with-label">
+                            <form id="requestOwnershipForm" method="POST" th:action="@{'/requests/' + ${request.id} + '/assign'}">
+                                <label th:text="#{requestDetails.fields.operators.label}"
+                                       class="form-label col-form-label">{Operators}</label>
+                                <input id="usersIds" type="hidden" th:field="*{request.usersIds}" />
+                                <input id="userGroupsIds" type="hidden" th:field="*{request.userGroupsIds}" />
+                                <select class="select2-container select2-container-multi form-control select2 user-select"
+                                        multiple="multiple" data-bs-toggle="tooltip"
+                                        th:id="users">
+                                    <optgroup th:unless="${#arrays.isEmpty(allusergroups)}" label="{Groups}"
+                                              th:label="#{requestDetails.fields.operators.groups.label}">
+                                        <option th:each="userGroup, userGroupStats : ${allusergroups}"
+                                                th:value="|group-${userGroup.id}|">
+                                            <span th:text="${userGroup.name}">{Group #1}</span>
+                                        </option>
+                                    </optgroup>
+                                    <optgroup th:unless="${#arrays.isEmpty(allactiveusers)}" label="{Users}"
+                                              th:label="#{requestDetails.fields.operators.users.label}">
+                                        <option th:each="user, userStats : ${allactiveusers}"
+                                                th:value="|user-${user.id}|">
+                                            <span th:text="${user.name}">{User #1}</span>
+                                        </option>
+                                    </optgroup>
+                                </select>
+                                <div class="form-control-plaintext">
+                                    <div th:unless="*{#arrays.isEmpty(userGroups)}">
+                                        <th:block th:each="userGroup, userGroupsStats : *{userGroups}"
+                                                  th:object="${process.userGroups[__${userGroupsStats.index}__]}">
+                                            <span th:if="${userGroupsStats.index} > 0">&nbsp; - </span>
+                                            <i class="fa fa-users"></i>&nbsp;
+                                            <span th:text="*{name}">{User group}</span>
+                                        </th:block>
+                                    </div>
+                                    <div th:unless="*{#arrays.isEmpty(users)}">
+                                        <th:block th:each="user, usersStats : *{users}"
+                                                  th:object="${process.users[__${usersStats.index}__]}"
+                                                  >
+                                            <span th:if="${usersStats.index} > 0">&nbsp; - </span>
+                                            <i class="fa fa-user"></i>&nbsp;
+                                            <span th:text="*{name}">{User}</span>
+                                        </th:block>
+                                    </div>
+                                </div>
+                           </form>
+                       </div>
+                       <div class="float-end">
+                         <button id="usersSaveButton"
+                                 class="btn btn-extract-filled"
+                                 th:text="#{buttons.save}"
+                                 type="button">
+                            {Save}
+                         </button>                                                    </div>
+                    </div>
+                </div>
                 <div class="card card-default"
                      th:if="${request.waitingIntervention} or (not ${#strings.isEmpty(request.remark)}) or (${request.outputFiles != null} and not ${#arrays.isEmpty(request.outputFiles)})">
                     <div class="card-header">

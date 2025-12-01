@@ -214,3 +214,35 @@ DROP INDEX IF EXISTS idx_users_usergroups_usergroup;
 
 CREATE INDEX idx_users_usergroups_usergroup
     ON users_usergroups (id_usergroup);
+
+-- REQUESTS_USERS Table
+
+ALTER TABLE requests_users
+    DROP CONSTRAINT IF EXISTS fk_processes_users_requests;
+
+ALTER TABLE requests_users
+    DROP CONSTRAINT IF EXISTS fk_processes_users_user;
+
+ALTER TABLE ONLY requests_users
+    ADD CONSTRAINT fk_processes_users_requests FOREIGN KEY (id_request)
+    REFERENCES public.requests(id_request);
+
+ALTER TABLE ONLY requests_users
+    ADD CONSTRAINT fk_processes_users_user FOREIGN KEY (id_user)
+    REFERENCES public.users(id_user);
+
+-- REQUESTS_USERS Table
+
+ALTER TABLE requests_users
+    DROP CONSTRAINT IF EXISTS fk_processes_usergroups_requests;
+
+ALTER TABLE requests_users
+    DROP CONSTRAINT IF EXISTS fk_processes_usergroups_usergroup;
+
+ALTER TABLE ONLY requests_usergroups
+    ADD CONSTRAINT fk_processes_usergroups_requests FOREIGN KEY (id_request)
+    REFERENCES public.requests(id_request);
+
+ALTER TABLE ONLY requests_usergroups
+    ADD CONSTRAINT fk_processes_usergroups_usergroup FOREIGN KEY (id_usergroup)
+    REFERENCES public.usergroups(id_usergroup);

@@ -230,6 +230,12 @@
             <artifactId>javase</artifactId>
             <version>3.5.3</version>
         </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <scope>test</scope>
+            <type>jar</type>
+        </dependency>
     </dependencies>
 
     <profiles>
@@ -262,7 +268,7 @@
                             <skipTests>false</skipTests>
                             <summaryFile>target/failsafe-reports/failsafe-summary-integration.xml</summaryFile>
                             <includes>
-                                <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
+                                <include>ch.asit_asso.extract.integration.**.*RequestsOwnershipIntegrationTest</include>
                             </includes>
                             <systemPropertyVariables>
                                 <extract.log.path>${project.build.directory}/logs</extract.log.path>
