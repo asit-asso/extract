@@ -501,8 +501,10 @@ public class IndexController extends BaseController {
                           String.join(", ",
                                       userProcesses.stream().map((process) ->
                                                                  process.getId().toString()).toArray(String[]::new)));
+        
         final Specification<Request> userCriteria
-                = RequestSpecification.isProcessInList(userProcesses);
+                = RequestSpecification.isProcessInList(userProcesses).or(
+                RequestSpecification.isBoundToUser(currentUser));
 
         return this.requestsRepository.findAll(Specification.where(userCriteria).and(searchCriteria), paging);
     }
