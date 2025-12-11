@@ -698,7 +698,6 @@ public class RequestTaskRunner implements Runnable {
             }
             case STANDBY -> {
                 this.request.setStatus(Request.Status.STANDBY);
-                this.request.setLastReminder(GregorianCalendar.getInstance());
             }
 
             default -> this.logger.error("The result status ({}) for task \"{}\" is invalid.", taskResultStatus,
