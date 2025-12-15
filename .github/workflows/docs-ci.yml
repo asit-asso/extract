@@ -1,6 +1,7 @@
 name: Build documentation
 run-name: Building static documentation website after push by ${{ github.actor }}
 on:
+  workflow_dispatch : ~
   push:
     branches:
       - doc-zensical
@@ -28,4 +29,5 @@ jobs:
         with:
           path: site
       - uses: actions/deploy-pages@v4
+
         id: deployment
