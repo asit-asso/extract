@@ -90,9 +90,10 @@ public class TwoFactorApplication {
 
 
     public void enable() {
+        TwoFactorStatus currentStatus = this.user.getTwoFactorStatus();
 
-        assert this.user.getTwoFactorStatus() == TwoFactorStatus.INACTIVE
-                : "Can only enable two-factor authentication if it isn't already active";
+        assert currentStatus == TwoFactorStatus.INACTIVE || currentStatus == TwoFactorStatus.ACTIVE
+                : "Can only enable/reset two-factor authentication if status is INACTIVE or ACTIVE";
 
         this.user.setTwoFactorStatus(TwoFactorStatus.STANDBY);
         String standbyToken = this.service.generateSecret();

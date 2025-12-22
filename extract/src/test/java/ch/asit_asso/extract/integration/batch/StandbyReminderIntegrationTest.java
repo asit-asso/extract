@@ -472,6 +472,13 @@ class StandbyReminderIntegrationTest {
         @Test
         @DisplayName("6.1 - Should handle operator with invalid email")
         void shouldHandleOperatorWithInvalidEmail() {
+            // Clean up any existing test user
+            usersRepository.findAll().forEach(user -> {
+                if (user.getLogin() != null && user.getLogin().equals("invalid_operator")) {
+                    usersRepository.delete(user);
+                }
+            });
+
             // Given: An operator with invalid email
             User invalidOperator = new User();
             invalidOperator.setLogin("invalid_operator");
@@ -509,6 +516,13 @@ class StandbyReminderIntegrationTest {
         @Test
         @DisplayName("6.2 - Should handle operator with null email")
         void shouldHandleOperatorWithNullEmail() {
+            // Clean up any existing test user
+            usersRepository.findAll().forEach(user -> {
+                if (user.getLogin() != null && user.getLogin().equals("null_email_operator")) {
+                    usersRepository.delete(user);
+                }
+            });
+
             // Given: An operator with null email
             User nullEmailOperator = new User();
             nullEmailOperator.setLogin("null_email_operator");

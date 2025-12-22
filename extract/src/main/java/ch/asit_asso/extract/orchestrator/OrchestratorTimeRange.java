@@ -235,7 +235,11 @@ public class OrchestratorTimeRange {
             return false;
         }
 
-        return DateTimeUtils.isTimeStringValid(this.endTime, true);
+        if (!DateTimeUtils.isTimeStringValid(this.endTime, true)) {
+            return false;
+        }
+
+        return DateTimeUtils.compareTimeStrings(this.startTime, this.endTime) <= 0;
     }
 
 
