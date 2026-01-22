@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Optional;
 import javax.servlet.http.HttpServletResponse;
 import javax.transaction.Transactional;
+
+import ch.asit_asso.extract.configuration.FeatureConfiguration;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Remark;
 import ch.asit_asso.extract.domain.Request;
@@ -182,6 +184,9 @@ public class RequestsController extends BaseController {
     @Autowired
     private UserGroupsRepository userGroupsRepository;
 
+    @Autowired
+    private FeatureConfiguration features;
+
     /**
      * Processes a request to display detailed information about an order.
      *
@@ -218,9 +223,10 @@ public class RequestsController extends BaseController {
                 this.parametersRepository.getValidationFocusProperties().split(","));
 
         model.addAttribute("request", requestModel);
-        model.addAttribute("allactiveusers", this.getAllActiveUsers());
-        model.addAttribute("allusergroups", this.getAllUserGroups());
-
+        if (features.perRequestOwnershipEnabled()) {
+            model.addAttribute("allactiveusers", this.getAllActiveUsers());
+            model.addAttribute("allusergroups", this.getAllUserGroups());
+        }
         Task currentTask = this.getCurrentTask(requestModel);
 
         if (currentTask != null) {
@@ -1015,6 +1021,12 @@ public class RequestsController extends BaseController {
             @PathVariable final int requestId,
             @RequestParam List<Integer> usersIds,
             @RequestParam List<Integer> userGroupsIds) {
+        if (!features.perRequestOwnershipEnabled()) {
+            this.logger.warn(
+                    "The user {} tried to assign users to  the request {}, but the per-request ownership is disabled",
+                    this.getCurrentUserLogin(), requestId);
+            return REDIRECT_TO_ACCESS_DENIED;
+        }
         var request = getDomainRequest(requestId);
         assert request != null : "The request cannot be null.";
         assert request.getProcess() != null : "The request must be associated with a process.";
@@ -1972,5 +1984,9 @@ public class RequestsController extends BaseController {
     
     private Collection<UserGroup> getAllUserGroups() {
         return this.userGroupsRepository.findAllByOrderByName();
+    }
+
+    public FeatureConfiguration getFeatures() {
+        return this.features;
     }
 }

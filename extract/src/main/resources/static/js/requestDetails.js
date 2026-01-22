@@ -1876,6 +1876,34 @@ function submitUserIds() {
 
 /********************* EVENT HANDLERS *********************/
 
+function configureOwnershipEditor() {
+    if (!document.querySelector("#usersIds")) {
+        return;
+    }
+    var usersIdsArray = $("#usersIds").val().split(',').map((value) => `user-${value}`);
+    var userGroupsIdsArray = $("#userGroupsIds").val().split(',').map((value) => `group-${value}`);
+    $('#users').val([...usersIdsArray, ...userGroupsIdsArray]);
+    $('#users').trigger('change');
+
+    function formatUserItem(item) {
+        if(!item.id) {
+            return item.text;
+        }
+        const icon = (item.id.startsWith('group-')) ? 'fa-users' : 'fa-user';
+        return $(`<span><i class="fa ${icon}"></i>&nbsp;${item.text}</span>`);
+    }
+
+    $(".parameter-select.select2").select2({
+        multiple:true
+    });
+
+    $(".user-select.select2").select2({
+        templateSelection: formatUserItem,
+        templateResult: formatUserItem,
+        multiple:true
+    });
+}
+
 $(function () {
     $('#standbyValidateButton').on('click', function () {
         _handleButtonClick(this, validateRequest, 'standbyValidateRemark');
@@ -1953,28 +1981,5 @@ $(function () {
     });
 
     //set users in the multiple select
-    var usersIdsArray = $("#usersIds").val().split(',').map((value) => `user-${value}`);
-    var userGroupsIdsArray = $("#userGroupsIds").val().split(',').map((value) => `group-${value}`);
-    $('#users').val([...usersIdsArray, ...userGroupsIdsArray]);
-    $('#users').trigger('change');
-    
-    function formatUserItem(item) {
-
-        if(!item.id) {
-            return item.text;
-        }
-
-        const icon = (item.id.startsWith('group-')) ? 'fa-users' : 'fa-user';
-        return $(`<span><i class="fa ${icon}"></i>&nbsp;${item.text}</span>`);
-    }
-
-    $(".parameter-select.select2").select2({
-        multiple:true
-    });
-
-    $(".user-select.select2").select2({
-        templateSelection: formatUserItem,
-        templateResult: formatUserItem,
-        multiple:true
-    });
+    configureOwnershipEditor();
 });
