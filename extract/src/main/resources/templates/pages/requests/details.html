@@ -349,7 +349,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <input type="file" id="filesToAdd" name="filesToAdd" multiple="multiple"
                            class="hidden-file-upload-control"/>
                 </form>
-                <div class="card card-default">
+                <div class="card card-default" th:if="${@features.perRequestOwnershipEnabled}">
                     <div class="card-header">
                         <b th:text="#{requestDetails.panels.ownership.title}">{Additional owners}</b>
                     </div>            
