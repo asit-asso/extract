@@ -4,7 +4,7 @@ on:
   workflow_dispatch : ~
   push:
     branches:
-      - doc-zensical
+      - master
 permissions:
   contents: read
   pages: write
@@ -31,3 +31,4 @@ jobs:
       - uses: actions/deploy-pages@v4
 
         id: deployment
+
