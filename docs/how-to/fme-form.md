@@ -4,7 +4,7 @@
 
     This tutorial uses the extraction plugin `FME Form (Version 2)` which allows unlimited parameters length, thus allowing request with precise geometries like municipalities boundary.
 
-To follow along with this tutorial, download the sample script and data available [here](https://github.com/asit-asso/extraction-samples). Either by cloning the repo :
+To follow along with this tutorial, download the sample script and data available [here](https://github.com/asit-asso/extract-samples){target="_blank"}. Either by cloning the repo :
 
 ```
 git clone https://github.com/asit-asso/extraction-samples.git

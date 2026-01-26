@@ -14,4 +14,5 @@ CLAUDE.md
 INTEGRATION_TESTS_PLAN.md
 .claude/
 .venv/
+site/
 .smarttomcat/

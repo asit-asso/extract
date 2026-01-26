@@ -1,13 +1,11 @@
-
-
 ## Login
 
 ![Login](../assets/user-guide/login.png){width="500"}
 
 Access to the application is secured and requires authentication via either:
 
-* A user account created by the administrator (see [User Administration](./admin-guide.md/#user-administration)), or
-+ An account linked to the corporate LDAP directory (see [LDAP authentication](./admin-guide.md/#ldap-authentication)).
+* A user account created by the administrator (see [User Administration](./admin-guide.md#user-administration)), or
++ An account linked to the corporate LDAP directory (see [LDAP authentication](./admin-guide.md#ldap-authentication)).
 
 Usernames are **not** case-sensitive, but passwords **are** case-sensitive.
 
@@ -115,7 +113,7 @@ The home page provides a real-time overview of the application's activity, inclu
 
 **Administrators** can view all requests. **Regular users** only see requests associated with processes where they are assigned as operators.
 
-The page updates automatically based on the refresh interval defined in the application settings (see [Orchestration Section](./admin-guide.md/#orchestration)). By default, this interval is set to 20 seconds.
+The page updates automatically based on the refresh interval defined in the application settings (see [Orchestration Section](./admin-guide.md#orchestration)). By default, this interval is set to 20 seconds.
 
 ### Status of active connectors
 
@@ -128,7 +126,7 @@ In the top-right corner of the page, chips show active connectors grouped by the
 
 If no connectors fall under a particular status, the corresponding chip is not shown. For operators, only error messages may be visible.
 
-Clicking on a chip opens a dropdown listing the relevant connectors. Hovering over a connector displays a tooltip with the time of the last import and any associated error message. Administrators can click a connector to view and edit its settings (see [Connectors detail](./admin-guide.md/#connectors)).
+Clicking on a chip opens a dropdown listing the relevant connectors. Hovering over a connector displays a tooltip with the time of the last import and any associated error message. Administrators can click a connector to view and edit its settings (see [Connectors detail](./admin-guide.md#connectors)).
 
 ### Requests in progress
 

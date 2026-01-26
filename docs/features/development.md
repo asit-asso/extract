@@ -68,16 +68,16 @@ If you would like to set up a local development environment to edit the current 
 
 2. Install the necessary packages
     ```powershell
-    pip install mkdocs-material mkdocs-exclude-search
+	pip install zensical
     ```
 
 3. Build and serve the documentation on localhost
     ```
-    mkdocs serve
+    zensical serve
     ```
 4. Visit http://localhost:8000
 
-You can then edit the markdown files under ``./docs`` following the syntax from [mkdocs-material](https://squidfunk.github.io/mkdocs-material/reference/){target="_blank"}. The browser will automatically reload when changes are made to the ``./docs`` folder.
+You can then edit the markdown files under ``./docs`` following the syntax from [Zensical](https://zensical.org/){target="_blank"}. The browser will automatically reload when changes are made to the ``./docs`` folder.
 
 To publish your modification, send them (only the markdown files) through a pull request on GitHub. When your pull request will be merged to the main branch, the documentation will automatically be build and publish to the documentation website.
 

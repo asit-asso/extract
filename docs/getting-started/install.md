@@ -34,7 +34,7 @@ It is normal for any automatic start-up of the application after deployment to f
     * `extract.i18n.language=de` Extract is in german
     * `extract.i18n.language=fr,de` Extract is in french and german, french being the default language
 
-    To add a new language, please refer to [Add a new language section](../customize/#add-a-new-language).
+    To add a new language, please refer to [Add a new language section](./customize/#add-a-new-language).
 
 7.	Enter the application URL using the `application.external.url` property. The value of this property is used to generate links in notification e-mails.
 8.	Enter a random 32-character ISO-8859-1 string for `database.encryption.secret` and `database.encryption.salt` properties. These strings are used as keys to encrypt certain database values.
