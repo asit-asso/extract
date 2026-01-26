@@ -195,7 +195,7 @@ Following rule parameters are available:
     * A lower value makes tasks more responsive but increases server resource usage.
     * It also represents the maximum delay before connector setting changes take effect.
     * This setting does not affect request imports frequency, which are controlled in each connector’s properties (see [Connector parameters](#connector-parameters)).
-* **Request list update frequency** : Defines how often (in seconds) the home page data is refreshed (see [Requests list](../user-guide#requests-list))
+* **Request list update frequency** : Defines how often (in seconds) the home page data is refreshed (see [Requests list](./user-guide#requests-list))
 * **Interval between validation reminders** : Specifies the number of days between two email reminders sent to operators when a request is still pending validation. Set this value to 0 to disable reminders.
 
 ### Operating hours
@@ -253,7 +253,7 @@ The ``Tester la connexion`` button lets you verify whether the current settings 
 ### Request validation
 ![Validation](../assets/admin-guide/validation.png){width="500"}
 
-This section lets you specify which request properties should be highlighted for operators in the request validation area (see [Validation in the user guide](../user-guide#validation)). No syntax checks is applied to the properties entered here — only properties that actually exists in the request will be considered.
+This section lets you specify which request properties should be highlighted for operators in the request validation area (see [Validation in the user guide](./user-guide#validation)). No syntax checks is applied to the properties entered here — only properties that actually exists in the request will be considered.
 
 Additionally, this section provides access (by clicking on the `Gérer les modèles` button) to the management of predefined comment templates used during request validation steps.
 

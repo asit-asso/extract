@@ -1,3 +1,8 @@
+---
+search:
+  exclude: true
+---
+
 # Extract - Initialize a New Connector Plugin
 
 ## Introduction

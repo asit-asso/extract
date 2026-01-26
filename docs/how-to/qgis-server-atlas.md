@@ -6,7 +6,7 @@
     
     The QGIS Atlas tool allows you to use a fixed scale and a fixed layout size by using an additional vector layer containing a grid that will be used to divide your project in multiple files. Hence, when a client request your data, the plugin will intersect the desired perimeter with your grid and print out as many files as needed to cover the request's perimeter. Each file with the fixed layout size and scale.
 
-To follow along with this tutorial, you can download the sample script and data available [here](https://github.com/asit-asso/extraction-samples). Either by cloning the repo :
+To follow along with this tutorial, you can download the sample script and data available [here](https://github.com/asit-asso/extract-samples){target="_blank"}. Either by cloning the repo :
 
 ```
 git clone https://github.com/asit-asso/extraction-samples.git
