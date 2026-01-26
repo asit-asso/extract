@@ -85,7 +85,7 @@ JDBC database connection string.
 Database login username
 
 !!! Warning
-    The user must have read, write and object creation/deletion privileges on the database, the used schema and all their tables and sequences. If the user belongs to a group, those privileges can ge granted at the group level.  
+    The user must have read, write and object creation/deletion privileges on the database, the used schema and all their tables and sequences. If the user belongs to a group, those privileges can be granted at the group level.  
 
 
 **spring.servlet.multipart.max-file-size**<br>
@@ -222,4 +222,5 @@ Field values of existing records are preserved.
 <br>
 <br>
 <br>
+
 <br>
