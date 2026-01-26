@@ -501,7 +501,7 @@ Note: This plugin supports dynamic strings in its settings according to the foll
 | ``getPictoClass`` | *Se référer directement au connecteur* |
 | ``getParams`` | [<br>&emsp;{‘code’ : ‘url’, ‘label’ : ‘Url de base QGIS Server, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘template’, ‘label’ : ‘Template à utiliser pour le layout’, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘path’, ‘label’ : ‘Chemin du projet QGIS’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘login’, ‘label’ : ‘Login distant’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 50},<br>&emsp;{‘code’ : ‘pass’, ‘label’ : ‘Mot de passe’, ‘type’ : ‘pass’, ‘req’ : ‘false’, ‘maxlength’ : 50},<br>&emsp;{‘code’ : ‘layers’, ‘label’ : ‘Layers à utiliser (séparation par des virgules)’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘crs’, ‘label’ : ‘CRS (Code EPSG)’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 50}<br>]<br><br>Below is an example of the corresponding settings (task_params attribute in the TASK table):<br><br>{<br>&emsp;‘url’ : ‘https://monserveur.lan/qgis-server',<br>&emsp;‘template’ : ‘myplan’,<br>&emsp;‘path’ : ‘/etc/qgis-server/maps/world/world.qgs’,<br>&emsp;‘login’ : ‘admin’,<br>&emsp;‘pass’ : ‘password01’,<br>&emsp;‘layers’ : ‘places,airports,water’,<br>&emsp;‘crs’ : ‘EPSG:2056’<br>}|
 
-## Techincal details
+## Technical details
 
 ### Rules Management
 
