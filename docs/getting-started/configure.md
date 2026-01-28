@@ -84,6 +84,10 @@ JDBC database connection string.
 **spring.datasource.username**<br>
 Database login username
 
+!!! Warning
+    The user must have read, write and object creation/deletion privileges on the database, the used schema and all their tables and sequences. If the user belongs to a group, those privileges can be granted at the group level.  
+
+
 **spring.servlet.multipart.max-file-size**<br>
 Maximum size of each file that can be uploaded to the application. If you receive a 500 error when adding a large file to a request folder, it may be useful to increase this value, remembering to also increase ``spring.servlet.multipart.max-request-size`` if necessary.
 
@@ -218,4 +222,5 @@ Field values of existing records are preserved.
 <br>
 <br>
 <br>
+
 <br>

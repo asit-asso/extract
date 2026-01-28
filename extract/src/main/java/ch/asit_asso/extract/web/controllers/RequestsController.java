@@ -183,7 +183,6 @@ public class RequestsController extends BaseController {
      */
     @Autowired
     private UserGroupsRepository userGroupsRepository;
-
     @Autowired
     private FeatureConfiguration features;
 
