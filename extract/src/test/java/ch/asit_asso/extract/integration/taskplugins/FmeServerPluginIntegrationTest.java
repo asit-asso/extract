@@ -45,7 +45,7 @@ public class FmeServerPluginIntegrationTest {
     private static final String APPLICATION_LANGUAGE = "fr";
     private static final String PLUGIN_CODE = "FMESERVER";
     private static final String TASK_PLUGINS_FOLDER_PATH = "src/main/resources/task_processors";
-    private static final String PLUGIN_FILE_NAME_FILTER = "extract-task-fmeserver-*.jar";
+    private static final String PLUGIN_FILE_NAME_FILTER = "extract-task-fmeserver-2*.jar";
 
     private static ITaskProcessor fmeServerPlugin;
     private ObjectMapper objectMapper;
