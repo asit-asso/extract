@@ -303,4 +303,65 @@ class TwoFactorCookieTest extends MockEnabledTest {
         assertTrue(cookie.isHttpOnly());
         assertEquals(Duration.ofDays(0), cookie.getMaxAge());
     }
+
+
+
+    @Test
+    @DisplayName("Creates cookie using username string constructor")
+    void createWithUsernameString() {
+        String userName = TwoFactorCookieTest.TEST_USER_LOGIN;
+        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(userName, this.token, this.secrets,
+                                                              TwoFactorCookieTest.EXPECTED_COOKIE_PATH);
+
+        Cookie cookie = twoFactorCookie.toCookie();
+
+        assertNotNull(cookie);
+        assertEquals(String.format("%s_%s", TwoFactorCookieTest.COOKIE_NAME_PREFIX, userName), cookie.getName());
+        assertEquals(this.token, cookie.getValue());
+        Mockito.verify(this.secrets, Mockito.times(1)).hash(userName);
+    }
+
+
+
+    @Test
+    @DisplayName("Check if user matches using username string")
+    void isCookieUserWithUsernameString() {
+        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user, this.token, this.secrets,
+                                                              TwoFactorCookieTest.EXPECTED_COOKIE_PATH);
+
+        boolean isCookieUser = twoFactorCookie.isCookieUser(TwoFactorCookieTest.TEST_USER_LOGIN);
+
+        assertTrue(isCookieUser);
+        Mockito.verify(this.secrets, Mockito.atLeastOnce()).check(eq(TwoFactorCookieTest.TEST_USER_LOGIN), anyString());
+    }
+
+
+
+    @Test
+    @DisplayName("Cookie without expire flag uses default")
+    void toCookieDefaultExpire() {
+        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user, this.token, this.secrets,
+                                                              TwoFactorCookieTest.EXPECTED_COOKIE_PATH);
+
+        Cookie cookie = twoFactorCookie.toCookie();
+
+        assertNotNull(cookie);
+        assertEquals(this.token, cookie.getValue());
+        assertEquals(TwoFactorCookieTest.COOKIE_LIFE_DAYS, Duration.ofSeconds(cookie.getMaxAge()).toDays());
+    }
+
+
+
+    @Test
+    @DisplayName("Response cookie without expire flag uses default")
+    void toResponseCookieDefaultExpire() {
+        TwoFactorCookie twoFactorCookie = new TwoFactorCookie(this.user, this.token, this.secrets,
+                                                              TwoFactorCookieTest.EXPECTED_COOKIE_PATH);
+
+        ResponseCookie cookie = twoFactorCookie.toResponseCookie();
+
+        assertNotNull(cookie);
+        assertEquals(this.token, cookie.getValue());
+        assertEquals(Duration.ofDays(TwoFactorCookieTest.COOKIE_LIFE_DAYS), cookie.getMaxAge());
+    }
 }

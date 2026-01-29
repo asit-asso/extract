@@ -340,4 +340,69 @@ class TwoFactorRememberMeTest extends MockEnabledTest {
 
         return validDate;
     }
+
+
+
+    @Test
+    @DisplayName("Disable remembering a user when cookies array is null")
+    void disableWithNullCookies() {
+        Mockito.when(this.request.getCookies()).thenReturn(null);
+        List<RememberMeToken> tokensList = new ArrayList<>();
+        tokensList.add(this.createToken(this.user, this.getValidExpiration()));
+        this.repository.saveAll(tokensList);
+
+        assertDoesNotThrow(() ->
+            this.twoFactorRememberMe.disable(this.request, this.response)
+        );
+
+        Mockito.verify(this.response, Mockito.never()).addCookie(any());
+        assertEquals(0, this.repository.getValidTokens(this.user).size());
+    }
+
+
+
+    @Test
+    @DisplayName("Check if token is valid when cookies array is null")
+    void hasValidTokenWithNullCookies() {
+        RememberMeToken token = this.createToken(this.user, this.getValidExpiration());
+        Mockito.when(this.request.getCookies()).thenReturn(null);
+        this.repository.save(token);
+
+        AtomicBoolean isValid = new AtomicBoolean(false);
+
+        assertDoesNotThrow(() -> {
+            isValid.set(this.twoFactorRememberMe.hasValidToken(this.request));
+        });
+
+        assertFalse(isValid.get());
+    }
+
+
+
+    @Test
+    @DisplayName("Disable remembering a user when user has a 2FA cookie but different user cookie exists")
+    void disableWithMixedUserCookies() {
+        RememberMeToken token = this.createToken(this.user, this.getValidExpiration());
+        User otherUser = new User(2);
+        otherUser.setLogin("otherUser");
+        RememberMeToken otherToken = this.createToken(otherUser, this.getValidExpiration());
+        Cookie[] cookies = new Cookie[] {
+                new TwoFactorCookie(otherUser, otherToken.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie(),
+                new TwoFactorCookie(this.user, token.getToken(), this.secrets,
+                                    TwoFactorRememberMeTest.APPLICATION_PATH).toCookie()
+        };
+        Mockito.when(this.request.getCookies()).thenReturn(cookies);
+        List<RememberMeToken> tokensList = new ArrayList<>();
+        tokensList.add(token);
+        tokensList.add(otherToken);
+        this.repository.saveAll(tokensList);
+
+        this.twoFactorRememberMe.disable(this.request, this.response);
+
+        Mockito.verify(this.response, Mockito.atLeastOnce()).addCookie(this.cookieCaptor.capture());
+        assertEquals(0, this.cookieCaptor.getValue().getMaxAge());
+        assertEquals(0, this.repository.getValidTokens(this.user).size());
+        assertEquals(1, this.repository.getValidTokens(otherUser).size());
+    }
 }

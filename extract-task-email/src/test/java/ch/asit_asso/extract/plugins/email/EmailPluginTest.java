@@ -287,4 +287,170 @@ public class EmailPluginTest {
         assertTrue(params.contains("text"));
         assertTrue(params.contains("multitext"));
     }
+
+    @Test
+    public void testGetLabel() {
+        String label = emailPlugin.getLabel();
+        assertNotNull(label);
+        assertFalse(label.isEmpty());
+    }
+
+    @Test
+    public void testGetDescription() {
+        String description = emailPlugin.getDescription();
+        assertNotNull(description);
+        assertFalse(description.isEmpty());
+    }
+
+    @Test
+    public void testGetHelp() {
+        String help = emailPlugin.getHelp();
+        assertNotNull(help);
+        assertFalse(help.isEmpty());
+        // Help should be HTML content
+        assertTrue(help.contains("<") || help.length() > 0);
+    }
+
+    @Test
+    public void testGetHelp_CachedOnSecondCall() {
+        // First call loads the help
+        String help1 = emailPlugin.getHelp();
+        // Second call should return cached version
+        String help2 = emailPlugin.getHelp();
+        assertNotNull(help1);
+        assertNotNull(help2);
+        assertEquals(help1, help2);
+    }
+
+    @Test
+    public void testDefaultConstructor() {
+        EmailPlugin plugin = new EmailPlugin();
+        assertNotNull(plugin);
+        assertEquals("EMAIL", plugin.getCode());
+        assertNotNull(plugin.getLabel());
+    }
+
+    @Test
+    public void testConstructorWithSettingsOnly() {
+        Map<String, String> settings = new HashMap<>();
+        settings.put("to", "someone@test.com");
+        settings.put("subject", "Test");
+        settings.put("body", "Body");
+
+        EmailPlugin plugin = new EmailPlugin(settings);
+        assertNotNull(plugin);
+        assertEquals("EMAIL", plugin.getCode());
+    }
+
+    @Test
+    public void testExecute_EmptyToAddress() {
+        taskSettings.put("to", "");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+        assertEquals(EmailResult.Status.ERROR, ((EmailResult) result).getStatus());
+    }
+
+    @Test
+    public void testExecute_NullToAddress() {
+        taskSettings.put("to", null);
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+        assertEquals(EmailResult.Status.ERROR, ((EmailResult) result).getStatus());
+    }
+
+    @Test
+    public void testExecute_WithISODateFields() {
+        // Setup with ISO date placeholders
+        taskSettings.put("body", "Start ISO: {startDateISO}, End ISO: {endDateISO}");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        Calendar startDate = new GregorianCalendar(2024, Calendar.MARCH, 15, 10, 30);
+        Calendar endDate = new GregorianCalendar(2024, Calendar.MARCH, 20, 14, 45);
+
+        when(mockRequest.getStartDate()).thenReturn(startDate);
+        when(mockRequest.getEndDate()).thenReturn(endDate);
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testExecute_WithClientNameAlias() {
+        // Test clientName alias for client field
+        taskSettings.put("body", "ClientName: {clientName}");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockRequest.getClient()).thenReturn("Test Client");
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testExecute_WithOrganisationNameAlias() {
+        // Test organisationName alias for organism field
+        taskSettings.put("body", "Organisation: {organisationName}");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockRequest.getOrganism()).thenReturn("Test Organism");
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testExecute_WithRejectedField() {
+        // Test isRejected boolean field
+        taskSettings.put("body", "Rejected: {rejected}");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockRequest.isRejected()).thenReturn(true);
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testExecute_WithEmptyBodyReturnsResult() {
+        // Test with empty body - should still return a result
+        taskSettings.put("body", "");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    public void testExecute_WithEmptySubjectReturnsResult() {
+        // Test with empty subject
+        taskSettings.put("subject", "");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+    }
 }

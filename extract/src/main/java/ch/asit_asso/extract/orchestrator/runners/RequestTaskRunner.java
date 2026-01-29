@@ -499,6 +499,10 @@ public class RequestTaskRunner implements Runnable {
 
         this.updateResult(RequestHistoryRecord.Status.STANDBY, pluginResult.getMessage(), standbyDate, null);
         this.sendStandbyEmailToOperators(task);
+
+        // Set lastReminder to prevent immediate reminder from StandbyRequestsReminderProcessor.
+        // First reminder will be sent X days after this date (as configured in system parameters).
+        this.request.setLastReminder(standbyDate);
     }
 
 
@@ -698,7 +702,6 @@ public class RequestTaskRunner implements Runnable {
             }
             case STANDBY -> {
                 this.request.setStatus(Request.Status.STANDBY);
-                this.request.setLastReminder(GregorianCalendar.getInstance());
             }
 
             default -> this.logger.error("The result status ({}) for task \"{}\" is invalid.", taskResultStatus,

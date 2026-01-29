@@ -2,7 +2,10 @@
 INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
 VALUES(1, FALSE, 'extract@asit-asso.ch', 'system', FALSE, 'Système', 'c92bb53f6ac7efebb63c2ab68b87c11ab66ba104d355f9083daad5579d4265c7a892e4bc58e9b8de',
 		'ADMIN', FALSE, 'INACTIVE', 'LOCAL')
-ON CONFLICT (id_user) DO NOTHING;
+ON CONFLICT (id_user) DO UPDATE SET
+    profile = 'ADMIN',
+    two_factor_status = 'INACTIVE',
+    user_type = 'LOCAL';
 
 -- Admin user (id=2) for testing
 INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
@@ -137,6 +140,55 @@ INSERT INTO system (key, value) VALUES ('dashboard_interval', '20')
 ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value;
 
 -- Update sequences to avoid primary key conflicts with Hibernate auto-generated IDs
+-- ==================== TEST DATA FOR STANDBY REMINDERS ====================
+
+-- Operator user (id=10) to receive reminder notifications
+INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
+VALUES(10, TRUE, 'operator@test.com', 'operator_reminder', TRUE, 'Opérateur Rappel',
+       'c92bb53f6ac7efebb63c2ab68b87c11ab66ba104d355f9083daad5579d4265c7a892e4bc58e9b8de',
+       'OPERATOR', FALSE, 'INACTIVE', 'LOCAL')
+ON CONFLICT (id_user) DO NOTHING;
+
+-- Assign operator to process 1 for reminder testing
+INSERT INTO processes_users(id_process, id_user)
+VALUES(1, 10)
+ON CONFLICT DO NOTHING;
+
+-- STANDBY request (id=5) with lastReminder 4 days ago to trigger reminder
+INSERT INTO requests(
+    id_request, p_client, p_clientdetails, end_date, folder_in, folder_out, p_orderguid, p_orderlabel,
+    p_organism, p_parameters, p_perimeter, p_productguid, p_productlabel, rejected, remark, start_date,
+    status, tasknum, p_tiers, p_tiersdetails, id_connector, id_process, p_surface, p_clientguid,
+    p_organismguid, p_external_url, p_tiersguid, last_reminder
+)
+VALUES (
+    5, 'Client Test Rappel', 'Rue du Test 1
+1000 Lausanne',
+    NULL, 'reminder-test-001/input', 'reminder-test-001/output',
+    'reminder-guid-001', 'ORDER-REMINDER-001',
+    'Test Organism', '{"FORMAT":"SHP","PROJECTION":"SWITZERLAND95"}',
+    'POLYGON((6.5 46.5,6.6 46.5,6.6 46.6,6.5 46.6,6.5 46.5))',
+    'product-guid-001', 'Product for Reminder Test',
+    FALSE, NULL, NOW() - INTERVAL '5 days',
+    'STANDBY', 1, '', '',
+    1, 1, '100000',
+    'client-guid-001', 'organism-guid-001',
+    'https://test.extract.ch/orders/reminder-001', '',
+    NOW() - INTERVAL '4 days'  -- lastReminder 4 days ago (should trigger reminder with 3-day threshold)
+)
+ON CONFLICT (id_request) DO NOTHING;
+
+-- Request history for the STANDBY request
+INSERT INTO request_history(id_record, end_date, last_msg, process_step, start_date, status, step, task_label, id_request, id_user)
+VALUES(10, NOW() - INTERVAL '5 days', 'OK', 0, NOW() - INTERVAL '5 days', 'FINISHED', 1, 'Import', 5, 1)
+ON CONFLICT (id_record) DO NOTHING;
+
+INSERT INTO request_history(id_record, end_date, last_msg, process_step, start_date, status, step, task_label, id_request, id_user)
+VALUES(11, NULL, 'En attente de validation', 1, NOW() - INTERVAL '5 days', 'STANDBY', 2, 'Validation opérateur', 5, 1)
+ON CONFLICT (id_record) DO NOTHING;
+
+-- ==================== END TEST DATA FOR STANDBY REMINDERS ====================
+
 -- Hibernate with hibernate.id.new_generator_mappings=true uses {entity_name}_seq pattern
 -- We need to update both PostgreSQL SERIAL-style and Hibernate-style sequences
 DO $$

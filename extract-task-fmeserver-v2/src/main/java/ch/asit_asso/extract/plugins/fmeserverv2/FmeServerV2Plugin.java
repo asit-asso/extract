@@ -439,9 +439,21 @@ public class FmeServerV2Plugin implements ITaskProcessor {
     }
 
     /**
+     * System property to allow local addresses for testing purposes only.
+     * Set via -Dextract.ssrf.allowLocalForTesting=true
+     */
+    private static final String ALLOW_LOCAL_PROPERTY = "extract.ssrf.allowLocalForTesting";
+
+    /**
      * Checks if a host is a private or local address.
+     * Can be bypassed for testing by setting system property extract.ssrf.allowLocalForTesting=true
      */
     private boolean isPrivateOrLocalAddress(String host) {
+        if (Boolean.getBoolean(ALLOW_LOCAL_PROPERTY)) {
+            logger.debug("SSRF protection bypassed for testing ({}=true)", ALLOW_LOCAL_PROPERTY);
+            return false;
+        }
+
         return host.equalsIgnoreCase("localhost") ||
                host.startsWith("127.") ||
                host.startsWith("10.") ||

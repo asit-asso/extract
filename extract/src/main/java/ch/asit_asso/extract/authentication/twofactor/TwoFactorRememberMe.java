@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Optional;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.constraints.NotNull;
@@ -99,7 +100,12 @@ public class TwoFactorRememberMe {
 
 
     private void expireCookie(HttpServletRequest request, HttpServletResponse response) {
-        TwoFactorCookie twoFactorCookie = Arrays.stream(request.getCookies())
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return;
+        }
+
+        TwoFactorCookie twoFactorCookie = Arrays.stream(cookies)
                                                 .filter(TwoFactorCookie::isTwoFactorCookie)
                                                 .map((cookie) -> TwoFactorCookie.fromCookie(cookie, this.secrets))
                                                 .filter((cookie) -> cookie.isCookieUser(this.user.getLogin()))
@@ -115,8 +121,12 @@ public class TwoFactorRememberMe {
 
 
     private Optional<String> getCookieToken(HttpServletRequest request) {
+        Cookie[] cookies = request.getCookies();
+        if (cookies == null) {
+            return Optional.empty();
+        }
 
-        return Arrays.stream(request.getCookies())
+        return Arrays.stream(cookies)
                      .filter(TwoFactorCookie::isTwoFactorCookie)
                      .map((cookie) -> TwoFactorCookie.fromCookie(cookie, this.secrets))
                      .filter((cookie) -> cookie.isCookieUser(this.user.getLogin()))
