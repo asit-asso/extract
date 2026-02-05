@@ -268,7 +268,7 @@
                             <skipTests>false</skipTests>
                             <summaryFile>target/failsafe-reports/failsafe-summary-integration.xml</summaryFile>
                             <includes>
-                                <include>ch.asit_asso.extract.integration.**.*RequestsOwnershipIntegrationTest</include>
+                                <include>ch.asit_asso.extract.integration.**.*IntegrationTest</include>
                             </includes>
                             <systemPropertyVariables>
                                 <extract.log.path>${project.build.directory}/logs</extract.log.path>
