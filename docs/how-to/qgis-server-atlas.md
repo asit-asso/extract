@@ -9,10 +9,10 @@
 To follow along with this tutorial, you can download the sample script and data available [here](https://github.com/asit-asso/extract-samples){target="_blank"}. Either by cloning the repo :
 
 ```
-git clone https://github.com/asit-asso/extraction-samples.git
+git clone https://github.com/asit-asso/extract-samples.git
 ```
 
-Or downloading a ZIP archive with the following link : https://github.com/asit-asso/extraction-samples/archive/refs/heads/main.zip
+Or downloading a ZIP archive with the following link : https://github.com/asit-asso/extract-samples/archive/refs/heads/main.zip
 
 !!! warning
 
@@ -80,4 +80,5 @@ Or downloading a ZIP archive with the following link : https://github.com/asit-a
 <br>
 <br>
 <br>
+
 <br>
