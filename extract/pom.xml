@@ -294,6 +294,7 @@
                             </includes>
                             <systemPropertyVariables>
                                 <extract.log.path>${project.build.directory}/logs</extract.log.path>
+                                <extract.ssrf.allowLocalForTesting>true</extract.ssrf.allowLocalForTesting>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

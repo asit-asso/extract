@@ -291,7 +291,7 @@ public final class Orchestrator {
             throw new IllegalArgumentException("The given orchestrator settings are invalid.");
         }
 
-        if (!newSettings.equals(this.settings)) {
+        if (this.settings == null || !newSettings.equals(this.settings)) {
             this.logger.info("The orchestrator settings have been updated.");
             this.settings = newSettings;
 
@@ -411,15 +411,18 @@ public final class Orchestrator {
     public void unscheduleMonitoring(final boolean includeTimeRangeMonitoring) {
         this.logger.debug("Unscheduling the monitoring jobs.");
 
-        if (includeTimeRangeMonitoring) {
-            this.unscheduleTimeRangeMonitoring();
-        }
+        try {
+            if (includeTimeRangeMonitoring) {
+                this.unscheduleTimeRangeMonitoring();
+            }
 
-        this.unscheduleConnectorsMonitoring();
-        this.unscheduleRequestsMonitoring();
-        this.unscheduleManagementMonitoring();
-        this.logger.info("The monitoring jobs have been unscheduled.");
-        this.setMonitoringScheduled(false);
+            this.unscheduleConnectorsMonitoring();
+            this.unscheduleRequestsMonitoring();
+            this.unscheduleManagementMonitoring();
+            this.logger.info("The monitoring jobs have been unscheduled.");
+        } finally {
+            this.setMonitoringScheduled(false);
+        }
     }
 
 

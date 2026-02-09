@@ -185,6 +185,7 @@ UPDATE users SET mailactive = true WHERE mailactive IS NULL;
 UPDATE users SET two_factor_forced = false WHERE two_factor_forced IS NULL;
 UPDATE users SET two_factor_status = 'INACTIVE' WHERE two_factor_status IS NULL;
 UPDATE users SET user_type = 'LOCAL' WHERE user_type IS NULL;
+UPDATE users SET profile = 'ADMIN' WHERE profile IS NULL;
 
 -- USERS_USERGROUPS Table
 

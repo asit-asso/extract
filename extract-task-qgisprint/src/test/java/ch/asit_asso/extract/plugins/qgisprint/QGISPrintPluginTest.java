@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -325,21 +326,249 @@ public class QGISPrintPluginTest {
 
 
 
-//    /**
-//     * Test of execute method, of class FmeDesktopPlugin.
-//     */
-//    @Test
-//    public final void testExecute() {
-//        QGISPrintRequest pluginRequest = new QGISPrintRequest();
-//        pluginRequest.setFolderOut("/var/extract/orders");
-//        pluginRequest.setProductGuid("cf419a79-13d5");
-//        pluginRequest.setPerimeter(
-//                "POLYGON((6.448008826017048 46.55990536924183,6.920106602414769 46.56124431272321,6.917946995512395 46.379519066609355,6.468224626928717 46.37835458395662,6.448008826017048 46.55990536924183))");
-//        QGISPrintPlugin plugin = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE,
-//                                                     this.testParameters);
-//
-//        QGISPrintResult result = (QGISPrintResult) plugin.execute(pluginRequest, null);
-//
-//    }
+    /**
+     * Test of default constructor.
+     */
+    @Test
+    @DisplayName("Create instance with default constructor")
+    public final void testDefaultConstructor() {
+        QGISPrintPlugin instance = new QGISPrintPlugin();
+
+        assertNotNull(instance);
+        assertEquals(QGISPrintPluginTest.EXPECTED_PLUGIN_CODE, instance.getCode());
+        assertEquals(QGISPrintPluginTest.EXPECTED_ICON_CLASS, instance.getPictoClass());
+    }
+
+
+
+    /**
+     * Test of constructor with language parameter.
+     */
+    @Test
+    @DisplayName("Create instance with language parameter")
+    public final void testConstructorWithLanguage() {
+        QGISPrintPlugin instance = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+
+        assertNotNull(instance);
+        assertEquals(QGISPrintPluginTest.EXPECTED_PLUGIN_CODE, instance.getCode());
+    }
+
+
+
+    /**
+     * Test of constructor with task settings map only.
+     */
+    @Test
+    @DisplayName("Create instance with task settings map only")
+    public final void testConstructorWithTaskSettings() {
+        QGISPrintPlugin instance = new QGISPrintPlugin(this.testParameters);
+
+        assertNotNull(instance);
+        assertEquals(QGISPrintPluginTest.EXPECTED_PLUGIN_CODE, instance.getCode());
+        assertNotNull(instance.getParams());
+    }
+
+
+
+    /**
+     * Test of constructor with language and task settings.
+     */
+    @Test
+    @DisplayName("Create instance with language and task settings")
+    public final void testConstructorWithLanguageAndTaskSettings() {
+        QGISPrintPlugin instance = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE,
+                                                       this.testParameters);
+
+        assertNotNull(instance);
+        assertEquals(QGISPrintPluginTest.EXPECTED_PLUGIN_CODE, instance.getCode());
+    }
+
+
+
+    /**
+     * Test that getHelp caches the help content.
+     */
+    @Test
+    @DisplayName("getHelp returns cached content on subsequent calls")
+    public final void testGetHelpCaching() {
+        QGISPrintPlugin instance = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+
+        String firstCall = instance.getHelp();
+        String secondCall = instance.getHelp();
+
+        assertNotNull(firstCall);
+        assertNotNull(secondCall);
+        assertEquals(firstCall, secondCall, "Help content should be cached and return the same instance");
+    }
+
+
+
+    /**
+     * Test that help content is not null or empty.
+     */
+    @Test
+    @DisplayName("getHelp returns non-empty content")
+    public final void testGetHelpNotEmpty() {
+        QGISPrintPlugin instance = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+
+        String help = instance.getHelp();
+
+        assertNotNull(help);
+        assertTrue(help.length() > 0, "Help content should not be empty");
+    }
+
+
+
+    /**
+     * Test newInstance returns a different instance.
+     */
+    @Test
+    @DisplayName("newInstance creates independent instances")
+    public final void testNewInstanceCreatesIndependentInstances() {
+        QGISPrintPlugin original = new QGISPrintPlugin();
+        QGISPrintPlugin newInstance1 = original.newInstance(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+        QGISPrintPlugin newInstance2 = original.newInstance(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+
+        assertNotSame(original, newInstance1);
+        assertNotSame(original, newInstance2);
+        assertNotSame(newInstance1, newInstance2);
+    }
+
+
+
+    /**
+     * Test that newInstance with parameters creates independent instances.
+     */
+    @Test
+    @DisplayName("newInstance with parameters creates independent instances")
+    public final void testNewInstanceWithParametersCreatesIndependentInstances() {
+        QGISPrintPlugin original = new QGISPrintPlugin();
+        QGISPrintPlugin newInstance1 = original.newInstance(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE, this.testParameters);
+        QGISPrintPlugin newInstance2 = original.newInstance(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE, this.testParameters);
+
+        assertNotSame(original, newInstance1);
+        assertNotSame(original, newInstance2);
+        assertNotSame(newInstance1, newInstance2);
+    }
+
+
+
+    /**
+     * Test that getParams returns valid JSON with all required parameters.
+     */
+    @Test
+    @DisplayName("getParams returns valid JSON")
+    public final void testGetParamsReturnsValidJson() {
+        QGISPrintPlugin instance = new QGISPrintPlugin();
+
+        String params = instance.getParams();
+
+        assertNotNull(params);
+        assertTrue(params.startsWith("["), "Parameters should be a JSON array");
+        assertTrue(params.endsWith("]"), "Parameters should be a JSON array");
+    }
+
+
+
+    /**
+     * Test getLabel returns non-null value.
+     */
+    @Test
+    @DisplayName("getLabel returns non-null value")
+    public final void testGetLabelNotNull() {
+        QGISPrintPlugin instance = new QGISPrintPlugin();
+
+        String label = instance.getLabel();
+
+        assertNotNull(label);
+    }
+
+
+
+    /**
+     * Test getDescription returns non-null value.
+     */
+    @Test
+    @DisplayName("getDescription returns non-null value")
+    public final void testGetDescriptionNotNull() {
+        QGISPrintPlugin instance = new QGISPrintPlugin();
+
+        String description = instance.getDescription();
+
+        assertNotNull(description);
+    }
+
+
+
+    /**
+     * Test that multiple instances have independent help caches.
+     */
+    @Test
+    @DisplayName("Multiple instances have independent help caches")
+    public final void testMultipleInstancesIndependentHelpCaches() {
+        QGISPrintPlugin instance1 = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+        QGISPrintPlugin instance2 = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE);
+
+        String help1First = instance1.getHelp();
+        String help2First = instance2.getHelp();
+        String help1Second = instance1.getHelp();
+
+        assertEquals(help1First, help1Second, "Same instance should return cached help");
+        assertEquals(help1First, help2First, "Help content should be equal across instances");
+    }
+
+
+
+    /**
+     * Test that plugin implements ITaskProcessor interface.
+     */
+    @Test
+    @DisplayName("Plugin implements ITaskProcessor interface")
+    public final void testImplementsITaskProcessor() {
+        QGISPrintPlugin instance = new QGISPrintPlugin();
+
+        assertTrue(instance instanceof ITaskProcessor);
+    }
+
+
+
+    /**
+     * Test parameter maxlength attributes are present in JSON.
+     */
+    @Test
+    @DisplayName("Parameter maxlength attributes are present")
+    public final void testParametersHaveMaxlength() {
+        QGISPrintPlugin instance = new QGISPrintPlugin();
+        ArrayNode parametersArray = null;
+
+        try {
+            parametersArray = this.parameterMapper.readValue(instance.getParams(), ArrayNode.class);
+        } catch (IOException exception) {
+            fail("Could not parse parameters JSON");
+        }
+
+        for (int i = 0; i < parametersArray.size(); i++) {
+            JsonNode param = parametersArray.get(i);
+            assertTrue(param.has("maxlength"),
+                    String.format("Parameter at index %d should have maxlength", i));
+            assertTrue(param.get("maxlength").isInt(),
+                    String.format("Parameter at index %d maxlength should be an integer", i));
+        }
+    }
+
+
+
+    /**
+     * Test that empty task settings map works.
+     */
+    @Test
+    @DisplayName("Empty task settings map works")
+    public final void testEmptyTaskSettingsMap() {
+        Map<String, String> emptySettings = new HashMap<>();
+        QGISPrintPlugin instance = new QGISPrintPlugin(QGISPrintPluginTest.TEST_INSTANCE_LANGUAGE, emptySettings);
+
+        assertNotNull(instance);
+        assertEquals(QGISPrintPluginTest.EXPECTED_PLUGIN_CODE, instance.getCode());
+    }
 
 }

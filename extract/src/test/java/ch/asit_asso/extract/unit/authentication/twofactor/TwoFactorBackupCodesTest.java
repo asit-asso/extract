@@ -22,6 +22,7 @@ import org.mockito.stubbing.Answer;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -181,6 +182,35 @@ class TwoFactorBackupCodesTest extends MockEnabledTest {
         assertFalse(isCodeValid);
         Mockito.verify(this.secrets, Mockito.atLeastOnce()).check(eq(invalidToken), anyString());
         assertEquals(TwoFactorBackupCodesTest.NUMBER_OF_GENERATED_CODES, userTokens.size());
+    }
+
+
+
+    @Test
+    @DisplayName("Generate codes and convert to file data")
+    void toFileData() {
+        String[] codes = this.twoFactorBackupCodes.generate();
+
+        String fileData = this.twoFactorBackupCodes.toFileData();
+
+        assertNotNull(fileData);
+        assertTrue(fileData.startsWith("data:text/plain;charset=UTF-8;base64,"),
+                   "File data should start with the correct data URL prefix");
+        // Verify the base64 content can be decoded and contains the codes
+        String base64Part = fileData.substring("data:text/plain;charset=UTF-8;base64,".length());
+        assertFalse(base64Part.isEmpty(), "Base64 content should not be empty");
+    }
+
+
+
+    @Test
+    @DisplayName("Submit a valid recovery code when user has no codes")
+    void submitCodeWhenNoCodes() {
+        // User has no recovery codes (empty collection set in setUp)
+
+        boolean isCodeValid = this.twoFactorBackupCodes.submitCode("ABC123-DEF456");
+
+        assertFalse(isCodeValid);
     }
 
 

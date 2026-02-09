@@ -314,6 +314,11 @@ public class ImportJobsScheduler extends JobScheduler {
     private void unscheduleImportJobs() {
         this.logger.debug("Unscheduling the current connectors import jobs.");
 
+        if (this.scheduledJobsMap == null) {
+            this.logger.debug("No import jobs to unschedule (map not initialized).");
+            return;
+        }
+
         for (int jobId : this.scheduledJobsMap.keySet()) {
             this.unscheduleConnectorJob(jobId);
         }

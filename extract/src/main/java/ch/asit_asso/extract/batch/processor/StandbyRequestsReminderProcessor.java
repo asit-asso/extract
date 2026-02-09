@@ -62,7 +62,7 @@ public class StandbyRequestsReminderProcessor  implements ItemProcessor<Request,
         //this.logger.debug("Notification will be sent if the last reminder is before {}", dateFormat.format(limit.getTime()));
         //this.logger.debug("Request {} last reminder is from {}", request.getId(), dateFormat.format(request.getLastReminder().getTime()));
 
-        if (request.getLastReminder() == null || limit.after(request.getLastReminder())) {
+        if (request.getLastReminder() == null || !limit.before(request.getLastReminder())) {
             final boolean notificationSuccess = this.sendEmailNotification(request);
 
             if (notificationSuccess) {

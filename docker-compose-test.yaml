@@ -23,7 +23,7 @@ services:
             - ./extract/target/extract##2.3.0.war:/usr/local/tomcat/webapps/extract.war
             - /tmp/log/extract:/var/log/extract
             - /tmp/log/tomcat:/usr/local/tomcat/logs
-            - /tmp/extract:/var/extract
+            - /tmp/extract/orders:/var/extract/orders
         environment:
             - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
         ports:
@@ -79,7 +79,31 @@ services:
             - ./docker/ldap-ad/users.ldif:/ldap/users.ldif
         ports:
             - "10389:10389"
-    
+
+    # FME Server Mock for testing FME Server V1 and V2 plugins
+    fme-server-mock:
+        build: ./docker/fme-server-mock
+        container_name: fme-server-mock
+        ports:
+            - "8888:8888"
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider http://localhost:8888/health || exit 1
+            interval: 5s
+            timeout: 5s
+            retries: 3
+
+    # QGIS Server Mock for testing QGIS Print Atlas plugin
+    qgis-server-mock:
+        build: ./docker/qgis-server-mock
+        container_name: qgis-server-mock
+        ports:
+            - "8889:8889"
+        healthcheck:
+            test: wget --no-verbose --tries=1 --spider http://localhost:8889/health || exit 1
+            interval: 5s
+            timeout: 5s
+            retries: 3
+
     # Service Maven pour exécuter les tests
     maven-tests:
         image: maven:3.8-openjdk-17
@@ -92,11 +116,14 @@ services:
             - mailhog
             - openldap
             - ldap-ad
+            - fme-server-mock
+            - qgis-server-mock
         environment:
             - SPRING_DATASOURCE_URL=jdbc:postgresql://pgsql:5432/extract
             - SPRING_DATASOURCE_USERNAME=extractuser
             - SPRING_DATASOURCE_PASSWORD=demopassword
             - SPRING_PROFILES_ACTIVE=test
+            - LDAP_URL=ldap://openldap:389
         command: mvn verify --batch-mode
         profiles:
             - test
