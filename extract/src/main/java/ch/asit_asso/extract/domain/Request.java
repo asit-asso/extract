@@ -18,6 +18,9 @@ package ch.asit_asso.extract.domain;
 
 import java.io.Serializable;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.ArrayList;
+import java.util.List;
 import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,6 +31,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
@@ -35,6 +40,7 @@ import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlTransient;
 import org.apache.commons.lang3.StringUtils;
 
 
@@ -252,7 +258,40 @@ public class Request implements Serializable {
     private Connector connector;
 
 
+    /**
+     * The operators that supervise this process.
+     */
+    @JoinTable(name = "requests_users",
+            joinColumns = {
+                @JoinColumn(name = "id_request", referencedColumnName = "id_request",
+                        foreignKey = @ForeignKey(name = "FK_REQUESTS_USERS_REQUESTS")
+                )
+            },
+            inverseJoinColumns = {
+                @JoinColumn(name = "id_user", referencedColumnName = "id_user",
+                        foreignKey = @ForeignKey(name = "FK_REQUESTS_USERS_USER")
+                )
+            }
+    )
+    @ManyToMany
+    private Collection<User> usersCollection;
 
+
+    @JoinTable(name = "requests_usergroups",
+            joinColumns = {
+                    @JoinColumn(name = "id_request", referencedColumnName = "id_request",
+                            foreignKey = @ForeignKey(name = "FK_REQUESTS_USERGROUPS_REQUESTS")
+                    )
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "id_usergroup", referencedColumnName = "id_usergroup",
+                            foreignKey = @ForeignKey(name = "FK_REQUESTS_USERGROUPS_USERGROUP")
+                    )
+            }
+    )
+    @ManyToMany
+    private Collection<UserGroup> userGroupsCollection;
+            
     /**
      * The possible states of a data item order processing.
      */
@@ -1006,4 +1045,74 @@ public class Request implements Serializable {
         this.setRejected(true);
     }
 
+    
+    /**
+     * Obtains the users that supervise this particular task. This only contains the users defined 
+     * directly, not those defined through a user group. To get all the operators independently of
+     * how they've been defined, please use the method
+     * {@link  #getDistinctOperators()}
+     *
+     * @return a collection that contains the operators
+     */
+    @XmlTransient
+    public Collection<User> getUsersCollection() {
+        return usersCollection;
+    }
+
+
+
+    /**
+     * Defines the users that supervise this particular task.
+     *
+     * @param users a collection that contains the operators for this task
+     */
+    public void setUsersCollection(final Collection<User> users) {
+        this.usersCollection = users;
+    }
+
+
+    /**
+     * Obtains the user groups that supervise this particular task.
+     *
+     * @return a collection that contains the groups of operators
+     */
+    @XmlTransient
+    public Collection<UserGroup> getUserGroupsCollection() {
+        return userGroupsCollection;
+    }
+
+
+
+    /**
+     * Defines the user groups that supervise this particular task.
+     *
+     * @param userGroups a collection that contains the groups of operators for this task
+     */
+    public void setUserGroupsCollection(Collection<UserGroup> userGroups) {
+        this.userGroupsCollection = userGroups;
+    }
+    
+    /**
+     * Obtains a list of all the users allowed to manage this process, including those defined through a user group,
+     * without duplicates.
+     *
+     * @return a collection that contains all the operators for this process
+     */
+    public final Collection<User> getDistinctOperators() {
+        List<User> operators = new ArrayList<>(this.getUsersCollection());
+
+        for (UserGroup operatorsGroup : this.getUserGroupsCollection()) {
+
+            for (User groupOperator : operatorsGroup.getUsersCollection()) {
+
+                if (operators.contains((groupOperator))) {
+                    continue;
+                }
+
+                operators.add(groupOperator);
+            }
+        }
+
+        return operators;
+    }
 }

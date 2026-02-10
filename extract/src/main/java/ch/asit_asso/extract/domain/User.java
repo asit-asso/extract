@@ -73,13 +73,19 @@ import org.apache.commons.lang3.StringUtils;
     @NamedQuery(name = "User.findAllActiveApplicationUsers",
             query = "SELECT u FROM User u WHERE u.login != " + "'" + User.SYSTEM_USER_LOGIN + "' and u.active = true"),
     @NamedQuery(name = "User.getUserAssociatedRequestsByStatusOrderByEndDate",
-            query = "SELECT r FROM Request r WHERE (r.process IN (SELECT p FROM User u JOIN u.processesCollection p WHERE u.id = :userId)"
-                    + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId))"
-                    + " AND r.status = :status ORDER BY r.endDate DESC"),
+            query = "SELECT r FROM Request r WHERE ("
+                    + " r.process IN (SELECT p FROM User u JOIN u.processesCollection p WHERE u.id = :userId)"
+                    + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId)"
+                    + " OR :userId IN (SELECT uc.id FROM r.usersCollection uc)"
+                    + " OR :userId IN (SELECT uc.id FROM r.userGroupsCollection ug LEFT JOIN ug.usersCollection uc)"
+                    + ") AND r.status = :status ORDER BY r.endDate DESC"),
     @NamedQuery(name = "User.getUserAssociatedRequestsByStatusNot",
-                query = "SELECT r FROM Request r WHERE (r.process IN (SELECT p FROM User u JOIN u.processesCollection p WHERE u.id = :userId)"
-                        + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId))"
-                        + " AND r.status != :status")
+                query = "SELECT r FROM Request r WHERE ("
+                        + " r.process IN (SELECT p FROM User u JOIN u.processesCollection p WHERE u.id = :userId)"
+                        + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId)"
+                        + " OR :userId IN (SELECT uc.id FROM r.usersCollection uc)"
+                        + " OR :userId IN (SELECT uc.id FROM r.userGroupsCollection ug LEFT JOIN ug.usersCollection uc)"
+                        + ") AND r.status != :status")
 
 
 })
