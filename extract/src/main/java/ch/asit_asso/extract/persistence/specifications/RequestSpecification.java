@@ -27,6 +27,7 @@ import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Request_;
+import ch.asit_asso.extract.domain.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.jpa.domain.Specification;
@@ -237,7 +238,28 @@ public final class RequestSpecification {
         };
     }
 
+    /**
+     * Obtains the criteria to filter the request based on the process it is associated with.
+     *
+     * @param processesList a list that contains the process that the request can be associated with
+     * @return the set of criteria to apply the process filter
+     */
+    public static Specification<Request> isBoundToUser(final User user) {
 
+        return new Specification<Request>() {
+
+            @Override
+            public Predicate toPredicate(final Root<Request> root, final CriteriaQuery<?> query,
+                    final CriteriaBuilder builder) {
+                var result = builder.isMember(user, root.get(Request_.usersCollection));
+                for (var ug: user.getUserGroupsCollection()) {
+                    result = builder.or(result, builder.isMember(ug, root.get(Request_.userGroupsCollection)));
+                }
+                return result;
+            }
+
+        };
+    }
 
     /**
      * Obtains the criteria to return only the request whose process has completed.

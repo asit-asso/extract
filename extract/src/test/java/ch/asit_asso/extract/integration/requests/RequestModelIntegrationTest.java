@@ -15,8 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.MessageSource;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.GregorianCalendar;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -28,6 +30,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @SpringBootTest
 @ActiveProfiles("test")
 @Tag("integration")
+@Transactional
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public class RequestModelIntegrationTest {
 
@@ -70,6 +73,8 @@ public class RequestModelIntegrationTest {
         testRequestWithNullFolder.setConnector(testConnector);
         testRequestWithNullFolder.setParameters("{}");
         testRequestWithNullFolder.setPerimeter("{}");
+        testRequestWithNullFolder.setUsersCollection(new ArrayList<>());
+        testRequestWithNullFolder.setUserGroupsCollection(new ArrayList<>());
         testRequestWithNullFolder = requestsRepository.save(testRequestWithNullFolder);
 
         // Create a normal request with folder
@@ -83,6 +88,8 @@ public class RequestModelIntegrationTest {
         testRequestWithFolder.setConnector(testConnector);
         testRequestWithFolder.setParameters("{}");
         testRequestWithFolder.setPerimeter("{}");
+        testRequestWithFolder.setUsersCollection(new ArrayList<>());
+        testRequestWithFolder.setUserGroupsCollection(new ArrayList<>());
         testRequestWithFolder = requestsRepository.save(testRequestWithFolder);
     }
 

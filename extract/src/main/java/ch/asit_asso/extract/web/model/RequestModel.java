@@ -30,6 +30,8 @@ import org.apache.commons.lang3.SystemUtils;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.domain.User;
+import ch.asit_asso.extract.domain.UserGroup;
 import ch.asit_asso.extract.domain.comparators.RequestHistoryRecordByStepComparator;
 import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
 import ch.asit_asso.extract.exceptions.BaseFolderNotFoundException;
@@ -47,7 +49,7 @@ import org.springframework.data.domain.Page;
  *
  * @author Yves Grasset
  */
-public class RequestModel {
+public class RequestModel extends OwnedObjectModel {
 
     /**
      * The string that identifies the localized label of an order export task.
@@ -134,8 +136,6 @@ public class RequestModel {
      */
     private final Path outputFolderPath;
 
-
-
     private final List<String> validationFocusProperties;
 
 
@@ -176,13 +176,12 @@ public class RequestModel {
         Arrays.sort(this.fullHistory, new RequestHistoryRecordByStepComparator());
         this.currentProcessStep = (!ArrayUtils.isEmpty(this.fullHistory))
                 ? this.fullHistory[this.fullHistory.length - 1].getProcessStep() : -1;
-
         this.processHistory = this.buildProcessHistory();
         this.validationFocusProperties = List.of(validationFocusProperties);
         this.logger.debug("The process history contains {} items.", this.processHistory.length);
+        setUsersFromDomainObject(domainRequest.getUsersCollection());
+        setUserGroupsFromDomainObject(domainRequest.getUserGroupsCollection());        
     }
-
-
 
     /**
      * Obtains the connector that imported this request.

@@ -80,7 +80,7 @@ public class I18nConfiguration {
     @Bean
     public MessageSource messageSource() {
         this.logger.debug("Configuring the message source for languages: {}.", this.language);
-        ReloadableResourceBundleMessageSource messageSource = new ReloadableResourceBundleMessageSource();
+        EnvResolvingMessageSource messageSource = new EnvResolvingMessageSource();
 
         // la collection des base names
         List<String> basenames = new ArrayList<>();
