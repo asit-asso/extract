@@ -111,7 +111,7 @@ The home page provides a real-time overview of the application's activity, inclu
 * Requests in progress
 * History of completed requests
 
-**Administrators** can view all requests. **Regular users** only see requests associated with processes where they are assigned as operators.
+**Administrators** can view all requests. **Regular users** only see requests associated with processes where they are assigned as operators, or requests for which they have been granted permission (see ``appplication.features.perRequestOwnership`` parameters in [Application settings](../getting-started/configure.md#application-settings)).
 
 The page updates automatically based on the refresh interval defined in the application settings (see [Orchestration Section](./admin-guide.md#orchestration)). By default, this interval is set to 20 seconds.
 
@@ -236,6 +236,14 @@ If the result of the request could not be sent to the original server, following
 * **Retry export**: Attempts to send the result of the request again as is. This function is particularly useful in the event of a temporary error, such as server unavailability.
 * **Restart**: Deletes all files generated so far for this request and runs the process from the beginning.
 * **Cancel**: The administrator determines that the request cannot be processed successfully. It will then be rejected and exported without result. A comment must be entered to explain to the customer why their request was rejected.
+
+### Additional assigned users
+!!! Info 
+    This fearture is diabled by default. To enable it, got to the application settings and set the parameter `appplication.features.perRequestOwnership` to `true` (see [Application settings](../getting-started/configure.md#application-settings))
+
+![per-request-permission](../assets/user-guide/per-request-permission.png)
+
+With this section, an operator can grant permission on the current request to any other Extract user or users group by adding them in the `Opérateurs attitrés` field and clicking `Enregistrer`.
 
 ### Request information
 
