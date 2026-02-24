@@ -279,6 +279,24 @@ Table ensuring that users belong to user groups
 | ``Id_usergroup`` | int | Foreign key linking to the USERGROUPS table | *1*
 | ``Id_user`` | int | Foreign key linking to the USERS table | *1*
 
+#### REQUEST_USERS
+
+Table granting permission to users at the request level
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``Id_request`` | int | Foreign key linking to the REQUESTS table | *1*
+| ``Id_user`` | int | Foreign key linking to the USERS table | *1*
+
+#### REQUEST_USERGROUPS
+
+Table granting permission to users groups at the request level
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``Id_request`` | int | Foreign key linking to the REQUESTS table | *1*
+| ``Id_usergroup`` | int | Foreign key linking to the USERGROUPS table | *1*
+
 ### Deletion of database elements
 
 The table below shows the constraints and triggers established directly in the database for managing cascading deletions.
