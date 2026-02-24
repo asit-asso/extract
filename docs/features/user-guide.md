@@ -239,11 +239,11 @@ If the result of the request could not be sent to the original server, following
 
 ### Additional assigned users
 !!! Info 
-    This fearture is diabled by default. To enable it, got to the application settings and set the parameter `appplication.features.perRequestOwnership` to `true` (see [Application settings](../getting-started/configure.md#application-settings))
+    This feature is disabled by default. To enable it, go to the application settings and set the parameter `appplication.features.perRequestOwnership` to `true` (see [Application settings](../getting-started/configure.md#application-settings))
 
 ![per-request-permission](../assets/user-guide/per-request-permission.png)
 
-With this section, an operator can grant permission on the current request to any other Extract user or users group by adding them in the `Opérateurs attitrés` field and clicking `Enregistrer`.
+An operator can grant permission for the current request to any other Extract user or users group by adding them in the `Opérateurs attitrés` field and clicking `Enregistrer`.
 
 ### Request information
 

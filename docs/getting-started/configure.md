@@ -10,8 +10,8 @@ title: Configure
 URL to access the application. This value is used to generate links in notification e-mails.
 
 **appplication.features.perRequestOwnership**<br>
-Default to false. If set to true, a user assigned to a request can grant permission to any other user or users group on the single request.
-Warning : the default ACL on requests is modified (normally, assigned users or users groups are defined at the process level and have permission to all requests associated to the process).
+Default to false. If set to true, a user assigned to a request can grant permission to any other user or users group for this single request.
+Warning : the default ACL on requests is modified (normally, only assigned users or users groups defined at the process level have permission to all requests associated to the process).
 
 **database.encryption.secret**<br>
 Random 32-character ISO-8859-1 string used as key to encrypt certain database values.
