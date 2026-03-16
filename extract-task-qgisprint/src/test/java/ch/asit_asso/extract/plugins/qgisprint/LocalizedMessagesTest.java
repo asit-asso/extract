@@ -299,4 +299,35 @@ class LocalizedMessagesTest {
         assertNotNull(label);
         assertFalse(label.isEmpty());
     }
+
+    @Test
+    @DisplayName("German messages preserve UTF-8 accented characters (ä, ö, ü, ß)")
+    void testGermanUtf8EncodingPreserved() {
+        LocalizedMessages messages = new LocalizedMessages("de");
+
+        String description = messages.getString("plugin.description");
+        assertTrue(description.contains("ü"), "Expected 'ü' in: " + description);
+
+        String password = messages.getString("paramPassword.label");
+        assertEquals("Passwort", password);
+
+        String uploadSize = messages.getString("paramLimitEntities.label");
+        assertTrue(uploadSize.contains("ü"), "Expected 'ü' in: " + uploadSize);
+
+        String error403 = messages.getString("httperror.message.403");
+        assertTrue(error403.contains("Ausführung"), "Expected 'Ausführung' in: " + error403);
+    }
+
+    @Test
+    @DisplayName("French messages preserve accented characters (é, è, ê, à)")
+    void testFrenchAccentedCharactersPreserved() {
+        LocalizedMessages messages = new LocalizedMessages("fr");
+
+        String error = messages.getString("error.message.generic");
+        assertTrue(error.contains("é"), "Expected 'é' in: " + error);
+
+        String error401 = messages.getString("httperror.message.401");
+        assertTrue(error401.contains("nécessaire") || error401.contains("à"),
+                "Expected French accents in: " + error401);
+    }
 }

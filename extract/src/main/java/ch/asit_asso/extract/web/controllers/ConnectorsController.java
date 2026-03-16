@@ -338,7 +338,8 @@ public class ConnectorsController extends BaseController {
             return ConnectorsController.REDIRECT_TO_ACCESS_DENIED;
         }
 
-        final ConnectorModel connectorModel = new ConnectorModel(this.connectorDiscoveryWrapper.getConnector(typeId));
+        final ConnectorModel connectorModel = new ConnectorModel(
+                this.connectorDiscoveryWrapper.getConnectorForLanguage(typeId, this.getCurrentUserLanguage()));
 
         return this.prepareModelForDetailsView(model, true, connectorModel);
     }
@@ -490,7 +491,8 @@ public class ConnectorsController extends BaseController {
         }
 
         final String pluginCode = domainConnector.getConnectorCode();
-        final IConnector connectorPlugin = this.connectorDiscoveryWrapper.getConnector(pluginCode);
+        final IConnector connectorPlugin = this.connectorDiscoveryWrapper.getConnectorForLanguage(
+                pluginCode, this.getCurrentUserLanguage());
 
         if (connectorPlugin == null) {
             this.logger.warn("The connector plugin {} used by connector {} is not available anymore.", pluginCode,
@@ -536,7 +538,6 @@ public class ConnectorsController extends BaseController {
 
         model.addAttribute("processes", this.getAllProcesses());
         model.addAttribute("isNew", isNew);
-        model.addAttribute("language", this.getCurrentUserLanguage());
         this.addCurrentSectionToModel(ConnectorsController.CURRENT_SECTION_IDENTIFIER, model);
         this.addJavascriptMessagesAttribute(model);
 
@@ -558,7 +559,8 @@ public class ConnectorsController extends BaseController {
     private String prepareModelForListView(final ModelMap model) {
         assert model != null : "The model must not be null.";
 
-        model.addAttribute("plugins", this.connectorDiscoveryWrapper.getConnectors().values());
+        model.addAttribute("plugins",
+                this.connectorDiscoveryWrapper.getConnectorsForLanguage(this.getCurrentUserLanguage()).values());
         model.addAttribute("connectors", this.getAllConnectors());
         this.addJavascriptMessagesAttribute(model);
         this.addCurrentSectionToModel(ConnectorsController.CURRENT_SECTION_IDENTIFIER, model);

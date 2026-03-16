@@ -106,18 +106,22 @@ services:
 
     # Service Maven pour exécuter les tests
     maven-tests:
-        image: maven:3.8-openjdk-17
+        image: maven:3.9-eclipse-temurin-17
         volumes:
             - .:/workspace
             - ~/.m2:/root/.m2
         working_dir: /workspace/extract
         depends_on:
-            - pgsql
-            - mailhog
-            - openldap
-            - ldap-ad
-            - fme-server-mock
-            - qgis-server-mock
+            update_db_on_start:
+                condition: service_completed_successfully
+            openldap:
+                condition: service_started
+            ldap-ad:
+                condition: service_started
+            fme-server-mock:
+                condition: service_started
+            qgis-server-mock:
+                condition: service_started
         environment:
             - SPRING_DATASOURCE_URL=jdbc:postgresql://pgsql:5432/extract
             - SPRING_DATASOURCE_USERNAME=extractuser

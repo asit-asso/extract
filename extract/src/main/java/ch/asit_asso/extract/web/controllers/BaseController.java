@@ -33,7 +33,9 @@ import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.servlet.LocaleResolver;
@@ -452,6 +454,11 @@ public abstract class BaseController {
             return this.applicationLanguage.split(",")[0].trim();
         }
         return this.applicationLanguage != null ? this.applicationLanguage : "fr";
+    }
+
+    @ModelAttribute("language")
+    public String addLanguageToModel() {
+        return getCurrentUserLanguage();
     }
 
     /**

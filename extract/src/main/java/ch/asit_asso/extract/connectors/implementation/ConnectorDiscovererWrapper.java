@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import javax.servlet.ServletContext;
@@ -70,6 +71,47 @@ public class ConnectorDiscovererWrapper implements ServletContextAware {
     public final IConnector getConnector(final String code) {
         this.logger.debug("Getting connector {}.", code);
         return this.getConnectorDiscoverer().getConnector(code);
+    }
+
+
+    /**
+     * Obtains a specific connector plugin localized for the given language.
+     * Creates a new instance of the plugin with the specified language so that labels
+     * returned by {@link IConnector#getParams()} are properly translated.
+     *
+     * @param code     the code identifying the desired plugin
+     * @param language the language code to use for the plugin labels
+     * @return The connector plugin localized in the given language, or null if not available
+     */
+    public final IConnector getConnectorForLanguage(final String code, final String language) {
+        this.logger.debug("Getting connector {} for language {}.", code, language);
+        IConnector connector = this.getConnectorDiscoverer().getConnector(code);
+
+        if (connector == null) {
+            return null;
+        }
+
+        return connector.newInstance(language);
+    }
+
+
+    /**
+     * Obtains all the available connector plugins localized for the given language.
+     * Creates new instances of each plugin with the specified language.
+     *
+     * @param language the language code to use for the plugin labels
+     * @return a map containing the localized connector plugins with their code as key
+     */
+    public final Map<String, IConnector> getConnectorsForLanguage(final String language) {
+        this.logger.debug("Getting all connector plugins for language {}.", language);
+        Map<String, IConnector> cachedConnectors = this.getConnectorDiscoverer().getConnectors();
+        Map<String, IConnector> localizedConnectors = new LinkedHashMap<>();
+
+        for (Map.Entry<String, IConnector> entry : cachedConnectors.entrySet()) {
+            localizedConnectors.put(entry.getKey(), entry.getValue().newInstance(language));
+        }
+
+        return localizedConnectors;
     }
 
 

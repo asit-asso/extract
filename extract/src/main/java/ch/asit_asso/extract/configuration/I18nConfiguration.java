@@ -145,8 +145,9 @@ public class I18nConfiguration {
 
         @Override
         public String getMessage(@NotNull String code, Object[] args, String defaultMessage, @NotNull Locale locale) {
+            // First try the requested locale using the no-default overload which throws NoSuchMessageException
             try {
-                return this.delegate.getMessage(code, args, null, locale);
+                return this.delegate.getMessage(code, args, locale);
             } catch (NoSuchMessageException e) {
                 logKeyNotFound(code, locale);
             }
@@ -156,9 +157,9 @@ public class I18nConfiguration {
                 if (!locale.equals(fallbackLocale)) {
                     try {
                         logTryingFallback(code, locale, fallbackLocale);
-                        return this.delegate.getMessage(code, args, null, fallbackLocale);
+                        return this.delegate.getMessage(code, args, fallbackLocale);
                     } catch (NoSuchMessageException e) {
-                        logKeyNotFound(code, locale);
+                        logKeyNotFound(code, fallbackLocale);
                     }
                 }
             }

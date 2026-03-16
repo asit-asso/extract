@@ -171,8 +171,6 @@ public class IndexController extends BaseController {
 
             model.addAttribute("processes", this.processesRepository.findAllByOrderByName());
             model.addAttribute("connectors", this.connectorsRepository.findAllByOrderByName());
-            model.addAttribute("language", this.getCurrentUserLanguage());
-
             model.addAttribute("refreshInterval",
                     Integer.valueOf(this.parametersRepository.getDashboardRefreshInterval()));
             model.addAttribute("tablePageSize", this.tablePageSize);
@@ -214,15 +212,17 @@ public class IndexController extends BaseController {
     @JsonView(PublicField.class)
     @GetMapping("getActiveConnectors")
     @ResponseBody
-    public final ConnectorJsonModel[] handleGetActiveConnectors() {
+    public final ConnectorJsonModel[] handleGetActiveConnectors(final HttpServletRequest request) {
 
         if (!this.isCurrentUserApplicationUser()) {
             return null;
         }
 
+        Locale locale = this.localeResolver.resolveLocale(request);
         Connector[] activeConnectors
                 = this.connectorsRepository.findByActiveTrueOrderByName().toArray(new Connector[]{});
-        return ConnectorJsonModel.fromConnectorsArray(activeConnectors, this.messageSource, this.isCurrentUserAdmin());
+        return ConnectorJsonModel.fromConnectorsArray(activeConnectors, this.messageSource,
+                this.isCurrentUserAdmin(), locale);
     }
 
 
