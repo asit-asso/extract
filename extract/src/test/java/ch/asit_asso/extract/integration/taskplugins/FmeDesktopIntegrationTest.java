@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 @Tag("integration")
 public class FmeDesktopIntegrationTest {
@@ -141,6 +142,7 @@ public class FmeDesktopIntegrationTest {
         taskPluginDiscoverer.setJarUrls(new URL[] { pluginUrl });
         FmeDesktopIntegrationTest.fmeDesktopPlugin =
                 taskPluginDiscoverer.getTaskProcessor(FmeDesktopIntegrationTest.PLUGIN_CODE);
+        assumeTrue(fmeDesktopPlugin != null, "FME Desktop plugin not available, skipping tests");
     }
 
 

@@ -151,7 +151,7 @@ public class RequestsOwnershipIntegrationTest {
         Stream.of(testRequest, testRequest1).forEach((request) -> {
             request.setUsersCollection(new ArrayList<>());
             request.setUserGroupsCollection(new ArrayList<>());
-            requestsRepository.save(testRequest);
+            requestsRepository.save(request);
         });
 
         testProcess.setUsersCollection(new ArrayList<>());
