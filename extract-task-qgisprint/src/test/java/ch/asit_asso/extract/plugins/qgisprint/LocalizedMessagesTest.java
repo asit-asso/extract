@@ -305,8 +305,8 @@ class LocalizedMessagesTest {
     void testGermanUtf8EncodingPreserved() {
         LocalizedMessages messages = new LocalizedMessages("de");
 
-        String description = messages.getString("plugin.description");
-        assertTrue(description.contains("ü"), "Expected 'ü' in: " + description);
+        String templateLabel = messages.getString("paramTemplateLayout.label");
+        assertTrue(templateLabel.contains("ü"), "Expected 'ü' in: " + templateLabel);
 
         String password = messages.getString("paramPassword.label");
         assertEquals("Passwort", password);
