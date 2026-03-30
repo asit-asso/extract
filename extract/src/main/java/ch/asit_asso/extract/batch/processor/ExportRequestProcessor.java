@@ -194,7 +194,7 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
         exportRecord.setRequest(request);
         exportRecord.setStartDate(new GregorianCalendar());
         exportRecord.setStatus(RequestHistoryRecord.Status.ONGOING);
-        exportRecord.setStep(repository.findByRequestOrderByStep(request).size() + 1);
+        exportRecord.setStep(repository.findNextStepByRequest(request));
         exportRecord.setProcessStep(this.getExportProcessStep(request));
         exportRecord.setTaskLabel(this.messageService.getMessage("requestHistory.tasks.export.label"));
         exportRecord.setUser(this.repositories.getUsersRepository().getSystemUser());

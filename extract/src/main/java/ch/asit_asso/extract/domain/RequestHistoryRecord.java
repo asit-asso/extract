@@ -32,6 +32,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.UniqueConstraint;
+import javax.persistence.Version;
 import javax.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import org.thymeleaf.util.StringUtils;
@@ -47,6 +49,8 @@ import org.thymeleaf.util.StringUtils;
 @Table(name = "Request_History", indexes = {
     @Index(columnList = "id_request", name = "IDX_REQUEST_HISTORY_REQUEST"),
     @Index(columnList = "id_user", name = "IDX_REQUEST_HISTORY_USER")
+}, uniqueConstraints = {
+    @UniqueConstraint(columnNames = {"id_request", "step"}, name = "UQ_REQUEST_HISTORY_REQUEST_STEP")
 })
 @XmlRootElement
 public class RequestHistoryRecord implements Serializable {
@@ -114,6 +118,10 @@ public class RequestHistoryRecord implements Serializable {
     /**
      * The request related to this entry.
      */
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long version = 0L;
+
     @JoinColumn(name = "id_request", referencedColumnName = "id_request",
             foreignKey = @ForeignKey(name = "FK_REQUEST_HISTORY_REQUEST")
     )

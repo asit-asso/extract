@@ -21,6 +21,7 @@ import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.orchestrator.Orchestrator;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
+import ch.asit_asso.extract.orchestrator.runners.RequestTaskService;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
@@ -88,6 +89,11 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
     private final TaskProcessorDiscovererWrapper taskPluginDiscoverer;
 
     /**
+     * The service providing transactional operations for task processing.
+     */
+    private final RequestTaskService taskService;
+
+    /**
      * The Spring Data object that links the application parameters with the data source.
      */
     private final SystemParametersRepository systemParametersRepository;
@@ -98,7 +104,7 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
                                      ConnectorDiscovererWrapper connectorsDiscoverer,
                                      TaskProcessorDiscovererWrapper taskPluginDiscoverer, EmailSettings emailSettings,
                                      LdapSettings ldapSettings, SystemParametersRepository parametersRepository,
-                                     MessageService messageService) {
+                                     MessageService messageService, RequestTaskService taskService) {
         this.applicationRepositories = repositories;
         this.connectorsDiscoverer = connectorsDiscoverer;
         this.emailSettings = emailSettings;
@@ -106,6 +112,7 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
         this.taskPluginDiscoverer = taskPluginDiscoverer;
         this.systemParametersRepository = parametersRepository;
         this.messageService = messageService;
+        this.taskService = taskService;
     }
 
 
@@ -122,7 +129,8 @@ public class OrchestratorConfiguration implements SchedulingConfigurer {
 
         if (!orchestrator.initializeComponents(taskRegistrar, this.applicationLanguage, this.applicationRepositories,
                                                this.connectorsDiscoverer, this.taskPluginDiscoverer, this.emailSettings,
-                                               this.ldapSettings, new OrchestratorSettings(this.systemParametersRepository), this.messageService)) {
+                                               this.ldapSettings, new OrchestratorSettings(this.systemParametersRepository),
+                                               this.messageService, this.taskService)) {
             this.logger.error("The background tasks are not scheduled because it was impossible to properly initialize"
                     + " the orchestrator.");
             return;

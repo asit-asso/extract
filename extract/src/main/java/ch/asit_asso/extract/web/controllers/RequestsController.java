@@ -1066,6 +1066,7 @@ public class RequestsController extends BaseController {
 
         Process process = request.getProcess();
         Calendar skipDate = new GregorianCalendar();
+        int nextStep = this.requestHistoryRepository.findNextStepByRequest(request);
 
         for (Task processTask : process.getTasksCollection()) {
 
@@ -1073,7 +1074,8 @@ public class RequestsController extends BaseController {
                 continue;
             }
 
-            this.createSkippedTaskHistoryRecord(request, processTask, skipDate);
+            this.createSkippedTaskHistoryRecord(request, processTask, skipDate, nextStep);
+            nextStep++;
         }
     }
 
@@ -1565,23 +1567,11 @@ public class RequestsController extends BaseController {
      *
      * @param request     the request whose task has been skipped
      * @param skippedTask the task that has been skipped
-     */
-    private void createSkippedTaskHistoryRecord(final Request request, final Task skippedTask) {
-        this.createSkippedTaskHistoryRecord(request, skippedTask, new GregorianCalendar());
-    }
-
-
-
-    /**
-     * Creates an entry in the processing history of a request to indicate that a certain task has not been
-     * executed at all.
-     *
-     * @param request     the request whose task has been skipped
-     * @param skippedTask the task that has been skipped
      * @param skipDate    the date and time when the task has been skipped
+     * @param step        the pre-computed step number for this history record
      */
     private void createSkippedTaskHistoryRecord(final Request request, final Task skippedTask,
-            final Calendar skipDate) {
+            final Calendar skipDate, final int step) {
         assert request != null : "The request with a skipped task cannot be null";
         assert skippedTask != null : "The skipped task cannot be null";
         assert request.getProcess() != null : "The request with a skipped task must have a process attributed";
@@ -1595,7 +1585,7 @@ public class RequestsController extends BaseController {
         record.setStartDate(skipDate);
         record.setEndDate(skipDate);
         record.setStatus(RequestHistoryRecord.Status.SKIPPED);
-        record.setStep(this.requestHistoryRepository.findByRequestOrderByStep(request).size() + 1);
+        record.setStep(step);
         record.setTaskLabel(skippedTask.getLabel());
         record.setUser(this.usersRepository.findById(this.getCurrentUserId()).orElse(null));
 
@@ -1882,7 +1872,8 @@ public class RequestsController extends BaseController {
                 "Cannot restart the current task if the request is not associated with a process.";
         Task[] processTasks = request.getProcess().getTasksCollection().toArray(new Task[]{});
         Task currentTask = processTasks[request.getTasknum() - 1];
-        this.createSkippedTaskHistoryRecord(request, currentTask);
+        int nextStep = this.requestHistoryRepository.findNextStepByRequest(request);
+        this.createSkippedTaskHistoryRecord(request, currentTask, new GregorianCalendar(), nextStep);
 
         request.setTasknum(request.getTasknum() + 1);
         request.setStatus(Request.Status.ONGOING);
@@ -1904,11 +1895,18 @@ public class RequestsController extends BaseController {
         this.logger.debug("Setting the current task of request {} as finished.");
         assert request != null : "The request must not be null.";
 
-        final RequestHistoryRecord currentTaskRecord
-                = this.requestHistoryRepository.findByRequestOrderByStepDesc(request).get(0);
+        final List<RequestHistoryRecord> history
+                = this.requestHistoryRepository.findByRequestOrderByStepDesc(request);
+
+        if (history.isEmpty()) {
+            this.logger.error("No history records found for request {}.", request.getId());
+            return false;
+        }
+
+        final RequestHistoryRecord currentTaskRecord = history.get(0);
 
         assert currentTaskRecord.getStatus() == RequestHistoryRecord.Status.ERROR
-                || currentTaskRecord.getStatus() == RequestHistoryRecord.Status.ERROR :
+                || currentTaskRecord.getStatus() == RequestHistoryRecord.Status.STANDBY :
                 "The current task must be in error or in standby";
 
         currentTaskRecord.setEndDate(new GregorianCalendar());

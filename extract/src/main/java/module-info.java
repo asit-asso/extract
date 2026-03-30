@@ -38,6 +38,7 @@ module ch.asit_asso.extract.core {
     requires spring.security.crypto;
     requires spring.security.ldap;
     requires spring.security.web;
+    requires spring.orm;
     requires spring.tx;
     requires spring.web;
     requires spring.webmvc;

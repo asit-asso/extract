@@ -20,7 +20,9 @@ import java.util.List;
 
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 
 
 
@@ -48,5 +50,16 @@ public interface RequestHistoryRepository extends PagingAndSortingRepository<Req
      * @return a list of history records
      */
     List<RequestHistoryRecord> findByRequestOrderByStepDesc(Request request);
+
+
+    /**
+     * Atomically obtains the next step number for a request's history, using MAX(step) + 1.
+     * Returns 1 if no history records exist for the request.
+     *
+     * @param request the request whose next step must be computed
+     * @return the next step number
+     */
+    @Query("SELECT COALESCE(MAX(h.step), 0) + 1 FROM RequestHistoryRecord h WHERE h.request = :request")
+    int findNextStepByRequest(@Param("request") Request request);
 
 }

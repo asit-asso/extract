@@ -246,3 +246,24 @@ ALTER TABLE ONLY requests_usergroups
 ALTER TABLE ONLY requests_usergroups
     ADD CONSTRAINT fk_processes_usergroups_usergroup FOREIGN KEY (id_usergroup)
     REFERENCES public.usergroups(id_usergroup);
+
+-- OPTIMISTIC LOCKING COLUMNS (Issues #382 & #394)
+
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE request_history ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE tasks ADD COLUMN IF NOT EXISTS version BIGINT NOT NULL DEFAULT 0;
+
+UPDATE requests SET version = 0 WHERE version IS NULL;
+UPDATE request_history SET version = 0 WHERE version IS NULL;
+UPDATE tasks SET version = 0 WHERE version IS NULL;
+
+ALTER TABLE requests ALTER COLUMN version SET NOT NULL;
+ALTER TABLE requests ALTER COLUMN version SET DEFAULT 0;
+ALTER TABLE request_history ALTER COLUMN version SET NOT NULL;
+ALTER TABLE request_history ALTER COLUMN version SET DEFAULT 0;
+ALTER TABLE tasks ALTER COLUMN version SET NOT NULL;
+ALTER TABLE tasks ALTER COLUMN version SET DEFAULT 0;
+
+-- UNIQUE CONSTRAINT on request_history to prevent duplicate steps per request
+CREATE UNIQUE INDEX IF NOT EXISTS uq_request_history_request_step
+    ON request_history (id_request, step);

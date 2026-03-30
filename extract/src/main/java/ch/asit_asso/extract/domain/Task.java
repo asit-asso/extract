@@ -33,6 +33,7 @@ import javax.persistence.Index;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import ch.asit_asso.extract.domain.converters.JsonToParametersValuesConverter;
@@ -96,6 +97,10 @@ public class Task implements Serializable {
      * The number that tells where this task must be executed in relation to the other tasks of the parent
      * process.
      */
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long version = 0L;
+
     @Column(name = "position")
     private Integer position;
 

@@ -23,6 +23,7 @@ import ch.asit_asso.extract.orchestrator.Orchestrator;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.OrchestratorTimeRange;
 import ch.asit_asso.extract.orchestrator.OrchestratorTimeRangeCollection;
+import ch.asit_asso.extract.orchestrator.runners.RequestTaskService;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
@@ -82,6 +83,9 @@ public class OrchestratorRangesModeIntegrationTest {
     @Autowired
     private MessageService messageService;
 
+    @Autowired
+    private RequestTaskService taskService;
+
     private ScheduledTaskRegistrar taskRegistrar;
     private Orchestrator orchestrator;
 
@@ -140,7 +144,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         assertTrue(initialized, "Orchestrator should be initialized");
@@ -161,7 +166,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -187,7 +193,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -215,7 +222,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -244,7 +252,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -268,7 +277,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -298,7 +308,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -327,7 +338,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -487,7 +499,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         assertEquals(Orchestrator.WorkingState.STOPPED, orchestrator.getWorkingState());
@@ -511,7 +524,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         assertEquals(Orchestrator.WorkingState.RUNNING, orchestrator.getWorkingState());
@@ -533,7 +547,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -560,7 +575,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -586,7 +602,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -617,7 +634,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -646,7 +664,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -674,7 +693,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -701,7 +721,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             onSettings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -783,7 +804,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         int threadCount = 5;
@@ -820,7 +842,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -849,7 +872,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -885,7 +909,8 @@ public class OrchestratorRangesModeIntegrationTest {
             emailSettings,
             ldapSettings,
             settings,
-            messageService
+            messageService,
+            taskService
         );
 
         assertTrue(settings.isNowInRanges(), "Should be in first range");

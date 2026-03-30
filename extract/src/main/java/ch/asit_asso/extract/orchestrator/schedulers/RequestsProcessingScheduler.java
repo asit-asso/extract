@@ -30,6 +30,7 @@ import ch.asit_asso.extract.orchestrator.runners.ExportRequestsJobRunner;
 import ch.asit_asso.extract.orchestrator.runners.RequestMatcherJobRunner;
 import ch.asit_asso.extract.orchestrator.runners.RequestNotificationJobRunner;
 import ch.asit_asso.extract.orchestrator.runners.RequestTaskRunner;
+import ch.asit_asso.extract.orchestrator.runners.RequestTaskService;
 import ch.asit_asso.extract.orchestrator.runners.TaskCompleteListener;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
@@ -94,6 +95,11 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
     private final Set<Integer> requestsWithRunningTask;
 
     /**
+     * The service providing transactional operations for task processing.
+     */
+    private final RequestTaskService taskService;
+
+    /**
      * The access to the available task plugins.
      */
     private final TaskProcessorDiscovererWrapper taskPluginDiscoverer;
@@ -129,7 +135,8 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
     public RequestsProcessingScheduler(final ScheduledTaskRegistrar taskRegistrar,
             final ApplicationRepositories repositories, final ConnectorDiscovererWrapper connectorsDiscoverer,
             final TaskProcessorDiscovererWrapper tasksDiscoverer, final EmailSettings smtpSettings,
-            final String applicationLanguage, final OrchestratorSettings orchestratorSettings, final MessageService messageService) {
+            final String applicationLanguage, final OrchestratorSettings orchestratorSettings,
+            final MessageService messageService, final RequestTaskService taskService) {
 
         super(taskRegistrar);
 
@@ -161,6 +168,10 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
             throw new IllegalArgumentException("The message service cannot be null.");
         }
 
+        if (taskService == null) {
+            throw new IllegalArgumentException("The task service cannot be null.");
+        }
+
         this.applicationRepositories = repositories;
         this.connectorPluginDiscoverer = connectorsDiscoverer;
         this.taskPluginDiscoverer = tasksDiscoverer;
@@ -168,6 +179,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
         this.messageService = messageService;
+        this.taskService = taskService;
         this.taskExecutorService = Executors.newCachedThreadPool();
         this.setSchedulingStep(orchestratorSettings.getFrequency());
     }
@@ -265,8 +277,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      * Starts the tasks required to process the ongoing requests.
      */
     private void manageTaskProcessingJobs() {
-        final RequestsRepository requestsRepository = this.applicationRepositories.getRequestsRepository();
-        final List<Request> ongoingRequests = requestsRepository.findByStatus(Request.Status.ONGOING);
+        final List<Request> ongoingRequests = this.taskService.getOngoingRequestsWithLock();
         final int requestsNumber = ongoingRequests.size();
         this.logger.debug("Found {} ongoing request{}.", requestsNumber, (requestsNumber > 1) ? "s" : "");
 
@@ -337,7 +348,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
 
             RequestTaskRunner taskRunner = new RequestTaskRunner(request, this.applicationRepositories,
                                                                  this.taskPluginDiscoverer, this.emailSettings,
-                                                                 this.applicationLangague);
+                                                                 this.applicationLangague, this.taskService);
             taskRunner.subscribeToCompletionNotification(this);
             this.logger.debug("Created the task runner.");
             this.taskExecutorService.submit(taskRunner);
