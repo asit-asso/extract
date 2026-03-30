@@ -125,6 +125,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-inline</artifactId>
+            <version>5.2.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <groupId>org.hibernate</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
         </dependency>
@@ -251,6 +257,12 @@
                             <includes>
                                 <include>**/unit/**/*Test.java</include>
                             </includes>
+                            <argLine>
+                                --add-opens ch.asit_asso.extract.commonInterface/ch.asit_asso.extract.connectors=ALL-UNNAMED
+                                --add-opens ch.asit_asso.extract.core/ch.asit_asso.extract.web.controllers=ALL-UNNAMED
+                                --add-opens ch.asit_asso.extract.core/ch.asit_asso.extract.connectors.implementation=ALL-UNNAMED
+                                --add-opens ch.asit_asso.extract.core/ch.asit_asso.extract.domain=ALL-UNNAMED
+                            </argLine>
                         </configuration>
                     </plugin>
                 </plugins>

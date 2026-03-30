@@ -83,7 +83,7 @@ public class ConnectorDiscovererWrapper implements ServletContextAware {
      * @param language the language code to use for the plugin labels
      * @return The connector plugin localized in the given language, or null if not available
      */
-    public final IConnector getConnectorForLanguage(final String code, final String language) {
+    public IConnector getConnectorForLanguage(final String code, final String language) {
         this.logger.debug("Getting connector {} for language {}.", code, language);
         IConnector connector = this.getConnectorDiscoverer().getConnector(code);
 
@@ -102,7 +102,7 @@ public class ConnectorDiscovererWrapper implements ServletContextAware {
      * @param language the language code to use for the plugin labels
      * @return a map containing the localized connector plugins with their code as key
      */
-    public final Map<String, IConnector> getConnectorsForLanguage(final String language) {
+    public Map<String, IConnector> getConnectorsForLanguage(final String language) {
         this.logger.debug("Getting all connector plugins for language {}.", language);
         Map<String, IConnector> cachedConnectors = this.getConnectorDiscoverer().getConnectors();
         Map<String, IConnector> localizedConnectors = new LinkedHashMap<>();

@@ -93,13 +93,13 @@ public abstract class BaseController {
      * The code of the language to use to localize the application strings.
      */
     @Value("${extract.i18n.language}")
-    private String applicationLanguage;
+    protected String applicationLanguage;
 
     /**
      * The locale resolver to determine the current user's locale.
      */
     @Autowired(required = false)
-    private LocaleResolver localeResolver;
+    protected LocaleResolver localeResolver;
 
     /**
      * The URL of the folder containing the localized messages to be used by the scripts on the page.
