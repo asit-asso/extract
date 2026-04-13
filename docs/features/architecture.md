@@ -94,6 +94,7 @@ Table listing the tasks (plugins) configured for a given process.
 | ``task_label`` | varchar 255 | Task plugin label. Retrieved from the plugin itself via a specific function | *Extraction FME 2016*
 | ``task_params`` | varchar 4000 | Parameters specific to the task plugin in json format. The list of parameters and their type are retrieved from the plugin itself via a specific function | *cf 0*
 | ``position`` | int | Scheduling of tasks between each other for the same process | *3*
+| ``version`` | bigint | Request's version to avoid concurrent modification | *0*
 
 #### PROCESSES_USERS
 
@@ -192,6 +193,7 @@ In order to manage connectors with multiple interfaces, the connector itself mus
 | ``rejected`` | boolean | False by default. <br> Flag indicating that the operator or administrator wanted to stop the associated processing and thus reject the request. | *False*
 | ``status`` | string | Status of the request in its lifecycle.<br><br>IMPORTED: Imported – The request is initialized in the system following a connector import (or when the status is forced by the administrator)<br>IMPORTFAIL: Import failure – The request cannot be processed because its import via the connector failed<br>ONGOING: In progress – A rule has allowed the request to be associated with a process. The orchestrator can move it forward.<br>STANDBY: On hold – Manual action is required on the current task (e.g., validation plugin).<br>ERROR: Error – The current task has encountered an error (e.g., FME script not found).<br>UNMATCHED: Unmatched – No rule has allowed a process to be associated with the request<br>TOEXPORT: To be exported – The last task in a process has been completed successfully. The request is ready for export<br>EXPORTFAIL: Export failure – The request has been processed but its export via its original connector has failed<br>FINISHED: Finished – The request has been processed and the export was successful<br><br>Note: the texts corresponding to the values are managed in the application itself in order to ensure multilingual support. | *IMPORTED*
 | ``last_reminder`` | datetime | Date and time of the last reminder in the case of a request awaiting validation | *22.11.2016 09:00*
+| ``version`` | bigint | Request's version to avoid concurrent modification | *0*
 
 #### REQUEST_HISTORY
 
@@ -209,6 +211,7 @@ Table listing the processing history for each of the requests initiated. For a g
 | ``start_date`` | datetime | Date and time when task processing began | *22.11.2016 09:00*
 | ``end_date`` | datetime | Date and time when task processing ended<br>Null if the task plugin is currently running. | *22.11.2016 09:02*
 | ``process_step`` | int | Task number in the process | *1*
+| ``version`` | bigint | Request's version to avoid concurrent modification | *0*
 
 #### SYSTEM
 
