@@ -37,6 +37,7 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
+import javax.persistence.Version;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import jakarta.xml.bind.annotation.XmlRootElement;
@@ -223,6 +224,10 @@ public class Request implements Serializable {
      */
     @Column(name = "rejected")
     private boolean rejected;
+
+    @Version
+    @Column(name = "version", nullable = false, columnDefinition = "BIGINT DEFAULT 0")
+    private Long version = 0L;
 
     /**
      * The address that provides an access to the details of this order.

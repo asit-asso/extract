@@ -143,9 +143,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-xl-12 process-empty-placeholder" th:if="${process.tasks.length==0}" >
-                                            <div th:style="|min-height: 500px;background-position: center;
-                                                            background-repeat: no-repeat;
-                                                            background-image:url(@{/images/process_empty_placeholder.png});|">
+                                            <div style="min-height: 500px; display: flex; align-items: center;
+                                                        justify-content: center; border: 4px dashed #ccc;
+                                                        border-radius: 20px; margin: 10px;">
+                                                <div style="text-align: center;">
+                                                    <span style="font-size: 1.8rem; color: #bbb;"
+                                                          th:text="#{processDetails.panels.tasks.emptyPlaceholder}">
+                                                        Glisser-déposer des tâches ici
+                                                    </span>
+                                                    <div style="margin-top: 15px;">
+                                                        <i class="fa fa-arrow-left" style="font-size: 2rem; color: #bbb;"></i>
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-xl-12 taskcard"

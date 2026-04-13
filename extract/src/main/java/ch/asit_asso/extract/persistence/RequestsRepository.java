@@ -22,8 +22,12 @@ import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Request.Status;
+import javax.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.data.repository.query.Param;
 
 
 
@@ -43,6 +47,17 @@ public interface RequestsRepository extends PagingAndSortingRepository<Request, 
      */
     List<Request> findByStatus(Status status);
 
+
+    /**
+     * Fetches the requests at a given state with a pessimistic write lock, preventing concurrent
+     * scheduler cycles from processing the same requests simultaneously.
+     *
+     * @param status the state of the requests to get
+     * @return a list of the locked requests at the provided state
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT r FROM Request r WHERE r.status = :status")
+    List<Request> findByStatusWithLock(@Param("status") Status status);
 
 
     /**

@@ -18,6 +18,8 @@ package ch.asit_asso.extract.plugins.qgisprint;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -219,7 +221,7 @@ public class LocalizedMessages {
                 }
 
                 Properties props = new Properties();
-                props.load(languageFileStream);
+                props.load(new InputStreamReader(languageFileStream, StandardCharsets.UTF_8));
                 this.propertyFiles.add(props);
                 this.logger.info("Loaded localization file from \"{}\" with {} keys.", filePath, props.size());
 

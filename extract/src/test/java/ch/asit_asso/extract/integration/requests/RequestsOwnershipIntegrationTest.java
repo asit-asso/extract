@@ -148,11 +148,13 @@ public class RequestsOwnershipIntegrationTest {
         group1 = addTestGroup("group_user1", user1);
         group2 = addTestGroup("group_user2", user2);
         
-        Stream.of(testRequest, testRequest1).forEach((request) -> {
-            request.setUsersCollection(new ArrayList<>());
-            request.setUserGroupsCollection(new ArrayList<>());
-            requestsRepository.save(testRequest);
-        });
+        testRequest.setUsersCollection(new ArrayList<>());
+        testRequest.setUserGroupsCollection(new ArrayList<>());
+        testRequest = requestsRepository.save(testRequest);
+
+        testRequest1.setUsersCollection(new ArrayList<>());
+        testRequest1.setUserGroupsCollection(new ArrayList<>());
+        testRequest1 = requestsRepository.save(testRequest1);
 
         testProcess.setUsersCollection(new ArrayList<>());
         testProcess.setUserGroupsCollection(new ArrayList<>());

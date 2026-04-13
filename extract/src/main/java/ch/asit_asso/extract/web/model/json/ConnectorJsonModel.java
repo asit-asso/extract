@@ -95,9 +95,10 @@ public class ConnectorJsonModel implements JsonModel {
      * @param connector      the connector to model
      * @param messageSource  the access to the localized application strings
      * @param canViewDetails <code>true</code> if the current user can view the details of the connector
+     * @param locale         the locale to use for localized messages
      */
     public ConnectorJsonModel(final Connector connector, final MessageSource messageSource,
-            final boolean canViewDetails) {
+            final boolean canViewDetails, final Locale locale) {
 
         if (connector == null) {
             throw new IllegalArgumentException("The connector to model cannot be null.");
@@ -110,7 +111,7 @@ public class ConnectorJsonModel implements JsonModel {
         this.id = connector.getId();
         this.inError = connector.isInError();
         this.name = connector.getName();
-        this.stateMessage = this.getConnectorStateMessage(connector, messageSource);
+        this.stateMessage = this.getConnectorStateMessage(connector, messageSource, locale);
         this.url = (canViewDetails) ? String.format(ConnectorJsonModel.CONNECTOR_URL_FORMAT, this.id) : null;
     }
 
@@ -183,7 +184,7 @@ public class ConnectorJsonModel implements JsonModel {
      * @return an array that contains the generated JSON models
      */
     public static ConnectorJsonModel[] fromConnectorsArray(final Connector[] connectorsArray,
-            final MessageSource messageSource, final boolean canViewConnectorsDetails) {
+            final MessageSource messageSource, final boolean canViewConnectorsDetails, final Locale locale) {
 
         if (connectorsArray == null) {
             throw new IllegalArgumentException("The connectors array cannot be null.");
@@ -201,7 +202,7 @@ public class ConnectorJsonModel implements JsonModel {
                 continue;
             }
 
-            modelsList.add(new ConnectorJsonModel(connector, messageSource, canViewConnectorsDetails));
+            modelsList.add(new ConnectorJsonModel(connector, messageSource, canViewConnectorsDetails, locale));
         }
 
         return modelsList.toArray(new ConnectorJsonModel[]{});
@@ -216,15 +217,16 @@ public class ConnectorJsonModel implements JsonModel {
      * @param messageSource the access to the localized application strings
      * @return the localized connector status message
      */
-    private String getConnectorStateMessage(final Connector connector, final MessageSource messageSource) {
+    private String getConnectorStateMessage(final Connector connector, final MessageSource messageSource,
+            final Locale locale) {
         assert connector != null : "The connector cannot be null.";
         assert messageSource != null : "The message source cannot be null.";
 
-        Locale defaultLocale = Locale.getDefault();
+        Locale resolvedLocale = (locale != null) ? locale : Locale.getDefault();
         Calendar lastImportDate = connector.getLastImportDate();
 
         if (lastImportDate == null) {
-            return messageSource.getMessage(ConnectorJsonModel.NO_IMPORT_MESSAGE_KEY, null, defaultLocale);
+            return messageSource.getMessage(ConnectorJsonModel.NO_IMPORT_MESSAGE_KEY, null, resolvedLocale);
         }
 
         String importTimeString = new DateTime(lastImportDate).toString("HH:mm");
@@ -232,11 +234,11 @@ public class ConnectorJsonModel implements JsonModel {
         if (connector.isInError()) {
             return messageSource.getMessage(ConnectorJsonModel.IMPORT_ERROR_MESSAGE_KEY, new Object[]{
                 importTimeString, connector.getLastImportMessage()
-            }, defaultLocale);
+            }, resolvedLocale);
         }
 
         return messageSource.getMessage(ConnectorJsonModel.IMPORT_SUCCESS_MESSAGE_KEY,
-                new Object[]{importTimeString}, defaultLocale);
+                new Object[]{importTimeString}, resolvedLocale);
     }
 
 }

@@ -27,14 +27,11 @@ import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.RequestHistoryRecord;
 import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.domain.User;
-import ch.asit_asso.extract.email.Email;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.TaskFailedEmail;
 import ch.asit_asso.extract.email.TaskStandbyEmail;
-import ch.asit_asso.extract.exceptions.SystemUserNotFoundException;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
-import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
@@ -42,7 +39,7 @@ import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrappe
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.thymeleaf.util.StringUtils;
 
 
@@ -95,6 +92,11 @@ public class RequestTaskRunner implements Runnable {
     private RequestHistoryRecord taskHistoryRecord;
 
     /**
+     * The service providing transactional operations for task processing.
+     */
+    private final RequestTaskService taskService;
+
+    /**
      * The access to the available task plugins.
      */
     private final TaskProcessorDiscovererWrapper taskPluginsDiscoverer;
@@ -110,10 +112,11 @@ public class RequestTaskRunner implements Runnable {
      * @param smtpSettings        the objects required to create and send an e-mail message
      * @param applicationLanguage the locale code of the language used by the application to display messages to the
      *                            user
+     * @param taskService         the service for transactional task operations
      */
     public RequestTaskRunner(final Request requestToProcess, final ApplicationRepositories repositories,
             final TaskProcessorDiscovererWrapper pluginsDiscoverer, final EmailSettings smtpSettings,
-            final String applicationLanguage) {
+            final String applicationLanguage, final RequestTaskService taskService) {
 
         if (requestToProcess == null) {
             throw new IllegalArgumentException("The request to process cannot be null.");
@@ -139,11 +142,16 @@ public class RequestTaskRunner implements Runnable {
             throw new IllegalArgumentException("The application language code cannot be null.");
         }
 
+        if (taskService == null) {
+            throw new IllegalArgumentException("The task service cannot be null.");
+        }
+
         this.request = requestToProcess;
         this.applicationRepositories = repositories;
         this.taskPluginsDiscoverer = pluginsDiscoverer;
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
+        this.taskService = taskService;
         this.completionListeners = new CopyOnWriteArraySet<>();
     }
 
@@ -175,6 +183,9 @@ public class RequestTaskRunner implements Runnable {
                 }
             }
 
+        } catch (ObjectOptimisticLockingFailureException lockException) {
+            this.logger.warn("Concurrent modification detected for request {}. The request was modified by another"
+                    + " thread. This task execution will be retried at the next scheduler cycle.", requestId);
         } catch (Exception exception) {
             this.logger.error("An error occurred when processing the next task for request {}.", requestId, exception);
         }
@@ -214,31 +225,12 @@ public class RequestTaskRunner implements Runnable {
     private void createNewHistoryRecord(final Task task) {
         assert task != null : "The task cannot be null.";
 
-        final User systemUser = this.applicationRepositories.getUsersRepository().getSystemUser();
-
-        if (systemUser == null) {
-            throw new SystemUserNotFoundException();
-        }
-
         final int requestId = request.getId();
         this.logger.debug("Creating a new request history record for task {} of request {}.", task.getId(),
                 requestId);
 
-        final RequestHistoryRepository repository = this.applicationRepositories.getRequestHistoryRepository();
-        final int step = repository.findByRequestOrderByStep(this.request).size() + 1;
-        this.logger.debug("The request history step for request {} is {}.", requestId, step);
-
-        final RequestHistoryRecord historyRecord = new RequestHistoryRecord();
-        historyRecord.setRequest(this.request);
-        historyRecord.setStartDate(new GregorianCalendar());
-        historyRecord.setStep(step);
-        historyRecord.setProcessStep(task.getPosition());
-        historyRecord.setTaskLabel(task.getLabel());
-        historyRecord.setStatus(RequestHistoryRecord.Status.ONGOING);
-        historyRecord.setUser(systemUser);
-
-        this.taskHistoryRecord = repository.save(historyRecord);
-        this.logger.debug("History record {} for request {} created and set to ongoing.", step, requestId);
+        this.taskHistoryRecord = this.taskService.createHistoryRecord(this.request, task);
+        this.logger.debug("History record for request {} created and set to ongoing.", requestId);
     }
 
 
@@ -259,11 +251,9 @@ public class RequestTaskRunner implements Runnable {
             if (taskPlugin == null) {
                 final String errorMessage = String.format("Plugin %s not found.", pluginCode);
                 this.logger.error(String.format("The plugin %s could not be found.", pluginCode));
-                this.taskHistoryRecord.setToError(errorMessage);
-                this.taskHistoryRecord
-                        = this.applicationRepositories.getRequestHistoryRepository().save(this.taskHistoryRecord);
                 this.request.setStatus(Request.Status.ERROR);
-                this.request = this.applicationRepositories.getRequestsRepository().save(this.request);
+                this.request = this.taskService.updateTaskResult(this.request, this.taskHistoryRecord,
+                        RequestHistoryRecord.Status.ERROR, errorMessage, new GregorianCalendar(), null);
                 this.sendErrorEmailToOperators(task, errorMessage, new GregorianCalendar());
 
                 return;
@@ -329,7 +319,6 @@ public class RequestTaskRunner implements Runnable {
      * @param process the process whose operators address must be fetched
      * @return an array containing the addresses of the operators
      */
-    @Transactional(readOnly = true)
     public String[] getProcessOperatorsAddresses(final Process process) {
         assert process != null : "The process cannot be null.";
 
@@ -355,8 +344,7 @@ public class RequestTaskRunner implements Runnable {
      * Updates the current request to indicate that it is ready to be exported.
      */
     private void prepareRequestForExport() {
-        this.request.setStatus(Request.Status.TOEXPORT);
-        this.applicationRepositories.getRequestsRepository().save(request);
+        this.request = this.taskService.markRequestForExport(this.request);
     }
 
 
@@ -430,7 +418,7 @@ public class RequestTaskRunner implements Runnable {
             case NOT_RUN -> {
                 this.logger.info("The task {} (ID: {}) could not be run at the moment by the plugin {}. Execution will be attempted again at the next orchestrator step.",
                         task.getLabel(), task.getId(), task.getCode());
-                this.applicationRepositories.getRequestHistoryRepository().delete(this.taskHistoryRecord);
+                this.taskService.deleteHistoryRecord(this.taskHistoryRecord);
                 this.taskHistoryRecord = null;
             }
 
@@ -530,7 +518,6 @@ public class RequestTaskRunner implements Runnable {
      * @param process the process whose operators must be fetched
      * @return a list of User objects representing the operators
      */
-    @Transactional(readOnly = true)
     public java.util.List<User> getProcessOperators(final Process process) {
         assert process != null : "The process cannot be null.";
         this.logger.debug("Fetching the operators for process {}.", process.getId());
@@ -759,34 +746,9 @@ public class RequestTaskRunner implements Runnable {
         assert taskEndDate != null : "The task end date cannot be null.";
 
         this.updateRequestWithResult(taskResultStatus, modifiedRequest);
-        this.updateHistoryRecordWithResult(taskResultStatus, message, taskEndDate);
-        this.request = this.applicationRepositories.getRequestsRepository().save(this.request);
-    }
-
-
-
-    /**
-     * Modifies the request history to reflect the outcome of the current task.
-     *
-     * @param taskResultStatus the status to set as the result of the task
-     * @param message          the string returned by the plugin to explain the result
-     * @param taskEndDate      when the task returned from execution
-     */
-    private void updateHistoryRecordWithResult(final RequestHistoryRecord.Status taskResultStatus,
-            final String message, final Calendar taskEndDate) {
-        assert this.taskHistoryRecord != null
-                && this.taskHistoryRecord.getStatus() == RequestHistoryRecord.Status.ONGOING :
-                "There must be an active request history record at this point and it must be ongoing.";
-        assert taskResultStatus != null : "The task result status cannot be null";
-        assert taskResultStatus != RequestHistoryRecord.Status.ONGOING :
-                "The task status cannot be set to ongoing at this point.";
-
-        this.taskHistoryRecord.setStatus(taskResultStatus);
-        this.taskHistoryRecord.setEndDate(taskEndDate);
         this.logger.debug("Task result message is: {}", message);
-        this.taskHistoryRecord.setMessage(message);
-        this.taskHistoryRecord
-                = this.applicationRepositories.getRequestHistoryRepository().save(this.taskHistoryRecord);
+        this.request = this.taskService.updateTaskResult(this.request, this.taskHistoryRecord,
+                taskResultStatus, message, taskEndDate, modifiedRequest);
     }
 
 }

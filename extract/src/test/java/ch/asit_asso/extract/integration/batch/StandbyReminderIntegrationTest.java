@@ -406,6 +406,7 @@ class StandbyReminderIntegrationTest {
                     "lastReminder should not change when no operators are available");
 
             } finally {
+                requestsRepository.deleteAll();
                 processesRepository.delete(emptyProcess);
             }
         }
@@ -508,6 +509,7 @@ class StandbyReminderIntegrationTest {
                 assertNotNull(processedRequest);
 
             } finally {
+                requestsRepository.deleteAll();
                 processesRepository.delete(processWithInvalidOp);
                 usersRepository.delete(invalidOperator);
             }
@@ -552,6 +554,7 @@ class StandbyReminderIntegrationTest {
                 assertNotNull(processedRequest);
 
             } finally {
+                requestsRepository.deleteAll();
                 processesRepository.delete(processWithNullEmail);
                 usersRepository.delete(nullEmailOperator);
             }

@@ -18,6 +18,7 @@ package ch.asit_asso.extract.orchestrator;
 
 import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.ldap.LdapSettings;
+import ch.asit_asso.extract.orchestrator.runners.RequestTaskService;
 import ch.asit_asso.extract.orchestrator.schedulers.ImportJobsScheduler;
 import ch.asit_asso.extract.orchestrator.schedulers.ManagementTasksScheduler;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
@@ -112,6 +113,11 @@ public final class Orchestrator {
     private RequestsProcessingScheduler requestsScheduler;
 
     private OrchestratorSettings settings;
+
+    /**
+     * The service providing transactional operations for task processing.
+     */
+    private RequestTaskService taskService;
 
     /**
      * The access to the available task processing plugins.
@@ -216,6 +222,17 @@ public final class Orchestrator {
         }
 
         this.messageService = messageService;
+    }
+
+
+
+    public void setTaskService(final RequestTaskService taskService) {
+
+        if (taskService == null) {
+            throw new IllegalArgumentException("The task service cannot be null.");
+        }
+
+        this.taskService = taskService;
     }
 
 
@@ -341,7 +358,8 @@ public final class Orchestrator {
 
         return this.taskRegistrar != null && this.repositories != null && this.connectorPlugins != null
                && this.taskPlugins != null && this.emailSettings != null  && this.ldapSettings != null
-               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage) && this.messageService != null;
+               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage) && this.messageService != null
+               && this.taskService != null;
     }
 
 
@@ -365,7 +383,8 @@ public final class Orchestrator {
             final ApplicationRepositories applicationRepositories,
             final ConnectorDiscovererWrapper connectorPluginsDiscoverer,
             final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final EmailSettings smtpSettings,
-            final LdapSettings ldapSettings, final OrchestratorSettings orchestratorSettings, final MessageService messageService) {
+            final LdapSettings ldapSettings, final OrchestratorSettings orchestratorSettings,
+            final MessageService messageService, final RequestTaskService taskService) {
 
         this.logger.debug("Initializing the orchestrator components.");
         this.setTaskRegistrar(registrar);
@@ -377,6 +396,7 @@ public final class Orchestrator {
         this.setLdapSettings(ldapSettings);
         this.setOrchestratorSettings(orchestratorSettings);
         this.setMessageService(messageService);
+        this.setTaskService(taskService);
 
         return this.isInitialized();
     }
@@ -606,7 +626,7 @@ public final class Orchestrator {
 
         this.requestsScheduler = new RequestsProcessingScheduler(this.taskRegistrar,
                                                                  this.repositories, this.connectorPlugins, this.taskPlugins, this.emailSettings,
-                                                                 this.applicationLanguage, this.settings, this.messageService);
+                                                                 this.applicationLanguage, this.settings, this.messageService, this.taskService);
         this.requestsScheduler.scheduleJobs();
 
         this.setRequestsMonitoringScheduled(true);
