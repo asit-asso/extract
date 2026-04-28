@@ -25,6 +25,7 @@ import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.orchestrator.runners.RequestNotificationJobRunner;
 import ch.asit_asso.extract.persistence.*;
+import ch.asit_asso.extract.orchestrator.runners.RequestTaskService;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -76,7 +77,11 @@ class StandbyReminderIntegrationTest {
     @Autowired
     private EmailSettings emailSettings;
 
+    @Autowired
+    private RequestTaskService requestTaskService;
+
     private static final String TEST_REMINDER_DAYS = "3";
+    private static final String STANDBY_REMINDER_DAYS_KEY = "standby_reminder_days";
     private Connector testConnector;
     private Process testProcess;
     private User testOperator1;
@@ -193,7 +198,7 @@ class StandbyReminderIntegrationTest {
             String originalValue = systemParametersRepository.getStandbyReminderDays();
             try {
                 // Temporarily set reminder days to 0 (disabled)
-                saveSystemParameter("standby_reminder_days", "0");
+                saveSystemParameter(STANDBY_REMINDER_DAYS_KEY, "0");
 
                 // Create request with no lastReminder
                 Request request = createStandbyRequest("TEST-DISABLED-001", null);
@@ -211,7 +216,7 @@ class StandbyReminderIntegrationTest {
             } finally {
                 // Restore original value
                 if (originalValue != null) {
-                    saveSystemParameter("standby_reminder_days", originalValue);
+                    saveSystemParameter(STANDBY_REMINDER_DAYS_KEY, originalValue);
                 }
             }
         }
@@ -281,7 +286,7 @@ class StandbyReminderIntegrationTest {
         @DisplayName("3.1 - Should send reminder when lastReminder is older than X days")
         void shouldSendReminderWhenOlderThanXDays() {
             // Given: System parameter set to 3 days
-            saveSystemParameter("standby_reminder_days", TEST_REMINDER_DAYS);
+            saveSystemParameter(STANDBY_REMINDER_DAYS_KEY, TEST_REMINDER_DAYS);
 
             // Create request with lastReminder from 4 days ago
             Calendar fourDaysAgo = GregorianCalendar.getInstance();
@@ -308,7 +313,7 @@ class StandbyReminderIntegrationTest {
         @DisplayName("3.2 - Should NOT send reminder when lastReminder is within X days")
         void shouldNotSendReminderWhenWithinXDays() {
             // Given: System parameter set to 3 days
-            saveSystemParameter("standby_reminder_days", TEST_REMINDER_DAYS);
+            saveSystemParameter(STANDBY_REMINDER_DAYS_KEY, TEST_REMINDER_DAYS);
 
             // Create request with lastReminder from 2 days ago (within threshold)
             Calendar twoDaysAgo = GregorianCalendar.getInstance();
@@ -331,7 +336,7 @@ class StandbyReminderIntegrationTest {
         @DisplayName("3.3 - Should send reminder exactly at X day boundary")
         void shouldSendReminderAtExactBoundary() {
             // Given: System parameter set to 3 days
-            saveSystemParameter("standby_reminder_days", TEST_REMINDER_DAYS);
+            saveSystemParameter(STANDBY_REMINDER_DAYS_KEY, TEST_REMINDER_DAYS);
 
             // Create request with lastReminder from exactly 3 days ago
             Calendar threeDaysAgo = GregorianCalendar.getInstance();
@@ -464,7 +469,60 @@ class StandbyReminderIntegrationTest {
         }
     }
 
-    // ==================== 6. ERROR HANDLING ====================
+    // ==================== 6. STANDBY TRANSITION — LAST REMINDER PERSISTENCE ====================
+
+    @Nested
+    @DisplayName("6. lastReminder persistence on STANDBY transition")
+    class StandbyTransitionLastReminderTests {
+
+        @Test
+        @DisplayName("6.1 - lastReminder set before save is persisted to DB (regression #400)")
+        void lastReminderIsPersistedWhenSetBeforeSave() {
+            // Regression test for bug introduced in PR #400:
+            // RequestTaskRunner.processTaskStandby() called setLastReminder() AFTER updateResult()
+            // which already saved the request, so lastReminder was never written to DB.
+            // Fix: setLastReminder() must be called BEFORE the save that commits the STANDBY transition.
+
+            // Given: a request about to enter STANDBY
+            Request request = createStandbyRequest("TEST-STANDBY-TRANSITION-001", null);
+            Calendar standbyDate = GregorianCalendar.getInstance();
+
+            // Simulate what the fixed processTaskStandby() does:
+            // set lastReminder BEFORE the save (via requestsRepository directly here)
+            request.setLastReminder(standbyDate);
+            request.setStatus(Request.Status.STANDBY);
+            requestsRepository.save(request);
+
+            // When: reading the request back from DB
+            Request reloaded = requestsRepository.findById(request.getId()).orElseThrow();
+
+            // Then: lastReminder must be persisted
+            assertNotNull(reloaded.getLastReminder(),
+                "lastReminder must be persisted after STANDBY transition to prevent duplicate reminders");
+        }
+
+        @Test
+        @DisplayName("6.2 - StandbyRequestsReminderProcessor skips request when lastReminder is recent")
+        void reminderProcessorSkipsWhenLastReminderIsRecent() {
+            // Given: reminder interval = 1 day, request with lastReminder = NOW (just transitioned)
+            saveSystemParameter(STANDBY_REMINDER_DAYS_KEY, "1");
+            Calendar now = GregorianCalendar.getInstance();
+            Request request = createStandbyRequest("TEST-STANDBY-SKIP-001", now);
+
+            Calendar reminderBefore = request.getLastReminder();
+
+            // When: processor runs immediately after transition
+            StandbyRequestsReminderProcessor processor = new StandbyRequestsReminderProcessor(
+                applicationRepositories, emailSettings, "fr");
+            Request processed = processor.process(request);
+
+            // Then: lastReminder must NOT change (interval not elapsed)
+            assertEquals(reminderBefore, processed.getLastReminder(),
+                "Reminder must not fire when lastReminder was just set on STANDBY transition");
+        }
+    }
+
+    // ==================== 7. ERROR HANDLING ====================
 
     @Nested
     @DisplayName("6. Error Handling")

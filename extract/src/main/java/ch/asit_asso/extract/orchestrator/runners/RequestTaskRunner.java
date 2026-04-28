@@ -485,12 +485,12 @@ public class RequestTaskRunner implements Runnable {
         assert pluginResult.getStatus() == ITaskProcessorResult.Status.STANDBY : "The result must be a standby.";
         assert standbyDate != null : "The standby date cannot be null.";
 
+        // Set lastReminder BEFORE updateResult() so it's included in the same save().
+        // If set after, the save in updateResult() has already committed without this value,
+        // causing StandbyRequestsReminderProcessor to see lastReminder=null and send duplicate reminders.
+        this.request.setLastReminder(standbyDate);
         this.updateResult(RequestHistoryRecord.Status.STANDBY, pluginResult.getMessage(), standbyDate, null);
         this.sendStandbyEmailToOperators(task);
-
-        // Set lastReminder to prevent immediate reminder from StandbyRequestsReminderProcessor.
-        // First reminder will be sent X days after this date (as configured in system parameters).
-        this.request.setLastReminder(standbyDate);
     }
 
 
