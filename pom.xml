@@ -103,6 +103,7 @@
     <modules>
         <module>extract-interface</module>
         <module>sitn_geoshop_connector/connectors/extract-connector-geoshop</module>
+        <module>sitn_geoshop_connector/plugin-interface</module>
         <module>extract-connector-easysdiv4</module>
         <module>extract-task-archive</module>
         <module>extract-task-email</module>
