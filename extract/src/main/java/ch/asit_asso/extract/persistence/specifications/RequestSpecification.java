@@ -108,6 +108,11 @@ public final class RequestSpecification {
                 RequestSpecification.LOGGER.debug("The text filter pattern is \"{}\"", searchPattern);
                 final Predicate customerPredicate = builder.like(builder.lower(root.get(Request_.client)),
                         searchPattern);
+                // The organism is displayed next to the customer in the requests tables, so it must be
+                // searchable as well. The displayed string is built when the row is serialized and is not
+                // persisted, hence the dedicated predicate rather than a filter on the customer alone.
+                final Predicate organismPredicate = builder.like(builder.lower(root.get(Request_.organism)),
+                        searchPattern);
                 final Predicate thirdPartyPredicate = builder.like(builder.lower(root.get(Request_.tiers)),
                         searchPattern);
                 final Predicate orderLabelPredicate = builder.like(builder.lower(root.get(Request_.orderLabel)),
@@ -115,7 +120,8 @@ public final class RequestSpecification {
                 final Predicate productLabelPredicate = builder.like(builder.lower(root.get(Request_.productLabel)),
                         searchPattern);
 
-                return builder.or(customerPredicate, thirdPartyPredicate, orderLabelPredicate, productLabelPredicate);
+                return builder.or(customerPredicate, organismPredicate, thirdPartyPredicate, orderLabelPredicate,
+                        productLabelPredicate);
             }
 
         };

@@ -168,7 +168,7 @@ public class RequestJsonModel implements JsonModel {
         }
 
         this.index = positionIndex;
-        this.customerName = model.getCustomerName();
+        this.customerName = model.getCustomerNameWithOrganism(locale);
         this.orderInfo = new OrderInfo(model.getOrderLabel(), model.getProductLabel(), model.getConnector());
         this.processInfo = new ProcessInfo(model.getProcessId(), this.getProcessNameFromModel(model, messageSource, locale));
 
