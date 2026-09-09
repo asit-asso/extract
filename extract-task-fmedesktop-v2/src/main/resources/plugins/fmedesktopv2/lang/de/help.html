@@ -4,11 +4,20 @@
     <h4>Parameterübertragungsmethode</h4>
     <p>
         Im Gegensatz zur klassischen Version überträgt dieses Plugin Parameter über eine GeoJSON-Datei namens <code>parameters.json</code>,
-        die im Ausgabeverzeichnis erstellt wird. Der FME-Workspace erhält den Pfad zu dieser Datei über den Parameter <code>--parametersFile</code>.
+        die im Eingabeverzeichnis des Auftrags erstellt wird. Der FME-Workspace erhält den Pfad zu dieser Datei über den Parameter <code>--parametersFile</code>.
 
         Die Befehlsparameter werden in einer GeoJSON-Datei gespeichert, wobei das Begrenzungspolygon des Befehls in WGS84 das einzige Feature ist. Andere Parameter sind in den Eigenschaften des Features enthalten.
-        Nur der Dateipfad wird mit dem Parameter parametersFile an das Skript übergeben (das FME-Skript muss diese Datei lesen und die gewünschten Parameter extrahieren).
+        Der Dateipfad wird mit dem Parameter parametersFile an das Skript übergeben (das FME-Skript muss diese Datei lesen und die gewünschten Parameter extrahieren).
+        Das Eingabe- und das Ausgabeverzeichnis werden zusätzlich über die Befehlszeile übergeben (siehe unten).
     </p>
+
+    <h4>Befehlszeilenargumente</h4>
+    <p>
+        Zusätzlich zur Parameterdatei werden das Eingabe- und das Ausgabeverzeichnis des Auftrags dem Workspace über die Befehlszeile
+        als <code>--FolderIn</code> und <code>--FolderOut</code> übergeben. Als gleichnamige User Parameters im Workspace deklariert,
+        stehen sie FME bereits vor dem Lesen der Datei <code>parameters.json</code> zur Verfügung. Die Parameterdatei selbst bleibt unverändert.
+    </p>
+    <pre>/pfad/zu/fme.exe /pfad/zu/workspace.fmw --parametersFile /pfad/zu/parameters.json --FolderIn /pfad/zu/eingabe --FolderOut /pfad/zu/ausgabe</pre>
 
     <h4>GeoJSON-Dateistruktur</h4>
     <p>Die Datei ist ein GeoJSON-Feature-Objekt, das Folgendes enthält:</p>

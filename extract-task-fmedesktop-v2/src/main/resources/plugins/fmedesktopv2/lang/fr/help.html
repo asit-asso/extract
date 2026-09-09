@@ -4,11 +4,20 @@
     <h4>Méthode de transmission des paramètres</h4>
     <p>
         Contrairement à la version classique, ce plugin transmet les paramètres via un fichier GeoJSON nommé <code>parameters.json</code>
-        créé dans le répertoire de sortie. Le workspace FME reçoit le chemin de ce fichier via le paramètre <code>--parametersFile</code>.
+        créé dans le répertoire d'entrée de la commande. Le workspace FME reçoit le chemin de ce fichier via le paramètre <code>--parametersFile</code>.
 
         Les paramètres de la commande sont enregistrés dans un fichier GeoJson, avec pour seule feature, le polygone d’emprise de la commande en WGS84. Les autres paramètres sont contenus dans les properties de la feature.
-        Seul le chemin du fichier est passé au script avec le paramètre parametersFile (le script FME doit lire ce fichier et extraire les paramètres désirés).
+        Le chemin du fichier est passé au script avec le paramètre parametersFile (le script FME doit lire ce fichier et extraire les paramètres désirés).
+        Les répertoires d'entrée et de sortie sont en outre passés en ligne de commande (voir ci-dessous).
     </p>
+
+    <h4>Arguments en ligne de commande</h4>
+    <p>
+        En plus du fichier de paramètres, les répertoires d'entrée et de sortie de la commande sont passés au workspace en ligne de commande,
+        sous les noms <code>--FolderIn</code> et <code>--FolderOut</code>. Déclarés comme User Parameters du même nom dans le workspace,
+        ils sont utilisables par FME avant même la lecture du fichier <code>parameters.json</code>. Le fichier de paramètres reste inchangé.
+    </p>
+    <pre>/chemin/vers/fme.exe /chemin/vers/workspace.fmw --parametersFile /chemin/vers/parameters.json --FolderIn /chemin/vers/entree --FolderOut /chemin/vers/sortie</pre>
 
     <h4>Structure du fichier GeoJSON</h4>
     <p>Le fichier est un objet GeoJSON de type Feature contenant :</p>

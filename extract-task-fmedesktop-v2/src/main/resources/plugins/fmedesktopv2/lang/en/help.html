@@ -4,11 +4,20 @@
     <h4>Parameter Transmission Method</h4>
     <p>
         Unlike the classic version, this plugin transmits parameters via a GeoJSON file named <code>parameters.json</code>
-        created in the output directory. The FME workspace receives the path to this file via the <code>--parametersFile</code> parameter.
+        created in the input directory of the request. The FME workspace receives the path to this file via the <code>--parametersFile</code> parameter.
 
         The command parameters are stored in a GeoJSON file, with the command's bounding box polygon in WGS84 as the only feature. Other parameters are contained in the feature's properties.
-        Only the file path is passed to the script with the parametersFile parameter (the FME script must read this file and extract the desired parameters).
+        The file path is passed to the script with the parametersFile parameter (the FME script must read this file and extract the desired parameters).
+        The input and output directories are also passed on the command line (see below).
     </p>
+
+    <h4>Command-line arguments</h4>
+    <p>
+        Besides the parameters file, the input and output directories of the request are passed to the workspace on the command line,
+        as <code>--FolderIn</code> and <code>--FolderOut</code>. Declared as User Parameters of the same name in the workspace,
+        they are available to FME before the <code>parameters.json</code> file is even read. The parameters file itself is unchanged.
+    </p>
+    <pre>/path/to/fme.exe /path/to/workspace.fmw --parametersFile /path/to/parameters.json --FolderIn /path/to/input --FolderOut /path/to/output</pre>
 
     <h4>GeoJSON File Structure</h4>
     <p>The file is a GeoJSON Feature object containing:</p>
