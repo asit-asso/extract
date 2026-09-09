@@ -277,6 +277,23 @@ public class FmeDesktopV2PluginTest {
         assertNotNull(result);
         assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
     }
+
+    @Test
+    @DisplayName("Command line repeats the input and output folders after the parameters file")
+    public void testBuildCommandPassesFoldersAsArguments() {
+        File parametersFile = tempDir.resolve("in").resolve("parameters.json").toFile();
+        when(mockRequest.getFolderIn()).thenReturn("/var/extract/orders/42/input");
+        when(mockRequest.getFolderOut()).thenReturn("/var/extract/orders/42/output");
+
+        List<String> command = this.plugin.buildCommand(mockRequest, "/opt/fme/workspace.fmw", "/opt/fme/fme",
+                                                        parametersFile);
+
+        assertEquals(List.of("/opt/fme/fme", "/opt/fme/workspace.fmw",
+                             "--parametersFile", parametersFile.getAbsolutePath(),
+                             "--FolderIn", "/var/extract/orders/42/input",
+                             "--FolderOut", "/var/extract/orders/42/output"),
+                     command);
+    }
     
     @Test
     @DisplayName("Parameters JSON file creation with WKT perimeter")
