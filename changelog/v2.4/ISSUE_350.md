@@ -1,30 +1,30 @@
-# ISSUE_350 - Retirer le paramètre paramInputData=SourceDataset_FILEGDB
+# ISSUE_350 - Remove the paramInputData=SourceDataset_FILEGDB parameter
 
-## Status: ✅ CONFORME
+## Status: ✅ COMPLIANT
 
 ### Issue Description
-Le paramètre `paramInputData=SourceDataset_FILEGDB` du fichier
+The `paramInputData=SourceDataset_FILEGDB` parameter in
 `extract-task-fmedesktop/src/main/resources/plugins/fme/properties/configFME.properties`
-était inutilisé et devait être retiré.
+was unused and had to be removed.
 
 ### Conformity Analysis
-**CONFORME** - Vérification effectuée : la propriété `paramInputData` n'est consommée par
-aucun code de l'application. Elle n'était référencée que par le fichier `.properties`
-lui-même et par un test unitaire qui en assertait la valeur.
+**COMPLIANT** - Verification performed: the `paramInputData` property is not consumed by
+any application code. It was only referenced by the `.properties` file itself and by a
+unit test asserting its value.
 
 ### Implementation Completed
-1. Suppression de la ligne `paramInputData=SourceDataset_FILEGDB` dans `configFME.properties`.
-2. Suppression du test devenu obsolète `returnsParamInputDataProperty`
+1. Removed the `paramInputData=SourceDataset_FILEGDB` line from `configFME.properties`.
+2. Removed the now-obsolete test `returnsParamInputDataProperty`
    (`PluginConfigurationTest`).
 
 ### Tests
-Aucun nouveau test : il s'agit d'un retrait de configuration inutilisée. Le test couvrant
-la propriété supprimée a été retiré ; le reste de `PluginConfigurationTest` continue de
-couvrir les propriétés effectivement utilisées.
+No new tests: this is the removal of unused configuration. The test covering the removed
+property was deleted; the rest of `PluginConfigurationTest` keeps covering the properties
+that are actually used.
 
-### Impact documentation / i18n
-Aucun : la propriété n'apparaît pas dans la documentation d'architecture et ne correspond
-à aucun libellé multilingue.
+### Documentation / i18n impact
+None: the property does not appear in the architecture documentation and does not
+correspond to any multilingual label.
 
 ### Conclusion
-Le paramètre inutilisé est retiré sans impact sur le comportement de l'application.
+The unused parameter is removed with no impact on the application's behaviour.
