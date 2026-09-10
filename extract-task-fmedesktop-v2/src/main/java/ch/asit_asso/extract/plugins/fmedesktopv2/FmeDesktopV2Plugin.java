@@ -392,11 +392,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             this.logger.debug("Current working directory is {}", dirWorkspace);
             this.logger.debug("Current user is {}", System.getProperty("user.name"));
 
-            List<String> command = new ArrayList<>();
-            command.add(applicationPath);
-            command.add(workspacePath);
-            command.add("--parametersFile");
-            command.add(parametersFile.getAbsolutePath());
+            List<String> command = this.buildCommand(request, workspacePath, applicationPath, parametersFile);
 
             this.logger.debug("Executed command line is : {}", StringUtils.join(command, " "));
 
@@ -419,6 +415,43 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         } finally {
             FmeDesktopV2Plugin.LOCK.unlock();
         }
+    }
+
+    /**
+     * Assembles the command line that launches the FME workspace for a request.
+     * <p>
+     * Every request parameter travels in the JSON parameters file. The input and output folders are repeated as
+     * command-line arguments so that the workspace can use them as user parameters before the file is read.
+     *
+     * @param request         the request to process
+     * @param workspacePath   the path to the FME workspace file
+     * @param applicationPath the path to the FME application executable
+     * @param parametersFile  the JSON parameters file
+     * @return the executable followed by its arguments, in order
+     */
+    List<String> buildCommand(final ITaskProcessorRequest request, final String workspacePath,
+                              final String applicationPath, final File parametersFile) {
+        List<String> command = new ArrayList<>(8);
+        command.add(applicationPath);
+        command.add(workspacePath);
+        command.add("--parametersFile");
+        command.add(parametersFile.getAbsolutePath());
+        command.add(this.formatParameterName("paramRequestFolderIn"));
+        command.add(request.getFolderIn());
+        command.add(this.formatParameterName("paramRequestFolderOut"));
+        command.add(request.getFolderOut());
+
+        return command;
+    }
+
+    /**
+     * Obtains the name of a command-line argument from the plugin configuration.
+     *
+     * @param parameterNamePropertyKey the configuration key that holds the argument name
+     * @return the argument name prefixed with the double dash
+     */
+    private String formatParameterName(final String parameterNamePropertyKey) {
+        return "--" + this.config.getProperty(parameterNamePropertyKey);
     }
 
     /**

@@ -26,6 +26,16 @@ Or downloading a ZIP archive with the following link : https://github.com/asit-a
 
     ![user-parameter](../assets/how-to/fme-form/user-parameter.png){width="800"}
 
+    !!! tip
+
+        The input and output folders of the request are also passed on the command line, as `--FolderIn` and `--FolderOut`:
+
+        ```
+        path/to/fme.exe path/to/script.fmw --parametersFile path/to/parameters.json --FolderIn path/to/folderIn --FolderOut path/to/folderOut
+        ```
+
+        Declare them as `User Parameters` named `FolderIn` and `FolderOut` to use them in the workspace before the `GeoJSON` file is read. The `GeoJSON` file itself is unchanged: it still carries `FolderOut` among its attributes.
+
 4. Then we need to read the `GeoJSON` file with a `FeatureReader`. The format is `GeoJSON` and the dataset is the `$(parametersFile)` parameter. The feature of the `GeoJSON` file is the request perimeter and can be use to extract or clip data. All other attributes are the request parameters.
 
     ![user-parameter](../assets/how-to/fme-form/read-parameters.png){width="400"}
