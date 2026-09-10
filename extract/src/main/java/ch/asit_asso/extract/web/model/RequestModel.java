@@ -52,6 +52,12 @@ import org.springframework.data.domain.Page;
 public class RequestModel extends OwnedObjectModel {
 
     /**
+     * The string that identifies the localized string that displays a customer along with the organism
+     * they placed their order for.
+     */
+    private static final String CUSTOMER_WITH_ORGANISM_KEY = "requestsList.customer.withOrganism";
+
+    /**
      * The string that identifies the localized label of an order export task.
      */
     private static final String EXPORT_TASK_LABEL_KEY = "requestHistory.tasks.export.label";
@@ -285,6 +291,38 @@ public class RequestModel extends OwnedObjectModel {
      */
     public final String getCustomerName() {
         return this.request.getClient();
+    }
+
+
+
+    /**
+     * Obtains the name of who placed the order, followed by the organism they placed it for.
+     *
+     * The organism tells apart two orders placed by namesakes belonging to different organisms, and it is
+     * what makes an order findable by organism in the requests tables. An order placed from a personal
+     * account carries the same string as the customer and as the organism, in which case the organism is
+     * left out rather than displayed twice.
+     *
+     * This is the string the requests tables display. The details page of an order shows the organism on
+     * its own line and reads {@link #getCustomerName()} and {@link #getOrganism()} separately.
+     *
+     * @param locale the locale to use to format the string
+     * @return the name of the customer, followed by the organism between parentheses if it differs
+     */
+    public final String getCustomerNameWithOrganism(final Locale locale) {
+        final String customer = this.getCustomerName();
+        final String organism = this.getOrganism();
+
+        if (StringUtils.isBlank(organism) || StringUtils.equals(customer, organism)) {
+            return customer;
+        }
+
+        if (StringUtils.isBlank(customer)) {
+            return organism;
+        }
+
+        return this.messageSource.getMessage(RequestModel.CUSTOMER_WITH_ORGANISM_KEY,
+                new Object[]{customer, organism}, locale);
     }
 
 

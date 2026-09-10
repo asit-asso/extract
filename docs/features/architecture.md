@@ -681,6 +681,30 @@ lands in. Reuse a number that has already been consumed, or move the sequence pa
 left out of that list sets the sequence too low and breaks the next insertion in it, so the list has to grow with
 any new entity.
 
+### Searching the requests tables
+
+The tables that list the requests are paged, sorted and filtered **by the database**, not by the browser:
+the table asks the server for one page at a time (``GET /getFinishedRequests``), and the search box is sent
+along as a filter. The criteria are assembled by ``RequestSpecification.containsText``, which matches the
+searched text, case-insensitively, against any of the following columns of the ``REQUESTS`` table:
+
+| Column | Displayed as |
+| --- | --- |
+| ``p_client`` | Customer |
+| ``p_organism`` | Organism, next to the customer |
+| ``p_tiers`` | Third party |
+| ``p_orderlabel`` | Order |
+| ``p_productlabel`` | Product |
+
+The customer cell shows the customer **followed by the organism between parentheses**, and only when the
+two differ: an order placed from a personal account carries the same string in both columns, and the
+organism is then left out rather than shown twice. That string is built when the row is serialized
+(``RequestModel.getCustomerNameWithOrganism``) and is **never persisted**, which is why the search has to
+look into ``p_organism`` on its own rather than filter on the customer column alone.
+
+Sorting, on the other hand, remains on ``p_client`` alone: the sortable columns are whitelisted in
+``RequestSort``, and the organism is deliberately not one of them.
+
 ### Authentication
 
 There are two types of users:
