@@ -42,9 +42,13 @@
                                         </div>
                                     </fieldset>
                                 </form>
-                                <div style="margin-top: 15px">
+                                <div class="d-flex justify-content-between mt-3">
                                     <a href="../passwordReset/request" th:href="@{/passwordReset/request}"
                                        th:text="#{login.actions.forgotten}">{Forgot your credentials?}</a>
+                                    <a id="support-link" class="ms-3" href="#" th:if="${supportLink != null}"
+                                       th:href="${supportLink.url}"
+                                       th:attr="target=${supportLink.target},rel=${supportLink.rel}"
+                                       th:text="#{login.support.link}">{Support}</a>
                                 </div>
                             </div>
                         </div>
