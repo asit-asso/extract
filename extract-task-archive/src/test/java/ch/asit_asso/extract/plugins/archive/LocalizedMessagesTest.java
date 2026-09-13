@@ -291,6 +291,23 @@ class LocalizedMessagesTest {
             assertNotNull(value);
             assertNotEquals("archivage.executing.success", value);
         }
+
+        /**
+         * The request details page recognizes the archive location line of the task history by the prefix of
+         * this message (see RequestHistoryRecord.ARCHIVE_LOCATION_MESSAGE_PREFIXES in the web application).
+         * Rewording the message in one language, or adding a language without updating that list, silently
+         * removes the link and the copy button from the page.
+         */
+        @Test
+        @DisplayName("Success message keeps the prefix the request details page recognizes")
+        void successMessageKeepsTheRecognizedPrefix() {
+            assertEquals("Emplacement : {archivePath}",
+                         new LocalizedMessages("fr").getString("archivage.executing.success"));
+            assertEquals("Speicherort: {archivePath}",
+                         new LocalizedMessages("de").getString("archivage.executing.success"));
+            assertEquals("Location: {archivePath}",
+                         new LocalizedMessages("en").getString("archivage.executing.success"));
+        }
     }
 
     @Nested
