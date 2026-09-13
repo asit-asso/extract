@@ -80,6 +80,18 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                         <input id="readonly" type="hidden" th:field="*{readOnly}" />
                                         <input type="hidden" th:field="*{htmlScrollY}" />
                                     </div>
+                                    <div class="form-group form-group-with-label"
+                                         th:classappend="${#fields.hasErrors('description')} ? 'has-error'">
+                                        <label th:text="#{processDetails.fields.description.label}"
+                                               class="form-label col-form-label">{Description}</label>
+                                        <textarea class="form-control" style="resize:vertical" maxlength="4000"
+                                                  th:field="*{description}" th:unless="${readOnly}"
+                                                  data-bs-toggle="tooltip"
+                                                  th:title="${#fields.hasErrors('description')} ? ${#fields.errors('description')[0]}"></textarea>
+                                        <div th:text="*{description}" th:if="${readOnly}"
+                                             class="form-control-plaintext preserve-whitespace">{Description}</div>
+                                        <input type="hidden" th:field="*{description}" th:if="${readOnly}" />
+                                    </div>
                                 </div>
                                 <div class="col-xl-6">
                                     <div class="form-group form-group-with-label"
