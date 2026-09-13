@@ -36,6 +36,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Calendar;
+import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -170,7 +171,7 @@ public class ArchivePluginTest {
         
         ArrayNode parametersArray = parameterMapper.readValue(paramsJson, ArrayNode.class);
         assertNotNull(parametersArray);
-        assertEquals(1, parametersArray.size());
+        assertEquals(2, parametersArray.size());
         
         JsonNode pathParam = parametersArray.get(0);
         assertTrue(pathParam.hasNonNull("code"));
@@ -187,6 +188,13 @@ public class ArchivePluginTest {
         
         assertTrue(pathParam.hasNonNull("maxlength"));
         assertEquals(255, pathParam.get("maxlength").intValue());
+
+        JsonNode operatorUrlParam = parametersArray.get(1);
+        assertEquals(config.getProperty("paramOperatorUrl"), operatorUrlParam.get("code").textValue());
+        assertEquals(messages.getString("paramOperatorUrl.label"), operatorUrlParam.get("label").textValue());
+        assertEquals("text", operatorUrlParam.get("type").textValue());
+        assertFalse(operatorUrlParam.get("req").booleanValue());
+        assertEquals(255, operatorUrlParam.get("maxlength").intValue());
     }
     
     @Test
@@ -225,6 +233,55 @@ public class ArchivePluginTest {
         assertEquals("Content 1", Files.readString(destDir.resolve("test1.txt")));
         assertEquals("Content 2", Files.readString(destDir.resolve("test2.txt")));
         assertEquals("Content 3", Files.readString(destDir.resolve("subdir/test3.txt")));
+        assertEquals(messages.getString("archivage.executing.success").replace("{archivePath}", destDir.toString()),
+                result.getMessage());
+    }
+
+    @Test
+    @DisplayName("Execute archive displays the operator URL while copying to the archive path")
+    public void testExecuteUsesOperatorUrlForSuccessMessage() throws IOException {
+        Path sourceDir = tempDir.resolve("source-with-operator-url");
+        Path destDir = tempDir.resolve("archive-with-operator-url");
+        Files.createDirectory(sourceDir);
+        Files.writeString(sourceDir.resolve("test.txt"), "Test content", StandardCharsets.UTF_8);
+
+        String operatorUrl = "https://archives.example.test/orders/123";
+        Map<String, String> params = new HashMap<>();
+        params.put(config.getProperty("paramPath"), destDir.toString());
+        params.put(config.getProperty("paramOperatorUrl"), operatorUrl);
+        when(mockRequest.getFolderOut()).thenReturn(sourceDir.toString());
+
+        ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE, params);
+        ITaskProcessorResult result = instance.execute(mockRequest, mockEmailSettings);
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertTrue(Files.exists(destDir.resolve("test.txt")));
+        assertEquals(messages.getString("archivage.executing.success").replace("{archivePath}", operatorUrl),
+                result.getMessage());
+    }
+
+
+
+    @Test
+    @DisplayName("Execute archive displays the archive path when the operator URL is blank")
+    public void testExecuteUsesArchivePathWhenOperatorUrlIsBlank() throws IOException {
+        Path sourceDir = tempDir.resolve("source-with-blank-operator-url");
+        Path destDir = tempDir.resolve("archive-with-blank-operator-url");
+        Files.createDirectory(sourceDir);
+        Files.writeString(sourceDir.resolve("test.txt"), "Test content", StandardCharsets.UTF_8);
+
+        Map<String, String> params = new HashMap<>();
+        params.put(config.getProperty("paramPath"), destDir.toString());
+        params.put(config.getProperty("paramOperatorUrl"), "   ");
+        when(mockRequest.getFolderOut()).thenReturn(sourceDir.toString());
+
+        ArchivePlugin instance = new ArchivePlugin(TEST_INSTANCE_LANGUAGE, params);
+        ITaskProcessorResult result = instance.execute(mockRequest, mockEmailSettings);
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertTrue(Files.exists(destDir.resolve("test.txt")));
+        assertEquals(messages.getString("archivage.executing.success").replace("{archivePath}", destDir.toString()),
+                result.getMessage());
     }
     
     @Test
@@ -335,6 +392,29 @@ public class ArchivePluginTest {
 
         assertEquals("/archive/{INVALIDFIELD}/ORDER-999", result);
     }
+
+    @Test
+    @DisplayName("Operator URL resolves every archive path placeholder")
+    public void testOperatorUrlResolvesEveryArchivePathPlaceholder() {
+        String placeholders = "{ORDERLABEL}/{ORDERGUID}/{PRODUCTGUID}/{PRODUCTLABEL}/{STARTDATE}/{ORGANISM}/{CLIENT}";
+        TestTaskProcessorRequest testRequest = new TestTaskProcessorRequest();
+        testRequest.orderLabel = "Order Label";
+        testRequest.orderGuid = "order-guid";
+        testRequest.productGuid = "product-guid";
+        testRequest.productLabel = "Product Label";
+        testRequest.startDate = new GregorianCalendar(2024, Calendar.MARCH, 7);
+        testRequest.organism = "Organization Name";
+        testRequest.client = "Client Name";
+
+        String archivePath = plugin.buildPathWithPropertyValues("/archive/" + placeholders, testRequest);
+        String operatorUrl = plugin.buildPathWithPropertyValues("https://archives.example.test/" + placeholders,
+                testRequest);
+
+        assertEquals("Order_Label/order-guid/product-guid/Product_Label/2024-03-07/Organization_Name/Client_Name",
+                archivePath.substring("/archive/".length()));
+        assertEquals(archivePath.substring("/archive/".length()),
+                operatorUrl.substring("https://archives.example.test/".length()));
+    }
     
     @Test
     @DisplayName("Execute archive creates destination directory if not exists")
@@ -389,6 +469,9 @@ public class ArchivePluginTest {
         public String client;
         public String productLabel;
         public Calendar startDate;
+        public String orderGuid;
+        public String productGuid;
+        public String organism;
 
         @Override
         public int getId() { return 0; }
@@ -406,22 +489,23 @@ public class ArchivePluginTest {
         public String getParameters() { return null; }
         
         @Override
-        public String getOrderGuid() { return null; }
+        public String getOrderGuid() { return orderGuid; }
         
         @Override
-        public String getOrderLabel() { return null; }
+        public String getOrderLabel() { return orderLabel; }
         
         @Override
-        public String getProductGuid() { return null; }
+        public String getProductGuid() { return productGuid; }
         
         @Override
-        public String getProductLabel() { return null; }
+        public String getProductLabel() { return productLabel; }
         
         @Override
         public String getOrganismGuid() { return null; }
         
         @Override
-        public String getOrganism() { return null; }
+        public String getOrganism() { return organism; }
+        
         
         @Override
         public String getClientGuid() { return null; }

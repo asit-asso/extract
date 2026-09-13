@@ -261,6 +261,14 @@ class LocalizedMessagesTest {
         }
 
         @Test
+        @DisplayName("Operator URL parameter label is translated in all supported languages")
+        void operatorUrlParameterLabelIsTranslatedInAllSupportedLanguages() {
+            assertEquals("URL opérateur", new LocalizedMessages("fr").getString("paramOperatorUrl.label"));
+            assertEquals("Operator-URL", new LocalizedMessages("de").getString("paramOperatorUrl.label"));
+            assertEquals("Operator URL", new LocalizedMessages("en").getString("paramOperatorUrl.label"));
+        }
+
+        @Test
         @DisplayName("Error messages are available")
         void errorMessagesAreAvailable() {
             LocalizedMessages messages = new LocalizedMessages("fr");
