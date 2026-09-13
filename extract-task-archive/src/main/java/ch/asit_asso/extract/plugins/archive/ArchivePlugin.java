@@ -204,6 +204,13 @@ public class ArchivePlugin implements ITaskProcessor {
         pathNode.put("req", true);
         pathNode.put("maxlength", 255);
 
+        ObjectNode operatorUrlNode = parametersNode.addObject();
+        operatorUrlNode.put("code", this.config.getProperty("paramOperatorUrl"));
+        operatorUrlNode.put("label", this.messages.getString("paramOperatorUrl.label"));
+        operatorUrlNode.put("type", "text");
+        operatorUrlNode.put("req", false);
+        operatorUrlNode.put("maxlength", 255);
+
         try {
             return mapper.writeValueAsString(parametersNode);
 
@@ -247,6 +254,9 @@ public class ArchivePlugin implements ITaskProcessor {
 
         String destPath = this.inputs.get(this.config.getProperty("paramPath"));
         destPath = this.buildPathWithPropertyValues(destPath, request);
+        String operatorUrl = this.inputs.get(this.config.getProperty("paramOperatorUrl"));
+        String locationToDisplay = StringUtils.isBlank(operatorUrl)
+                ? destPath : this.buildPathWithPropertyValues(operatorUrl, request);
         final File srcDir = new File(request.getFolderOut());
         final File destDir = new File(destPath);
 
@@ -271,7 +281,7 @@ public class ArchivePlugin implements ITaskProcessor {
                 resultStatus = ArchiveResult.Status.SUCCESS;
                 resultErrorCode = "";
                 resultMessage = this.messages.getString("archivage.executing.success").replace("{archivePath}",
-                        destPath);
+                        locationToDisplay);
             }
 
         } catch (Exception e) {

@@ -556,11 +556,37 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                             <td th:text="${historyEntry.taskLabel}">{My process task}</td>
                             <td class="history-status"
                                 th:classappend="'history-status-' + ${#strings.toLowerCase(historyEntry.status.name())}">
-                                <span th:text="${#messages.msg('historyRecord.status.' + historyEntry.status.name())}">
-                                    {FINISHED}
-                                </span>
-                                <span th:unless="${#strings.isEmpty(historyEntry.message)}"
-                                      th:text="' / ' + ${historyEntry.message}">{OK}</span>
+                                <th:block th:with="archiveLocation = ${historyEntry.archiveLocation},
+                                                  archiveLocationPrefix = ${historyEntry.archiveLocationMessagePrefix}">
+                                    <th:block th:if="${archiveLocation != null}">
+                                        <div class="history-archive-location">
+                                            <span th:text="${#messages.msg('historyRecord.status.' + historyEntry.status.name())}">
+                                                {FINISHED}
+                                            </span>
+                                            <span class="history-archive-location-prefix"
+                                                  th:text="' / ' + ${archiveLocationPrefix}">{Location:}</span>
+                                            <span class="history-archive-location-value"
+                                                  th:attr="data-archive-location=${archiveLocation},
+                                                  data-archive-location-http-url=${historyEntry.archiveLocationHttpUrl}"
+                                                  th:text="${archiveLocation}">{/var/extract/data/archive/}</span>
+                                            <button type="button"
+                                                    class="btn btn-link btn-sm history-archive-location-copy-button"
+                                                    th:attr="aria-label=#{requestDetails.processHistory.copyLocation.tooltip},
+                                                    data-archive-location=${archiveLocation}"
+                                                    th:title="#{requestDetails.processHistory.copyLocation.tooltip}"
+                                                    title="{Copy URL or path}">
+                                                <i class="fa fa-copy" aria-hidden="true"></i>
+                                            </button>
+                                        </div>
+                                    </th:block>
+                                </th:block>
+                                <th:block th:unless="${historyEntry.archiveLocation != null}">
+                                    <span th:text="${#messages.msg('historyRecord.status.' + historyEntry.status.name())}">
+                                        {FINISHED}
+                                    </span>
+                                    <span th:unless="${#strings.isEmpty(historyEntry.message)}"
+                                          th:text="' / ' + ${historyEntry.message}">{OK}</span>
+                                </th:block>
                             </td>
                             <td th:with="user = ${historyEntry.user}"
                                 th:text="${user != null} ? (${user.systemUser} ? #{default.users.system.name} : ${user.name})

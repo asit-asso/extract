@@ -57,6 +57,10 @@ public class RequestHistoryRecord implements Serializable {
 
     private static final int MAX_MESSAGE_SIZE = 4000;
 
+    private static final String[] ARCHIVE_LOCATION_MESSAGE_PREFIXES = {
+        "Emplacement : ", "Speicherort: ", "Location: "
+    };
+
     /**
      * The identifier of the history entry.
      */
@@ -327,6 +331,82 @@ public class RequestHistoryRecord implements Serializable {
         return this.message;
     }
 
+
+
+
+    /**
+     * Obtains the location displayed by a successful file archiving task.
+     *
+     * @return the archived files location, or <code>null</code> when this is not an archive success message
+     */
+    public final String getArchiveLocation() {
+        final String messagePrefix = this.getArchiveLocationMessagePrefix();
+
+        return (messagePrefix != null) ? this.message.substring(messagePrefix.length()) : null;
+    }
+
+
+
+    /**
+     * Obtains the localized prefix of a successful file archiving task message.
+     *
+     * @return the message prefix, or <code>null</code> when this is not an archive success message
+     */
+    public final String getArchiveLocationMessagePrefix() {
+
+        if (this.status != Status.FINISHED || this.message == null) {
+            return null;
+        }
+
+        for (String messagePrefix : RequestHistoryRecord.ARCHIVE_LOCATION_MESSAGE_PREFIXES) {
+
+            if (this.message.startsWith(messagePrefix) && this.hasTextAfter(messagePrefix.length())) {
+                return messagePrefix;
+            }
+        }
+
+        return null;
+    }
+
+
+
+    /**
+     * Checks whether the archived files location can safely be opened in a browser.
+     *
+     * @return <code>true</code> when the archive location starts with HTTP or HTTPS
+     */
+    public final boolean isArchiveLocationHttpUrl() {
+        final String messagePrefix = this.getArchiveLocationMessagePrefix();
+
+        if (messagePrefix == null) {
+            return false;
+        }
+
+        final int locationStartIndex = messagePrefix.length();
+
+        return this.message.regionMatches(true, locationStartIndex, "http://", 0, 7)
+                || this.message.regionMatches(true, locationStartIndex, "https://", 0, 8);
+    }
+
+
+
+    /**
+     * Checks whether the message contains non-whitespace text after a prefix.
+     *
+     * @param prefixLength the length of the message prefix
+     * @return <code>true</code> when text follows the prefix
+     */
+    private boolean hasTextAfter(final int prefixLength) {
+
+        for (int index = prefixLength; index < this.message.length(); index++) {
+
+            if (!Character.isWhitespace(this.message.charAt(index))) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * Defines the string produced by the task plugin to explain its result.

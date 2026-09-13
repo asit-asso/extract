@@ -132,6 +132,61 @@ function validateRequest(id, label, remark, button) {
 }
 
 
+
+
+/**
+ * Replaces archive location text that the server has classified as HTTP(S) with an external link.
+ */
+function renderArchiveLocationLinks() {
+    $('.history-archive-location-value').each(function () {
+        var archiveLocation = this.getAttribute('data-archive-location');
+
+        if (this.getAttribute('data-archive-location-http-url') !== 'true') {
+            return;
+        }
+
+        var link = document.createElement('a');
+        link.href = archiveLocation;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = archiveLocation;
+        this.textContent = '';
+        this.appendChild(link);
+    });
+}
+
+
+
+/**
+ * Copies an archive location and briefly confirms the successful copy with the button icon.
+ *
+ * @param {HTMLElement} button the copy button
+ */
+function copyArchiveLocation(button) {
+    var archiveLocation = button.getAttribute('data-archive-location');
+
+    if (!archiveLocation || !navigator.clipboard) {
+        return;
+    }
+
+    navigator.clipboard.writeText(archiveLocation).then(function () {
+        var icon = button.querySelector('.fa');
+
+        if (icon == null) {
+            return;
+        }
+
+        icon.classList.remove('fa-copy');
+        icon.classList.add('fa-check');
+        window.setTimeout(function () {
+            icon.classList.remove('fa-check');
+            icon.classList.add('fa-copy');
+        }, 1000);
+    }, function () {
+    });
+}
+
+
 /*************************** MAP **************************/
 
 /**
@@ -1905,6 +1960,12 @@ function configureOwnershipEditor() {
 }
 
 $(function () {
+    renderArchiveLocationLinks();
+
+    $('.history-archive-location-copy-button').on('click', function () {
+        copyArchiveLocation(this);
+    });
+
     $('#standbyValidateButton').on('click', function () {
         _handleButtonClick(this, validateRequest, 'standbyValidateRemark');
     });

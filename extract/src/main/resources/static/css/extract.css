@@ -473,6 +473,22 @@ span.form-control-plaintext {
     word-break: break-all;
 }
 
+.history-archive-location {
+    align-items: baseline;
+    display: flex;
+}
+
+.history-archive-location-value {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.history-archive-location-copy-button {
+    flex: 0 0 auto;
+    margin-left: 0.5rem;
+    padding: 0;
+}
+
 .history-status-error {
     color: red;
 }
