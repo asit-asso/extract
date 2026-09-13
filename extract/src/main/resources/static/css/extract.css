@@ -478,6 +478,10 @@ span.form-control-plaintext {
     display: flex;
 }
 
+.history-archive-location-prefix {
+    white-space: pre;
+}
+
 .history-archive-location-value {
     flex: 1 1 auto;
     min-width: 0;
