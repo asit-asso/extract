@@ -1,0 +1,43 @@
+<div>
+    <p>
+        The archiving plugin saves the processing results of a request item in a directory. Specify a path (local or network) where the files will be archived.</p>
+
+    <p>The archive directory can be local or on the company network.
+        Path examples:
+    </p>
+    <ul>
+        <li>Local Windows directory: D:\extract_data\...</li>
+        <li>Local Linux directory: /var/extract_data\...</li>
+        <li>Windows network directory (UNC): \\server\share\folder...</li>
+    </ul>
+    <p>
+        The archive path can contain variables that will be replaced by request properties. The allowed dynamic properties
+        are the following:
+    </p>
+    <ul>
+        <li>orderLabel</li>
+        <li>orderGuid</li>
+        <li>productGuid</li>
+        <li>productLabel</li>
+        <li>startDate</li>
+        <li>organism</li>
+        <li>client</li>
+    </ul>
+    <p><i>Archive path example:</i> /var/extraction/{orderLabel}-{orderGuid}/{productGuid}/</p>
+    <p>If the archive path is accessible to operators through a URL, it can be entered in the "Operator URL" field. The URL can contain the same variables as the archive path. If a URL is entered, it is displayed in the request details instead of the archive path.</p>
+    <p><b>Important:</b></p>
+    <ul>
+        <li>
+            If the target directory exists and contains files with the same names as the files to archive, they will be overwritten.
+        </li>
+        <li>
+            If the Extract application is deployed on a Linux environment, archiving to a Windows network directory will not be possible.
+        </li>
+        <li>
+            If you want to archive to a shared Linux directory, make sure the Samba mount has been completed beforehand.
+        </li>
+        <li>
+            The Tomcat user must have sufficient permissions to write to the specified network directory.
+        </li>
+    </ul>
+</div>
