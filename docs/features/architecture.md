@@ -81,6 +81,7 @@ Table listing the processes configured in the system. It is not possible to modi
 | --- | --- | --- | --- | 
 | ``id_process`` | int | **Primary key** | *1*
 | ``name`` | varchar 255 | Process title | *Réseau de Gaz*
+| ``description`` | varchar 4000 | Optional description of the process | *Extract gas network data* |
 
 #### TASKS
 

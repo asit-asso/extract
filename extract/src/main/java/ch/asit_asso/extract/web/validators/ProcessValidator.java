@@ -32,6 +32,12 @@ import org.springframework.validation.ValidationUtils;
 public class ProcessValidator extends BaseValidator {
 
     /**
+     * The maximum number of characters allowed in a process description.
+     */
+    private static final int DESCRIPTION_MAX_LENGTH = 4000;
+
+
+    /**
      * An object that can check the conformity of a task model.
      */
     private final TaskValidator taskValidator;
@@ -75,6 +81,12 @@ public class ProcessValidator extends BaseValidator {
         ValidationUtils.rejectIfEmptyOrWhitespace(errors, "name", "processDetails.errors.name.empty");
 
         final ProcessModel process = (ProcessModel) target;
+
+        if (StringUtils.length(process.getDescription()) > ProcessValidator.DESCRIPTION_MAX_LENGTH) {
+            errors.rejectValue("description", "processDetails.errors.description.tooLong",
+                    new Object[]{ProcessValidator.DESCRIPTION_MAX_LENGTH}, "");
+        }
+
 
         int taskIndex = 0;
 

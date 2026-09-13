@@ -5,6 +5,10 @@
 --* Author: Yves Grasset                                           *--
 --******************************************************************--
 
+-- PROCESSES Table
+
+ALTER TABLE processes ADD COLUMN IF NOT EXISTS description VARCHAR(4000);
+
 -- PROCESSES_USERGROUPS Table
 
 ALTER TABLE processes_usergroups
