@@ -60,32 +60,39 @@ It is normal for any automatic start-up of the application after deployment to f
 
 **If you already have a previous version of the application installed, please follow the procedure below.**
 
-1. Back-up the following files so you don't have to redefine your configuration:
+1. Back-up the following configuration files so you don't have to redefine them:
     * ``WEB-INF\classes\application.properties``
     * ``WEB-INF\classes\logback-spring.xml``
     * ``WEB-INF\classes\static\js\requestMap\map.custom.js`` (if you've set it)
     * ``WEB-INF\classes\templates\email\html\*`` (if you've customized the e-mail templates)
     * ``WEB-INF\classes\static\lang\*\message.properties``
 
-2. Undeploy the existing Extract application.
-3. For Tomcat on Windows: go to the directory where Tomcat is installed and delete all directories named ``[digit]-extract`` (e.g. ``0-extract``, ``1-extract``,...) under the ``temp`` sub-directory.
-4. Deploy the new WAR.
-5. Compare the ``WEB-INF\classes\application.properties`` file with the one you backed-up, and transfer any new or modified properties to the latter.
+2. Back-up any custom connectors you might have developed. Custom connectors are ``.jar`` file saved under ``WEB-INF\classes\connectors`` and
+named differently than the default one from Extract (``extract-connector-easysdiv4-{version}.jar``).
+
+3. Back-up any custom extraction plugin you might have developed. Custom plugin are ``.jar`` file saved under ``WEB-INF\classes\task_processors``.
+
+4. Undeploy the existing Extract application.
+5. For Tomcat on Windows: go to the directory where Tomcat is installed and delete all directories named ``[digit]-extract`` (e.g. ``0-extract``, ``1-extract``,...) under the ``temp`` sub-directory.
+6. Deploy the new WAR.
+7. Compare the ``WEB-INF\classes\application.properties`` file with the one you backed-up, and transfer any new or modified properties to the latter.
 > !!! Info "Updating to version 2.1"
     Enter a random 32-character ISO-8859-1 string for `database.encryption.secret` and `database.encryption.salt` properties. These strings are used as keys to encrypt certain database values.
 
-6. Overwrite the folowing file with your backup :
+8. Overwrite the folowing file with your backup :
     * ``WEB-INF\classes\logback-spring.xml``
 
-7. Copy your backup ``map.custom.js`` file (if set) to the ``WEB-INF\classes\static\js\requestMap`` directory.
+9. Copy your backup ``map.custom.js`` file (if set) to the ``WEB-INF\classes\static\js\requestMap`` directory.
 > !!! Info "Updating to version 2.1"
     The OpenLayers library used to display the map underwent a major update (to 9.1.0) when Extract was upgraded to version 2.1. The code used to register a projection system has changed (see the new version of the ``map.custom.js`` example file). Depending on the functionality used, further modifications may be necessary. Please refer to the official documentation if necessary: [https://openlayers.org/en/v9.1.0/apidoc/](https://openlayers.org/en/v9.1.0/apidoc/){target="_blank"}
 
-8. Compare the e-mail templates in ``WEB-INF\classes\templates\email\html\`` with those you've backed up, to merge any changes you've made with the new version.
-9. Compare the language files in ``WEB-INF\classes\static\lang\*\`` with those you've backed up, to merge any changes you've made with the new version.
-10. Restart the Tomcat Extract application to take account of the updated configuration files.
-11. Connect to the database.
-12. Run the ``[ZIP]\sql\update_db.sql`` script to apply any changes to the structure that are not made automatically by the application.
+10. Compare the e-mail templates in ``WEB-INF\classes\templates\email\html\`` with those you've backed up, to merge any changes you've made with the new version.
+11. Compare the language files in ``WEB-INF\classes\static\lang\*\`` with those you've backed up, to merge any changes you've made with the new version.
+12. If existing, Copy your custom connector ``.jar`` file to ``WEB-INF\classes\connectors``
+13. If existing, Copy your custom extraction plugin ``.jar`` file to `WEB-INF\classes\task_processors`
+14. Restart the Tomcat Extract application to take account of the updated configuration files.
+15. Connect to the database.
+16. Run the ``[ZIP]\sql\update_db.sql`` script to apply any changes to the structure that are not made automatically by the application.
 
 ## Server Migration
 
