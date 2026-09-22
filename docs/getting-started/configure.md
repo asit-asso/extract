@@ -40,6 +40,11 @@ All codes must have corresponding application's language files (usually `message
 
 By default, Extract supports french (`fr`) and german (`de`).
 
+**extract.support.url**<br>
+Optional URL of the support link displayed only on the login page. Leave it empty to hide the link. A `mailto:`
+address opens the user's mail client; an HTTP or HTTPS URL opens in a new tab. Any other non-blank value is
+rendered unchanged but does not open in a new tab.
+
 **check.authenticity**<br>
 Boolean value defining if the signature of executable binaries run by Extract are checked or not. By default, the value is true `check.authenticity=true` but you can set it on `false` (it's known to cause antivirus alerts when set to `true`).
 

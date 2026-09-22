@@ -17,9 +17,13 @@
 package ch.asit_asso.extract.web.controllers;
 
 import ch.asit_asso.extract.web.Message.MessageType;
+import ch.asit_asso.extract.web.model.LoginSupportLink;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -43,28 +47,43 @@ public class LoginController extends BaseController {
     private static final String LOGIN_VIEW = "login";
 
     /**
+     * The name of the model attribute that carries the configured support link.
+     */
+    private static final String SUPPORT_LINK_ATTRIBUTE = "supportLink";
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(LoginController.class);
 
+
+    /**
+     * The optional URL of the support link displayed on the login page.
+     */
+    @Value("${extract.support.url:}")
+    private String supportUrl;
 
 
     /**
      * Displays the login page.
      *
      * @param redirectAttributes the data that may be passed by a page redirecting to this one
+     * @param model the data passed to the login page
      * @return the string that identifies the view to display
      */
     @GetMapping
-    public final String viewForm(final RedirectAttributes redirectAttributes) {
+    public final String viewForm(final RedirectAttributes redirectAttributes, final Model model) {
 
         if (this.isCurrentUserApplicationUser()) {
             return REDIRECT_TO_HOME;
         }
 
+        if (StringUtils.isNotBlank(this.supportUrl)) {
+            model.addAttribute(LoginController.SUPPORT_LINK_ATTRIBUTE, new LoginSupportLink(this.supportUrl));
+        }
+
         return LoginController.LOGIN_VIEW;
     }
-
 
     /**
      * Handles a login attempt that failed.
