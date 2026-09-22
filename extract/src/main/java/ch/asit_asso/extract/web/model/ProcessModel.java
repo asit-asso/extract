@@ -59,6 +59,12 @@ public class ProcessModel extends OwnedObjectModel {
     private String name;
 
     /**
+     * The optional description of this process.
+     */
+    private String description;
+
+
+    /**
      * Whether updates to this process should be allowed.
      */
     private boolean readOnly;
@@ -116,6 +122,27 @@ public class ProcessModel extends OwnedObjectModel {
     public final void setName(final String processName) {
         this.name = processName;
     }
+
+    /**
+     * Obtains the optional description of this process.
+     *
+     * @return the description of this process
+     */
+    public final String getDescription() {
+        return this.description;
+    }
+
+
+
+    /**
+     * Defines the optional description of this process.
+     *
+     * @param processDescription the description of this process
+     */
+    public final void setDescription(final String processDescription) {
+        this.description = processDescription;
+    }
+
 
 
 
@@ -343,6 +370,7 @@ public class ProcessModel extends OwnedObjectModel {
 
         this.setId(domainProcess.getId());
         this.setName(domainProcess.getName());
+        this.setDescription(domainProcess.getDescription());
         this.readOnly = (requestsRepository != null) ? !domainProcess.canBeEdited(requestsRepository)
                 : !domainProcess.canBeEdited();
         this.deletable = (requestsRepository != null) ? domainProcess.canBeDeleted(requestsRepository)
@@ -429,6 +457,7 @@ public class ProcessModel extends OwnedObjectModel {
         }
 
         domainProcess.setName(this.getName());
+        domainProcess.setDescription(this.getDescription());
         this.copyUserGroups(domainProcess, userGroupsRepository);
         this.copyUsers(domainProcess, userRepository);
 

@@ -87,10 +87,10 @@ This page lists all processes whether or not they are associated with a rule. Fo
 
 * **Create a process** by clicking on the `Nouveau traitement` button
 * **Edit a process** by clicking on its name
-* **Duplicate a process** by clicking on the green button with a copy icon. An identical copy of the process will be created, including its tasks and settings.
+* **Duplicate a process** by clicking on the green button with a copy icon. An identical copy of the process will be created, including its description, tasks and settings.
 * **Delete a process** by clicking on the red button with a cross. Processes associated with a request that is not completed or associated with a connector's rule cannot be deleted (grayed out button).
 
-It includes a filtering feature based on the name of the process. The search is executed only when you click the green **search button** (magnifying glass icon). Alternatively, you can start the search by pressing **Enter** while focused on the search field.
+It includes a filtering feature based on the name, description or tasks of the process. The search is executed only when you click the green **search button** (magnifying glass icon). Alternatively, you can start the search by pressing **Enter** while focused on the search field.
 
 ### Process details
 
@@ -100,6 +100,7 @@ It includes a filtering feature based on the name of the process. The search is 
 At the top of the page, the following are defined:
 
 * The name to be given to the process in the application
+* An optional description that documents the purpose or use of the process
 * The users or user groups authorized to interact with requests associated with this process. At least one operator or user group must be specified. Administrators can interact with all requests.
 
 #### Process tasks

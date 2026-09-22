@@ -86,6 +86,14 @@ public class Process implements Serializable {
     private String name;
 
     /**
+     * The optional description of this process.
+     */
+    @Size(max = 4000)
+    @Column(name = "description", length = 4000)
+    private String description;
+
+
+    /**
      * The operators that supervise this process.
      */
     @JoinTable(name = "processes_users",
@@ -203,6 +211,27 @@ public class Process implements Serializable {
     public void setName(final String processName) {
         this.name = processName;
     }
+
+    /**
+     * Obtains the optional description of this process.
+     *
+     * @return the description of this process
+     */
+    public String getDescription() {
+        return this.description;
+    }
+
+
+
+    /**
+     * Defines the optional description of this process.
+     *
+     * @param processDescription the description of this process
+     */
+    public void setDescription(final String processDescription) {
+        this.description = processDescription;
+    }
+
 
 
 
@@ -542,6 +571,7 @@ public class Process implements Serializable {
     public Process createCopy() {
         Process copy = new Process();
         copy.setName(this.getCopyName());
+        copy.setDescription(this.getDescription());
 
         Collection<User> users = this.getUsersCollection();
 
