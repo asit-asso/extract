@@ -26,6 +26,7 @@ import java.util.stream.Collectors;
 
 import ch.asit_asso.extract.plugins.common.IEmailSettings;
 import ch.asit_asso.extract.utils.EmailUtils;
+import ch.asit_asso.extract.utils.Secrets;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.slf4j.Logger;
@@ -111,6 +112,10 @@ public class EmailSettings implements IEmailSettings {
      * The Spring Data object that links the general parameters of the application with the data source.
      */
     private SystemParametersRepository systemParametersRepository;
+    /**
+     * The utility used to decrypt persisted secrets.
+     */
+    private final Secrets secrets;
 
     /**
      * The Thymeleaf object that allows to process the e-mail templates.
@@ -146,30 +151,20 @@ public class EmailSettings implements IEmailSettings {
 
 
 
-    /**
-     * Creates a new instance of the e-mail settings.
-     *
-     * @param repository      the Spring Data object that links the application parameters with the data source
-     * @param engine          the object that allows to process the e-mail templates
-     * @param messages        the object that gives an access to the application strings
-     * @param externalRootUrl a string that contains the absolute URL of the application
-     */
-    public EmailSettings(final SystemParametersRepository repository, final TemplateEngine engine,
-            final MessageSource messages, final String externalRootUrl) {
-        this(repository, engine, messages, externalRootUrl, null);
-    }
 
     /**
-     * Creates a new instance of the e-mail settings.
+     * Creates e-mail settings with the utility required to decrypt persisted secrets.
      *
-     * @param repository      the Spring Data object that links the application parameters with the data source
-     * @param engine          the object that allows to process the e-mail templates
-     * @param messages        the object that gives an access to the application strings
-     * @param externalRootUrl a string that contains the absolute URL of the application
-     * @param languageConfig  the configured languages (comma-separated) from extract.i18n.language
+     * @param repository the Spring Data object for application parameters
+     * @param engine the object used to process e-mail templates
+     * @param messages the localized message source
+     * @param externalRootUrl the absolute application URL
+     * @param languageConfig configured comma-separated languages
+     * @param secretsUtility utility used to decrypt persisted secrets
      */
     public EmailSettings(final SystemParametersRepository repository, final TemplateEngine engine,
-            final MessageSource messages, final String externalRootUrl, final String languageConfig) {
+            final MessageSource messages, final String externalRootUrl, final String languageConfig,
+            final Secrets secretsUtility) {
 
         if (repository == null) {
             throw new IllegalArgumentException("The system parameters repository cannot be null.");
@@ -182,6 +177,12 @@ public class EmailSettings implements IEmailSettings {
         if (messages == null) {
             throw new IllegalArgumentException("The message source cannot be null.");
         }
+
+        if (secretsUtility == null) {
+            throw new IllegalArgumentException("The secrets utility cannot be null.");
+        }
+
+
 
         if (StringUtils.isBlank(externalRootUrl)) {
             throw new IllegalArgumentException("The application root URL cannot be empty.");
@@ -199,6 +200,7 @@ public class EmailSettings implements IEmailSettings {
         this.systemParametersRepository = repository;
         this.templateEngine = engine;
         this.messageSource = messages;
+        this.secrets = secretsUtility;
         this.applicationExternalRootUrl = rootUrl;
 
         // Parse available locales from configuration
@@ -664,7 +666,8 @@ public class EmailSettings implements IEmailSettings {
         this.setSenderName(this.systemParametersRepository.getSmtpFromName());
         this.setSmtpHost(this.systemParametersRepository.getSmtpServer());
         this.setSmtpUser(this.systemParametersRepository.getSmtpUser());
-        this.setSmtpPassword(this.systemParametersRepository.getSmtpPassword());
+        final String storedPassword = this.systemParametersRepository.getSmtpPassword();
+        this.setSmtpPassword(this.secrets.decryptLegacy(storedPassword));
         final String rawNotificationParameterValue = this.systemParametersRepository.isEmailNotificationEnabled();
         this.setNotificationsEnabled(Boolean.parseBoolean(rawNotificationParameterValue));
 

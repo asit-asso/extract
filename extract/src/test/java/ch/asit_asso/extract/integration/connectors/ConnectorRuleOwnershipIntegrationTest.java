@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Rule;
+import ch.asit_asso.extract.connectors.common.IConnector;
+import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.integration.DatabaseTestHelper;
 import ch.asit_asso.extract.integration.WithMockApplicationUser;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
@@ -32,14 +34,18 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -72,6 +78,16 @@ class ConnectorRuleOwnershipIntegrationTest {
      * The criteria that the untouched rule must still hold.
      */
     private static final String OTHER_CRITERIA = "orderlabel == \"ZZ428-other\"";
+    @MockBean
+    private ConnectorDiscovererWrapper connectorDiscoverer;
+
+    @BeforeEach
+    void configureConnectorPlugin() {
+        IConnector plugin = mock(IConnector.class);
+        when(plugin.getCode()).thenReturn("test");
+        when(plugin.getParams()).thenReturn("[]");
+        when(this.connectorDiscoverer.getConnectorForLanguage("test", "fr")).thenReturn(plugin);
+    }
 
     @Autowired
     private MockMvc mockMvc;

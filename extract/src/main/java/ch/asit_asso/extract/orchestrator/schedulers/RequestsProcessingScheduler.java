@@ -36,6 +36,7 @@ import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,6 +101,11 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
     private final RequestTaskService taskService;
 
     /**
+     * Encrypts and decrypts task plugin secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
+    /**
      * The access to the available task plugins.
      */
     private final TaskProcessorDiscovererWrapper taskPluginDiscoverer;
@@ -136,7 +142,8 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
             final ApplicationRepositories repositories, final ConnectorDiscovererWrapper connectorsDiscoverer,
             final TaskProcessorDiscovererWrapper tasksDiscoverer, final EmailSettings smtpSettings,
             final String applicationLanguage, final OrchestratorSettings orchestratorSettings,
-            final MessageService messageService, final RequestTaskService taskService) {
+            final MessageService messageService, final RequestTaskService taskService,
+            final SecretParameters secretParameters) {
 
         super(taskRegistrar);
 
@@ -171,6 +178,9 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         if (taskService == null) {
             throw new IllegalArgumentException("The task service cannot be null.");
         }
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
 
         this.applicationRepositories = repositories;
         this.connectorPluginDiscoverer = connectorsDiscoverer;
@@ -180,6 +190,7 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
         this.applicationLangague = applicationLanguage;
         this.messageService = messageService;
         this.taskService = taskService;
+        this.secretParameters = secretParameters;
         this.taskExecutorService = Executors.newCachedThreadPool();
         this.setSchedulingStep(orchestratorSettings.getFrequency());
     }
@@ -348,7 +359,8 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
 
             RequestTaskRunner taskRunner = new RequestTaskRunner(request, this.applicationRepositories,
                                                                  this.taskPluginDiscoverer, this.emailSettings,
-                                                                 this.applicationLangague, this.taskService);
+                                                                 this.applicationLangague, this.taskService,
+                                                                 this.secretParameters);
             taskRunner.subscribeToCompletionNotification(this);
             this.logger.debug("Created the task runner.");
             this.taskExecutorService.submit(taskRunner);
@@ -403,7 +415,8 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
                 this.applicationRepositories, this.emailSettings, this.applicationLangague);
         final var recurringTask = new FixedDelayTask(notificationJobRunner, this.getSchedulingStepInMilliseconds(), 0);
         this.requestNotificationScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
-        this.logger.debug("The request notification job is scheduled with a {} second(s) delay.", this.getSchedulingStep());
+        this.logger.debug("The request notification job is scheduled with a {} second(s) delay.",
+                          this.getSchedulingStep());
     }
 
 
@@ -413,9 +426,9 @@ public class RequestsProcessingScheduler extends JobScheduler implements TaskCom
      */
     private void scheduleTaskExportJob() {
         this.logger.debug("Scheduling the request export job.");
-        final ExportRequestsJobRunner exportJobRunner = new ExportRequestsJobRunner(/*this.getJobRunnerComponents(),*/
+        final ExportRequestsJobRunner exportJobRunner = new ExportRequestsJobRunner(
                 this.emailSettings, this.applicationRepositories, this.connectorPluginDiscoverer,
-                this.applicationLangague, this.messageService);
+                this.applicationLangague, this.messageService, this.secretParameters);
         final var recurringTask = new FixedDelayTask(exportJobRunner, this.getSchedulingStepInMilliseconds(), 0);
         this.taskExportScheduledTask = this.getTaskRegistrar().scheduleFixedDelayTask(recurringTask);
         this.logger.debug("The request export job is scheduled with a {} second(s) delay.", this.getSchedulingStep());

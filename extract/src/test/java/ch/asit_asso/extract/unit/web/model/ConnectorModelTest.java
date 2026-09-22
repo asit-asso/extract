@@ -26,13 +26,14 @@ import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Rule;
+import ch.asit_asso.extract.services.SecretParameters;
+import ch.asit_asso.extract.testutils.TestSecrets;
 import ch.asit_asso.extract.web.model.ConnectorModel;
 import ch.asit_asso.extract.web.model.RuleModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Tag;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -56,14 +57,16 @@ public class ConnectorModelTest {
     IConnector dummyConnectorPlugin;
 
     RuleModel dummyRuleModel;
+    SecretParameters secretParameters;
 
 
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         this.dummyConnectorPlugin = new DummyConnectorPlugin();
 
         this.dummyConnectorInstance = new Connector();
+        this.secretParameters = new SecretParameters(TestSecrets.create());
         this.dummyConnectorInstance.setActive(Boolean.TRUE);
         this.dummyConnectorInstance.setConnectorCode(this.dummyConnectorPlugin.getCode());
         this.dummyConnectorInstance.setConnectorLabel(this.dummyConnectorPlugin.getLabel());
@@ -115,7 +118,8 @@ public class ConnectorModelTest {
         request2.setStatus(Request.Status.STANDBY);
         request2.setConnector(this.dummyConnectorInstance);
         this.dummyConnectorInstance.setRequestsCollection(Arrays.asList(request1, request2));
-        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null);
+        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null,
+                                                     this.secretParameters);
 
         boolean hasActive = instance.hasActiveRequests();
 
@@ -137,7 +141,8 @@ public class ConnectorModelTest {
         request2.setStatus(Request.Status.FINISHED);
         request2.setConnector(this.dummyConnectorInstance);
         this.dummyConnectorInstance.setRequestsCollection(Arrays.asList(request1, request2));
-        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null);
+        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null,
+                                                     this.secretParameters);
 
         boolean hasActive = instance.hasActiveRequests();
 
@@ -161,7 +166,7 @@ public class ConnectorModelTest {
         instance.setName(this.dummyConnectorInstance.getName());
         instance.setMaximumRetries(this.dummyConnectorInstance.getMaximumRetries());
 
-        Connector createdInstance = instance.createDomainConnector();
+        Connector createdInstance = instance.createDomainConnector(this.secretParameters);
 
         assertEquals(this.dummyConnectorInstance.isActive(), createdInstance.isActive());
         assertEquals(this.dummyConnectorPlugin.getCode(), createdInstance.getConnectorCode());
@@ -184,7 +189,8 @@ public class ConnectorModelTest {
     public void testUpdateDomainConnector() {
 
         Calendar newImportDate = new GregorianCalendar(2017, Calendar.FEBRUARY, 25, 12, 33, 54);
-        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null);
+        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null,
+                                                     this.secretParameters);
         instance.setActive(false);
         instance.setId(8);
         instance.setImportFrequency(360);
@@ -193,7 +199,7 @@ public class ConnectorModelTest {
         instance.setLastImportMessage("OK");
         instance.setName("New test connector");
 
-        instance.updateDomainConnector(this.dummyConnectorInstance);
+        instance.updateDomainConnector(this.dummyConnectorInstance, this.secretParameters);
 
         assertEquals(false, this.dummyConnectorInstance.isActive());
         assertEquals(ConnectorModelTest.DUMMY_CONNECTOR_INSTANCE_ID, (long) this.dummyConnectorInstance.getId());
@@ -215,7 +221,8 @@ public class ConnectorModelTest {
     @Test
     @DisplayName("Add a rule")
     public void testAddRule() {
-        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null);
+        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null,
+                                                     this.secretParameters);
 
         instance.addRule(this.dummyRuleModel);
 
@@ -236,7 +243,8 @@ public class ConnectorModelTest {
     @Test
     @DisplayName("Remove a rule by its identifier")
     public void testRemoveRuleById() {
-        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null);
+        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null,
+                                                     this.secretParameters);
 
         instance.removeRule(ConnectorModelTest.DUMMY_RULE_INSTANCE_ID);
 
@@ -252,7 +260,8 @@ public class ConnectorModelTest {
     @Test
     @DisplayName("Remove a rule by a model instance")
     public void testRemoveRuleByModel() {
-        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null);
+        ConnectorModel instance = new ConnectorModel(this.dummyConnectorPlugin, this.dummyConnectorInstance, null,
+                                                     this.secretParameters);
         instance.addRule(this.dummyRuleModel);
 
         instance.removeRule(this.dummyRuleModel);
