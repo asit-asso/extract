@@ -342,7 +342,7 @@ public class SystemParametersController extends BaseController {
                     case SMTP_PASSWORD_KEY:
 
                         if (!Secrets.isGenericPasswordString(parameterModel.getSmtpPassword())) {
-                            systemParameter.setValue(parameterModel.getSmtpPassword());
+                            systemParameter.setValue(this.secrets.encryptIfNeeded(parameterModel.getSmtpPassword()));
                         }
                         break;
 
@@ -563,7 +563,7 @@ public class SystemParametersController extends BaseController {
 
 
     private String getLdapPasswordFromRepository() {
-         return this.secrets.decrypt(this.systemParametersRepository.getLdapSynchronizationPassword());
+         return this.secrets.decryptLegacy(this.systemParametersRepository.getLdapSynchronizationPassword());
     }
 
 

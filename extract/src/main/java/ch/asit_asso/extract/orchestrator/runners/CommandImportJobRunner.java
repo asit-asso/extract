@@ -24,6 +24,7 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 
+import ch.asit_asso.extract.services.SecretParameters;
 
 
 /**
@@ -60,6 +61,11 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
     private final MessageService messageService;
 
     /**
+     * Encrypts and decrypts connector secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
+    /**
      * The locale of the language that the application displays messages in.
      */
     private final String language;
@@ -84,6 +90,13 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
     public CommandImportJobRunner(final int connectorIdentifier, final IConnector connectorPlugin,
             final ApplicationRepositories repositories, final EmailSettings smtpSettings,
             final String applicationLanguage, final MessageService messageService) {
+        this(connectorIdentifier, connectorPlugin, repositories, smtpSettings, applicationLanguage, messageService, null);
+    }
+
+    public CommandImportJobRunner(final int connectorIdentifier, final IConnector connectorPlugin,
+            final ApplicationRepositories repositories, final EmailSettings smtpSettings,
+            final String applicationLanguage, final MessageService messageService,
+            final SecretParameters secretParameters) {
 
         if (connectorIdentifier < 1) {
             throw new IllegalArgumentException("The connector identifier must be greater than 0.");
@@ -115,6 +128,7 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
         this.messageService = messageService;
+        this.secretParameters = secretParameters;
     }
 
 
@@ -164,7 +178,8 @@ public class CommandImportJobRunner /*extends JobRunner<Product, Request>*/ impl
     public final ConnectorImportReader getReader() {
         return new ConnectorImportReader(this.connectorId, this.connectorPluginInstance,
                 this.applicationRepositories.getConnectorsRepository(),
-                this.applicationRepositories.getUsersRepository(), this.emailSettings, this.language);
+                this.applicationRepositories.getUsersRepository(), this.emailSettings, this.language,
+                this.secretParameters);
     }
 
 

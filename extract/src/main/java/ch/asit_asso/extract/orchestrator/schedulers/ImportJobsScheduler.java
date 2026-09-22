@@ -9,6 +9,7 @@ import ch.asit_asso.extract.connectors.common.IConnector;
 import ch.asit_asso.extract.connectors.implementation.ConnectorDiscovererWrapper;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.orchestrator.OrchestratorSettings;
 import ch.asit_asso.extract.orchestrator.runners.CommandImportJobRunner;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
@@ -73,6 +74,11 @@ public class ImportJobsScheduler extends JobScheduler {
      */
     private final Logger logger = LoggerFactory.getLogger(ImportJobsScheduler.class);
 
+    /**
+     * Encrypts and decrypts connector secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
     private final OrchestratorSettings orchestratorSettings;
 
     /**
@@ -94,7 +100,8 @@ public class ImportJobsScheduler extends JobScheduler {
      */
     public ImportJobsScheduler(final ScheduledTaskRegistrar taskRegistrar, final ApplicationRepositories repositories,
             final ConnectorDiscovererWrapper connectorsPluginsDiscoverer, final EmailSettings smtpSettings,
-            final String applicationLanguage, final OrchestratorSettings orchestratorSettings, final MessageService messageService) {
+            final String applicationLanguage, final OrchestratorSettings orchestratorSettings,
+            final MessageService messageService, final SecretParameters secretParameters) {
         super(taskRegistrar);
 
         if (connectorsPluginsDiscoverer == null) {
@@ -127,6 +134,7 @@ public class ImportJobsScheduler extends JobScheduler {
         this.language = applicationLanguage;
         this.orchestratorSettings = orchestratorSettings;
         this.messageService = messageService;
+        this.secretParameters = secretParameters;
         this.setSchedulingStep(this.orchestratorSettings.getFrequency());
     }
 
@@ -253,7 +261,8 @@ public class ImportJobsScheduler extends JobScheduler {
 
         try {
             CommandImportJobRunner jobRunner = new CommandImportJobRunner(connector.getId(), connectorPlugin,
-                    this.applicationRepositories, this.emailSettings, this.language, this.messageService);
+                    this.applicationRepositories, this.emailSettings, this.language, this.messageService,
+                    this.secretParameters);
             this.logger.debug("Task to run import job for connector {} created.", connectorName);
             TaskScheduler taskScheduler = this.getTaskScheduler();
             ScheduledFuture jobFuture = taskScheduler.scheduleWithFixedDelay(jobRunner, delay);

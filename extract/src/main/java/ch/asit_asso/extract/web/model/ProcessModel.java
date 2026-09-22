@@ -23,6 +23,7 @@ import ch.asit_asso.extract.domain.UserGroup;
 import ch.asit_asso.extract.persistence.*;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.services.SecretParameters;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,11 +178,11 @@ public class ProcessModel extends OwnedObjectModel {
      * @param domainProcess the data object for this process
      * @return a list of task data objects
      */
-    private List<Task> getDomainTasks(final Process domainProcess) {
+    private List<Task> getDomainTasks(final Process domainProcess, final SecretParameters secretParameters) {
         List<Task> tasksList = new ArrayList<>();
 
         for (TaskModel taskModel : this.tasksList) {
-            Task domainTask = taskModel.createDomainTask(domainProcess);
+            Task domainTask = taskModel.createDomainTask(domainProcess, secretParameters);
             tasksList.add(domainTask);
         }
 
@@ -315,15 +316,10 @@ public class ProcessModel extends OwnedObjectModel {
 
 
 
-    /**
-     * Creates a new process model instance.
-     *
-     * @param domainProcess         the data object for the process to represent
-     * @param taskPluginsDiscoverer the available task plugins provider
-     * @param requestsRepository    the link between request data objects and the data source
-     */
+
     public ProcessModel(final Process domainProcess,
-                        final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final RequestsRepository requestsRepository) {
+                        final TaskProcessorDiscovererWrapper taskPluginsDiscoverer,
+                        final RequestsRepository requestsRepository, final SecretParameters secretParameters) {
         this();
 
         if (domainProcess == null) {
@@ -333,7 +329,6 @@ public class ProcessModel extends OwnedObjectModel {
         if (taskPluginsDiscoverer == null) {
             throw new IllegalArgumentException("The task plugin discoverer cannot be null.");
         }
-
         if (requestsRepository == null) {
             this.logger.warn("The requests repository that was passed is null. The state of the requests bound to this"
                     + " process will be computed from the full collection, which can be VERY long if there are a large"
@@ -347,50 +342,43 @@ public class ProcessModel extends OwnedObjectModel {
                 : !domainProcess.canBeEdited();
         this.deletable = (requestsRepository != null) ? domainProcess.canBeDeleted(requestsRepository)
                 : domainProcess.canBeDeleted();
-        this.setTasksFromDomainObject(domainProcess, taskPluginsDiscoverer);
+        this.setTasksFromDomainObject(domainProcess, taskPluginsDiscoverer, secretParameters);
         setUsersFromDomainObject(domainProcess.getUsersCollection());
-        setUserGroupsFromDomainObject(domainProcess.getUserGroupsCollection());        
+        setUserGroupsFromDomainObject(domainProcess.getUserGroupsCollection());
     }
+
 
 
 
     public final Process createInDataSource(ProcessesRepository processRepository, TasksRepository taskRepository,
-                                            UsersRepository userRepository, UserGroupsRepository userGroupsRepository) {
+                                            UsersRepository userRepository, UserGroupsRepository userGroupsRepository,
+                                            SecretParameters secretParameters) {
         Process domainProcess = this.createDomainObject(userRepository, userGroupsRepository);
-
-        return this.saveInDataSource(processRepository, taskRepository, userRepository, domainProcess);
+        return this.saveInDataSource(processRepository, taskRepository, userRepository, userGroupsRepository,
+                                     domainProcess, secretParameters);
     }
 
-
-
-    private final Process saveInDataSource(ProcessesRepository processRepository,
-                                           TasksRepository taskRepository, UsersRepository userRepository,
-                                           Process domainProcess) {
-        domainProcess = processRepository.save(domainProcess);
-        this.setId(domainProcess.getId());
-        this.updateTasksInDataSource(taskRepository, domainProcess);
-
-        return domainProcess;
-    }
 
 
 
     public final Process updateInDataSource(ProcessesRepository processRepository,
                                             TasksRepository taskRepository, UsersRepository userRepository,
-                                            UserGroupsRepository userGroupsRepository, Process domainProcess) {
+                                            UserGroupsRepository userGroupsRepository, Process domainProcess,
+                                            SecretParameters secretParameters) {
         domainProcess = this.updateDomainObject(domainProcess, userRepository, userGroupsRepository);
-
-        return this.saveInDataSource(processRepository, taskRepository, userRepository, domainProcess);
+        return this.saveInDataSource(processRepository, taskRepository, userRepository, userGroupsRepository,
+                                     domainProcess, secretParameters);
     }
 
 
 
+
     public final void updateTasksInDataSource(TasksRepository taskRepository,
-            Process domainProcess) {
+            Process domainProcess, SecretParameters secretParameters) {
 
         for (TaskModel taskModel : this.getTasks()) {
             this.logger.debug("Updating task in position {} with plugin {}.", taskModel.getPosition(), taskModel.getPluginCode());
-            taskModel.saveInDataSource(taskRepository, domainProcess);
+            taskModel.saveInDataSource(taskRepository, domainProcess, secretParameters);
         }
 
         for (Task taskToDelete : this.getDeletedDomainTasks(domainProcess)) {
@@ -413,7 +401,14 @@ public class ProcessModel extends OwnedObjectModel {
         return this.updateDomainObject(domainProcess, userRepository, userGroupsRepository);
     }
 
-
+    private Process saveInDataSource(ProcessesRepository processRepository, TasksRepository taskRepository,
+            UsersRepository userRepository, UserGroupsRepository userGroupsRepository, Process domainProcess,
+            SecretParameters secretParameters) {
+        domainProcess = processRepository.save(domainProcess);
+        this.setId(domainProcess.getId());
+        this.updateTasksInDataSource(taskRepository, domainProcess, secretParameters);
+        return domainProcess;
+    }
 
     /**
      * Reports the current values in this model to the data object for the represented process.
@@ -564,9 +559,10 @@ public class ProcessModel extends OwnedObjectModel {
      *
      * @param domainProcess         the data object for this process
      * @param taskPluginsDiscoverer the available task plugins provider
+     * @param secretParameters      the service used to decrypt task parameters
      */
     private void setTasksFromDomainObject(final Process domainProcess,
-            final TaskProcessorDiscovererWrapper taskPluginsDiscoverer) {
+            final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final SecretParameters secretParameters) {
         assert domainProcess != null : "The process data object must not be null.";
         assert taskPluginsDiscoverer != null : "The task plugin discoverer must not be null.";
 
@@ -578,9 +574,8 @@ public class ProcessModel extends OwnedObjectModel {
                 continue;
             }
 
-            this.addTask(new TaskModel(task, taskPlugin));
+            this.addTask(new TaskModel(task, taskPlugin, secretParameters));
         }
-
     }
 
     /**
@@ -623,11 +618,13 @@ public class ProcessModel extends OwnedObjectModel {
      * @param domainObjectsCollection the process data objects to represent
      * @param taskPluginsDiscoverer   the link to the task plugins that are available in the application
      * @param requestsRepository      the link between the request data objects and the data source
+     * @param secretParameters         the service used to decrypt task parameters
      * @return a collection that contains the models representing the data objects
      */
     public static Collection<ProcessModel> fromDomainObjectsCollection(
             final Iterable<Process> domainObjectsCollection,
-            final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final RequestsRepository requestsRepository) {
+            final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final RequestsRepository requestsRepository,
+            final SecretParameters secretParameters) {
 
         if (domainObjectsCollection == null) {
             throw new IllegalArgumentException("The collection of process data objects cannot be null.");
@@ -640,7 +637,7 @@ public class ProcessModel extends OwnedObjectModel {
         List<ProcessModel> modelsList = new ArrayList<>();
 
         for (Process domainProcess : domainObjectsCollection) {
-            modelsList.add(new ProcessModel(domainProcess, taskPluginsDiscoverer, requestsRepository));
+            modelsList.add(new ProcessModel(domainProcess, taskPluginsDiscoverer, requestsRepository, secretParameters));
         }
 
         return modelsList;

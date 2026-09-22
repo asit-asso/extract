@@ -25,7 +25,7 @@ services:
             - /tmp/log/tomcat:/usr/local/tomcat/logs
             - /tmp/extract/orders:/var/extract/orders
         environment:
-            - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH
+            - JAVA_OPTS=-Xms1G -Xmx2G -Duser.language=fr -Duser.region=CH -Ddatabase.encryption.secret=test-secret-32-characters-long -Ddatabase.encryption.salt=test-salt-32-characters-long!!
         ports:
             - "8080:8080"
         healthcheck:

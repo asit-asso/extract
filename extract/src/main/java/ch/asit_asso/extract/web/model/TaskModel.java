@@ -17,11 +17,16 @@
 package ch.asit_asso.extract.web.model;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.persistence.TasksRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.services.SecretParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,6 +73,10 @@ public class TaskModel extends PluginItemModel {
      * The help message of the plugin.
      */
     private String pluginHelpMessage;
+    /**
+     * The parameter definition provided by the task plugin.
+     */
+    private String pluginParametersDefinition;
 
     /**
      * The step number that this task represents in the process.
@@ -257,13 +266,14 @@ public class TaskModel extends PluginItemModel {
 
     /**
      * Creates a new instance of this model.
-     *
-     * @param domainTask the data object of the task to represent
-     * @param taskPlugin the plugin used by the task
      */
-    public TaskModel(final Task domainTask, final ITaskProcessor taskPlugin) {
+    public TaskModel(final Task domainTask, final ITaskProcessor taskPlugin,
+                     final SecretParameters secretParameters) {
         this(taskPlugin);
-        this.definePropertiesFromDataObject(domainTask);
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
+        this.definePropertiesFromDataObject(domainTask, secretParameters);
     }
 
 
@@ -274,7 +284,8 @@ public class TaskModel extends PluginItemModel {
      * @param process the data object for the process that this task is part of
      * @return the created task data object
      */
-    public final Task createDomainTask(final Process process) {
+
+    public final Task createDomainTask(final Process process, final SecretParameters secretParameters) {
         final Task domainTask = new Task();
         domainTask.setId(this.isNew() ? null : this.getId());
         domainTask.setCode(this.getPluginCode());
@@ -284,7 +295,7 @@ public class TaskModel extends PluginItemModel {
             domainTask.setProcess(process);
         }
 
-        return this.updateDomainTask(domainTask);
+        return this.updateDomainTask(domainTask, secretParameters);
     }
 
 
@@ -310,10 +321,18 @@ public class TaskModel extends PluginItemModel {
      * @param domainTask the data object for this task
      * @return the updated task data object
      */
-    public final Task updateDomainTask(final Task domainTask) {
 
+    public final Task updateDomainTask(final Task domainTask, final SecretParameters secretParameters) {
         if (domainTask == null) {
             throw new IllegalArgumentException("The domain task to update cannot be null.");
+        }
+
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
+
+        if (this.pluginParametersDefinition == null) {
+            throw new IllegalStateException("The task plugin parameters definition is not set.");
         }
 
         domainTask.setPosition(this.getPosition());
@@ -321,7 +340,9 @@ public class TaskModel extends PluginItemModel {
                           String.join(", ",
                                       Arrays.stream(this.getParameters()).map(PluginItemModelParameter::getName)
                                             .toList()));
-        domainTask.updateParametersValues(this.getParametersValues());
+        HashMap<String, String> values = secretParameters.encrypt(this.getParametersValues(),
+                this.pluginParametersDefinition);
+        domainTask.updateParametersValues(values);
 
         return domainTask;
     }
@@ -344,11 +365,14 @@ public class TaskModel extends PluginItemModel {
      * @return the saved task data object
      */
     public final Task saveInDataSource(final TasksRepository taskRepository,
-            final Process domainProcess) {
+            final Process domainProcess, final SecretParameters secretParameters) {
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
         Task domainTask;
 
         if (this.isNew()) {
-            domainTask = this.createDomainTask(domainProcess);
+            domainTask = this.createDomainTask(domainProcess, secretParameters);
 
         } else {
             domainTask = this.findInProcess(domainProcess);
@@ -359,7 +383,7 @@ public class TaskModel extends PluginItemModel {
                         (domainProcess != null) ? domainProcess.getId() : null));
             }
 
-            this.updateDomainTask(domainTask);
+            this.updateDomainTask(domainTask, secretParameters);
         }
 
         domainTask = taskRepository.save(domainTask);
@@ -370,7 +394,6 @@ public class TaskModel extends PluginItemModel {
 
         return domainTask;
     }
-
 
 
     /**
@@ -407,7 +430,8 @@ public class TaskModel extends PluginItemModel {
         this.setPluginLabel(taskPlugin.getLabel());
         this.setPluginPictoClass(taskPlugin.getPictoClass());
         this.setPluginHelpMessage(taskPlugin.getHelp());
-        this.defineParametersFromPlugin(taskPlugin);
+        this.pluginParametersDefinition = taskPlugin.getParams();
+        this.defineParametersFromJson(this.pluginParametersDefinition);
     }
 
 
@@ -417,14 +441,36 @@ public class TaskModel extends PluginItemModel {
      *
      * @param domainTask the data object for this task
      */
-    private void definePropertiesFromDataObject(final Task domainTask) {
+    private void definePropertiesFromDataObject(final Task domainTask, final SecretParameters secretParameters) {
         this.setId(domainTask.getId());
         this.setPosition(domainTask.getPosition());
-        this.setParametersValuesFromMap(domainTask.getParametersValues());
+        Map<String, String> values = secretParameters.decrypt(domainTask.getParametersValues(),
+                this.getSecretParameterNames());
+        this.setParametersValuesFromMap(values);
     }
 
 
 
+    private Set<String> getSecretParameterNames() {
+        Set<String> secretNames = new HashSet<>();
+        for (PluginItemModelParameter parameter : this.getParameters()) {
+            if (SecretParameters.isSecretType(parameter.getType())) {
+                secretNames.add(parameter.getName());
+            }
+        }
+        return secretNames;
+    }
+    /**
+     * Defines the authoritative parameter definition used when persisting this task.
+     *
+     * @param parametersDefinition the definition returned by the task plugin
+     */
+    public final void definePluginParametersDefinition(final String parametersDefinition) {
+        if (parametersDefinition == null) {
+            throw new IllegalArgumentException("The task plugin parameters definition cannot be null.");
+        }
+        this.pluginParametersDefinition = parametersDefinition;
+    }
     /**
      * Sets the parameters exposed by the plugin used by this task.
      *

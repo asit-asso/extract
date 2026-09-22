@@ -24,6 +24,8 @@ import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.persistence.TasksRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.services.SecretParameters;
+import ch.asit_asso.extract.testutils.TestSecrets;
 import ch.asit_asso.extract.web.model.ProcessModel;
 import ch.asit_asso.extract.web.model.TaskModel;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,12 +78,14 @@ class TaskOwnershipTest {
     private static final int FOREIGN_TASK_ID = 1473;
 
     private TasksRepository tasksRepository;
+    private SecretParameters secretParameters;
 
 
 
     @BeforeEach
-    public void setUp() {
+    public void setUp() throws Exception {
         this.tasksRepository = mock(TasksRepository.class);
+        this.secretParameters = new SecretParameters(TestSecrets.create());
         when(this.tasksRepository.save(any(Task.class))).thenAnswer(invocation -> invocation.getArgument(0));
     }
 
@@ -101,7 +105,8 @@ class TaskOwnershipTest {
             addedTask.setId(TaskOwnershipTest.FOREIGN_TASK_ID);
             addedTask.setPosition(6);
 
-            addedTask.saveInDataSource(TaskOwnershipTest.this.tasksRepository, editedProcess);
+            addedTask.saveInDataSource(TaskOwnershipTest.this.tasksRepository, editedProcess,
+                                       TaskOwnershipTest.this.secretParameters);
 
             final ArgumentCaptor<Task> savedTask = ArgumentCaptor.forClass(Task.class);
             verify(TaskOwnershipTest.this.tasksRepository).save(savedTask.capture());
@@ -132,7 +137,8 @@ class TaskOwnershipTest {
 
             assertThrows(IllegalArgumentException.class,
                          () -> foreignTaskModel.saveInDataSource(TaskOwnershipTest.this.tasksRepository,
-                                                                 editedProcess));
+                                                                 editedProcess,
+                                                                 TaskOwnershipTest.this.secretParameters));
             verify(TaskOwnershipTest.this.tasksRepository, never()).save(any(Task.class));
             assertEquals(2, foreignTask.getPosition(), "The task of the other process must be untouched.");
             assertEquals("/opt/scripts/other.py", foreignTask.getParametersValues().get("pythonScript"),
@@ -151,7 +157,8 @@ class TaskOwnershipTest {
             taskModel.setPosition(3);
             taskModel.getParameterByName("path").setValue("/tmp/nouveau");
 
-            taskModel.saveInDataSource(TaskOwnershipTest.this.tasksRepository, editedProcess);
+            taskModel.saveInDataSource(TaskOwnershipTest.this.tasksRepository, editedProcess,
+                                       TaskOwnershipTest.this.secretParameters);
 
             final ArgumentCaptor<Task> savedTask = ArgumentCaptor.forClass(Task.class);
             verify(TaskOwnershipTest.this.tasksRepository).save(savedTask.capture());
@@ -250,7 +257,8 @@ class TaskOwnershipTest {
             archiveValues.put("path", "/tmp/archive");
             corruptedTask.setParametersValues(archiveValues);
 
-            final TaskModel taskModel = new TaskModel(corruptedTask, ITaskProcessorStub.PYTHON.plugin());
+            final TaskModel taskModel = new TaskModel(corruptedTask, ITaskProcessorStub.PYTHON.plugin(),
+                                                      TaskOwnershipTest.this.secretParameters);
 
             assertNull(taskModel.getParameterByName("pythonScript").getValue(),
                        "The parameter that the data source no longer holds must be left empty.");
@@ -267,7 +275,8 @@ class TaskOwnershipTest {
             emptyTask.setCode("python");
             emptyTask.setPosition(1);
 
-            final TaskModel taskModel = new TaskModel(emptyTask, ITaskProcessorStub.PYTHON.plugin());
+            final TaskModel taskModel = new TaskModel(emptyTask, ITaskProcessorStub.PYTHON.plugin(),
+                                                      TaskOwnershipTest.this.secretParameters);
 
             assertNull(taskModel.getParameterByName("pythonScript").getValue(),
                        "The mandatory parameter must be left empty.");

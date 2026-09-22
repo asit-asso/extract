@@ -27,6 +27,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
+import ch.asit_asso.extract.testutils.TestSecrets;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.context.IContext;
@@ -83,7 +84,9 @@ public class SystemEmailTest {
         when(mockRepo.getSmtpSSL()).thenReturn("NONE");
 
         // Create EmailSettings with correct constructor parameters
-        mockEmailSettings = new EmailSettings(mockRepo, mockTemplateEngine, mockMessageSource, "http://localhost:8080");
+        mockEmailSettings = new EmailSettings(mockRepo, mockTemplateEngine, mockMessageSource,
+                "http://localhost:8080", "fr",
+                TestSecrets.create());
         
         // Setup test request with comprehensive data
         testRequest = new Request();
@@ -120,6 +123,7 @@ public class SystemEmailTest {
         testTask.setId(456);
         testTask.setLabel("Data Export Task");
     }
+
     
     @Test
     public void testTaskFailedEmail_Initialization() {
