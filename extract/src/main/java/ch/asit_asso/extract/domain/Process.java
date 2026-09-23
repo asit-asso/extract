@@ -128,6 +128,44 @@ public class Process implements Serializable {
     private Collection<UserGroup> userGroupsCollection;
 
 
+    /**
+     * The users that observe this process without being allowed to act on its requests.
+     */
+    @JoinTable(name = "processes_watchers",
+            joinColumns = {
+                @JoinColumn(name = "id_process", referencedColumnName = "id_process",
+                        foreignKey = @ForeignKey(name = "FK_PROCESSES_WATCHERS_PROCESS")
+                )
+            },
+            inverseJoinColumns = {
+                @JoinColumn(name = "id_user", referencedColumnName = "id_user",
+                        foreignKey = @ForeignKey(name = "FK_PROCESSES_WATCHERS_USER")
+                )
+            }
+    )
+    @ManyToMany
+    private Collection<User> watchersCollection;
+
+
+    /**
+     * The user groups that observe this process without being allowed to act on its requests.
+     */
+    @JoinTable(name = "processes_watchergroups",
+            joinColumns = {
+                    @JoinColumn(name = "id_process", referencedColumnName = "id_process",
+                            foreignKey = @ForeignKey(name = "FK_PROCESSES_WATCHERGROUPS_PROCESS")
+                    )
+            },
+            inverseJoinColumns = {
+                    @JoinColumn(name = "id_usergroup", referencedColumnName = "id_usergroup",
+                            foreignKey = @ForeignKey(name = "FK_PROCESSES_WATCHERGROUPS_USERGROUP")
+                    )
+            }
+    )
+    @ManyToMany
+    private Collection<UserGroup> watcherGroupsCollection;
+
+
 
     /**
      * The processing tasks that make up this process.
@@ -278,6 +316,54 @@ public class Process implements Serializable {
      */
     public void setUserGroupsCollection(Collection<UserGroup> userGroups) {
         this.userGroupsCollection = userGroups;
+    }
+
+
+
+    /**
+     * Obtains the users that observe this process. This only contains the users defined directly, not those defined
+     * through a user group. To get all the watchers independently of how they've been defined, please use the
+     * method {@link  #getDistinctWatchers()}
+     *
+     * @return a collection that contains the watchers
+     */
+    @XmlTransient
+    public Collection<User> getWatchersCollection() {
+        return watchersCollection;
+    }
+
+
+
+    /**
+     * Defines the users that observe this process.
+     *
+     * @param watchers a collection that contains the watchers for this process
+     */
+    public void setWatchersCollection(final Collection<User> watchers) {
+        this.watchersCollection = watchers;
+    }
+
+
+
+    /**
+     * Obtains the user groups that observe this process.
+     *
+     * @return a collection that contains the groups of watchers
+     */
+    @XmlTransient
+    public Collection<UserGroup> getWatcherGroupsCollection() {
+        return watcherGroupsCollection;
+    }
+
+
+
+    /**
+     * Defines the user groups that observe this process.
+     *
+     * @param watcherGroups a collection that contains the groups of watchers for this process
+     */
+    public void setWatcherGroupsCollection(final Collection<UserGroup> watcherGroups) {
+        this.watcherGroupsCollection = watcherGroups;
     }
 
 
@@ -533,6 +619,37 @@ public class Process implements Serializable {
 
 
 
+    /**
+     * Obtains a list of all the users allowed to observe this process, including those defined through a user
+     * group, without duplicates.
+     *
+     * @return a collection that contains all the watchers for this process, or an empty collection if none is
+     *         defined
+     */
+    public final Collection<User> getDistinctWatchers() {
+        List<User> watchers = (this.watchersCollection != null) ? new ArrayList<>(this.watchersCollection)
+                : new ArrayList<>();
+
+        if (this.watcherGroupsCollection != null) {
+
+            for (UserGroup watchersGroup : this.watcherGroupsCollection) {
+
+                for (User groupWatcher : watchersGroup.getUsersCollection()) {
+
+                    if (watchers.contains(groupWatcher)) {
+                        continue;
+                    }
+
+                    watchers.add(groupWatcher);
+                }
+            }
+        }
+
+        return watchers;
+    }
+
+
+
     @Override
     public final int hashCode() {
         int hash = 0;
@@ -583,6 +700,18 @@ public class Process implements Serializable {
 
         if (userGroups != null) {
             copy.setUserGroupsCollection(new ArrayList<>(userGroups));
+        }
+
+        Collection<User> watchers = this.getWatchersCollection();
+
+        if (watchers != null) {
+            copy.setWatchersCollection(new ArrayList<>(watchers));
+        }
+
+        Collection<UserGroup> watcherGroups = this.getWatcherGroupsCollection();
+
+        if (watcherGroups != null) {
+            copy.setWatcherGroupsCollection(new ArrayList<>(watcherGroups));
         }
 
         return copy;

@@ -22,11 +22,20 @@
  */
 function submitProcessData() {
     //update usersIds in hidden input before saving process 
-    var usersListIdsArray = $('#users').select2('val');
+    var usersListIdsArray = $('#users').select2('val') || [];
     $('#usersIds').val(usersListIdsArray
                             .filter((value) => value.startsWith('user-'))
                             .map((value) => value.substring('user-'.length)).join(','));
     $('#userGroupsIds').val(usersListIdsArray
+                                .filter((value) => value.startsWith('group-'))
+                                .map((value) => value.substring('group-'.length)).join(','));
+
+    //update watcherUsersIds/watcherUserGroupsIds in hidden input before saving process
+    var watchersListIdsArray = $('#watchers').select2('val') || [];
+    $('#watcherUsersIds').val(watchersListIdsArray
+                            .filter((value) => value.startsWith('user-'))
+                            .map((value) => value.substring('user-'.length)).join(','));
+    $('#watcherUserGroupsIds').val(watchersListIdsArray
                                 .filter((value) => value.startsWith('group-'))
                                 .map((value) => value.substring('group-'.length)).join(','));
 
@@ -99,17 +108,23 @@ $(function() {
         multiple:true
     });
 
-    $(".user-select.select2").select2({
+    $(".user-select.select2, .watcher-select.select2").select2({
         templateSelection: formatUserItem,
         templateResult: formatUserItem,
         multiple:true
     });
 
     //set users in the multiple select
-    var usersIdsArray = $("#usersIds").val().split(',').map((value) => `user-${value}`);
-    var userGroupsIdsArray = $("#userGroupsIds").val().split(',').map((value) => `group-${value}`);
+    var usersIdsArray = $("#usersIds").val().split(',').filter((value) => value !== '').map((value) => `user-${value}`);
+    var userGroupsIdsArray = $("#userGroupsIds").val().split(',').filter((value) => value !== '').map((value) => `group-${value}`);
     $('#users').val([...usersIdsArray, ...userGroupsIdsArray]);
     $('#users').trigger('change');
+
+    //set watchers in the multiple select
+    var watcherUsersIdsArray = $("#watcherUsersIds").val().split(',').filter((value) => value !== '').map((value) => `user-${value}`);
+    var watcherUserGroupsIdsArray = $("#watcherUserGroupsIds").val().split(',').filter((value) => value !== '').map((value) => `group-${value}`);
+    $('#watchers').val([...watcherUsersIdsArray, ...watcherUserGroupsIdsArray]);
+    $('#watchers').trigger('change');
 
     $(".parameter-select-values").each(function (index, item) {
         var idsArray = $(item).val().split(',');

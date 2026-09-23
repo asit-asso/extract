@@ -35,8 +35,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
         <div id="wrapper">
             <div id="page-wrapper" layout:fragment="content"
                  th:with="isAdmin = ${#authentication.principal.hasAuthority('ADMIN')},
-                 showErrorBlock = ${request.taskInError or request.exportInError or (request.inError and isAdmin)},
-                 showActionBlock = ${request.inStandby or showErrorBlock},
+                 showErrorBlock = ${not watcherOnly and (request.taskInError or request.exportInError or (request.inError and isAdmin))},
+                 showActionBlock = ${not watcherOnly and (request.inStandby or showErrorBlock)},
                  hasProcess = ${not #strings.isEmpty(request.processName)}">
                 <div>
                     <div class="float-end">
@@ -250,7 +250,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                         </div>
                     </div>
                 </div>
-                <div class="card card-body current-step current-step-standby" th:if="${request.inStandby}">
+                <div class="card card-body current-step current-step-standby" th:if="${not watcherOnly and request.inStandby}">
                     <div class="current-step-title">
                         <h2 th:text="#{requestDetails.currentStep.standby.title}">
                             {This process waits for an action.}
@@ -349,7 +349,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                     <input type="file" id="filesToAdd" name="filesToAdd" multiple="multiple"
                            class="hidden-file-upload-control"/>
                 </form>
-                <div class="card card-default" th:if="${@features.perRequestOwnershipEnabled}">
+                <div class="card card-default" th:if="${@features.perRequestOwnershipEnabled and not watcherOnly}">
                     <div class="card-header">
                         <b th:text="#{requestDetails.panels.ownership.title}">{Additional owners}</b>
                     </div>            
@@ -437,7 +437,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                    href="#" th:text="*{name}" target="_blank">
                                                     {file.zip}
                                                 </a>
-                                                <span th:if="${request.waitingIntervention}">
+                                                <span th:if="${not watcherOnly and request.waitingIntervention}">
                                                     <button class="file-delete-button" title="{Delete this file}"
                                                             th:title="#{requestDetails.files.delete}"
                                                             th:attr="data-action=@{'/requests/' + ${request.id} + '/deleteFile'},
@@ -450,7 +450,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <button type="button" id="file-upload-button"
                                                         class="btn btn-extract-filled file-upload-button"
                                                         th:text="#{requestDetails.files.add.button.label}"
-                                                        th:if="${request.waitingIntervention}"
+                                                        th:if="${not watcherOnly and request.waitingIntervention}"
                                                         th:attr="data-action=@{'/requests/' + ${request.id} + '/addFiles'}">
                                                     {Add files…}
                                                 </button>

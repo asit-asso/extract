@@ -25,7 +25,9 @@ import java.util.UUID;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.LocaleUtils;
+import ch.asit_asso.extract.email.NewRequestWatcherEmail;
 import ch.asit_asso.extract.email.UnmatchedRequestEmail;
+import ch.asit_asso.extract.persistence.ProcessesRepository;
 import ch.asit_asso.extract.persistence.RulesRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.requestmatching.RequestMatcher;
@@ -75,6 +77,11 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
      */
     private final UsersRepository usersRepository;
 
+    /**
+     * The link between the process data objects and the data source.
+     */
+    private final ProcessesRepository processesRepository;
+
 
 
     /**
@@ -83,11 +90,13 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
      * @param rulesRepo      the link between the rules data objects and the data source
      * @param parametersRepo the access to the application general parameters
      * @param usersRepo      the link between the users data obejcts and the data source
+     * @param processesRepo  the link between the process data objects and the data source
      * @param smtpSettings   the object that asssembles the configuration objects required to create and send
      *                       e-mail messages
      */
     public RequestMatchingProcessor(final RulesRepository rulesRepo, final SystemParametersRepository parametersRepo,
-            final UsersRepository usersRepo, final EmailSettings smtpSettings) {
+            final UsersRepository usersRepo, final ProcessesRepository processesRepo,
+            final EmailSettings smtpSettings) {
 
         if (rulesRepo == null) {
             throw new IllegalArgumentException("The rules repository cannot be null.");
@@ -101,6 +110,10 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
             throw new IllegalArgumentException("The users repository cannot be null.");
         }
 
+        if (processesRepo == null) {
+            throw new IllegalArgumentException("The processes repository cannot be null.");
+        }
+
         if (smtpSettings == null) {
             throw new IllegalArgumentException("The e-mail settings object cannot be null.");
         }
@@ -108,6 +121,7 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
         this.rulesRepository = rulesRepo;
         this.systemParametersRepository = parametersRepo;
         this.usersRepository = usersRepo;
+        this.processesRepository = processesRepo;
         this.emailSettings = smtpSettings;
     }
 
@@ -186,6 +200,8 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
         request.setProcess(matchedProcess);
         request.setStatus(Status.ONGOING);
         request.setTasknum(1);
+
+        this.sendEmailToWatchers(request, matchedProcess);
 
         return request;
     }
@@ -310,6 +326,83 @@ public class RequestMatchingProcessor implements ItemProcessor<Request, Request>
 
         } catch (Exception exception) {
             this.logger.warn("An error prevented notifying the administrators by e-mail.", exception);
+        }
+    }
+
+
+
+    /**
+     * Notifies the watchers of a process by electronic message that a new request has been imported for it.
+     * <p>
+     * The recipients are the active users with the e-mail notifications enabled that are either watching the
+     * process directly or through one of their user groups. This method never lets an exception escape so that
+     * a failure to send the notifications does not prevent the request from being processed.
+     *
+     * @param request the request that has just been attached to the watched process
+     * @param process the process that the request has been attached to
+     */
+    private void sendEmailToWatchers(final Request request, final Process process) {
+        assert request != null : "The request must be set.";
+        assert process != null : "The process must be set.";
+
+        try {
+            this.logger.debug("Sending e-mail notifications to the watchers of process {}.", process.getId());
+
+            final List<User> watchers = this.processesRepository.getProcessWatchers(process.getId());
+
+            if (watchers == null || watchers.isEmpty()) {
+                this.logger.debug("No watcher found for process {}.", process.getId());
+                return;
+            }
+
+            // Get available locales from email settings (configured from extract.i18n.language)
+            final List<java.util.Locale> availableLocales = this.emailSettings.getAvailableLocales();
+            boolean atLeastOneEmailSent = false;
+
+            // Send individual email to each watcher with their preferred locale
+            for (User watcher : watchers) {
+                try {
+                    final NewRequestWatcherEmail message = new NewRequestWatcherEmail(this.emailSettings);
+
+                    // Get validated locale for this watcher
+                    java.util.Locale userLocale = LocaleUtils.getValidatedUserLocale(watcher, availableLocales);
+
+                    if (!message.initializeContent(request, process, userLocale)) {
+                        this.logger.error("Could not create the watcher message for user {}.", watcher.getLogin());
+                        continue;
+                    }
+
+                    try {
+                        message.addRecipient(watcher.getEmail());
+                    } catch (javax.mail.internet.AddressException e) {
+                        this.logger.error("Invalid email address for user {}: {}",
+                            watcher.getLogin(), watcher.getEmail());
+                        continue;
+                    }
+
+                    if (message.send()) {
+                        this.logger.debug("New request watcher notification sent successfully to {} with locale {}.",
+                                        watcher.getEmail(), userLocale.toLanguageTag());
+                        atLeastOneEmailSent = true;
+                    } else {
+                        this.logger.warn("Failed to send new request watcher notification to {}.",
+                            watcher.getEmail());
+                    }
+
+                } catch (Exception exception) {
+                    this.logger.warn("Error sending watcher notification to user {}: {}",
+                        watcher.getLogin(), exception.getMessage());
+                }
+            }
+
+            if (atLeastOneEmailSent) {
+                this.logger.info("The new request watcher e-mail notification was sent to at least one watcher.");
+            } else {
+                this.logger.warn("The new request watcher e-mail notification was not sent to any watcher.");
+            }
+
+        } catch (Exception exception) {
+            this.logger.warn("An error prevented notifying the watchers by e-mail.", exception);
         }
     }
 //
