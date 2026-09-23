@@ -130,11 +130,26 @@ public class Request implements Serializable {
     private String clientDetails;
 
     /**
-     * The e-mail address of the person who ordered this data item.
+     * The postal address of the person who ordered this data item. Its first line holds the street name
+     * and number, and its last line holds the ZIP code followed by the locality.
+     */
+    @Size(max = 4000)
+    @Column(name = "p_clientaddress")
+    private String clientAddress;
+
+    /**
+     * The electronic address of the person who ordered this data item.
      */
     @Size(max = 255)
     @Column(name = "p_clientemail")
     private String clientEmail;
+
+    /**
+     * The telephone number of the person who ordered this data item.
+     */
+    @Size(max = 255)
+    @Column(name = "p_clientphone")
+    private String clientPhone;
 
     /**
      * The name of the third-party (if any) that this data item was ordered on behalf of.
@@ -594,9 +609,31 @@ public class Request implements Serializable {
 
 
     /**
-     * Obtains the e-mail address of the customer who ordered this data item.
+     * Obtains the postal address of the customer who ordered this data item.
      *
-     * @return the e-mail address of the customer
+     * @return the multiline postal address of the customer, or <code>null</code> if it is not known
+     */
+    public String getClientAddress() {
+        return this.clientAddress;
+    }
+
+
+
+    /**
+     * Defines the postal address of the customer who ordered this data item.
+     *
+     * @param address the multiline postal address of the customer
+     */
+    public void setClientAddress(final String address) {
+        this.clientAddress = address;
+    }
+
+
+
+    /**
+     * Obtains the electronic address of the customer who ordered this data item.
+     *
+     * @return the e-mail address of the customer, or <code>null</code> if it is not known
      */
     public String getClientEmail() {
         return this.clientEmail;
@@ -605,12 +642,34 @@ public class Request implements Serializable {
 
 
     /**
-     * Defines the e-mail address of the customer who ordered this data item.
+     * Defines the electronic address of the customer who ordered this data item.
      *
      * @param email the e-mail address of the customer
      */
     public void setClientEmail(final String email) {
         this.clientEmail = email;
+    }
+
+
+
+    /**
+     * Obtains the telephone number of the customer who ordered this data item.
+     *
+     * @return the telephone number of the customer, or <code>null</code> if it is not known
+     */
+    public String getClientPhone() {
+        return this.clientPhone;
+    }
+
+
+
+    /**
+     * Defines the telephone number of the customer who ordered this data item.
+     *
+     * @param phone the telephone number of the customer
+     */
+    public void setClientPhone(final String phone) {
+        this.clientPhone = phone;
     }
 
 

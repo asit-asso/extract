@@ -115,6 +115,37 @@ public interface IProduct {
 
 
     /**
+     * Obtains the postal address of the person who ordered this product.
+     * <p>
+     * The address is a multiline string whose first line holds the street name and number, and whose last
+     * line holds the ZIP code followed by the locality.
+     * <p>
+     * This method is a default one so that connector plugins written before this information was available
+     * keep working. Such plugins will report that the address is unknown.
+     *
+     * @return the postal address of the customer, or <code>null</code> if it is not available
+     */
+    default String getClientAddress() {
+        return null;
+    }
+
+
+
+    /**
+     * Obtains the telephone number of the person who ordered this product.
+     * <p>
+     * This method is a default one so that connector plugins written before this information was available
+     * keep working. Such plugins will report that the telephone number is unknown.
+     *
+     * @return the telephone number of the customer, or <code>null</code> if it is not available
+     */
+    default String getClientPhone() {
+        return null;
+    }
+
+
+
+    /**
      * Obtains the name of the person that this product was ordered on behalf of, if any.
      *
      * @return the name of the third party, or <code>null</code> if there is not any

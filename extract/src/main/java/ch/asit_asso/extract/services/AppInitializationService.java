@@ -16,8 +16,17 @@ public class AppInitializationService {
         this.repository = repository;
     }
 
+    /**
+     * Checks whether the application already has a real administrator.
+     * <p>
+     * The hidden system user is explicitly excluded: it is not an application account, and a schema update
+     * may have given it the administrator profile. Counting it would make the application believe it is
+     * configured and prevent the creation of the first administrator (issue #432).
+     *
+     * @return <code>true</code> if an administrator other than the system user exists
+     */
     @Cacheable(sync = true)
     public boolean isConfigured() {
-        return repository.existsByProfile(User.Profile.ADMIN);
+        return repository.existsByProfileAndLoginNot(User.Profile.ADMIN, User.SYSTEM_USER_LOGIN);
     }
 }

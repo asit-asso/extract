@@ -814,6 +814,9 @@ public class PythonPlugin implements ITaskProcessor {
         properties.put("OrderLabel", request.getOrderLabel());
         properties.put("ClientGuid", request.getClientGuid());
         properties.put("ClientName", request.getClient());
+        properties.put("ClientAddress", request.getClientAddress());
+        properties.put("ClientEmail", request.getClientEmail());
+        properties.put("ClientPhone", request.getClientPhone());
         properties.put("OrganismGuid", request.getOrganismGuid());
         properties.put("OrganismName", request.getOrganism());
         properties.put("ProductGuid", request.getProductGuid());

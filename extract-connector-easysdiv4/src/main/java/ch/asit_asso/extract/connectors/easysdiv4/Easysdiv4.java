@@ -378,6 +378,104 @@ public class Easysdiv4 implements IConnector {
 
 
     /**
+     * The contact information carried by an easySDI address element.
+     * <p>
+     * It keeps the address lines apart from the telephone number and the e-mail address, so that they can
+     * either be exposed as distinct values or be collapsed into the legacy single-blob representation.
+     */
+    static final class ContactDetails {
+
+        /**
+         * The separator between two lines of the legacy single-blob representation.
+         */
+        private static final String LEGACY_LINE_SEPARATOR = "\r\n";
+
+        /**
+         * The separator between two lines of the postal address.
+         */
+        private static final String ADDRESS_LINE_SEPARATOR = "\n";
+
+        /**
+         * The lines of the postal address, without any empty one.
+         */
+        private final List<String> addressLines = new ArrayList<>();
+
+        /**
+         * The telephone number, if any.
+         */
+        private String phone;
+
+        /**
+         * The electronic address, if any.
+         */
+        private String email;
+
+
+
+        /**
+         * Obtains the postal address as a multiline string.
+         *
+         * @return the postal address, or <code>null</code> if there is not any
+         */
+        String getAddress() {
+
+            if (this.addressLines.isEmpty()) {
+                return null;
+            }
+
+            return StringUtils.join(this.addressLines, ContactDetails.ADDRESS_LINE_SEPARATOR);
+        }
+
+
+
+        /**
+         * Obtains the telephone number.
+         *
+         * @return the telephone number, or <code>null</code> if there is not any
+         */
+        String getPhone() {
+            return this.phone;
+        }
+
+
+
+        /**
+         * Obtains the electronic address.
+         *
+         * @return the e-mail address, or <code>null</code> if there is not any or if the content of the e-mail
+         *         element does not have the shape of an e-mail address (such content is only kept in the
+         *         legacy details string)
+         */
+        String getEmail() {
+            return Easysdiv4.looksLikeEmailAddress(this.email) ? this.email : null;
+        }
+
+
+
+        /**
+         * Obtains every piece of contact information as one single string.
+         *
+         * @return the address lines followed by the telephone number and the e-mail address
+         */
+        String toDetailsString() {
+            final List<String> details = new ArrayList<>(this.addressLines);
+
+            if (StringUtils.isNotEmpty(this.phone)) {
+                details.add(this.phone);
+            }
+
+            if (StringUtils.isNotEmpty(this.email)) {
+                details.add(this.email);
+            }
+
+            return StringUtils.join(details, ContactDetails.LEGACY_LINE_SEPARATOR);
+        }
+
+    }
+
+
+
+    /**
      * Creates an address string from the content of an XML element.
      *
      * @param document    the XML document to parse
@@ -386,7 +484,21 @@ public class Easysdiv4 implements IConnector {
      */
     private String buildAddressDetailsFromXpath(final Document document, final String xpathString) {
 
-        List<String> details = new ArrayList<>();
+        return this.buildContactDetailsFromXpath(document, xpathString).toDetailsString();
+    }
+
+
+
+    /**
+     * Extracts the contact information from the content of an XML element.
+     *
+     * @param document    the XML document to parse
+     * @param xpathString the XPath expression that locates the element containing the address information
+     * @return the contact information, never <code>null</code>
+     */
+    ContactDetails buildContactDetailsFromXpath(final Document document, final String xpathString) {
+
+        final ContactDetails contactDetails = new ContactDetails();
 
         try {
             final XPathFactory xPathfactory = XPathFactory.newInstance();
@@ -407,7 +519,7 @@ public class Easysdiv4 implements IConnector {
                     final String address1Text = address1Node.item(0).getTextContent();
 
                     if (StringUtils.isNotEmpty(address1Text)) {
-                        details.add(address1Text);
+                        contactDetails.addressLines.add(address1Text);
                     }
                 }
 
@@ -415,7 +527,7 @@ public class Easysdiv4 implements IConnector {
                     final String address2Text = address2Node.item(0).getTextContent();
 
                     if (StringUtils.isNotEmpty(address2Text)) {
-                        details.add(address2Text);
+                        contactDetails.addressLines.add(address2Text);
                     }
                 }
 
@@ -433,14 +545,14 @@ public class Easysdiv4 implements IConnector {
                 if (StringUtils.isEmpty(zipCodeText)) {
 
                     if (StringUtils.isNotEmpty(localityText)) {
-                        details.add(localityText);
+                        contactDetails.addressLines.add(localityText);
                     }
 
                 } else if (StringUtils.isEmpty(localityText)) {
-                    details.add(zipCodeText);
+                    contactDetails.addressLines.add(zipCodeText);
 
                 } else {
-                    details.add(String.format("%s %s", zipCodeText, localityText));
+                    contactDetails.addressLines.add(String.format("%s %s", zipCodeText, localityText));
                 }
 
                 if (phoneNode != null && phoneNode.getLength() > 0) {
@@ -448,16 +560,22 @@ public class Easysdiv4 implements IConnector {
                     this.logger.debug("Phone node content is {}", phoneText);
 
                     if (StringUtils.isNotEmpty(phoneText)) {
-                        details.add(phoneText);
+                        contactDetails.phone = phoneText;
                     }
                 }
 
                 if (emailNode != null && emailNode.getLength() > 0) {
-                    final String emailText = emailNode.item(0).getTextContent();
+                    final String emailText = StringUtils.trimToEmpty(emailNode.item(0).getTextContent());
                     this.logger.debug("E-mail node content is {}", emailText);
 
                     if (StringUtils.isNotEmpty(emailText)) {
-                        details.add(emailText);
+                        contactDetails.email = emailText;
+
+                        if (!Easysdiv4.looksLikeEmailAddress(emailText)) {
+                            this.logger.warn("The contact e-mail element contains \"{}\", which is not an e-mail"
+                                    + " address. It is kept in the contact details but not as the e-mail address.",
+                                    emailText);
+                        }
                     }
                 }
             }
@@ -466,51 +584,8 @@ public class Easysdiv4 implements IConnector {
             this.logger.error("The address details could not be retrieved", exc);
         }
 
-        this.logger.debug("Address details are:\n{}", StringUtils.join(details, "\r\n"));
-        return StringUtils.join(details, "\r\n");
-    }
-
-
-
-    /**
-     * Extracts the e-mail address from the contact address element of an order's client, without
-     * folding it into the free-text address block that {@link #buildAddressDetailsFromXpath} builds.
-     *
-     * @param document    the XML document to parse
-     * @param xpathString the XPath expression that locates the element containing the address information
-     * @return the e-mail address, or an empty string if it could not be found
-     */
-    private String getClientEmailFromXpath(final Document document, final String xpathString) {
-
-        try {
-            final XPathFactory xPathfactory = XPathFactory.newInstance();
-            final XPath xpath = xPathfactory.newXPath();
-            final XPathExpression expr = xpath.compile(xpathString);
-            final NodeList nodeList = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
-
-            if (nodeList != null && nodeList.getLength() > 0) {
-                final Element addressNode = (Element) nodeList.item(0);
-                final NodeList emailNode = addressNode.getElementsByTagName("sdi:email");
-
-                if (emailNode != null && emailNode.getLength() > 0) {
-                    final String emailText = StringUtils.trimToEmpty(emailNode.item(0).getTextContent());
-
-                    if (Easysdiv4.looksLikeEmailAddress(emailText)) {
-                        return emailText;
-                    }
-
-                    if (StringUtils.isNotEmpty(emailText)) {
-                        this.logger.warn("The client contact e-mail element contains \"{}\", which is not an e-mail"
-                                + " address. The client e-mail address is left empty.", emailText);
-                    }
-                }
-            }
-
-        } catch (XPathExpressionException exc) {
-            this.logger.error("The client e-mail address could not be retrieved", exc);
-        }
-
-        return "";
+        this.logger.debug("Address details are:\n{}", contactDetails.toDetailsString());
+        return contactDetails;
     }
 
 
@@ -1260,11 +1335,10 @@ public class Easysdiv4 implements IConnector {
                     config.getProperty("getOrders.xpath.client").replace("<guid>", guid));
             final String clientGuid = this.getXMLNodeLabelFromXpath(document,
                     config.getProperty("getOrders.xpath.clientGuid").replace("<guid>", guid));
-            final String clientDetails = this.buildAddressDetailsFromXpath(document,
+            final ContactDetails clientContact = this.buildContactDetailsFromXpath(document,
                     config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
+            final String clientDetails = clientContact.toDetailsString();
             this.logger.debug("Client details are : {}", clientDetails);
-            final String clientEmail = this.getClientEmailFromXpath(document,
-                    config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
             final String tiers = this.getXMLNodeLabelFromXpath(document,
                     config.getProperty("getOrders.xpath.tiers").replace("<guid>", guid));
             final String tiersGuid = this.getXMLNodeLabelFromXpath(document,
@@ -1303,7 +1377,9 @@ public class Easysdiv4 implements IConnector {
                 product.setClient(client);
                 product.setClientGuid(clientGuid);
                 product.setClientDetails(clientDetails);
-                product.setClientEmail(clientEmail);
+                product.setClientAddress(clientContact.getAddress());
+                product.setClientEmail(clientContact.getEmail());
+                product.setClientPhone(clientContact.getPhone());
                 product.setTiers(tiers);
                 product.setTiersGuid(tiersGuid);
                 product.setTiersDetails(tiersDetails);

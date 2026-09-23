@@ -172,11 +172,17 @@ public class FmeServerV2Request {
     private void addClientProperties(ObjectNode properties) {
         String clientGuidKey = config.getProperty("paramRequestClientGuid", "ClientGuid");
         String clientNameKey = config.getProperty("paramRequestClientName", "ClientName");
+        String clientAddressKey = config.getProperty("paramRequestClientAddress", "ClientAddress");
+        String clientEmailKey = config.getProperty("paramRequestClientEmail", "ClientEmail");
+        String clientPhoneKey = config.getProperty("paramRequestClientPhone", "ClientPhone");
         String organismGuidKey = config.getProperty("paramRequestOrganismGuid", "OrganismGuid");
         String organismNameKey = config.getProperty("paramRequestOrganismName", "OrganismName");
 
         addPropertySafe(properties, clientGuidKey, request.getClientGuid());
         addPropertySafe(properties, clientNameKey, request.getClient());
+        addPropertySafe(properties, clientAddressKey, request.getClientAddress());
+        addPropertySafe(properties, clientEmailKey, request.getClientEmail());
+        addPropertySafe(properties, clientPhoneKey, request.getClientPhone());
         addPropertySafe(properties, organismGuidKey, request.getOrganismGuid());
         addPropertySafe(properties, organismNameKey, request.getOrganism());
 

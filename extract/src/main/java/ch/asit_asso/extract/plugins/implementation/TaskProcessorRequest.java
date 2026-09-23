@@ -41,9 +41,19 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
     private String clientGuid;
 
     /**
-     * The e-mail address of the person who requested the data.
+     * The postal address of the person who requested the data.
+     */
+    private String clientAddress;
+
+    /**
+     * The electronic address of the person who requested the data.
      */
     private String clientEmail;
+
+    /**
+     * The telephone number of the person who requested the data.
+     */
+    private String clientPhone;
 
     /**
      * The date when this request was exported back to its originating server (should be <code>null</code>).
@@ -153,11 +163,13 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
         this.setId(domainRequest.getId());
         this.setClient(domainRequest.getClient());
         this.setClientGuid(domainRequest.getClientGuid());
+        this.setClientAddress(domainRequest.getClientAddress());
+        this.setClientEmail(domainRequest.getClientEmail());
+        this.setClientPhone(domainRequest.getClientPhone());
         this.setEndDate(domainRequest.getEndDate());
         this.setFolderIn(new File(dataFoldersBasePath, domainRequest.getFolderIn()).getAbsolutePath());
         this.setFolderOut(new File(dataFoldersBasePath, domainRequest.getFolderOut()).getAbsolutePath());
         this.setOrderGuid(domainRequest.getOrderGuid());
-        this.setClientEmail(domainRequest.getClientEmail());
         this.setOrderLabel(domainRequest.getOrderLabel());
         this.setOrganism(domainRequest.getOrganism());
         this.setOrganismGuid(domainRequest.getOrganismGuid());
@@ -317,6 +329,24 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
 
 
     @Override
+    public String getClientAddress() {
+        return this.clientAddress;
+    }
+
+
+
+    /**
+     * Defines the postal address of the person who placed the order that this request is a part of.
+     *
+     * @param clientAddress the customer's multiline postal address
+     */
+    public void setClientAddress(final String clientAddress) {
+        this.clientAddress = clientAddress;
+    }
+
+
+
+    @Override
     public String getClientEmail() {
         return this.clientEmail;
     }
@@ -324,12 +354,30 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
 
 
     /**
-     * Defines the e-mail address of the person who placed the order that this request is a part of.
+     * Defines the electronic address of the person who placed the order that this request is a part of.
      *
-     * @param email the customer's e-mail address
+     * @param clientEmail the customer's e-mail address
      */
-    public void setClientEmail(final String email) {
-        this.clientEmail = email;
+    public void setClientEmail(final String clientEmail) {
+        this.clientEmail = clientEmail;
+    }
+
+
+
+    @Override
+    public String getClientPhone() {
+        return this.clientPhone;
+    }
+
+
+
+    /**
+     * Defines the telephone number of the person who placed the order that this request is a part of.
+     *
+     * @param clientPhone the customer's telephone number
+     */
+    public void setClientPhone(final String clientPhone) {
+        this.clientPhone = clientPhone;
     }
 
 

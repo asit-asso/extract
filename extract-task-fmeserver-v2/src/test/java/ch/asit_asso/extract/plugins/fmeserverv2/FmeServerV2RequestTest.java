@@ -35,6 +35,9 @@ class FmeServerV2RequestTest {
         when(mockRequest.getOrderLabel()).thenReturn("Test Order");
         when(mockRequest.getClientGuid()).thenReturn("client-guid-789");
         when(mockRequest.getClient()).thenReturn("Test Client");
+        when(mockRequest.getClientAddress()).thenReturn("Avenue de la Praille 45\n1227 Carouge");
+        when(mockRequest.getClientEmail()).thenReturn("david.test@example.com");
+        when(mockRequest.getClientPhone()).thenReturn("+41 22 123 45 67");
         when(mockRequest.getOrganismGuid()).thenReturn("org-guid-111");
         when(mockRequest.getOrganism()).thenReturn("Test Organism");
         when(mockRequest.getProductGuid()).thenReturn("product-guid-222");
@@ -230,6 +233,32 @@ class FmeServerV2RequestTest {
         assertNotNull(properties.get("ClientGuid"));
         assertEquals("client-guid-789", properties.get("ClientGuid").asText());
         assertNotNull(properties.get("ClientName"));
+        assertEquals("Test Client", properties.get("ClientName").asText());
+        assertNotNull(properties.get("ClientAddress"));
+        assertEquals("Avenue de la Praille 45\n1227 Carouge", properties.get("ClientAddress").asText());
+        assertNotNull(properties.get("ClientEmail"));
+        assertEquals("david.test@example.com", properties.get("ClientEmail").asText());
+        assertNotNull(properties.get("ClientPhone"));
+        assertEquals("+41 22 123 45 67", properties.get("ClientPhone").asText());
+    }
+
+    @Test
+    void testClientContactIsNullForARequestThatDoesNotCarryIt() throws Exception {
+        // A connector written before the contact details existed relies on the default interface methods,
+        // which report an unknown value.
+        when(mockRequest.getClientAddress()).thenReturn(null);
+        when(mockRequest.getClientEmail()).thenReturn(null);
+        when(mockRequest.getClientPhone()).thenReturn(null);
+
+        FmeServerV2Request request = new FmeServerV2Request(mockRequest, config);
+        String geoJson = request.createGeoJsonFeature();
+
+        JsonNode root = mapper.readTree(geoJson);
+        JsonNode properties = root.get("properties");
+
+        assertTrue(properties.get("ClientAddress").isNull());
+        assertTrue(properties.get("ClientEmail").isNull());
+        assertTrue(properties.get("ClientPhone").isNull());
         assertEquals("Test Client", properties.get("ClientName").asText());
     }
 
