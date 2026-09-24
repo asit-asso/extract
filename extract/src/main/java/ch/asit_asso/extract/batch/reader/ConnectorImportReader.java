@@ -20,6 +20,7 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -31,6 +32,7 @@ import ch.asit_asso.extract.connectors.common.IProduct;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.User;
 import ch.asit_asso.extract.email.ConnectorImportFailedEmail;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
@@ -74,6 +76,11 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
     private final EmailSettings emailSettings;
 
     /**
+     * Encrypts and decrypts connector secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
+    /**
      * The locale of the language that the application displays messages in.
      */
     private final String language;
@@ -105,9 +112,11 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
      * @param smtpSettings        an object that assembles the objects required to create and send an e-mail message
      * @param applicationLanguage the locale code of the language used by the application to display messages
      */
+
     public ConnectorImportReader(final int connectorIdentifier, final IConnector connectorPlugin,
             final ConnectorsRepository connectorsRepo, final UsersRepository usersRepo,
-            final EmailSettings smtpSettings, final String applicationLanguage) {
+            final EmailSettings smtpSettings, final String applicationLanguage,
+            final SecretParameters secretParameters) {
 
         if (connectorIdentifier < 1) {
             throw new IllegalArgumentException("The connector identifier must be greater than 0.");
@@ -132,6 +141,9 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
         if (applicationLanguage == null) {
             throw new IllegalArgumentException("The application langague code cannot be null.");
         }
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
 
         this.connectorId = connectorIdentifier;
         this.connectorPluginInstance = connectorPlugin;
@@ -139,6 +151,7 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
         this.usersRepository = usersRepo;
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
+        this.secretParameters = secretParameters;
         this.fetchCommands();
     }
 
@@ -177,8 +190,10 @@ public class ConnectorImportReader implements ItemReader<IProduct> {
         IConnectorImportResult result;
 
         try {
+            HashMap<String, String> parameterValues = this.secretParameters.decrypt(
+                    connector.getConnectorParametersValues(), this.connectorPluginInstance.getParams());
             IConnector parameteredPluginInstance
-                    = this.connectorPluginInstance.newInstance(this.language, connector.getConnectorParametersValues());
+                    = this.connectorPluginInstance.newInstance(this.language, parameterValues);
             this.logger.debug("Connector plugin instantiated with the parameters values from connector {}.",
                     connectorName);
             result = parameteredPluginInstance.importCommands();

@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import ch.asit_asso.extract.domain.Process;
@@ -33,6 +34,7 @@ import ch.asit_asso.extract.email.TaskFailedEmail;
 import ch.asit_asso.extract.email.TaskStandbyEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
@@ -101,6 +103,11 @@ public class RequestTaskRunner implements Runnable {
      */
     private final TaskProcessorDiscovererWrapper taskPluginsDiscoverer;
 
+    /**
+     * Encrypts and decrypts task plugin secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
 
 
     /**
@@ -114,9 +121,11 @@ public class RequestTaskRunner implements Runnable {
      *                            user
      * @param taskService         the service for transactional task operations
      */
+
     public RequestTaskRunner(final Request requestToProcess, final ApplicationRepositories repositories,
             final TaskProcessorDiscovererWrapper pluginsDiscoverer, final EmailSettings smtpSettings,
-            final String applicationLanguage, final RequestTaskService taskService) {
+            final String applicationLanguage, final RequestTaskService taskService,
+            final SecretParameters secretParameters) {
 
         if (requestToProcess == null) {
             throw new IllegalArgumentException("The request to process cannot be null.");
@@ -145,6 +154,9 @@ public class RequestTaskRunner implements Runnable {
         if (taskService == null) {
             throw new IllegalArgumentException("The task service cannot be null.");
         }
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
 
         this.request = requestToProcess;
         this.applicationRepositories = repositories;
@@ -152,6 +164,7 @@ public class RequestTaskRunner implements Runnable {
         this.emailSettings = smtpSettings;
         this.language = applicationLanguage;
         this.taskService = taskService;
+        this.secretParameters = secretParameters;
         this.completionListeners = new CopyOnWriteArraySet<>();
     }
 
@@ -259,7 +272,9 @@ public class RequestTaskRunner implements Runnable {
                 return;
             }
 
-            final ITaskProcessor pluginInstance = taskPlugin.newInstance(this.language, task.getParametersValues());
+            final Map<String, String> parameterValues
+                    = this.secretParameters.decrypt(task.getParametersValues(), taskPlugin.getParams());
+            final ITaskProcessor pluginInstance = taskPlugin.newInstance(this.language, parameterValues);
             final String dataFoldersBasePath = this.applicationRepositories.getParametersRepository().getBasePath();
             final TaskProcessorRequest taskProcessorRequest
                     = new TaskProcessorRequest(this.request, dataFoldersBasePath);

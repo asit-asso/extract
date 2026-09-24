@@ -28,6 +28,7 @@ import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.services.MessageService;
+import ch.asit_asso.extract.services.SecretParameters;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeUtils;
 import org.junit.jupiter.api.*;
@@ -85,6 +86,8 @@ public class OrchestratorRangesModeIntegrationTest {
 
     @Autowired
     private RequestTaskService taskService;
+    @Autowired
+    private SecretParameters secretParameters;
 
     private ScheduledTaskRegistrar taskRegistrar;
     private Orchestrator orchestrator;
@@ -145,7 +148,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         assertTrue(initialized, "Orchestrator should be initialized");
@@ -167,7 +171,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -194,7 +199,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -223,7 +229,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -253,7 +260,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -278,7 +286,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -309,7 +318,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -339,7 +349,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -500,7 +511,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         assertEquals(Orchestrator.WorkingState.STOPPED, orchestrator.getWorkingState());
@@ -525,7 +537,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         assertEquals(Orchestrator.WorkingState.RUNNING, orchestrator.getWorkingState());
@@ -548,7 +561,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -576,7 +590,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -603,7 +618,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -635,7 +651,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -665,7 +682,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -694,7 +712,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -722,7 +741,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             onSettings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -805,7 +825,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         int threadCount = 5;
@@ -843,7 +864,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -873,7 +895,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         orchestrator.scheduleMonitoringByWorkingState();
@@ -910,7 +933,8 @@ public class OrchestratorRangesModeIntegrationTest {
             ldapSettings,
             settings,
             messageService,
-            taskService
+            taskService,
+            secretParameters
         );
 
         assertTrue(settings.isNowInRanges(), "Should be in first range");

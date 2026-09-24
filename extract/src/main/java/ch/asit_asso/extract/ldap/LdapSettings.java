@@ -196,7 +196,7 @@ public class LdapSettings {
     }
 
     public String getSynchronizationPassword() {
-        return this.secrets.decrypt(this.synchronizationPassword);
+        return this.secrets.decryptLegacy(this.synchronizationPassword);
     }
 
     public void setSynchronizationPassword(String synchronizationPassword) {

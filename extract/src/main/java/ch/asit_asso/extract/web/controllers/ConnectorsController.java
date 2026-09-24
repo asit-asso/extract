@@ -27,6 +27,7 @@ import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Rule;
 import ch.asit_asso.extract.persistence.ConnectorsRepository;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.persistence.ProcessesRepository;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.persistence.RulesRepository;
@@ -127,6 +128,11 @@ public class ConnectorsController extends BaseController {
      */
     @Autowired
     private ConnectorDiscovererWrapper connectorDiscoveryWrapper;
+    /**
+     * Encrypts and decrypts connector secrets at the persistence boundary.
+     */
+    @Autowired
+    private SecretParameters secretParameters;
 
 
 
@@ -189,9 +195,10 @@ public class ConnectorsController extends BaseController {
             return this.prepareModelForDetailsView(model, true);
         }
 
-        final Connector domainConnector = connectorModel.createDomainConnector();
+        connectorModel.definePluginParametersDefinition(this.getConnectorParametersDefinition(
+                connectorModel.getTypeCode()));
+        final Connector domainConnector = connectorModel.createDomainConnector(this.secretParameters);
         this.connectorsRepository.save(domainConnector);
-
         this.addStatusMessage(redirectAttributes, "connectorsList.connector.added", Message.MessageType.SUCCESS);
         return ConnectorsController.REDIRECT_TO_LIST;
     }
@@ -246,9 +253,10 @@ public class ConnectorsController extends BaseController {
             return this.prepareModelForDetailsView(model, false);
         }
 
-        connectorModel.updateDomainConnector(domainConnector);
+        connectorModel.definePluginParametersDefinition(this.getConnectorParametersDefinition(
+                connectorModel.getTypeCode()));
+        connectorModel.updateDomainConnector(domainConnector, this.secretParameters);
         this.updateConnectorRules(connectorModel, domainConnector);
-
         this.logger.info("Updating the connector # {} has succeeded.", domainConnector.getId());
         this.connectorsRepository.save(domainConnector);
         this.addStatusMessage(redirectAttributes, "connectorsList.connector.updated", Message.MessageType.SUCCESS);
@@ -341,7 +349,8 @@ public class ConnectorsController extends BaseController {
         }
 
         final ConnectorModel connectorModel = new ConnectorModel(
-                this.connectorDiscoveryWrapper.getConnectorForLanguage(typeId, this.getCurrentUserLanguage()));
+                this.connectorDiscoveryWrapper.getConnectorForLanguage(typeId, this.getCurrentUserLanguage()),
+                this.secretParameters);
 
         return this.prepareModelForDetailsView(model, true, connectorModel);
     }
@@ -445,7 +454,8 @@ public class ConnectorsController extends BaseController {
 
             this.logger.debug("The connector plugin \"{}\" used by connector \"{}\" has been found.",
                     plugin.getLabel(), domainConnector.getName());
-            connectorsList.add(new ConnectorModel(plugin, domainConnector, this.requestsRepository));
+            connectorsList.add(new ConnectorModel(plugin, domainConnector, this.requestsRepository,
+                                                  this.secretParameters));
         }
 
         this.logger.debug("{} connector instance{} loaded.", connectorsList.size(),
@@ -504,7 +514,8 @@ public class ConnectorsController extends BaseController {
             return null;
         }
 
-        return new ConnectorModel(connectorPlugin, domainConnector, this.requestsRepository);
+        return new ConnectorModel(connectorPlugin, domainConnector, this.requestsRepository,
+                                  this.secretParameters);
     }
 
 
@@ -639,6 +650,14 @@ public class ConnectorsController extends BaseController {
         }
 
         return null;
+    }
+    private String getConnectorParametersDefinition(final String connectorCode) {
+        IConnector connector = this.connectorDiscoveryWrapper.getConnectorForLanguage(connectorCode,
+                this.getCurrentUserLanguage());
+        if (connector == null) {
+            throw new IllegalStateException(String.format("The connector plugin \"%s\" is not available.", connectorCode));
+        }
+        return connector.getParams();
     }
 
 }

@@ -98,7 +98,8 @@ public class ApplicationInitializer {
 
         if (this.parametersInitializer == null) {
             this.parametersInitializer
-                    = new ApplicationParametersInitializer(this.applicationRepositories.getParametersRepository());
+                    = new ApplicationParametersInitializer(this.applicationRepositories.getParametersRepository(),
+                                                            this.secrets);
         }
 
         return this.parametersInitializer;

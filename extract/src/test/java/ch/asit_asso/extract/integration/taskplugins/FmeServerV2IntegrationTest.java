@@ -143,7 +143,6 @@ public class FmeServerV2IntegrationTest {
             throw new RuntimeException(e);
         }
     }
-
     /**
      * Creates GeoJSON using FmeServerV2Request class via reflection
      */

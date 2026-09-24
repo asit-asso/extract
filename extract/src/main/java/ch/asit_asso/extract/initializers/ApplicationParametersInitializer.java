@@ -20,6 +20,7 @@ import ch.asit_asso.extract.domain.SystemParameter;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.ldap.LdapSettings;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.slf4j.Logger;
@@ -140,6 +141,11 @@ class ApplicationParametersInitializer {
     private final Logger logger = LoggerFactory.getLogger(ApplicationParametersInitializer.class);
 
     /**
+     * The object used to encrypt secrets before they are first persisted.
+     */
+    private final Secrets secrets;
+
+    /**
      * The object that links the application parameter data objects with the data source.
      */
     private final SystemParametersRepository repository;
@@ -150,14 +156,21 @@ class ApplicationParametersInitializer {
      * Creates a new instance of the initializer.
      *
      * @param parametersRepository the object that links the application parameter data objects with the data source.
+     * @param secretsUtility        the object used to encrypt secrets before persistence
      */
-    ApplicationParametersInitializer(final SystemParametersRepository parametersRepository) {
+    ApplicationParametersInitializer(final SystemParametersRepository parametersRepository,
+                                     final Secrets secretsUtility) {
 
         if (parametersRepository == null) {
             throw new IllegalArgumentException("The parameters repository cannot be null.");
         }
 
+        if (secretsUtility == null) {
+            throw new IllegalArgumentException("The secrets utility cannot be null.");
+        }
+
         this.repository = parametersRepository;
+        this.secrets = secretsUtility;
     }
 
 
@@ -232,12 +245,17 @@ class ApplicationParametersInitializer {
      * @param value the value of the parameter
      */
     private void createParameter(final String key, final String value) {
-        this.logger.debug("Creating the parameter {} with value {}.", key, value);
+        this.logger.debug("Creating the parameter {}.", key);
         SystemParameter parameter = new SystemParameter(key);
-        parameter.setValue(value);
+        parameter.setValue(this.isSecretKey(key) ? this.secrets.encryptIfNeeded(value) : value);
 
         this.repository.save(parameter);
         this.logger.info("The application parameter {} has been created.", key);
+    }
+
+    private boolean isSecretKey(final String key) {
+        return SystemParametersRepository.SMTP_PASSWORD_KEY.equals(key)
+                || SystemParametersRepository.LDAP_PASSWORD_KEY.equals(key);
     }
 
 

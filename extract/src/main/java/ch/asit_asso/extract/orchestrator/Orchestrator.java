@@ -25,6 +25,7 @@ import ch.asit_asso.extract.persistence.ApplicationRepositories;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import org.apache.commons.lang3.StringUtils;
 import ch.asit_asso.extract.email.EmailSettings;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.orchestrator.schedulers.RequestsProcessingScheduler;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import ch.asit_asso.extract.services.MessageService;
@@ -123,6 +124,11 @@ public final class Orchestrator {
      * The access to the available task processing plugins.
      */
     private TaskProcessorDiscovererWrapper taskPlugins;
+
+    /**
+     * Encrypts and decrypts plugin secrets at the persistence boundary.
+     */
+    private SecretParameters secretParameters;
 
     /**
      * The object that allows to execute task at a given delay.
@@ -234,6 +240,13 @@ public final class Orchestrator {
 
         this.taskService = taskService;
     }
+    public void setSecretParameters(final SecretParameters secretParameters) {
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
+        this.secretParameters = secretParameters;
+    }
+
 
 
 
@@ -355,13 +368,11 @@ public final class Orchestrator {
      * @return <code>true</code> if this orchestrator is correctly initialized
      */
     public boolean isInitialized() {
-
         return this.taskRegistrar != null && this.repositories != null && this.connectorPlugins != null
-               && this.taskPlugins != null && this.emailSettings != null  && this.ldapSettings != null
-               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage) && this.messageService != null
-               && this.taskService != null;
+               && this.taskPlugins != null && this.emailSettings != null && this.ldapSettings != null
+               && this.settings != null && StringUtils.isNotBlank(this.applicationLanguage)
+               && this.messageService != null && this.taskService != null && this.secretParameters != null;
     }
-
 
 
     /**
@@ -369,14 +380,6 @@ public final class Orchestrator {
      * data source through the object provided by the <code>applicationRepositories</code> parameter.
      * No (re)scheduling will be done.
      *
-     * @param registrar                  the object that allows to execute tasks at a given frequency
-     * @param applicationLanguage        the locale code of the language used by the application to display messages
-     * @param applicationRepositories    an object that assembles the links between the data objects and the data source
-     * @param connectorPluginsDiscoverer the object that gives access to the currently available connector plugins
-     * @param taskPluginsDiscoverer      the object that gives access to the currently available task processing plugins
-     * @param smtpSettings               the object that assembles the configuration objects required to create and send
-     *                                   an e-mail message
-     * @param messageService             the service for obtaining localized messages
      * @return <code>true</code> if this orchestrator is in a properly initialized state
      */
     public boolean initializeComponents(final ScheduledTaskRegistrar registrar, final String applicationLanguage,
@@ -384,7 +387,8 @@ public final class Orchestrator {
             final ConnectorDiscovererWrapper connectorPluginsDiscoverer,
             final TaskProcessorDiscovererWrapper taskPluginsDiscoverer, final EmailSettings smtpSettings,
             final LdapSettings ldapSettings, final OrchestratorSettings orchestratorSettings,
-            final MessageService messageService, final RequestTaskService taskService) {
+            final MessageService messageService, final RequestTaskService taskService,
+            final SecretParameters secretParameters) {
 
         this.logger.debug("Initializing the orchestrator components.");
         this.setTaskRegistrar(registrar);
@@ -396,6 +400,7 @@ public final class Orchestrator {
         this.setLdapSettings(ldapSettings);
         this.setOrchestratorSettings(orchestratorSettings);
         this.setMessageService(messageService);
+        this.setSecretParameters(secretParameters);
         this.setTaskService(taskService);
 
         return this.isInitialized();
@@ -550,9 +555,9 @@ public final class Orchestrator {
             this.logger.debug("The connectors monitoring tasks are already scheduled.");
             return;
         }
-
         this.importsScheduler = new ImportJobsScheduler(this.taskRegistrar, this.repositories, this.connectorPlugins,
-                                                        this.emailSettings, this.applicationLanguage, this.settings, this.messageService);
+                                                        this.emailSettings, this.applicationLanguage, this.settings,
+                                                        this.messageService, this.secretParameters);
         this.importsScheduler.scheduleJobs();
 
         this.setConnectorsMonitoringScheduled(true);
@@ -609,8 +614,6 @@ public final class Orchestrator {
         this.logger.debug("The management monitoring tasks have been unscheduled.");
     }
 
-
-
     /**
      * Instantiates and starts the background processes related to the requests state.
      */
@@ -626,7 +629,8 @@ public final class Orchestrator {
 
         this.requestsScheduler = new RequestsProcessingScheduler(this.taskRegistrar,
                                                                  this.repositories, this.connectorPlugins, this.taskPlugins, this.emailSettings,
-                                                                 this.applicationLanguage, this.settings, this.messageService, this.taskService);
+                                                                 this.applicationLanguage, this.settings, this.messageService, this.taskService,
+                                                                 this.secretParameters);
         this.requestsScheduler.scheduleJobs();
 
         this.setRequestsMonitoringScheduled(true);
