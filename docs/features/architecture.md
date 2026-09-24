@@ -400,9 +400,9 @@ The following chapters list the return values of these functions for each of the
 | ``getDescription`` | Copie des fichiers dans un répertoire local ou réseau |
 | ``getHelp`` | *Se référer directement au connecteur* |
 | ``getPictoClass`` | *Se référer directement au connecteur* |
-| ``getParams`` | [<br>&emsp;{‘code’ : ‘path’, ‘label’ : ‘Chemin d’archivage’, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘login’, ‘label’ : ‘Login’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘pass’, ‘label’ : ‘Mot de passe’, ‘type’ : ‘pass’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>]<br><br>Below is an example of the corresponding settings (task_params attribute in the TASK table):<br><br>{<br>&emsp; ‘path’ : ‘/var/extraction/{no_commande}-{date}/{code-produit}/’<br>}|
+| ``getParams`` | [<br>&emsp;{‘code’ : ‘path’, ‘label’ : ‘Chemin d’archivage’, ‘type’ : ‘text’, ‘req’ : ‘true’, ‘maxlength’ : 255},<br>&emsp;{‘code’ : ‘operatorUrl’, ‘label’ : ‘URL opérateur’, ‘type’ : ‘text’, ‘req’ : ‘false’, ‘maxlength’ : 255},<br>]<br><br>Below is an example of the corresponding settings (task_params attribute in the TASK table):<br><br>{<br>&emsp; ‘path’ : ‘/var/extraction/{orderLabel}-{orderGuid}/{productGuid}/’,<br>&emsp; ‘operatorUrl’ : ‘https://archives.example/{orderLabel}/’<br>}|
 
-Note: This plugin supports dynamic strings in its settings according to the following keywords:
+Note: The archive path and optional operator URL support dynamic strings in their settings according to the following keywords. The operator URL is displayed in the request history; files are always copied to the archive path:
 
 * {orderLabel}
 * {orderGuid}

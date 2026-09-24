@@ -392,4 +392,55 @@ class RequestHistoryRecordTest {
             assertNull(record.getEndDate());
         }
     }
+
+    @Nested
+    @DisplayName("Archive Location Tests")
+    class ArchiveLocationTests {
+
+        @Test
+        @DisplayName("archive locations are recognized in every plugin language")
+        void archiveLocationsAreRecognizedInEveryPluginLanguage() {
+            record.setStatus(RequestHistoryRecord.Status.FINISHED);
+
+            record.setMessage("Emplacement : /archives/commande");
+            assertEquals("Emplacement : ", record.getArchiveLocationMessagePrefix());
+            assertEquals("/archives/commande", record.getArchiveLocation());
+
+            record.setMessage("Speicherort: /archive/anfrage");
+            assertEquals("Speicherort: ", record.getArchiveLocationMessagePrefix());
+            assertEquals("/archive/anfrage", record.getArchiveLocation());
+
+            record.setMessage("Location: /archive/request");
+            assertEquals("Location: ", record.getArchiveLocationMessagePrefix());
+            assertEquals("/archive/request", record.getArchiveLocation());
+        }
+
+        @Test
+        @DisplayName("only HTTP archive locations are safe to open")
+        void onlyHttpArchiveLocationsAreSafeToOpen() {
+            record.setStatus(RequestHistoryRecord.Status.FINISHED);
+
+            record.setMessage("Location: HTTPS://archives.example.test/request");
+            assertTrue(record.isArchiveLocationHttpUrl());
+
+            record.setMessage("Location: HTTP://archives.example.test/request");
+            assertTrue(record.isArchiveLocationHttpUrl());
+
+            for (String unsafeLocation : new String[]{"file://server/archive", "javascript:alert(1)",
+                "/mnt/extract/archives/request"}) {
+                record.setMessage("Location: " + unsafeLocation);
+                assertFalse(record.isArchiveLocationHttpUrl());
+            }
+        }
+
+        @Test
+        @DisplayName("non-archive history messages do not expose a location")
+        void nonArchiveHistoryMessagesDoNotExposeALocation() {
+            record.setStatus(RequestHistoryRecord.Status.FINISHED);
+            record.setMessage("Task completed successfully");
+
+            assertNull(record.getArchiveLocation());
+            assertFalse(record.isArchiveLocationHttpUrl());
+        }
+    }
 }
