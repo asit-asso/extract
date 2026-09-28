@@ -667,7 +667,15 @@ public class EmailSettings implements IEmailSettings {
         this.setSmtpHost(this.systemParametersRepository.getSmtpServer());
         this.setSmtpUser(this.systemParametersRepository.getSmtpUser());
         final String storedPassword = this.systemParametersRepository.getSmtpPassword();
-        this.setSmtpPassword(this.secrets.decryptLegacy(storedPassword));
+
+        try {
+            this.setSmtpPassword(this.secrets.decryptLegacy(storedPassword));
+
+        } catch (IllegalStateException exception) {
+            this.logger.error("The SMTP password in the data source could not be decrypted. Please check the"
+                    + " database encryption secret and salt configuration.", exception);
+            this.setSmtpPassword(null);
+        }
         final String rawNotificationParameterValue = this.systemParametersRepository.isEmailNotificationEnabled();
         this.setNotificationsEnabled(Boolean.parseBoolean(rawNotificationParameterValue));
 
