@@ -21,6 +21,8 @@ import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.services.SecretParameters;
+import ch.asit_asso.extract.testutils.TestSecrets;
 import ch.asit_asso.extract.web.model.ProcessModel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -99,7 +101,8 @@ class ProcessModelDescriptionTest {
 
 
     private ProcessModel modelFor(final Process domainProcess) {
-        return new ProcessModel(domainProcess, new TaskProcessorDiscovererWrapper(), this.requestsRepository);
+        return new ProcessModel(domainProcess, new TaskProcessorDiscovererWrapper(), this.requestsRepository,
+                new SecretParameters(TestSecrets.create()));
     }
 
 

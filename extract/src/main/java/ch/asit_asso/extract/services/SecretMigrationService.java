@@ -79,36 +79,46 @@ public class SecretMigrationService {
 
     private void migrateTasks() {
         for (Task task : this.repositories.getTasksRepository().findAll()) {
-            ITaskProcessor plugin = this.taskProcessorDiscoverer.getTaskProcessor(task.getCode());
-            if (plugin == null) {
-                continue;
-            }
-            HashMap<String, String> current = task.getParametersValues();
-            if (current == null) {
-                continue;
-            }
-            HashMap<String, String> encrypted = this.secretParameters.encrypt(current, plugin.getParams());
-            if (!current.equals(encrypted)) {
-                task.setParametersValues(encrypted);
-                this.repositories.getTasksRepository().save(task);
+            try {
+                ITaskProcessor plugin = this.taskProcessorDiscoverer.getTaskProcessor(task.getCode());
+                if (plugin == null) {
+                    continue;
+                }
+                HashMap<String, String> current = task.getParametersValues();
+                if (current == null) {
+                    continue;
+                }
+                HashMap<String, String> encrypted = this.secretParameters.encrypt(current, plugin.getParams());
+                if (!current.equals(encrypted)) {
+                    task.setParametersValues(encrypted);
+                    this.repositories.getTasksRepository().save(task);
+                }
+            } catch (Exception e) {
+                this.logger.warn("Could not migrate the secrets of task {}. It will be retried at the next"
+                        + " application startup.", task.getId(), e);
             }
         }
     }
 
     private void migrateConnectors() {
         for (Connector connector : this.repositories.getConnectorsRepository().findAll()) {
-            IConnector plugin = this.connectorDiscoverer.getConnector(connector.getConnectorCode());
-            if (plugin == null) {
-                continue;
-            }
-            HashMap<String, String> current = connector.getConnectorParametersValues();
-            if (current == null) {
-                continue;
-            }
-            HashMap<String, String> encrypted = this.secretParameters.encrypt(current, plugin.getParams());
-            if (!current.equals(encrypted)) {
-                connector.setConnectorParametersValues(encrypted);
-                this.repositories.getConnectorsRepository().save(connector);
+            try {
+                IConnector plugin = this.connectorDiscoverer.getConnector(connector.getConnectorCode());
+                if (plugin == null) {
+                    continue;
+                }
+                HashMap<String, String> current = connector.getConnectorParametersValues();
+                if (current == null) {
+                    continue;
+                }
+                HashMap<String, String> encrypted = this.secretParameters.encrypt(current, plugin.getParams());
+                if (!current.equals(encrypted)) {
+                    connector.setConnectorParametersValues(encrypted);
+                    this.repositories.getConnectorsRepository().save(connector);
+                }
+            } catch (Exception e) {
+                this.logger.warn("Could not migrate the secrets of connector {}. It will be retried at the next"
+                        + " application startup.", connector.getId(), e);
             }
         }
     }
