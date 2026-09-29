@@ -34,6 +34,7 @@ import ch.asit_asso.extract.persistence.UserGroupsRepository;
 import ch.asit_asso.extract.persistence.UsersRepository;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.web.Message.MessageType;
 import ch.asit_asso.extract.web.model.PluginItemModelParameter;
 import ch.asit_asso.extract.web.model.ProcessModel;
@@ -133,6 +134,12 @@ public class ProcessesController extends BaseController {
     private TasksRepository tasksRepository;
 
     /**
+     * Encrypts and decrypts plugin secrets at the persistence boundary.
+     */
+    @Autowired
+    private SecretParameters secretParameters;
+
+    /**
      * The repository that links user groups data objects with the data source.
      */
     @Autowired
@@ -192,10 +199,9 @@ public class ProcessesController extends BaseController {
 
             return this.prepareModelForDetailsView(model, true);
         }
-
+        this.defineTaskParametersDefinitions(processModel);
         processModel.createInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository,
-                                        this.userGroupsRepository);
-
+                                        this.userGroupsRepository, this.secretParameters);
         this.addStatusMessage(redirectAttributes, "processesList.process.added", MessageType.SUCCESS);
         return ProcessesController.REDIRECT_TO_LIST;
     }
@@ -308,8 +314,8 @@ public class ProcessesController extends BaseController {
                 return this.prepareModelForDetailsView(model, false);
             }
 
+            this.defineTaskParametersDefinitions(processModel);
             this.saveProcessModifications(processModel, domainProcess);
-            this.logger.info("Updating the process # {} has succeeded.", domainProcess.getId());
             this.addStatusMessage(redirectAttributes, "processesList.process.updated", MessageType.SUCCESS);
 
         } catch (Exception exception) {
@@ -534,7 +540,7 @@ public class ProcessesController extends BaseController {
         }
 
         ProcessModel processModel = new ProcessModel(domainProcess, this.taskPluginsDiscoverer,
-                this.requestsRepository);
+                this.requestsRepository, this.secretParameters);
 
         if (processModel.isReadOnly()) {
             this.addStatusMessage(model, "processDetails.readonly.info", MessageType.WARNING);
@@ -604,7 +610,7 @@ public class ProcessesController extends BaseController {
         assert model != null : "The model must be set.";
 
         model.addAttribute("processes", ProcessModel.fromDomainObjectsCollection(this.processesRepository.findAll(),
-                this.taskPluginsDiscoverer, this.requestsRepository));
+                this.taskPluginsDiscoverer, this.requestsRepository, this.secretParameters));
         this.addJavascriptMessagesAttribute(model);
         this.addCurrentSectionToModel(ProcessesController.CURRENT_SECTION_IDENTIFIER, model);
 
@@ -622,7 +628,7 @@ public class ProcessesController extends BaseController {
     private void saveProcessModifications(final ProcessModel processModel,
             final Process domainProcess) {
         processModel.updateInDataSource(this.processesRepository, this.tasksRepository, this.usersRepository,
-                                        this.userGroupsRepository, domainProcess);
+                                        this.userGroupsRepository, domainProcess, this.secretParameters);
     }
 
     /**
@@ -664,4 +670,14 @@ public class ProcessesController extends BaseController {
         return remarksList;
     }
 
+    private void defineTaskParametersDefinitions(final ProcessModel processModel) {
+        for (TaskModel taskModel : processModel.getTasks()) {
+            ITaskProcessor taskPlugin = this.taskPluginsDiscoverer.getTaskProcessor(taskModel.getPluginCode());
+            if (taskPlugin == null) {
+                throw new IllegalStateException(String.format("The task plugin \"%s\" is not available.",
+                        taskModel.getPluginCode()));
+            }
+            taskModel.definePluginParametersDefinition(taskPlugin.getParams());
+        }
+    }
 }

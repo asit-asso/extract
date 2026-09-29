@@ -29,6 +29,7 @@ import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.email.LocaleUtils;
 import ch.asit_asso.extract.email.RequestExportFailedEmail;
 import ch.asit_asso.extract.persistence.ApplicationRepositories;
+import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.persistence.RequestHistoryRepository;
 import ch.asit_asso.extract.persistence.TasksRepository;
 import ch.asit_asso.extract.services.MessageService;
@@ -82,6 +83,11 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
     private final Logger logger = LoggerFactory.getLogger(ExportRequestProcessor.class);
 
     /**
+     * Encrypts and decrypts connector secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
+    /**
      * The link between the various data objects and the data source.
      */
     private final ApplicationRepositories repositories;
@@ -98,9 +104,11 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
      * @param applicationLanguage     the locale code of the language used by the application to display messages
      * @param messageService          the service for obtaining localized messages
      */
+
     public ExportRequestProcessor(final ApplicationRepositories applicationRepositories,
             final ConnectorDiscovererWrapper connectorsDiscoverer, final String requestsFolderPath,
-            final EmailSettings smtpSettings, final String applicationLanguage, final MessageService messageService) {
+            final EmailSettings smtpSettings, final String applicationLanguage, final MessageService messageService,
+            final SecretParameters secretParameters) {
 
         if (connectorsDiscoverer == null) {
             throw new IllegalArgumentException("The connector plugin discoverer cannot be null.");
@@ -129,6 +137,9 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
         if (messageService == null) {
             throw new IllegalArgumentException("The message service cannot be null.");
         }
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
 
         this.repositories = applicationRepositories;
         this.connectorPluginDiscoverer = connectorsDiscoverer;
@@ -136,6 +147,7 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
         this.messageService = messageService;
+        this.secretParameters = secretParameters;
     }
 
 
@@ -169,12 +181,37 @@ public class ExportRequestProcessor implements ItemProcessor<Request, Request> {
             return request;
         }
 
-        HashMap<String, String> values = requestConnector.getConnectorParametersValues();
-        IConnector connectorPluginInstance = connectorPlugin.newInstance(this.applicationLangague, values);
-        IExportRequest exportRequest = new RequestResult(request, this.basePath);
-        IExportResult result = connectorPluginInstance.exportResult(exportRequest);
+        try {
+            HashMap<String, String> values = this.secretParameters.decrypt(
+                    requestConnector.getConnectorParametersValues(), connectorPlugin.getParams());
+            IConnector connectorPluginInstance = connectorPlugin.newInstance(this.applicationLangague, values);
+            IExportRequest exportRequest = new RequestResult(request, this.basePath);
+            IExportResult result = connectorPluginInstance.exportResult(exportRequest);
 
-        return this.processExportResult(result, request, historyRecord);
+            return this.processExportResult(result, request, historyRecord);
+        } catch (Exception exception) {
+            this.logger.error("An error occurred while exporting request {}.", requestId, exception);
+            return this.processExportError(request, historyRecord, exception.getMessage());
+        }
+    }
+
+    /**
+     * Marks an export as failed when secret decryption or connector instantiation fails.
+     *
+     * @param request       the request that was exported
+     * @param historyRecord the history record tracking the export
+     * @param errorMessage  the failure message
+     * @return the updated request
+     */
+    private Request processExportError(final Request request, final RequestHistoryRecord historyRecord,
+            final String errorMessage) {
+        Calendar endDate = new GregorianCalendar();
+        String message = StringUtils.isEmpty(errorMessage) ? "Could not initialize the connector." : errorMessage;
+        this.sendEmailNotification(request, message, endDate);
+        historyRecord.setToError(message, endDate);
+        request.setStatus(Request.Status.EXPORTFAIL);
+        this.repositories.getRequestHistoryRepository().save(historyRecord);
+        return request;
     }
 
 

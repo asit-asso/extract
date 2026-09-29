@@ -20,6 +20,7 @@ import java.util.Collections;
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 import ch.asit_asso.extract.email.EmailSettings;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
+import ch.asit_asso.extract.utils.Secrets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
@@ -85,6 +86,11 @@ public class EmailConfiguration {
      */
     @Autowired
     private SystemParametersRepository systemParametersRepository;
+    /**
+     * The utility used to decrypt persisted secrets.
+     */
+    @Autowired
+    private Secrets secrets;
 
 
 
@@ -96,7 +102,7 @@ public class EmailConfiguration {
     @Bean
     public EmailSettings emailSettings() {
         return new EmailSettings(this.systemParametersRepository, this.emailTemplateEngine(), this.messageSource,
-                this.applicationExternalUrl, this.languageConfig);
+                this.applicationExternalUrl, this.languageConfig, this.secrets);
     }
 
 

@@ -28,6 +28,7 @@ import ch.asit_asso.extract.services.MessageService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.item.ItemProcessor;
+import ch.asit_asso.extract.services.SecretParameters;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
@@ -67,6 +68,11 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
     private final MessageService messageService;
 
     /**
+     * Encrypts and decrypts connector secrets at the persistence boundary.
+     */
+    private final SecretParameters secretParameters;
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(ExportRequestsJobRunner.class);
@@ -87,6 +93,12 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
     public ExportRequestsJobRunner(final EmailSettings smtpSettings, final ApplicationRepositories repositories,
             final ConnectorDiscovererWrapper connectorsPluginDiscoverer, final String applicationLanguage,
             final MessageService messageService) {
+        this(smtpSettings, repositories, connectorsPluginDiscoverer, applicationLanguage, messageService, null);
+    }
+
+    public ExportRequestsJobRunner(final EmailSettings smtpSettings, final ApplicationRepositories repositories,
+            final ConnectorDiscovererWrapper connectorsPluginDiscoverer, final String applicationLanguage,
+            final MessageService messageService, final SecretParameters secretParameters) {
 
         if (repositories == null) {
             throw new IllegalArgumentException("The application repositories object cannot be null.");
@@ -121,6 +133,7 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
         this.emailSettings = smtpSettings;
         this.applicationLangague = applicationLanguage;
         this.messageService = messageService;
+        this.secretParameters = secretParameters;
     }
 
 
@@ -179,7 +192,7 @@ public class ExportRequestsJobRunner /*extends JobRunner<Request, Request>*/ imp
         final String basePath = this.applicationRepositories.getParametersRepository().getBasePath();
 
         return new ExportRequestProcessor(this.applicationRepositories, this.connectorPluginDiscoverer, basePath,
-                this.emailSettings, this.applicationLangague, this.messageService);
+                this.emailSettings, this.applicationLangague, this.messageService, this.secretParameters);
     }
 
 
