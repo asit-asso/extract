@@ -198,6 +198,7 @@ In order to manage connectors with multiple interfaces, the connector itself mus
 | ``p_tiers`` | varchar 255 | Standardized query parameter <br> Third party linked to the order | *Commune de Bex*
 | ``p_tiersguid`` | varchar 255 | Standardized query parameter <br> GUID of the third party linked to the order | *708e932b-81c3-2ce4-b907-ed07e61ac5f9*
 | ``p_clientdetails`` | varchar 4000 | Standardized query parameter <br> Details of the customer receiving the order | *Nom de rue 37<br>1880 Bex<br>Tel :00.00.00.00.00<br>Mail : xxx@yyy.com*
+| ``p_clientemail`` | varchar 255 | Standardized query parameter <br> E-mail address of the customer receiving the order. Usable as a `{clientEmail}` recipient placeholder in the "Notification e-mail" task plugin | *client@example.com*
 | ``p_tiersdetails`` | varchar 4000 | Standardized query parameter <br> Details of the third party linked to the order | *Nom de rue 37<br>1880 Bex<br>Tel :00.00.00.00.00<br>Mail : xxx@yyy.com*
 | ``p_perimeter`` | varchar 4000 | Standardized query parameter <br> Coordinates of the extraction polygon | *POLYGON((6.9378 46.1056,6.1245 …*
 | ``p_surface`` | float | Standardized query parameter <br> Extraction polygon area | *123.4 (m2)*

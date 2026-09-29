@@ -54,6 +54,11 @@ public class ArchiveRequest implements ITaskProcessorRequest {
     private String clientGuid;
 
     /**
+     * The e-mail address of the person that ordered the data item.
+     */
+    private String clientEmail;
+
+    /**
      * The string that identifies the order that this request is part of.
      */
     private String orderGuid;
@@ -261,6 +266,24 @@ public class ArchiveRequest implements ITaskProcessorRequest {
      */
     public final void setClientGuid(final String customerGuid) {
         this.clientGuid = customerGuid;
+    }
+
+
+
+    @Override
+    public final String getClientEmail() {
+        return this.clientEmail;
+    }
+
+
+
+    /**
+     * Defines the e-mail address of the person that ordered this data item.
+     *
+     * @param email the customer's e-mail address
+     */
+    public final void setClientEmail(final String email) {
+        this.clientEmail = email;
     }
 
 

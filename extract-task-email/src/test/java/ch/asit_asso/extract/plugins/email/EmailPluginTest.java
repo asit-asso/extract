@@ -211,6 +211,42 @@ public class EmailPluginTest {
     }
     
     @Test
+    public void testExecute_ClientEmailPlaceholderInRecipients() {
+        // Setup
+        taskSettings.put("to", "{clientEmail}");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+        
+        when(mockRequest.getClientEmail()).thenReturn("client@example.com");
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+        
+        // Act
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+        
+        // Assert: the placeholder was resolved to a valid address and reached the sending step
+        // (rather than being rejected as an empty/invalid recipient list)
+        assertNotNull(result);
+        assertNotEquals("Aucune adresse valide de destinataire n'a été fournie.", result.getMessage());
+    }
+    
+    @Test
+    public void testExecute_ClientEmailPlaceholderMissing() {
+        // Setup
+        taskSettings.put("to", "{clientEmail}");
+        emailPlugin = new EmailPlugin("fr", taskSettings);
+        
+        when(mockRequest.getClientEmail()).thenReturn(null);
+        when(mockEmailSettings.isNotificationEnabled()).thenReturn(true);
+        
+        // Act
+        ITaskProcessorResult result = emailPlugin.execute(mockRequest, mockEmailSettings);
+        
+        // Assert: an unresolved recipient placeholder is treated as no valid addressee, not a crash
+        assertNotNull(result);
+        assertEquals(EmailResult.Status.ERROR, ((EmailResult) result).getStatus());
+        assertEquals("Aucune adresse valide de destinataire n'a été fournie.", result.getMessage());
+    }
+    
+    @Test
     public void testExecute_NullValues() {
         // Setup
         taskSettings.put("body", "Client: {client}, Tiers: {tiers}");

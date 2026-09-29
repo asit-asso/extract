@@ -2,7 +2,7 @@
     <h4>Description</h4>
     <p>Le plugin de notification e-mail permet d'envoyer un message personnalisé à un ou plusieurs destinataires.</p>
 
-    <p>Les e-mails des destinataires doivent être séparés par des points-virgules.</p>
+    <p>Les e-mails des destinataires doivent être séparés par des points-virgules. Pour notifier le client de la demande, utilisez le placeholder {clientEmail} comme e-mail de destinataire.</p>
 
     <h4>Placeholders disponibles</h4>
     <p>
@@ -25,6 +25,7 @@
     <h5>Client et organisation</h5>
     <ul>
         <li><code>{client}</code> ou <code>{clientName}</code> - Nom du client</li>
+        <li><code>{clientEmail}</code> - Adresse e-mail du client (peut être utilisée comme destinataire)</li>
         <li><code>{clientGuid}</code> - Identifiant unique du client</li>
         <li><code>{organism}</code> ou <code>{organisationName}</code> - Nom de l'organisme du client</li>
         <li><code>{organismGuid}</code> - Identifiant unique de l'organisme</li>

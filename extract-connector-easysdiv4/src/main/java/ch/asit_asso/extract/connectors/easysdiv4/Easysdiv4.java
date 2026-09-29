@@ -472,6 +472,44 @@ public class Easysdiv4 implements IConnector {
 
 
 
+    /**
+     * Extracts the e-mail address from the contact address element of an order's client, without
+     * folding it into the free-text address block that {@link #buildAddressDetailsFromXpath} builds.
+     *
+     * @param document    the XML document to parse
+     * @param xpathString the XPath expression that locates the element containing the address information
+     * @return the e-mail address, or an empty string if it could not be found
+     */
+    private String getClientEmailFromXpath(final Document document, final String xpathString) {
+
+        try {
+            final XPathFactory xPathfactory = XPathFactory.newInstance();
+            final XPath xpath = xPathfactory.newXPath();
+            final XPathExpression expr = xpath.compile(xpathString);
+            final NodeList nodeList = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+
+            if (nodeList != null && nodeList.getLength() > 0) {
+                final Element addressNode = (Element) nodeList.item(0);
+                final NodeList emailNode = addressNode.getElementsByTagName("sdi:email");
+
+                if (emailNode != null && emailNode.getLength() > 0) {
+                    final String emailText = emailNode.item(0).getTextContent();
+
+                    if (StringUtils.isNotEmpty(emailText)) {
+                        return emailText;
+                    }
+                }
+            }
+
+        } catch (XPathExpressionException exc) {
+            this.logger.error("The client e-mail address could not be retrieved", exc);
+        }
+
+        return "";
+    }
+
+
+
     @Override
     public final IConnectorImportResult importCommands() {
         this.logger.debug("Importing commands");
@@ -1199,6 +1237,8 @@ public class Easysdiv4 implements IConnector {
             final String clientDetails = this.buildAddressDetailsFromXpath(document,
                     config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
             this.logger.debug("Client details are : {}", clientDetails);
+            final String clientEmail = this.getClientEmailFromXpath(document,
+                    config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
             final String tiers = this.getXMLNodeLabelFromXpath(document,
                     config.getProperty("getOrders.xpath.tiers").replace("<guid>", guid));
             final String tiersGuid = this.getXMLNodeLabelFromXpath(document,
@@ -1237,6 +1277,7 @@ public class Easysdiv4 implements IConnector {
                 product.setClient(client);
                 product.setClientGuid(clientGuid);
                 product.setClientDetails(clientDetails);
+                product.setClientEmail(clientEmail);
                 product.setTiers(tiers);
                 product.setTiersGuid(tiersGuid);
                 product.setTiersDetails(tiersDetails);

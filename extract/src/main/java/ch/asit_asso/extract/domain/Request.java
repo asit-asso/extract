@@ -130,6 +130,13 @@ public class Request implements Serializable {
     private String clientDetails;
 
     /**
+     * The e-mail address of the person who ordered this data item.
+     */
+    @Size(max = 255)
+    @Column(name = "p_clientemail")
+    private String clientEmail;
+
+    /**
      * The name of the third-party (if any) that this data item was ordered on behalf of.
      */
     @Size(max = 255)
@@ -582,6 +589,28 @@ public class Request implements Serializable {
      */
     public void setClientDetails(final String details) {
         this.clientDetails = details;
+    }
+
+
+
+    /**
+     * Obtains the e-mail address of the customer who ordered this data item.
+     *
+     * @return the e-mail address of the customer
+     */
+    public String getClientEmail() {
+        return this.clientEmail;
+    }
+
+
+
+    /**
+     * Defines the e-mail address of the customer who ordered this data item.
+     *
+     * @param email the e-mail address of the customer
+     */
+    public void setClientEmail(final String email) {
+        this.clientEmail = email;
     }
 
 
