@@ -26,6 +26,7 @@ a recipient.
 | `plugins/email/EmailPlugin.java` | Resolves `{...}` placeholders in the recipient list ("to") the same way it already does for the subject and body, before parsing it into individual addresses. This is what makes `{clientEmail}` (and any other authorized field) usable as a recipient, not just in the message content (366-1). |
 | `plugins/email/properties/configEmail.properties` | Adds `clientEmail` to `authorizedFields`; corrects the placeholder syntax documented in the file header, which described the unrelated Thymeleaf `${...}` system-email mechanism (#323) instead of this plugin's actual `{...}` regex substitution. |
 | `plugins/email/lang/{fr,de}/emailHelp.html` | Updates the Description paragraph with the wording requested in the issue and documents `{clientEmail}` under "Client et organisation" / "Kunde und Organisation". |
+| `plugins/email/lang/en/emailHelp.html` | New file. This plugin never had an English help page (silently falling back to French, a pre-existing gap); since the project's three actual supported locales are fr/de/en (no Italian exists anywhere in this project), adding the English translation alongside the fr/de update was necessary for the change to be genuinely complete rather than French/German-only. |
 | `docs/features/architecture.md` | Documents the new `p_clientemail` column in the REQUESTS data model table. |
 
 ### Decision: reuse the existing `clientDetails` XPath, extract the e-mail the same way `buildAddressDetailsFromXpath` does
@@ -80,9 +81,11 @@ shipped, and its assertion was then turned into the two permanent `Easysdiv4Test
 
 ### Documentation / i18n impact
 
-- French and German plugin help pages document the new `{clientEmail}` placeholder and the updated Description
-  text requested by the issue. No English help page exists for this plugin (falls back to French, pre-existing
-  behavior, unrelated to this change).
+- French, German and (newly) English plugin help pages document the new `{clientEmail}` placeholder and the
+  updated Description text. English previously had no help page at all for this plugin and silently fell back to
+  French; this is now fixed as part of this change rather than left as a pre-existing, unrelated gap. The project
+  has no Italian locale anywhere (`messages_it.properties` does not exist); fr/de/en are the only supported
+  languages.
 - `docs/features/architecture.md` documents the new nullable `REQUESTS.p_clientemail` column.
 - Database migration: idempotent addition of `requests.p_clientemail VARCHAR(255)`.
 
