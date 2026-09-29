@@ -63,17 +63,20 @@ was the only recipient, the task fails with the existing "no valid addressee" me
 `VariableReplacementTest` covers `{clientEmail}` resolving to the mocked request's address and to an empty string
 when absent. `EmailPluginTest` exercises the acceptance criterion end-to-end: `to = "{clientEmail}"` with a
 resolvable address reaches the sending step (not rejected as "no addressee"), and the same template with no
-known client e-mail is treated as having no valid recipient rather than failing unexpectedly. The full reactor
-was recompiled (`mvn clean package`) to verify every `ITaskProcessorRequest` implementer across all task-processor
-modules compiles against the new interface method, and the full unit test suite was run
-(`mvn test -Punit-tests`): 1442 tests, 0 failures, 0 errors.
+known client e-mail is treated as having no valid recipient rather than failing unexpectedly.
+`Easysdiv4Test` gained two tests for the (private, reflection-invoked) `getClientEmailFromXpath` method: extraction
+from a realistic order XML fragment, and the missing-e-mail case resolving to an empty string. The full reactor was
+recompiled (`mvn clean package`) to verify every `ITaskProcessorRequest` implementer across all task-processor
+modules compiles against the new interface method, and the true full-reactor unit test suite was run
+(`mvn test -Punit-tests -DskipTests=false`, since the connector/task-processor modules default `skipTests` to
+`true` and are not otherwise covered by `-Punit-tests` alone): all 15 modules built successfully, 2906 tests
+across the reactor, 0 failures, 0 errors. Integration tests were run via `docker-compose-test.yaml` per project
+convention (`mvn verify -Pintegration-tests`): 523 tests, 0 failures, 0 errors.
 
 A throwaway standalone smoke test (a small Java program run against a synthetic order XML fragment reproducing the
-real `client/contact/address/sdi:email` structure) was used to verify `getClientEmailFromXpath` actually extracts
-the e-mail; it is what caught the first, broken XPath-based implementation described above before it shipped. No
-permanent connector-level XML-parsing test was added for this module's XPath extraction: it has no existing test
-coverage for any of its other order-import XPath fields (`client`, `organism`, etc.), so adding one only for
-`clientEmail` would be inconsistent with the module's actual test conventions rather than following them.
+real `client/contact/address/sdi:email` structure) was used first to verify `getClientEmailFromXpath` actually
+extracts the e-mail; it is what caught the first, broken XPath-based implementation described above before it
+shipped, and its assertion was then turned into the two permanent `Easysdiv4Test` cases above.
 
 ### Documentation / i18n impact
 

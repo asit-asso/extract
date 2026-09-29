@@ -16,12 +16,17 @@
  */
 package ch.asit_asso.extract.connectors.easysdiv4;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -385,6 +390,71 @@ public class Easysdiv4Test {
     @Test
     public final void testExportResult() {
         // TODO Test avec bouchon
+    }
+
+
+
+    /**
+     * Builds an in-memory XML document from a string, mirroring the order XML structure returned by an
+     * easySDI v4 server: a client contact address containing the address, phone and e-mail sub-elements
+     * read by {@link Easysdiv4#buildAddressDetailsFromXpath} and {@link Easysdiv4#getClientEmailFromXpath}.
+     */
+    private Document buildOrderDocument(final String email) throws Exception {
+        String xml = "<orders>"
+                + "<order guid=\"ORDER-1\">"
+                + "<client guid=\"CLIENT-1\">"
+                + "<name>Jean Dupont</name>"
+                + "<contact><address>"
+                + "<sdi:addressstreet1>Rue de la Gare 1</sdi:addressstreet1>"
+                + "<sdi:zip>1880</sdi:zip>"
+                + "<sdi:locality>Bex</sdi:locality>"
+                + (email != null ? "<sdi:email>" + email + "</sdi:email>" : "")
+                + "</address></contact>"
+                + "</client>"
+                + "</order>"
+                + "</orders>";
+
+        return DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+    }
+
+
+
+    /**
+     * Test of the private getClientEmailFromXpath method, of class Easysdiv4 (issue #366).
+     */
+    @Test
+    @DisplayName("The client's e-mail address is extracted from the order's contact address")
+    public final void testGetClientEmailFromXpath() throws Exception {
+        Document document = this.buildOrderDocument("jean.dupont@example.com");
+        Easysdiv4 instance = new Easysdiv4();
+
+        Method method = Easysdiv4.class.getDeclaredMethod("getClientEmailFromXpath", Document.class, String.class);
+        method.setAccessible(true);
+        String result = (String) method.invoke(instance, document,
+                "//order[@guid='ORDER-1']/client/contact/address");
+
+        assertEquals("jean.dupont@example.com", result);
+    }
+
+
+
+    /**
+     * Test of the private getClientEmailFromXpath method, of class Easysdiv4, when the order has no
+     * e-mail address (issue #366).
+     */
+    @Test
+    @DisplayName("A missing client e-mail address resolves to an empty string, not an error")
+    public final void testGetClientEmailFromXpathWithoutEmail() throws Exception {
+        Document document = this.buildOrderDocument(null);
+        Easysdiv4 instance = new Easysdiv4();
+
+        Method method = Easysdiv4.class.getDeclaredMethod("getClientEmailFromXpath", Document.class, String.class);
+        method.setAccessible(true);
+        String result = (String) method.invoke(instance, document,
+                "//order[@guid='ORDER-1']/client/contact/address");
+
+        assertEquals("", result);
     }
 
 }
