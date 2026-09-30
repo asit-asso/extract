@@ -66,6 +66,12 @@ public class PythonPlugin implements ITaskProcessor {
     private static final String HELP_FILE_NAME = "help.html";
 
     /**
+     * The fixed marker text that, when found in a failed script's output, signals that the
+     * extraction should be gracefully cancelled instead of ending in error.
+     */
+    private static final String NO_DATA_MARKER = "noDataForExtract";
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(PythonPlugin.class);
@@ -251,6 +257,23 @@ public class PythonPlugin implements ITaskProcessor {
         pythonScriptParam.put("maxlength", 500);
         pythonScriptParam.put("help", this.messages.getString("plugin.params.pythonScript.help"));
         parametersNode.add(pythonScriptParam);
+
+        // Cancel on "no data" marker parameter
+        ObjectNode cancelOnNoDataParam = mapper.createObjectNode();
+        cancelOnNoDataParam.put("code", "cancelOnNoData");
+        cancelOnNoDataParam.put("label", this.messages.getString("plugin.params.cancelOnNoData.label"));
+        cancelOnNoDataParam.put("type", "boolean");
+        cancelOnNoDataParam.put("help", this.messages.getString("plugin.params.cancelOnNoData.help"));
+        parametersNode.add(cancelOnNoDataParam);
+
+        // Cancellation remark parameter
+        ObjectNode cancellationRemarkParam = mapper.createObjectNode();
+        cancellationRemarkParam.put("code", "cancellationRemark");
+        cancellationRemarkParam.put("label", this.messages.getString("plugin.params.cancellationRemark.label"));
+        cancellationRemarkParam.put("type", "multitext");
+        cancellationRemarkParam.put("maxlength", 5000);
+        cancellationRemarkParam.put("help", this.messages.getString("plugin.params.cancellationRemark.help"));
+        parametersNode.add(cancellationRemarkParam);
 
         try {
             return mapper.writeValueAsString(parametersNode);
@@ -455,19 +478,27 @@ public class PythonPlugin implements ITaskProcessor {
             }
 
             // Execute Python script
-            String errorMessage = executePythonScript(pythonInterpreter, pythonScript,
+            ScriptExecutionOutcome outcome = executePythonScript(pythonInterpreter, pythonScript,
                                                      parametersFile, request);
 
-            if (errorMessage == null) {
+            if (outcome.success()) {
                 this.logger.info("Python script executed successfully");
                 result.setSuccess(true);
                 result.setMessage(this.messages.getString("plugin.messages.script.executed"));
                 result.setResultFilePath(folderOut);
+            } else if (outcome.cancelledNoData()) {
+                this.logger.info("Python script reported no data - cancelling request gracefully");
+                CancelledExtractionRequest cancelledRequest =
+                        new CancelledExtractionRequest(request, outcome.message());
+                result.setRequestData(cancelledRequest);
+                result.setSuccess(true);
+                result.setMessage(this.messages.getString("plugin.messages.cancelled.noData"));
+                result.setResultFilePath(folderOut);
             } else {
                 // Error occurred during execution - put error in message like FMEDesktop
-                this.logger.error("Python script execution failed: {}", errorMessage);
+                this.logger.error("Python script execution failed: {}", outcome.message());
                 result.setSuccess(false);
-                result.setMessage(errorMessage);  // Use setMessage instead of setErrorMessage
+                result.setMessage(outcome.message());  // Use setMessage instead of setErrorMessage
             }
 
         } catch (SecurityException e) {
@@ -499,9 +530,9 @@ public class PythonPlugin implements ITaskProcessor {
      * @param scriptPath the path to the Python script
      * @param parametersFile the parameters JSON file
      * @param request the task processor request
-     * @return null if successful, error message if failed
+     * @return the outcome of the execution: success, cancellation (no data found), or error
      */
-    private String executePythonScript(String pythonExecutable, String scriptPath,
+    private ScriptExecutionOutcome executePythonScript(String pythonExecutable, String scriptPath,
                                        File parametersFile, ITaskProcessorRequest request) {
         this.logger.debug("Executing Python script: {} with parameters file: {}", scriptPath, parametersFile);
 
@@ -518,8 +549,9 @@ public class PythonPlugin implements ITaskProcessor {
             File scriptFile = new File(scriptPath);
             File workingDir = scriptFile.getParentFile();
             if (workingDir == null || !workingDir.exists() || !workingDir.isDirectory()) {
-                return String.format(this.messages.getString("plugin.errors.script.directory.invalid"),
-                        workingDir != null ? workingDir.getAbsolutePath() : "null");
+                return ScriptExecutionOutcome.error(String.format(
+                        this.messages.getString("plugin.errors.script.directory.invalid"),
+                        workingDir != null ? workingDir.getAbsolutePath() : "null"));
             }
             processBuilder.directory(workingDir);
 
@@ -534,7 +566,8 @@ public class PythonPlugin implements ITaskProcessor {
                 process = processBuilder.start();
             } catch (IOException e) {
                 String errorDetail = e.getMessage();
-                return String.format(this.messages.getString("plugin.errors.script.launch.failed"), errorDetail);
+                return ScriptExecutionOutcome.error(
+                        String.format(this.messages.getString("plugin.errors.script.launch.failed"), errorDetail));
             }
 
             // Capture output with timeout handling
@@ -586,7 +619,8 @@ public class PythonPlugin implements ITaskProcessor {
                     }
                 }
             } catch (IOException e) {
-                return String.format(this.messages.getString("plugin.errors.output.read.failed"), e.getMessage());
+                return ScriptExecutionOutcome.error(
+                        String.format(this.messages.getString("plugin.errors.output.read.failed"), e.getMessage()));
             }
 
             // Wait for completion with timeout (5 minutes)
@@ -595,12 +629,12 @@ public class PythonPlugin implements ITaskProcessor {
                 completed = process.waitFor(300, java.util.concurrent.TimeUnit.SECONDS);
             } catch (InterruptedException e) {
                 process.destroyForcibly();
-                return this.messages.getString("plugin.errors.execution.interrupted");
+                return ScriptExecutionOutcome.error(this.messages.getString("plugin.errors.execution.interrupted"));
             }
 
             if (!completed) {
                 process.destroyForcibly();
-                return this.messages.getString("plugin.errors.execution.timeout");
+                return ScriptExecutionOutcome.error(this.messages.getString("plugin.errors.execution.timeout"));
             }
 
             int exitCode = process.exitValue();
@@ -614,6 +648,18 @@ public class PythonPlugin implements ITaskProcessor {
                 String fullErrorForLog = tracebackText.isEmpty() ? scriptOutput : tracebackText + "\n\n--- Merged Output ---\n" + scriptOutput;
                 this.logger.error("Full Python error (traceback and output):\n{}", fullErrorForLog);
 
+                // Check whether this failure should be treated as a graceful "no data" cancellation
+                boolean cancelOnNoData = Boolean.parseBoolean(
+                        this.inputs != null ? this.inputs.get("cancelOnNoData") : null);
+                String cancellationRemarkValue = this.inputs != null ? this.inputs.get("cancellationRemark") : null;
+                cancellationRemarkValue = cancellationRemarkValue == null ? null : cancellationRemarkValue.trim();
+
+                if (cancelOnNoData && cancellationRemarkValue != null && !cancellationRemarkValue.isEmpty()
+                        && (containsNoDataMarker(scriptOutput) || containsNoDataMarker(tracebackText))) {
+                    this.logger.info("No data marker found in Python script output - cancelling request gracefully");
+                    return ScriptExecutionOutcome.cancelled(cancellationRemarkValue);
+                }
+
                 // Build a concise, user-facing error with file/line if available
                 String detailed = buildDetailedPythonError(
                         tracebackText.isEmpty() ? scriptOutput : tracebackText,
@@ -624,47 +670,90 @@ public class PythonPlugin implements ITaskProcessor {
 
                 // Keep existing exit-code specific handling for non-1 codes
                 if (exitCode == 1) {
-                    return String.format(this.messages.getString("plugin.errors.detected"), detailed);
+                    return ScriptExecutionOutcome.error(
+                            String.format(this.messages.getString("plugin.errors.detected"), detailed));
                 }
 
                 switch (exitCode) {
                     case 2:
-                        return String.format(this.messages.getString("plugin.errors.bad.usage"),
+                        return ScriptExecutionOutcome.error(String.format(this.messages.getString("plugin.errors.bad.usage"),
                                 scriptOutput.isEmpty() ? "" :
-                                        this.messages.getString("plugin.errors.details.prefix") + "\n" + scriptOutput);
+                                        this.messages.getString("plugin.errors.details.prefix") + "\n" + scriptOutput));
                     case 126:
-                        return String.format(this.messages.getString("plugin.errors.script.not.executable"), scriptPath);
+                        return ScriptExecutionOutcome.error(
+                                String.format(this.messages.getString("plugin.errors.script.not.executable"), scriptPath));
                     case 127:
-                        return String.format(this.messages.getString("plugin.errors.command.not.found"), pythonExecutable);
+                        return ScriptExecutionOutcome.error(
+                                String.format(this.messages.getString("plugin.errors.command.not.found"), pythonExecutable));
                     case -1:
                     case 255:
                         String base = this.messages.getString("plugin.errors.terminated.abnormally");
                         if (!scriptOutput.isEmpty()) {
                             base += "\n" + this.messages.getString("plugin.errors.details.prefix") + "\n" + scriptOutput;
                         }
-                        return base;
+                        return ScriptExecutionOutcome.error(base);
                     default:
                         if (!scriptOutput.isEmpty()) {
-                            return String.format(this.messages.getString("plugin.errors.exit.code.with.output"),
-                                    exitCode, detailed.isEmpty() ? scriptOutput : detailed);
+                            return ScriptExecutionOutcome.error(String.format(this.messages.getString("plugin.errors.exit.code.with.output"),
+                                    exitCode, detailed.isEmpty() ? scriptOutput : detailed));
                         } else {
-                            return String.format(this.messages.getString("plugin.errors.exit.code"), exitCode);
+                            return ScriptExecutionOutcome.error(
+                                    String.format(this.messages.getString("plugin.errors.exit.code"), exitCode));
                         }
                 }
             }
 
             this.logger.info("Python script executed successfully");
-            return null; // Success
+            return ScriptExecutionOutcome.success(null);
 
         } catch (SecurityException e) {
-            return String.format(this.messages.getString("plugin.errors.security"), e.getMessage());
+            return ScriptExecutionOutcome.error(
+                    String.format(this.messages.getString("plugin.errors.security"), e.getMessage()));
         } catch (IllegalArgumentException e) {
-            return String.format(this.messages.getString("plugin.errors.configuration"), e.getMessage());
+            return ScriptExecutionOutcome.error(
+                    String.format(this.messages.getString("plugin.errors.configuration"), e.getMessage()));
         } catch (Exception e) {
-            return String.format(this.messages.getString("plugin.errors.unexpected"),
+            return ScriptExecutionOutcome.error(String.format(this.messages.getString("plugin.errors.unexpected"),
                     e.getClass().getSimpleName(),
                     e.getMessage() != null ? e.getMessage() :
-                            this.messages.getString("plugin.errors.no.details"));
+                            this.messages.getString("plugin.errors.no.details")));
+        }
+    }
+
+    /**
+     * Checks whether the given text contains the fixed "no data" marker used to signal a graceful
+     * cancellation instead of an execution error.
+     *
+     * @param text the text to search, may be {@code null}
+     * @return {@code true} if the marker was found
+     */
+    private boolean containsNoDataMarker(final String text) {
+        return text != null
+                && java.util.regex.Pattern.compile(".*" + java.util.regex.Pattern.quote(NO_DATA_MARKER) + ".*",
+                        java.util.regex.Pattern.DOTALL).matcher(text).matches();
+    }
+
+    /**
+     * The outcome of a Python script execution attempt.
+     *
+     * @param success         whether the script execution completed successfully
+     * @param cancelledNoData whether the execution failed but should be treated as a graceful cancellation
+     *                        because no data was found
+     * @param message         the success message, the cancellation remark, or the error message, depending
+     *                        on the outcome
+     */
+    private record ScriptExecutionOutcome(boolean success, boolean cancelledNoData, String message) {
+
+        static ScriptExecutionOutcome success(String message) {
+            return new ScriptExecutionOutcome(true, false, message);
+        }
+
+        static ScriptExecutionOutcome error(String message) {
+            return new ScriptExecutionOutcome(false, false, message);
+        }
+
+        static ScriptExecutionOutcome cancelled(String message) {
+            return new ScriptExecutionOutcome(false, true, message);
         }
     }
 
