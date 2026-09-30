@@ -1022,6 +1022,7 @@ public class FmeServerV2Plugin implements ITaskProcessor {
             cancelOnNoDataParam.put("code", "cancelOnNoData");
             cancelOnNoDataParam.put("label", this.messages.getString("plugin.params.cancelonnodata.label"));
             cancelOnNoDataParam.put("type", "boolean");
+            cancelOnNoDataParam.put("help", this.messages.getString("plugin.params.cancelonnodata.help"));
             parametersNode.add(cancelOnNoDataParam);
 
             // Cancellation remark parameter
