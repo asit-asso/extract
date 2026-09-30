@@ -78,6 +78,12 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
     private static final long PROCESS_TIMEOUT_HOURS = 72;  // 3 days timeout for FME processes
 
     /**
+     * The fixed error message that FME writes when a workspace fails because no data was found for the
+     * request.
+     */
+    private static final String NO_DATA_MARKER = "noDataForExtract";
+
+    /**
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(FmeDesktopV2Plugin.class);
@@ -175,6 +181,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         FmeDesktopV2Result.Status resultStatus = FmeDesktopV2Result.Status.ERROR;
         String resultMessage = "";
         String resultErrorCode = "-1";
+        ITaskProcessorRequest resultRequestData = request;
 
         try {
             if (this.inputs == null || this.inputs.isEmpty()) {
@@ -294,8 +301,10 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             }
 
             // Launch FME process with instance management
+            final boolean cancelOnNoData = Boolean.parseBoolean(this.inputs.get("cancelOnNoData"));
+            final String cancellationRemark = StringUtils.trimToNull(this.inputs.get("cancellationRemark"));
             final Process fmeTaskProcess = this.launchFmeTaskProcess(request, workspaceParam,
-                    applicationParam, parametersFile);
+                    applicationParam, parametersFile, cancelOnNoData);
 
             if (fmeTaskProcess == null) {
                 this.logger.warn("There wasn't enough licences to run the FME extraction. Task execution will be retried later.");
@@ -309,7 +318,22 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             int retValue = fmeTaskProcess.exitValue();
 
             if (retValue != 0) {
-                resultMessage = this.readInputStream(fmeTaskProcess.getErrorStream());
+                final String stderrContent = this.readInputStream(fmeTaskProcess.getErrorStream());
+                resultMessage = stderrContent;
+
+                if (cancelOnNoData && StringUtils.isNotBlank(cancellationRemark)) {
+                    final String stdoutContent = this.readInputStream(fmeTaskProcess.getInputStream());
+                    final String combinedOutput = StringUtils.join(
+                            new String[] {stderrContent, stdoutContent}, System.lineSeparator());
+
+                    if (this.containsNoDataMarker(combinedOutput)) {
+                        this.logger.debug("No data was found for this request. Cancelling it gracefully.");
+                        resultStatus = FmeDesktopV2Result.Status.SUCCESS;
+                        resultErrorCode = "";
+                        resultMessage = this.messages.getString("plugin.messages.cancelled.noData");
+                        resultRequestData = new CancelledExtractionRequest(request, cancellationRemark);
+                    }
+                }
 
             } else {
                 final File dirFolderOut = new File(folderOut);
@@ -341,7 +365,7 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         result.setStatus(resultStatus);
         result.setErrorCode(resultErrorCode);
         result.setMessage(resultMessage);
-        result.setRequestData(request);
+        result.setRequestData(resultRequestData);
 
         return result;
     }
@@ -366,17 +390,34 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
     }
 
     /**
+     * Determines whether a text contains the fixed marker that FME uses to report that no data was found
+     * for the request.
+     *
+     * @param text the text to search, may be <code>null</code>
+     * @return <code>true</code> if the text contains the marker
+     */
+    private boolean containsNoDataMarker(final String text) {
+        return text != null
+                && java.util.regex.Pattern.compile(".*" + java.util.regex.Pattern.quote(NO_DATA_MARKER) + ".*",
+                        java.util.regex.Pattern.DOTALL).matcher(text).matches();
+    }
+
+    /**
      * Launches the FME task process with instance management.
      *
      * @param request           the request to process
      * @param workspacePath     the path to the FME workspace file
      * @param applicationPath   the path to the FME application executable
      * @param parametersFile    the JSON parameters file
+     * @param cancelOnNoData    whether the "cancel on no data" option is enabled for this task ; when
+     *                          <code>true</code>, FME is asked to log to standard output (in addition to
+     *                          standard error) and that output is captured instead of discarded
      * @return the Process object, or null if not enough instances available
      * @throws IOException if an error occurs while launching the process
      */
     private Process launchFmeTaskProcess(final ITaskProcessorRequest request, final String workspacePath,
-                                          final String applicationPath, final File parametersFile) throws IOException {
+                                          final String applicationPath, final File parametersFile,
+                                          final boolean cancelOnNoData) throws IOException {
 
         try {
             FmeDesktopV2Plugin.LOCK.lock();
@@ -392,14 +433,19 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             this.logger.debug("Current working directory is {}", dirWorkspace);
             this.logger.debug("Current user is {}", System.getProperty("user.name"));
 
-            List<String> command = this.buildCommand(request, workspacePath, applicationPath, parametersFile);
+            List<String> command = this.buildCommand(request, workspacePath, applicationPath, parametersFile,
+                    cancelOnNoData);
 
             this.logger.debug("Executed command line is : {}", StringUtils.join(command, " "));
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
-            fmeTaskProcess = processBuilder.directory(dirWorkspace)
-                                           .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                                           .start();
+            processBuilder.directory(dirWorkspace);
+
+            if (!cancelOnNoData) {
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            }
+
+            fmeTaskProcess = processBuilder.start();
 
             try {
                 // Gives the FME process some time to start before checking the number of available instances again
@@ -431,7 +477,29 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
      */
     List<String> buildCommand(final ITaskProcessorRequest request, final String workspacePath,
                               final String applicationPath, final File parametersFile) {
-        List<String> command = new ArrayList<>(8);
+        return this.buildCommand(request, workspacePath, applicationPath, parametersFile, false);
+    }
+
+    /**
+     * Assembles the command line that launches the FME workspace for a request.
+     * <p>
+     * Every request parameter travels in the JSON parameters file. The input and output folders are repeated as
+     * command-line arguments so that the workspace can use them as user parameters before the file is read.
+     *
+     * @param request         the request to process
+     * @param workspacePath   the path to the FME workspace file
+     * @param applicationPath the path to the FME application executable
+     * @param parametersFile  the JSON parameters file
+     * @param cancelOnNoData  whether the "cancel on no data" option is enabled for this task ; when
+     *                        <code>true</code>, the <code>LOG_STANDARDOUT yes</code> argument is appended so
+     *                        that FME writes its log to the standard output/error stream, whichever the FME
+     *                        version uses
+     * @return the executable followed by its arguments, in order
+     */
+    List<String> buildCommand(final ITaskProcessorRequest request, final String workspacePath,
+                              final String applicationPath, final File parametersFile,
+                              final boolean cancelOnNoData) {
+        List<String> command = new ArrayList<>(cancelOnNoData ? 10 : 8);
         command.add(applicationPath);
         command.add(workspacePath);
         command.add("--parametersFile");
@@ -440,6 +508,11 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         command.add(request.getFolderIn());
         command.add(this.formatParameterName("paramRequestFolderOut"));
         command.add(request.getFolderOut());
+
+        if (cancelOnNoData) {
+            command.add("LOG_STANDARDOUT");
+            command.add("yes");
+        }
 
         return command;
     }
@@ -808,6 +881,23 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         instancesParam.put("step", 1);
         instancesParam.put("help", this.messages.getString("plugin.params.instances.help"));
         parametersNode.add(instancesParam);
+
+        // Cancel on no data option
+        ObjectNode cancelOnNoDataParam = mapper.createObjectNode();
+        cancelOnNoDataParam.put("code", "cancelOnNoData");
+        cancelOnNoDataParam.put("label", this.messages.getString("plugin.params.cancelOnNoData.label"));
+        cancelOnNoDataParam.put("type", "boolean");
+        cancelOnNoDataParam.put("help", this.messages.getString("plugin.params.cancelOnNoData.help"));
+        parametersNode.add(cancelOnNoDataParam);
+
+        // Fixed remark used when the request is cancelled because no data was found
+        ObjectNode cancellationRemarkParam = mapper.createObjectNode();
+        cancellationRemarkParam.put("code", "cancellationRemark");
+        cancellationRemarkParam.put("label", this.messages.getString("plugin.params.cancellationRemark.label"));
+        cancellationRemarkParam.put("type", "multitext");
+        cancellationRemarkParam.put("maxlength", 5000);
+        cancellationRemarkParam.put("help", this.messages.getString("plugin.params.cancellationRemark.help"));
+        parametersNode.add(cancellationRemarkParam);
 
         try {
             return mapper.writeValueAsString(parametersNode);
