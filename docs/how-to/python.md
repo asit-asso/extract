@@ -242,7 +242,7 @@ python main.py parameters.json
 
 2. Drag and drop the task plugin `Extraction Python` into the process task list.
 
-3. In the field `Chemin de l'interpréteur Python`, type the path of the Python interpreter you want to use. If you use a virtual environment, you can give the path of the interpreter of the virtual environment, usually something like `.../.venv/Scripts/python.exe`. In the field `Chemin du script python`, type the path of the Python script to run.
+3. In the field `Chemin de l'interpréteur Python`, type the path of the Python interpreter you want to use. If you use a virtual environment, you can give the path of the interpreter of the virtual environment, usually something like `.../.venv/Scripts/python.exe`. In the field `Chemin du script Python`, type the path of the Python script to run.
 
     ![plugin](../assets/how-to/python/plugin.png)
 

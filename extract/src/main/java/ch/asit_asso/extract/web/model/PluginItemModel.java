@@ -219,6 +219,39 @@ public abstract class PluginItemModel {
 
 
     /**
+     * Tells whether a parameter applies with the current values. A parameter that depends on a boolean parameter
+     * only applies while that parameter is enabled; the others always apply.
+     *
+     * @param parameter the parameter to check
+     * @return <code>true</code> if the parameter applies and must therefore be displayed and validated
+     */
+    public final boolean isParameterActive(final PluginItemModelParameter parameter) {
+        final String controllingParameterName = parameter.getDependsOn();
+
+        if (controllingParameterName == null || controllingParameterName.isBlank()) {
+            return true;
+        }
+
+        final PluginItemModelParameter controllingParameter = this.getParameterByName(controllingParameterName);
+
+        return controllingParameter != null && "true".equals(String.valueOf(controllingParameter.getValue()));
+    }
+
+
+
+    /**
+     * Tells whether other parameters depend on a given parameter, so that it acts as a switch that reveals them.
+     *
+     * @param parameterName the name of the parameter to check
+     * @return <code>true</code> if at least one parameter depends on the given one
+     */
+    public final boolean hasDependentParameters(final String parameterName) {
+        return this.parameters.stream().anyMatch(parameter -> parameterName.equals(parameter.getDependsOn()));
+    }
+
+
+
+    /**
      * Sets the settings exposed by the plugin.
      *
      * @param parametersJson the definition of the parameters in JSON format
