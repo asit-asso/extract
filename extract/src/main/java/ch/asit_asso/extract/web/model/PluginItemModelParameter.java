@@ -16,6 +16,7 @@
  */
 package ch.asit_asso.extract.web.model;
 
+import java.util.regex.Pattern;
 import ch.asit_asso.extract.utils.EmailUtils;
 import ch.asit_asso.extract.utils.Secrets;
 import org.slf4j.Logger;
@@ -35,6 +36,12 @@ public class PluginItemModelParameter {
      * The writer to the application logs.
      */
     private final Logger logger = LoggerFactory.getLogger(PluginItemModelParameter.class);
+
+    /**
+     * The pattern of a request variable placeholder (e.g. <code>{clientEmail}</code> or
+     * <code>{parameters.email}</code>) accepted in place of a literal address in an e-mail parameter.
+     */
+    private static final Pattern REQUEST_PLACEHOLDER_PATTERN = Pattern.compile("^\\{[A-Za-z0-9_.]+\\}$");
 
     /**
      * The description of this parameter.
@@ -608,13 +615,26 @@ public class PluginItemModelParameter {
         for (String address : emailString.split("[;,]")) {
             address = address.trim();
 
-            if (!EmailUtils.isAddressValid(address)) {
+            if (!EmailUtils.isAddressValid(address) && !PluginItemModelParameter.isRequestPlaceholder(address)) {
                 this.logger.error("The e-mail address {} did not validate.", address);
                 return false;
             }
         }
 
         return true;
+    }
+
+
+
+    /**
+     * Determines whether a recipient entry is a request variable placeholder, such as <code>{clientEmail}</code>,
+     * that the task plugin resolves at execution time rather than a literal e-mail address.
+     *
+     * @param recipient the trimmed recipient entry to check
+     * @return <code>true</code> if the entry is a placeholder
+     */
+    static boolean isRequestPlaceholder(final String recipient) {
+        return PluginItemModelParameter.REQUEST_PLACEHOLDER_PATTERN.matcher(recipient).matches();
     }
 
 }

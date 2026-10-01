@@ -398,7 +398,7 @@ The task catalog contains all of the task plugins available for the system. They
     - **pass**: character string to be entered via an obfuscated text field. The maximum length of the string is specified in an additional attribute.
     - **list**: list of choices to be entered via a drop-down list. The available options are specified in an additional attribute (values separated by |)
     - **boolean**: boolean to be entered via a checkbox
-    - **email**: email address or list of email addresses separated by a semicolon and/or a comma.
+    - **email**: email address or list of email addresses separated by a semicolon and/or a comma. Each entry may also be a request variable placeholder such as `{clientEmail}`, which the task plugin resolves when the task is executed; the Extract core accepts such placeholders when the task parameters are saved and only rejects literal entries that are not well-formed addresses.
     - **list_msgs** (for new validation plugin): multiple choice list filled in by the Extract core with the validation messages defined at the Extract instance level.
     - **numeric** (for FME Desktop plugin): Numeric value. Min, max, and step are specified in three additional attributes.
 * ``Object new(params)``: creates an instance of the plugin by passing the user-defined parameters. Returns the created object.

@@ -28,6 +28,8 @@ a recipient.
 | `plugins/email/lang/{fr,de}/emailHelp.html` | Updates the Description paragraph with the wording requested in the issue and documents `{clientEmail}` under "Client et organisation" / "Kunde und Organisation". |
 | `plugins/email/lang/en/emailHelp.html` | New file. This plugin never had an English help page (silently falling back to French, a pre-existing gap); since the project's three actual supported locales are fr/de/en (no Italian exists anywhere in this project), adding the English translation alongside the fr/de update was necessary for the change to be genuinely complete rather than French/German-only. |
 | `docs/features/architecture.md` | Documents the new `p_clientemail` column in the REQUESTS data model table. |
+| `web/model/PluginItemModelParameter.java` | Accepts request variable placeholders (`{clientEmail}`, `{parameters.x}`, ...) as entries of a task parameter of type `email`, next to literal addresses. Without this, the process configuration form rejected `{clientEmail}` as a malformed address when the task was saved, so the placeholder could never reach the plugin (366-2). |
+| `connectors/easysdiv4/Easysdiv4.java` | Trims the value read from the `sdi:email` element and only keeps it if it has the shape of an e-mail address; any other value is logged and the client e-mail is left empty, so that an unexpected XML content can never become a recipient (366-2). |
 
 ### Decision: reuse the existing `clientDetails` XPath, extract the e-mail the same way `buildAddressDetailsFromXpath` does
 
@@ -52,6 +54,23 @@ field would have meant either a second, parallel substitution mechanism or hard-
 which are less maintainable than reusing the exact mechanism already applied to the subject and body. Every
 `{authorizedField}` now works the same way regardless of which of the three fields it appears in.
 
+### Review feedback (PR #447): the placeholder was rejected by the process form
+
+The reviewer could not save a notification task with `{clientEmail}` as recipient: the core validates every entry
+of a parameter of type `email` with `EmailValidator` when the process is saved, and reported a malformed address.
+The plugin-side substitution was therefore unreachable in practice. `PluginItemModelParameter.checkEmailString`
+now also accepts an entry that is a request variable placeholder (`{name}` or `{parameters.name}`, letters, digits,
+`_` and `.` only). The check is deliberately generic rather than hard-coded to `clientEmail`, because the plugin
+resolves every `authorizedFields` entry the same way; a resolved value that is not a valid address is still dropped
+by the plugin at execution time, so the relaxation does not weaken the recipient validation.
+
+The reviewer also reported that `{clientEmail}` rendered the client's name. This could not be reproduced from the
+code path (`client/contact/address/sdi:email` → `Product.clientEmail` → `requests.p_clientemail` →
+`TaskProcessorRequest.getClientEmail()`), including with a fully `sdi:`-prefixed order XML, which the connector's
+namespace-unaware XPath evaluation matches by local name (new `Easysdiv4Test` case). As a safety net, the
+connector now only propagates a value that has the shape of an e-mail address and logs anything else, so a
+name can no longer end up in the recipient list whatever the XML contains.
+
 ### Decision: fail gracefully when the client's e-mail is unknown
 
 A missing `clientEmail` (connector doesn't provide one, or the request predates this change) resolves to an empty
@@ -65,8 +84,11 @@ was the only recipient, the task fails with the existing "no valid addressee" me
 when absent. `EmailPluginTest` exercises the acceptance criterion end-to-end: `to = "{clientEmail}"` with a
 resolvable address reaches the sending step (not rejected as "no addressee"), and the same template with no
 known client e-mail is treated as having no valid recipient rather than failing unexpectedly.
-`Easysdiv4Test` gained two tests for the (private, reflection-invoked) `getClientEmailFromXpath` method: extraction
-from a realistic order XML fragment, and the missing-e-mail case resolving to an empty string. The full reactor was
+`Easysdiv4Test` covers the (private, reflection-invoked) `getClientEmailFromXpath` method: extraction from a
+realistic order XML fragment (with and without the `sdi:` prefix on every element), the missing-e-mail case
+resolving to an empty string, trimming, and a non-address value being discarded.
+`PluginItemModelParameterEmailTest` (core) checks that an `email` task parameter accepts placeholders alone or
+mixed with literal addresses, and still rejects malformed literals and malformed placeholders. The full reactor was
 recompiled (`mvn clean package`) to verify every `ITaskProcessorRequest` implementer across all task-processor
 modules compiles against the new interface method, and the true full-reactor unit test suite was run
 (`mvn test -Punit-tests -DskipTests=false`, since the connector/task-processor modules default `skipTests` to

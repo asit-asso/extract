@@ -493,10 +493,15 @@ public class Easysdiv4 implements IConnector {
                 final NodeList emailNode = addressNode.getElementsByTagName("sdi:email");
 
                 if (emailNode != null && emailNode.getLength() > 0) {
-                    final String emailText = emailNode.item(0).getTextContent();
+                    final String emailText = StringUtils.trimToEmpty(emailNode.item(0).getTextContent());
+
+                    if (Easysdiv4.looksLikeEmailAddress(emailText)) {
+                        return emailText;
+                    }
 
                     if (StringUtils.isNotEmpty(emailText)) {
-                        return emailText;
+                        this.logger.warn("The client contact e-mail element contains \"{}\", which is not an e-mail"
+                                + " address. The client e-mail address is left empty.", emailText);
                     }
                 }
             }
@@ -506,6 +511,27 @@ public class Easysdiv4 implements IConnector {
         }
 
         return "";
+    }
+
+
+
+    /**
+     * Checks whether a text has the basic shape of an e-mail address, so that an unexpected value (such as a
+     * name) found in the e-mail element of the order XML is not propagated as the client's address.
+     *
+     * @param text the trimmed text to check
+     * @return <code>true</code> if the text contains exactly one <code>@</code> with characters on both sides and
+     *         no whitespace
+     */
+    static boolean looksLikeEmailAddress(final String text) {
+
+        if (StringUtils.isEmpty(text) || StringUtils.containsWhitespace(text)) {
+            return false;
+        }
+
+        final int separatorIndex = text.indexOf('@');
+
+        return separatorIndex > 0 && separatorIndex == text.lastIndexOf('@') && separatorIndex < text.length() - 1;
     }
 
 
