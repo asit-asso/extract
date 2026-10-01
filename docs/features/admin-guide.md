@@ -101,7 +101,8 @@ At the top of the page, the following are defined:
 
 * The name to be given to the process in the application
 * An optional description that documents the purpose or use of the process
-* The users or user groups authorized to interact with requests associated with this process. At least one operator or user group must be specified. Administrators can interact with all requests.
+* Under Assigned operators, users or user groups authorized to interact with requests associated with this process. At least one operator or user group must be specified. Administrators can interact with all requests.
+* Under Watchers, users or user groups authorized to watch requests associated with this process. Watchers have read-only access to the requests and are automatically notified by email for every new incoming requests associated with this process (as long as notifications are enabled).
 
 #### Process tasks
 ![Processes tasks](../assets/admin-guide/processes-tasks.png){width="600"}

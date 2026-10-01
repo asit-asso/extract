@@ -40,7 +40,7 @@ A single database and a single schema are created, and the user who owns the sch
 
 ### Conceptual data model
 
-![data-model](../assets/dev-guide/data-model.png){width="1000"}
+[erd-data-model](../assets/dev-guide/DB_ERD.png){width="1000"}
 
 ### Data tables description
 
@@ -82,6 +82,24 @@ Table listing the processes configured in the system. It is not possible to modi
 | ``id_process`` | int | **Primary key** | *1*
 | ``name`` | varchar 255 | Process title | *Réseau de Gaz*
 | ``description`` | varchar 4000 | Optional description of the process | *Extract gas network data* |
+
+#### PROCESSES_WATCHERGROUPS
+
+Table listing the processes configured in the system. It is not possible to modify (i.e., the tasks that comprise it) a process if a related request is ONGOING. It is not possible to delete a process if a related request is incomplete or if it is associated with a connector rule.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``id_process`` | int | **Primary key** | *1*
+| ``id_usergroup`` | int | **Foreign key** linking to the USERGROUPS table | *1*
+
+#### PROCESSES_WATCHERS
+
+Table listing the processes configured in the system. It is not possible to modify (i.e., the tasks that comprise it) a process if a related request is ONGOING. It is not possible to delete a process if a related request is incomplete or if it is associated with a connector rule.
+
+| Attribute | Type | Description | Example |
+| --- | --- | --- | --- | 
+| ``id_process`` | int | **Primary key** | *1*
+| ``id_user`` | int | **Foreign key** linking to the USERS table | *1*
 
 #### TASKS
 
