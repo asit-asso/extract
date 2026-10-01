@@ -251,4 +251,15 @@
         Les fichiers de sortie du script doivent être écrits dans le répertoire indiqué par <code>FolderOut</code>.
         Le script doit retourner un code de sortie de 0 si le traitement a réussi.
     </p>
+
+    <h4>Annuler le traitement en l'absence de données</h4>
+    <p>
+        L'option "Annuler le traitement en l'absence de données" permet de terminer gracieusement une requête lorsque l'extraction ne renvoie aucune données.
+    </p>
+    <p>
+        Si l'option est activée et que l'extraction échoue (code de sortie ≠ 0), Extract cherche le message d'erreur fixe <code>noDataForExtract</code> dans le log de l'extraction. Si la recherche réussi, l'extraction ne reste pas en erreur, la requête est automatiquement annulée et le client est notifié avec la remarque saisie dans le champ "Remarque fixe en cas d'annulation". Si la recherche échoue ou que l'option n'est pas activée, l'extraction reste en erreur et une intervention manuelle est nécessaire. Un tel comportement peut être déclenché par le transformer "Terminator" dans FME en saisissant le message d'erreur "noDataForExtract".
+    </p>
+    <p>
+        <strong>ATTENTION</strong> : Si l'option est activée et qu'une absence de données est confirmée, les éventuelles tâches qui suivent l'extraction ne sont pas exécutées.
+    </p>
 </div>

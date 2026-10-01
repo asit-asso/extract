@@ -273,4 +273,15 @@
         <li>Invalid WKT geometry</li>
         <li>HTTP errors (with automatic retry for 5xx errors)</li>
     </ul>
+
+    <h4>Cancel processing when no data is found</h4>
+    <p>
+        The "Cancel processing when no data is found" option gracefully ends a request when the extraction returns no data.
+    </p>
+    <p>
+        If the option is enabled and the extraction fails (HTTP status code ≠ 200), Extract looks for the fixed error message <code>noDataForExtract</code> in the HTTP request response. If found, the extraction is not left in error, the request is automatically cancelled and the client is notified with the remark entered in the "Fixed remark for cancellation" field. If not found, or if the option is disabled, the extraction remains in error and manual intervention is required. Such behavior can be triggered by the "Terminator" transformer in FME by entering the error message "noDataForExtract".
+    </p>
+    <p>
+        <strong>WARNING</strong>: If the option is enabled and a lack of data is confirmed, any tasks that follow the extraction are not executed.
+    </p>
 </div>

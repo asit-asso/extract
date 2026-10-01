@@ -259,7 +259,7 @@ public class FmeServerV2Plugin implements ITaskProcessor {
                     return result;
                 }
             } else {
-                processErrorResponse(fmeResponse, result);
+                processErrorResponse(fmeResponse, result, request);
                 return result;
             }
 
@@ -368,13 +368,69 @@ public class FmeServerV2Plugin implements ITaskProcessor {
     }
 
     /**
+     * The fixed marker text that FME Flow returns (e.g. via a Terminator transformer) to signal that the
+     * extraction found no data for the requested perimeter.
+     */
+    private static final String NO_DATA_MARKER = "noDataForExtract";
+
+    /**
+     * Checks whether a text contains the {@link #NO_DATA_MARKER} literal marker.
+     *
+     * @param text the text to search, may be {@code null}
+     * @return {@code true} if the marker is present in the text
+     */
+    private boolean containsNoDataMarker(final String text) {
+        return text != null
+                && java.util.regex.Pattern.compile(".*" + java.util.regex.Pattern.quote(NO_DATA_MARKER) + ".*",
+                        java.util.regex.Pattern.DOTALL).matcher(text).matches();
+    }
+
+    /**
+     * Determines whether a failed extraction must be reported as a graceful cancellation rather than an
+     * error, based on the task configuration and the failure message.
+     *
+     * @param failureText the error message returned by FME Flow for the failed extraction
+     * @return {@code true} if the task is configured to cancel on no data and the marker was found
+     */
+    private boolean shouldCancelOnNoData(final String failureText) {
+        boolean cancelOnNoData = Boolean.parseBoolean(this.inputs.get("cancelOnNoData"));
+        String cancellationRemark = StringUtils.trimToNull(this.inputs.get("cancellationRemark"));
+
+        return cancelOnNoData && cancellationRemark != null && containsNoDataMarker(failureText);
+    }
+
+    /**
+     * Reports the request as gracefully cancelled because no data was found, instead of letting the task
+     * end in error.
+     *
+     * @param request the original request being processed
+     * @param result  the plugin result to populate
+     */
+    private void cancelExtractionForNoData(final ITaskProcessorRequest request, final FmeServerV2Result result) {
+        String cancellationRemark = StringUtils.trimToNull(this.inputs.get("cancellationRemark"));
+        logger.info("FME Flow reported no data for the extraction perimeter of request ID: {}. "
+                + "Cancelling the request gracefully.", request != null ? request.getId() : "null");
+        result.setRequestData(new CancelledExtractionRequest(request, cancellationRemark));
+        result.setStatus(ITaskProcessorResult.Status.SUCCESS);
+        result.setErrorCode("");
+        result.setMessage(messages.getString("plugin.messages.cancelled.noData"));
+    }
+
+    /**
      * Processes an error response from FME Server.
      */
-    private void processErrorResponse(FmeServerResponse fmeResponse, FmeServerV2Result result) {
+    private void processErrorResponse(FmeServerResponse fmeResponse, FmeServerV2Result result,
+            ITaskProcessorRequest request) {
         if (!fmeResponse.isSuccess()) {
             String errorMessage = fmeResponse.getErrorMessage() != null ?
                 fmeResponse.getErrorMessage() :
                 messages.getString("plugin.errors.response.failed");
+
+            if (shouldCancelOnNoData(fmeResponse.getErrorMessage())) {
+                cancelExtractionForNoData(request, result);
+                return;
+            }
+
             logger.error("FME Server transformation failed: {}", errorMessage);
             result.setError("TRANSFORMATION_FAILED", errorMessage);
             result.setMessage(errorMessage);
@@ -960,6 +1016,25 @@ public class FmeServerV2Plugin implements ITaskProcessor {
             apiTokenParam.put("req", true);
             apiTokenParam.put("help", this.messages.getString("plugin.params.apitoken.help"));
             parametersNode.add(apiTokenParam);
+
+            // Cancel on no data parameter
+            ObjectNode cancelOnNoDataParam = mapper.createObjectNode();
+            cancelOnNoDataParam.put("code", "cancelOnNoData");
+            cancelOnNoDataParam.put("label", this.messages.getString("plugin.params.cancelonnodata.label"));
+            cancelOnNoDataParam.put("type", "boolean");
+            cancelOnNoDataParam.put("help", this.messages.getString("plugin.params.cancelonnodata.help"));
+            parametersNode.add(cancelOnNoDataParam);
+
+            // Cancellation remark parameter
+            ObjectNode cancellationRemarkParam = mapper.createObjectNode();
+            cancellationRemarkParam.put("code", "cancellationRemark");
+            cancellationRemarkParam.put("label", this.messages.getString("plugin.params.cancellationremark.label"));
+            cancellationRemarkParam.put("type", "text");
+            cancellationRemarkParam.put("req", true);
+            cancellationRemarkParam.put("maxlength", 4000);
+            cancellationRemarkParam.put("dependsOn", "cancelOnNoData");
+            cancellationRemarkParam.put("help", this.messages.getString("plugin.params.cancellationremark.help"));
+            parametersNode.add(cancellationRemarkParam);
 
             return mapper.writeValueAsString(parametersNode);
 
