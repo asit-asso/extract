@@ -2,7 +2,7 @@
     <h4>Beschreibung</h4>
     <p>Das E-Mail-Benachrichtigungs-Plugin ermöglicht das Versenden einer personalisierten Nachricht an einen oder mehrere Empfänger.</p>
 
-    <p>Die E-Mail-Adressen der Empfänger müssen durch Semikolons getrennt werden.</p>
+    <p>Die E-Mail-Adressen der Empfänger müssen durch Semikolons getrennt werden. Um den Kunden der Anfrage zu benachrichtigen, verwenden Sie den Platzhalter {clientEmail} als Empfänger-E-Mail-Adresse.</p>
 
     <h4>Verfügbare Platzhalter</h4>
     <p>
@@ -25,6 +25,7 @@
     <h5>Kunde und Organisation</h5>
     <ul>
         <li><code>{client}</code> oder <code>{clientName}</code> - Name des Kunden</li>
+        <li><code>{clientEmail}</code> - E-Mail-Adresse des Kunden (kann als Empfänger verwendet werden)</li>
         <li><code>{clientGuid}</code> - Eindeutige Kennung des Kunden</li>
         <li><code>{organism}</code> oder <code>{organisationName}</code> - Name der Kundenorganisation</li>
         <li><code>{organismGuid}</code> - Eindeutige Kennung der Organisation</li>

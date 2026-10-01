@@ -502,6 +502,9 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         properties.put(this.config.getProperty("paramRequestOrderLabel"), request.getOrderLabel());
         properties.put(this.config.getProperty("paramRequestClientGuid"), request.getClientGuid());
         properties.put(this.config.getProperty("paramRequestClientName"), request.getClient());
+        properties.put(this.config.getProperty("paramRequestClientAddress"), request.getClientAddress());
+        properties.put(this.config.getProperty("paramRequestClientEmail"), request.getClientEmail());
+        properties.put(this.config.getProperty("paramRequestClientPhone"), request.getClientPhone());
         properties.put(this.config.getProperty("paramRequestOrganismGuid"), request.getOrganismGuid());
         properties.put(this.config.getProperty("paramRequestOrganismName"), request.getOrganism());
         properties.put(this.config.getProperty("paramRequestProductGuid"), request.getProductGuid());

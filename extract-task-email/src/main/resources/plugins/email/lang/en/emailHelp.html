@@ -1,0 +1,91 @@
+<div>
+    <h4>Description</h4>
+    <p>The e-mail notification plugin sends a customized message to one or more recipients.</p>
+
+    <p>Recipient e-mail addresses must be separated by semicolons. To notify the client of the request, use the {clientEmail} placeholder as a recipient e-mail address.</p>
+
+    <h4>Available placeholders</h4>
+    <p>
+        The subject and content of the message can contain <strong>placeholders</strong> that will be replaced with
+        values from the request. Use the <code>{fieldName}</code> syntax with curly braces.
+    </p>
+
+    <h5>Basic information</h5>
+    <ul>
+        <li><code>{orderLabel}</code> - Order/request name</li>
+        <li><code>{productLabel}</code> - Product name</li>
+        <li><code>{startDate}</code> - Submission date (formatted, e.g. "Oct 27, 2025 2:30:00 PM")</li>
+        <li><code>{startDateISO}</code> - Submission date (ISO 8601 format, e.g. "2025-10-27T14:30:00Z")</li>
+        <li><code>{endDate}</code> - End date (formatted)</li>
+        <li><code>{endDateISO}</code> - End date (ISO 8601 format)</li>
+        <li><code>{status}</code> - Request status (ONGOING, FINISHED, ERROR, etc.)</li>
+        <li><code>{rejected}</code> - Boolean, true if the request was rejected</li>
+    </ul>
+
+    <h5>Client and organization</h5>
+    <ul>
+        <li><code>{client}</code> or <code>{clientName}</code> - Client name</li>
+        <li><code>{clientEmail}</code> - Client's e-mail address (can be used as a recipient)</li>
+        <li><code>{clientGuid}</code> - Client's unique identifier</li>
+        <li><code>{organism}</code> or <code>{organisationName}</code> - Client's organization name</li>
+        <li><code>{organismGuid}</code> - Organization's unique identifier</li>
+    </ul>
+
+    <h5>Third party</h5>
+    <ul>
+        <li><code>{tiers}</code> - Third-party organization name (can be empty)</li>
+    </ul>
+
+    <h5>Geographic information</h5>
+    <ul>
+        <li><code>{perimeter}</code> - Geographic perimeter (WKT format)</li>
+        <li><code>{surface}</code> - Order surface area</li>
+    </ul>
+
+    <h5>Remarks</h5>
+    <ul>
+        <li><code>{remark}</code> - Client's remark/comment</li>
+    </ul>
+
+    <h5>Dynamic parameters</h5>
+    <p>The request's JSON parameters are accessible in two ways:</p>
+    <ul>
+        <li><code>{parameters.KEY_NAME}</code> - Access by key name (case-sensitive)<br/>
+            Example: <code>{parameters.FORMAT}</code> to access the "FORMAT" key</li>
+        <li><code>{param_KEY_NAME}</code> - Alternative notation (case-sensitive)<br/>
+            Example: <code>{param_FORMAT}</code> to access the "FORMAT" key</li>
+    </ul>
+
+    <p><strong>Important note:</strong></p>
+    <ul>
+        <li>Missing standard field placeholders ({client}, {orderLabel}, etc.) are replaced with an empty string</li>
+        <li>Non-existent dynamic parameters ({parameters.XXX}, {param_XXX}) are replaced with the string <code>"null"</code></li>
+        <li>The e-mail will always be sent, even if some placeholders are missing</li>
+    </ul>
+
+    <h4>Examples</h4>
+
+    <p><strong>Subject example:</strong></p>
+    <pre>New request for product {productLabel}, client {client}</pre>
+
+    <p><strong>Content example:</strong></p>
+    <pre>Hello,
+
+Client {client} from organization {organism} ordered product {productLabel}.
+
+Order details:
+- Order number: {orderLabel}
+- Processing date: {startDate}
+- Surface area: {surface} m²
+- Requested format: {parameters.FORMAT}
+- Remark: {remark}
+
+Best regards</pre>
+
+    <p><strong>Example with conditional parameters:</strong></p>
+    <p>If a parameter may be absent, you can use HTML for conditional display:</p>
+    <pre>&lt;p&gt;Client: {client}&lt;/p&gt;
+&lt;p&gt;Organization: {organism}&lt;/p&gt;
+&lt;!-- The "raison" parameter can be empty if absent --&gt;
+&lt;p&gt;Reason: {parameters.raison}&lt;/p&gt;</pre>
+</div>

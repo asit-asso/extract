@@ -1,9 +1,11 @@
--- System user (id=1) used for background tasks
+-- System user (id=1) used for background tasks. It must never carry a profile: it is not an
+-- application account, and giving it one makes Extract consider itself already configured, which
+-- prevents the creation of the first administrator (issue #432).
 INSERT INTO users(id_user, active, email, login, mailactive, name, pass, profile, two_factor_forced, two_factor_status, user_type)
 VALUES(1, FALSE, 'extract@asit-asso.ch', 'system', FALSE, 'Système', 'c92bb53f6ac7efebb63c2ab68b87c11ab66ba104d355f9083daad5579d4265c7a892e4bc58e9b8de',
-		'ADMIN', FALSE, 'INACTIVE', 'LOCAL')
+		NULL, FALSE, 'INACTIVE', 'LOCAL')
 ON CONFLICT (id_user) DO UPDATE SET
-    profile = 'ADMIN',
+    profile = NULL,
     two_factor_status = 'INACTIVE',
     user_type = 'LOCAL';
 

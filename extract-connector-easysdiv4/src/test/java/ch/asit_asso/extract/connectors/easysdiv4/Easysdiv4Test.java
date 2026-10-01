@@ -16,12 +16,16 @@
  */
 package ch.asit_asso.extract.connectors.easysdiv4;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.xml.parsers.DocumentBuilderFactory;
+import org.w3c.dom.Document;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -34,8 +38,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -385,6 +391,138 @@ public class Easysdiv4Test {
     @Test
     public final void testExportResult() {
         // TODO Test avec bouchon
+    }
+
+
+
+    /**
+     * Builds an in-memory XML document from a string, mirroring the order XML structure returned by an
+     * easySDI v4 server: a client contact address containing the address, phone and e-mail sub-elements
+     * read by {@link Easysdiv4#buildContactDetailsFromXpath}.
+     */
+    private Document buildOrderDocument(final String email) throws Exception {
+        return this.buildOrderDocument(email, "");
+    }
+
+
+
+    /**
+     * Builds an in-memory XML document mirroring the order XML structure returned by an easySDI v4 server, with
+     * every element name carrying the given prefix. The connector parses the server response with a
+     * non-namespace-aware parser, so <code>sdi:</code> is a literal part of the element names it looks up.
+     *
+     * @param email  the content of the e-mail element, or <code>null</code> to omit the element
+     * @param prefix the prefix of the structural element names, such as <code>sdi:</code>, or an empty string
+     */
+    private Document buildOrderDocument(final String email, final String prefix) throws Exception {
+        String xml = "<" + prefix + "orders xmlns:sdi=\"http://www.easysdi.org/2011/sdi\">"
+                + "<" + prefix + "order guid=\"ORDER-1\">"
+                + "<" + prefix + "client guid=\"CLIENT-1\">"
+                + "<" + prefix + "name>Jean Dupont</" + prefix + "name>"
+                + "<" + prefix + "contact><" + prefix + "address>"
+                + "<sdi:addressstreet1>Rue de la Gare 1</sdi:addressstreet1>"
+                + "<sdi:zip>1880</sdi:zip>"
+                + "<sdi:locality>Bex</sdi:locality>"
+                + (email != null ? "<sdi:email>" + email + "</sdi:email>" : "")
+                + "</" + prefix + "address></" + prefix + "contact>"
+                + "</" + prefix + "client>"
+                + "</" + prefix + "order>"
+                + "</" + prefix + "orders>";
+
+        return DocumentBuilderFactory.newInstance().newDocumentBuilder()
+                .parse(new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8)));
+    }
+
+
+
+    private String extractClientEmail(final Document document) {
+        return new Easysdiv4().buildContactDetailsFromXpath(document, "//order[@guid='ORDER-1']/client/contact/address")
+                .getEmail();
+    }
+
+
+
+    /**
+     * The client's e-mail address is read from the order's contact address and exposed on its own, next to the
+     * legacy free-text details (issue #366).
+     */
+    @Test
+    @DisplayName("The client's e-mail address is extracted from the order's contact address")
+    public final void testClientEmailExtraction() throws Exception {
+        Document document = this.buildOrderDocument("jean.dupont@example.com");
+
+        assertEquals("jean.dupont@example.com", this.extractClientEmail(document));
+    }
+
+
+
+    /**
+     * An order without an e-mail element yields no client e-mail address rather than an error (issue #366).
+     */
+    @Test
+    @DisplayName("A missing client e-mail address resolves to null, not an error")
+    public final void testClientEmailExtractionWithoutEmail() throws Exception {
+        Document document = this.buildOrderDocument(null);
+
+        assertNull(this.extractClientEmail(document));
+    }
+
+
+
+    /**
+     * The real easySDI v4 response prefixes every element with <code>sdi:</code>, which the connector's
+     * namespace-unaware XPath evaluation matches by local name (issue #366).
+     */
+    @Test
+    @DisplayName("The client's e-mail address is extracted from a fully sdi-prefixed order XML")
+    public final void testClientEmailExtractionWithPrefixedElements() throws Exception {
+        Document document = this.buildOrderDocument("jean.dupont@example.com", "sdi:");
+
+        assertEquals("jean.dupont@example.com", this.extractClientEmail(document));
+    }
+
+
+
+    /**
+     * Surrounding whitespace in the e-mail element must not end up in the recipient address (issue #366).
+     */
+    @Test
+    @DisplayName("The client's e-mail address is trimmed")
+    public final void testClientEmailExtractionTrimsValue() throws Exception {
+        Document document = this.buildOrderDocument("\n  jean.dupont@example.com \n");
+
+        assertEquals("jean.dupont@example.com", this.extractClientEmail(document));
+    }
+
+
+
+    /**
+     * A value that is not an e-mail address (such as the client's name) must not be propagated as the client's
+     * address, where it would later be rejected as a malformed recipient (issue #366).
+     */
+    @Test
+    @DisplayName("A non-address value in the e-mail element yields no client e-mail address")
+    public final void testClientEmailExtractionRejectsNonAddressValue() throws Exception {
+        Document document = this.buildOrderDocument("Jean Dupont");
+
+        assertNull(this.extractClientEmail(document));
+    }
+
+
+
+    @Test
+    @DisplayName("The e-mail address shape check accepts addresses and rejects other texts")
+    public final void testLooksLikeEmailAddress() {
+        assertTrue(Easysdiv4.looksLikeEmailAddress("jean.dupont@example.com"));
+        assertTrue(Easysdiv4.looksLikeEmailAddress("j@x"));
+        assertFalse(Easysdiv4.looksLikeEmailAddress(null));
+        assertFalse(Easysdiv4.looksLikeEmailAddress(""));
+        assertFalse(Easysdiv4.looksLikeEmailAddress("Jean Dupont"));
+        assertFalse(Easysdiv4.looksLikeEmailAddress("jean.dupont"));
+        assertFalse(Easysdiv4.looksLikeEmailAddress("@example.com"));
+        assertFalse(Easysdiv4.looksLikeEmailAddress("jean@"));
+        assertFalse(Easysdiv4.looksLikeEmailAddress("jean@@example.com"));
+        assertFalse(Easysdiv4.looksLikeEmailAddress("jean dupont@example.com"));
     }
 
 }

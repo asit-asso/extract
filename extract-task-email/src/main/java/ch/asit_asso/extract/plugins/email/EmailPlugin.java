@@ -268,7 +268,8 @@ public class EmailPlugin implements ITaskProcessor {
             this.logger.debug("Email settings: {}", request.getParameters());
             if (emailSettings.isNotificationEnabled()) {
 
-                final String[] toAddressesArray = this.parseToAddressesString(toAsString);
+                final String processedTo = this.replaceRequestVariables(toAsString, request);
+                final String[] toAddressesArray = this.parseToAddressesString(processedTo);
                 this.logger.debug("Parsed {} email addresses", toAddressesArray != null ? toAddressesArray.length : 0);
 
                 if (!ArrayUtils.isEmpty(toAddressesArray)) {
@@ -291,7 +292,7 @@ public class EmailPlugin implements ITaskProcessor {
 
                 } else {
                     resultMessage = this.messages.getString("email.error.noAddressee");
-                    this.logger.error("No valid email addresses found in: {}", toAsString);
+                    this.logger.error("No valid email addresses found in: {}", processedTo);
                 }
 
             } else {

@@ -213,25 +213,28 @@ class FirstAdminSetupIntegrationTest {
         }
 
         @Test
-        @DisplayName("3.2 - System user is not counted as admin for setup")
+        @Transactional
+        @DisplayName("3.2 - The system user carrying the ADMIN profile does not make the application configured")
         void systemUserNotCountedAsAdminForSetup() {
-            // Given: Only system user exists (but inactive)
+            // Given: the state that update_db.sql used to produce on a fresh database, i.e. the hidden
+            // system user promoted to administrator and no application administrator at all (issue #432).
             User systemUser = usersRepository.findById(1).orElse(null);
             assertNotNull(systemUser);
-            assertEquals(Profile.ADMIN, systemUser.getProfile());
-            assertFalse(systemUser.isActive());
+            assertEquals(User.SYSTEM_USER_LOGIN, systemUser.getLogin());
+            systemUser.setProfile(Profile.ADMIN);
+            usersRepository.save(systemUser);
 
-            // The AppInitializationService should check for ACTIVE admins
-            // System user being inactive should not count
-            // Note: existsByProfile doesn't check active status
-        }
+            for (User user : usersRepository.findAll()) {
 
-        @Test
-        @DisplayName("3.3 - Setup redirects to login after success")
-        void setupRedirectsToLoginAfterSuccess() {
-            // The SetupController.handleSetup() returns "redirect:/login" on success
-            // This is the expected behavior documented in the controller
-            assertEquals("redirect:/login", "redirect:/login");
+                if (!user.isSystemUser() && user.getProfile() == Profile.ADMIN) {
+                    user.setProfile(Profile.OPERATOR);
+                    usersRepository.save(user);
+                }
+            }
+
+            // Then: the application must still offer to create the first administrator.
+            assertFalse(appInitializationService.isConfigured(),
+                    "The system user must never count as an application administrator");
         }
     }
 

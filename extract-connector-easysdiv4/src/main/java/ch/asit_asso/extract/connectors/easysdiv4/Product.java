@@ -84,6 +84,21 @@ public class Product implements IProduct {
     private String clientDetails;
 
     /**
+     * The postal address of the person that ordered this data item.
+     */
+    private String clientAddress;
+
+    /**
+     * The electronic address of the person that ordered this data item.
+     */
+    private String clientEmail;
+
+    /**
+     * The telephone number of the person that ordered this data item.
+     */
+    private String clientPhone;
+
+    /**
      * The name of the person that this data item was requested on behalf of, if any.
      */
     private String tiers;
@@ -280,6 +295,60 @@ public class Product implements IProduct {
      */
     public final void setClientDetails(final String details) {
         this.clientDetails = details;
+    }
+
+
+
+    @Override
+    public final String getClientAddress() {
+        return this.clientAddress;
+    }
+
+
+
+    /**
+     * Defines the postal address of the person who requested this product.
+     *
+     * @param address the multiline postal address of the customer
+     */
+    public final void setClientAddress(final String address) {
+        this.clientAddress = address;
+    }
+
+
+
+    @Override
+    public final String getClientEmail() {
+        return this.clientEmail;
+    }
+
+
+
+    /**
+     * Defines the electronic address of the person who requested this product.
+     *
+     * @param email the e-mail address of the customer
+     */
+    public final void setClientEmail(final String email) {
+        this.clientEmail = email;
+    }
+
+
+
+    @Override
+    public final String getClientPhone() {
+        return this.clientPhone;
+    }
+
+
+
+    /**
+     * Defines the telephone number of the person who requested this product.
+     *
+     * @param phone the telephone number of the customer
+     */
+    public final void setClientPhone(final String phone) {
+        this.clientPhone = phone;
     }
 
 
