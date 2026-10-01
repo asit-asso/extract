@@ -212,10 +212,16 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                 <div class="card-body">
                                                     <div class="row"
                                                          th:each="dynamicParameter, paramStats : *{parameters}"
-                                                         th:object="${process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__]}">
-                                                        <div class="col-xl-12">
+                                                         th:object="${process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__]}"
+                                                         th:classappend="${process.tasks[__${taskStats.index}__].isParameterActive(dynamicParameter)} ? '' : 'd-none'"
+                                                         th:attr="data-depends-on=${dynamicParameter.dependsOn},data-required=${dynamicParameter.required}">
+                                                        <div class="col-xl-12"
+                                                             th:with="paramActive=${process.tasks[__${taskStats.index}__].isParameterActive(dynamicParameter)},
+                                                                      paramRequired=${dynamicParameter.required and paramActive},
+                                                                      paramSwitch=${dynamicParameter.type == 'boolean' and process.tasks[__${taskStats.index}__].hasDependentParameters(dynamicParameter.name)}">
                                                             <div class="form-group form-group-with-label"
-                                                                 th:classappend="${#fields.hasErrors('value')} ? 'has-error'">
+                                                                 th:classappend="${(#fields.hasErrors('value') ? 'has-error ' : '') + (paramSwitch and !readOnly ? 'form-group-switch' : '')}">
+                                                                <th:block th:unless="${paramSwitch} and !${readOnly}">
                                                                 <label th:text="*{label}" class="form-label col-form-label">
                                                                     {Label}
                                                                 </label>
@@ -223,6 +229,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                       th:title="#{field.mandatory.tooltip}"
                                                                       th:unless="${readOnly}" data-bs-toggle="tooltip">
                                                                 </span><br/>
+                                                                </th:block>
                                                                 <input type="hidden" th:field="*{name}" />
                                                                 <input type="hidden" th:field="*{type}" />
                                                                 <input type="hidden" th:field="*{label}" />
@@ -234,12 +241,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:field="*{minValue}" />
                                                                 <input type="hidden" th:if="*{step} != null"
                                                                        th:field="*{step}" />
-                                                                <input type="text" th:required="*{required}"
+                                                                <input type="hidden" th:if="*{dependsOn} != null"
+                                                                       th:field="*{dependsOn}" />
+                                                                <input type="text" th:required="${paramRequired}"
                                                                        th:if="(*{type} == 'text' or *{type} == 'email') and !${readOnly}"
                                                                        th:maxlength="*{maxLength}" data-bs-toggle="tooltip"
                                                                        class="form-control" th:field="*{value}"
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" />
-                                                                <input type="password" th:required="*{required}"
+                                                                <input type="password" th:required="${paramRequired}"
                                                                        data-bs-toggle="tooltip" autocomplete="off"
                                                                        th:if="*{type} == 'pass' and !${readOnly}"
                                                                        th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value|"
@@ -248,7 +257,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                        th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}"
                                                                        th:value="${isNew or process.tasks[__${taskStats.index}__].tag=='ADDED' or #strings.isEmpty(process.tasks[__${taskStats.index}__].parameters[__${paramStats.index}__].value)}? '' : '*****'" />
                                                                 <textarea class="form-control" style="resize:vertical"
-                                                                          th:required="*{required}" th:if="*{type} == 'multitext' and !${readOnly}"
+                                                                          th:required="${paramRequired}" th:if="*{type} == 'multitext' and !${readOnly}"
                                                                           th:field="*{value}" data-bs-toggle="tooltip"
                                                                           th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" ></textarea>
                                                                 <input type="hidden" th:field="*{value}" th:if="*{type} == 'list_msgs' and !${readOnly}"
@@ -256,7 +265,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                 <select class="select2-container select2-container-multi form-control select2 parameter-select"
                                                                         multiple="multiple" data-bs-toggle="tooltip"
                                                                         th:id="|tasks${taskStats.index}.parameters${paramStats.index}.value-select|"
-                                                                        th:required="*{required}" th:if="*{type} == 'list_msgs' and !${readOnly}"
+                                                                        th:required="${paramRequired}" th:if="*{type} == 'list_msgs' and !${readOnly}"
                                                                         th:title="${#fields.hasErrors('value')} ? ${#fields.errors('value')[0]}" >
                                                                     <option th:each="remark, remarkStats : ${allremarks}"
                                                                             th:value="${remark.id}"
@@ -266,7 +275,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                 </select>
 
                                                                 <div class="btn-group" data-bs-toggle="buttons"
-                                                                     th:required="*{required}" th:if="*{type} == 'boolean' and !${readOnly}" >
+                                                                     th:required="${paramRequired}" th:if="*{type} == 'boolean' and !${paramSwitch} and !${readOnly}" >
                                                                     <input type="radio" class="btn-check"
                                                                            th:field="*{value}" value="false" />
                                                                     <label class="form-label btn btn-sm btn-toggle btn-toggle-no"
@@ -280,8 +289,19 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
                                                                         &nbsp;<span th:text="#{toggle.yes}">{Yes}</span>
                                                                     </label>
                                                                 </div>
+                                                                <div class="form-check form-switch parameter-switch"
+                                                                     th:if="${paramSwitch} and !${readOnly}">
+                                                                    <input type="hidden" th:field="*{value}" class="parameter-switch-value" />
+                                                                    <input type="checkbox" class="form-check-input" role="switch"
+                                                                           th:id="|tasks${taskStats.index}.parameters${paramStats.index}.switch|"
+                                                                           th:attr="data-parameter-name=*{name}"
+                                                                           th:checked="*{value} == 'true'" />
+                                                                    <label class="form-check-label"
+                                                                           th:for="|tasks${taskStats.index}.parameters${paramStats.index}.switch|"
+                                                                           th:text="*{label}">{Label}</label>
+                                                                </div>
                                                                 <input type="number" th:if="*{type} == 'numeric' and !${readOnly}"
-                                                                       th:required="*{required}" th:min="*{minValue}"
+                                                                       th:required="${paramRequired}" th:min="*{minValue}"
                                                                        th:max="*{maxValue}" th:step="*{step}"
                                                                        class="form-control" autocomplete="off"
                                                                        th:value="*{value} ?: ''"

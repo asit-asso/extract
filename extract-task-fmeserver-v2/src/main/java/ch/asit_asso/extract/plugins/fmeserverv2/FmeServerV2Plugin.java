@@ -1029,8 +1029,10 @@ public class FmeServerV2Plugin implements ITaskProcessor {
             ObjectNode cancellationRemarkParam = mapper.createObjectNode();
             cancellationRemarkParam.put("code", "cancellationRemark");
             cancellationRemarkParam.put("label", this.messages.getString("plugin.params.cancellationremark.label"));
-            cancellationRemarkParam.put("type", "multitext");
-            cancellationRemarkParam.put("maxlength", 5000);
+            cancellationRemarkParam.put("type", "text");
+            cancellationRemarkParam.put("req", true);
+            cancellationRemarkParam.put("maxlength", 4000);
+            cancellationRemarkParam.put("dependsOn", "cancelOnNoData");
             cancellationRemarkParam.put("help", this.messages.getString("plugin.params.cancellationremark.help"));
             parametersNode.add(cancellationRemarkParam);
 

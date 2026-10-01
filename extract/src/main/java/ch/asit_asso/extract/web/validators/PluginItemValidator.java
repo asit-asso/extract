@@ -80,6 +80,13 @@ public abstract class PluginItemValidator extends BaseValidator {
                     continue;
                 }
 
+                if (!target.isParameterActive(parameter)) {
+                    this.logger.debug("Parameter \"{}\" is disabled by \"{}\". Skipped.", parameter.getName(),
+                            parameter.getDependsOn());
+                    parameterIndex++;
+                    continue;
+                }
+
                 ValidationUtils.invokeValidator(this.parameterValidator, parameter, errors);
                 parameterIndex++;
 

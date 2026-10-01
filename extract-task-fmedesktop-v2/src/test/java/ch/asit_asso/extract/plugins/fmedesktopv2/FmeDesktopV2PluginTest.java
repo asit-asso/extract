@@ -188,7 +188,7 @@ public class FmeDesktopV2PluginTest {
             String type = param.get("type").textValue();
             assertTrue(ArrayUtils.contains(VALID_PARAMETER_TYPES, type) || "numeric".equals(type));
             
-            if ("cancelOnNoData".equals(code) || "cancellationRemark".equals(code)) {
+            if ("cancelOnNoData".equals(code)) {
                 assertFalse(param.hasNonNull("req"));
             } else {
                 assertTrue(param.hasNonNull("req"));
@@ -207,9 +207,10 @@ public class FmeDesktopV2PluginTest {
             }
 
             if ("cancellationRemark".equals(code)) {
-                assertEquals("multitext", type);
-                assertTrue(param.hasNonNull("maxlength"));
-                assertEquals(5000, param.get("maxlength").intValue());
+                assertEquals("text", type);
+                assertTrue(param.get("req").booleanValue());
+                assertEquals("cancelOnNoData", param.get("dependsOn").textValue());
+                assertEquals(4000, param.get("maxlength").intValue());
             }
         }
         

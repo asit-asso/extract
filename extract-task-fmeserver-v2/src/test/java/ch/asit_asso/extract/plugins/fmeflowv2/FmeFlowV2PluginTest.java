@@ -124,9 +124,10 @@ class FmeFlowV2PluginTest {
                         break;
                     case "cancellationRemark":
                         hasCancellationRemark = true;
-                        assertEquals("multitext", param.get("type").asText());
-                        assertEquals(5000, param.get("maxlength").asInt());
-                        assertFalse(param.has("req"));
+                        assertEquals("text", param.get("type").asText());
+                        assertEquals(4000, param.get("maxlength").asInt());
+                        assertTrue(param.get("req").asBoolean());
+                        assertEquals("cancelOnNoData", param.get("dependsOn").asText());
                         break;
                 }
             }

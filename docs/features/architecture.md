@@ -382,6 +382,8 @@ The task catalog contains all of the task plugins available for the system. They
     - **email**: email address or list of email addresses separated by a semicolon and/or a comma.
     - **list_msgs** (for new validation plugin): multiple choice list filled in by the Extract core with the validation messages defined at the Extract instance level.
     - **numeric** (for FME Desktop plugin): Numeric value. Min, max, and step are specified in three additional attributes.
+
+    Any parameter can also declare ``dependsOn`` with the code of a **boolean** parameter of the same plugin. It then only applies while that boolean is enabled: the boolean is displayed as a switch with its label on the right, the dependent parameter is hidden while the switch is off, and its ``req`` flag is only enforced while it is shown. Example: ``{‘code’ : ‘cancellationRemark’, ‘label’ : ‘Remarque fixe en cas d’annulation’, ‘type’ : ‘text’, ‘req’ : true, ‘maxlength’ : 4000, ‘dependsOn’ : ‘cancelOnNoData’}``.
 * ``Object new(params)``: creates an instance of the plugin by passing the user-defined parameters. Returns the created object.
 * ``Object execute(request)``: executes the task plugin according to the request element passed as parameters. Returns an object of the type:
     * **State**: status among success, error, standby

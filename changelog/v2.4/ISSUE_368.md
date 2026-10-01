@@ -24,8 +24,11 @@ instead, using the exact same mechanism already used by the `extract-task-reject
 | `extract-task-fmeserver-v2/.../FmeServerV2Plugin.java` | Adds the same two parameters. On the existing `TRANSFORMATION_FAILED` error branch (HTTP status ≠ 200/201), searches the already-extracted `.serviceResponse.statusInfo.message` text (no changes to the JSON parsing itself) for the marker before falling back to the unchanged error behavior (368-2, 368-3). The `NO_DOWNLOAD_URL` branch and the success path are untouched (368-4, 368-5). |
 | `extract-task-python/.../PythonPlugin.java` | Adds the same two parameters. `executePythonScript()` was refactored to return a small private `ScriptExecutionOutcome` record (`success`/`cancelledNoData`/`message`) instead of a bare nullable `String`, since a plain string return could not unambiguously signal "cancelled, not an error" alongside the existing null=success/non-null=error convention. On the exit-code≠0 path, checks the combined stdout+stderr and any captured traceback text for the marker before the existing exit-code-specific error formatting (368-2, 368-3). The success path and the disabled-option path are unchanged (368-4, 368-5). |
 | `CancelledExtractionRequest.java` (new, one per module: `fmedesktopv2`, `fmeserverv2`, `python` packages) | A package-private `ITaskProcessorRequest` decorator: delegates every getter to the wrapped original request except `isRejected()` (hardcoded `true`) and `getRemark()` (returns the configured cancellation remark). |
-| `.../lang/{fr,de,en}/messages.properties` (all 3 modules) | Adds labels/help text for the two new parameters and a new "request cancelled, no data found" result message, in all three locales. |
+| `.../lang/{fr,de,en}/messages.properties` (all 3 modules) | Adds labels for the two new parameters and a new "request cancelled, no data found" result message, in all three locales. |
 | `.../lang/{fr,de,en}/help.html` (all 3 modules) | Appends the "Annuler le traitement en l'absence de données" section from the issue at the end of each plugin's help, with the plugin-specific middle paragraph (extraction log / HTTP response / stderr+stdout) and natural DE/EN translations. |
+| `web/model/PluginItemModelParameter.java`, `utils/PluginUtils.java` | A plugin parameter can now declare `"dependsOn": "<boolean parameter code>"`: it only applies while that boolean parameter is enabled (368-1). Its `req` flag then means "required while shown": an empty stored value no longer counts as invalid when the task is loaded. |
+| `web/model/PluginItemModel.java`, `web/validators/PluginItemValidator.java` | `isParameterActive()` / `hasDependentParameters()`. The task validator skips a dependent parameter while its switch is off and enforces `req` once it is on (368-1). |
+| `templates/pages/processes/details.html`, `static/js/processDetails.js`, `static/css/extract.css` | A boolean parameter that other parameters depend on renders as the green switch of the mock-ups, label on its right, instead of the Yes/No buttons. Its dependent parameters are hidden while it is off and shown, with their mandatory marker, once it is on. The initial state is rendered by the server (adding a task reloads the page); the script only toggles visibility and the HTML `required` attribute, so a hidden mandatory field never blocks the form. Other boolean parameters keep their Yes/No buttons. |
 | Test files (all 3 modules) | New tests covering acceptance criteria 368-2 through 368-5 per plugin (see Tests below), plus `getParams()` assertions for the two new parameters (368-1). |
 
 ### Decision: reuse the Reject plugin's exact "rejected + remark" mechanism, no orchestrator changes
@@ -50,19 +53,19 @@ to the original request except the two that need to change. `extract-task-fmeser
 GeoJSON body, not an alternate `ITaskProcessorRequest` implementation, and reusing it for this purpose would have
 mixed two unrelated responsibilities.
 
-### Decision: the cancellation remark is not a globally required parameter
+### Decision: an option that unfolds, as in the mock-ups
 
-The issue describes the remark field as required "if the option is activated" (an expandable, opt-in UI section).
-Marking it `req=true` at the parameter-schema level would force every administrator editing an *existing*,
-already-configured task of these three plugins to suddenly fill in a field they never intended to use, since the
-field is genuinely new and no existing task configuration has a value for it. Instead, the field stays optional at
-the schema level, and each plugin defensively requires it to be non-blank (in addition to the checkbox being
-enabled) before attempting the no-data cancellation; if the checkbox is on but the remark is blank, the extraction
-falls through to its normal, unchanged error behavior rather than crashing or silently discarding the failure.
-No collapsible/expandable UI widget was built for the "option dépliable" from the Figma mockups: no such
-conditional-field-visibility mechanism exists anywhere in this codebase's process task configuration form today,
-and introducing one was judged disproportionate to this specific, backend-focused issue; the two parameters render
-through the existing generic boolean/multitext parameter form.
+The mock-ups show, for all three plugins, a switch "Annuler le traitement en l'absence de données" with its label on
+the right and nothing else while it is off; turning it on reveals a single-line, mandatory "Remarque fixe en cas
+d'annulation" field. The task form had no notion of a parameter that only applies when another one is enabled, so
+a generic `dependsOn` attribute was added to the plugin parameter definition rather than special-casing these three
+plugins in the form: any plugin can reuse it, and plugins that don't declare it are rendered and validated exactly
+as before.
+
+The remark is declared `req: true`, `type: text` (single line, as in the mock-ups) and `maxlength: 4000`, the size of
+the `requests.remark` column it ends up in. Because it depends on the switch, it is only mandatory while the switch
+is on: existing tasks of these plugins, which never had this field, can still be edited and saved with the option
+off. The plugins keep their own runtime check (option on and remark non-blank) as a second safeguard.
 
 ### Tests
 
@@ -82,9 +85,17 @@ real HTTP response-handling code via a reflection-based invocation of the privat
 `no_data_script.py` fixture (mirroring the existing `error_script.py` test), skipping gracefully if no interpreter
 is available in the environment running the tests.
 
+`DependentParameterValidationTest` (unit) covers the generic mechanism: the definition links the remark to its
+switch, an empty remark is accepted while the switch is off and rejected with `parameter.errors.required` once it is
+on, a filled remark is accepted, and a task saved with the switch off loads its empty remark without being flagged
+invalid. The `getParams()` tests of the three plugins assert the remark is a required, single-line field depending
+on `cancelOnNoData`.
+
 Full reactor verification: `mvn install` (15 modules) — `BUILD SUCCESS`. `mvn test -Punit-tests -DskipTests=false`
 (full reactor including the connector/task-processor modules, which default `skipTests=true`) — 0 failures, 0
 errors. Integration tests via `docker-compose-test.yaml` (`mvn verify -Pintegration-tests`) — 0 failures, 0 errors.
+The form was checked in a browser against the mock-ups: switch off shows no remark, switch on reveals the mandatory
+remark, saving with the switch on and an empty remark is refused, saving with the switch off is accepted.
 
 ### Documentation / i18n impact
 
@@ -98,5 +109,5 @@ errors. Integration tests via `docker-compose-test.yaml` (`mvn verify -Pintegrat
 An administrator can now configure any of the three extraction plugins to gracefully cancel a request instead of
 failing it, when the extraction reports the fixed `noDataForExtract` marker in its own failure output. The
 cancellation reuses the exact same "rejected + remark" path that `extract-task-reject` already relies on, so no
-orchestrator or export-side changes were necessary, and the option has no effect at all unless explicitly enabled
-with a non-blank cancellation remark.
+orchestrator or export-side changes were necessary. The option unfolds as in the mock-ups and cannot be enabled
+without a cancellation remark.

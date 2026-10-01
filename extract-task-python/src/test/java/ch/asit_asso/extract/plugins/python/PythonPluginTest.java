@@ -137,10 +137,10 @@ class PythonPluginTest {
                 assertEquals("boolean", paramNode.get("type").asText());
             } else if ("cancellationRemark".equals(code)) {
                 foundCancellationRemark = true;
-                assertEquals("multitext", paramNode.get("type").asText());
-                assertEquals(5000, paramNode.get("maxlength").asInt());
-                assertFalse(paramNode.has("req") && paramNode.get("req").asBoolean(),
-                        "cancellationRemark must stay optional at the schema level");
+                assertEquals("text", paramNode.get("type").asText());
+                assertEquals(4000, paramNode.get("maxlength").asInt());
+                assertTrue(paramNode.get("req").asBoolean(), "cancellationRemark is mandatory when shown");
+                assertEquals("cancelOnNoData", paramNode.get("dependsOn").asText());
             }
         }
 
