@@ -21,6 +21,7 @@ import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.domain.Task;
 import ch.asit_asso.extract.email.*;
+import ch.asit_asso.extract.testutils.TestSecrets;
 import ch.asit_asso.extract.persistence.SystemParametersRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -173,7 +174,9 @@ public class SystemEmailsIntegrationTest {
         });
 
         // Create EmailSettings with test dependencies
-        emailSettings = new EmailSettings(mockRepo, testTemplateEngine, mockMessageSource, "http://localhost:8080");
+        emailSettings = new EmailSettings(mockRepo, testTemplateEngine, mockMessageSource,
+                "http://localhost:8080", "fr",
+                TestSecrets.create());
 
         // Setup test request with all fields including new placeholders
         testRequest = new Request();

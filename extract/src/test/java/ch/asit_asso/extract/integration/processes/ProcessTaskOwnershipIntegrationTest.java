@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.domain.Task;
+import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.integration.DatabaseTestHelper;
 import ch.asit_asso.extract.integration.WithMockApplicationUser;
 import ch.asit_asso.extract.persistence.ProcessesRepository;
@@ -32,6 +34,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
@@ -40,6 +43,8 @@ import org.springframework.transaction.annotation.Transactional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,6 +90,9 @@ class ProcessTaskOwnershipIntegrationTest {
     @Autowired
     private DatabaseTestHelper dbHelper;
 
+    @MockBean
+    private TaskProcessorDiscovererWrapper taskPluginsDiscoverer;
+
     private int operatorId;
 
 
@@ -95,6 +103,10 @@ class ProcessTaskOwnershipIntegrationTest {
                                                            ProcessTaskOwnershipIntegrationTest.MARKER + " Operator",
                                                            ProcessTaskOwnershipIntegrationTest.MARKER + "@test.ch",
                                                            true);
+        ITaskProcessor plugin = mock(ITaskProcessor.class);
+        when(plugin.getCode()).thenReturn("ARCHIVE");
+        when(plugin.getParams()).thenReturn("[{\"code\":\"path\",\"type\":\"text\"}]");
+        when(this.taskPluginsDiscoverer.getTaskProcessor("ARCHIVE")).thenReturn(plugin);
     }
 
 

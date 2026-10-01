@@ -198,7 +198,12 @@ $(function() {
         //Gestion du drag and drop pour reordonner les tâches d'un process
         $('.extract-proc-tasks .col-xl-8 .card-body .row:first').sortable({
             items: '.taskcard',
-            helper: 'clone',
+            //Le helper n'est qu'un aperçu visuel suivant la souris : s'il garde les mêmes attributs "name" que
+            //les champs du formulaire réel (ex. les boutons radio d'un paramètre booléen), le navigateur applique
+            //l'exclusivité mutuelle du groupe radio entre le clone et l'original et décoche ce dernier (issue #440).
+            helper: function(event, item) {
+                return item.clone().find('input, select, textarea').removeAttr('name').prop('disabled', true).end();
+            },
             handle: '.card-header',
             placeholder: 'placeholder',
             refreshPositions: true,
@@ -218,16 +223,14 @@ $(function() {
                 //ui.placeholder.height(ui.item.children().height());
             },
             stop : function(e, ui) {
-                var $currentItemActive = ui.item.find('.btn-toggle.active input');
                 $(".extract-proc-tasks .col-xl-8 .card-body .row .taskcard").css('margin-top', '');
-                
+
                 $(".extract-proc-tasks .col-xl-8 .card-body .row .task-arrow-down").each(function(i) {
                     //display arrow down
                     $(this).css('display','none');
                     if(i > 0)
                         $(this).css('display','block');
                 });
-                $currentItemActive.prop("checked", true);
             }
         });
 

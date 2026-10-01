@@ -22,11 +22,14 @@ import ch.asit_asso.extract.domain.Process;
 import ch.asit_asso.extract.integration.DatabaseTestHelper;
 import ch.asit_asso.extract.integration.WithMockApplicationUser;
 import ch.asit_asso.extract.persistence.ProcessesRepository;
+import ch.asit_asso.extract.plugins.common.ITaskProcessor;
+import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
@@ -35,6 +38,8 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,8 +72,10 @@ class ProcessDescriptionIntegrationTest {
     @Autowired
     private EntityManager entityManager;
 
-    private int operatorId;
+    @MockBean
+    private TaskProcessorDiscovererWrapper taskPluginsDiscoverer;
 
+    private int operatorId;
 
 
     @BeforeEach
@@ -76,6 +83,11 @@ class ProcessDescriptionIntegrationTest {
         this.operatorId = this.dbHelper.createTestOperator(ProcessDescriptionIntegrationTest.MARKER + "_operator",
                                                            ProcessDescriptionIntegrationTest.MARKER + " Operator",
                                                            ProcessDescriptionIntegrationTest.MARKER + "@test.ch", true);
+
+        final ITaskProcessor plugin = mock(ITaskProcessor.class);
+        when(plugin.getCode()).thenReturn("ARCHIVE");
+        when(plugin.getParams()).thenReturn("[{\"code\":\"path\",\"type\":\"text\"}]");
+        when(this.taskPluginsDiscoverer.getTaskProcessor("ARCHIVE")).thenReturn(plugin);
     }
 
 

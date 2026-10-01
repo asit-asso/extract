@@ -20,16 +20,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import javax.validation.constraints.Max;
-
 import ch.asit_asso.extract.connectors.common.IConnector;
-import ch.asit_asso.extract.persistence.RequestsRepository;
 import ch.asit_asso.extract.domain.Connector;
 import ch.asit_asso.extract.domain.Rule;
+import ch.asit_asso.extract.persistence.RequestsRepository;
+import ch.asit_asso.extract.services.SecretParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+ 
 
 
 
@@ -394,6 +399,10 @@ public class ConnectorModel extends PluginItemModel {
      * @param connectorPlugin an instance of the plugin that will be used by this new connector instance
      */
     public ConnectorModel(final IConnector connectorPlugin) {
+        this(connectorPlugin, null);
+    }
+
+    public ConnectorModel(final IConnector connectorPlugin, final SecretParameters secretParameters) {
 
         if (connectorPlugin == null) {
             throw new IllegalArgumentException("The connector plugin cannot be null.");
@@ -414,20 +423,25 @@ public class ConnectorModel extends PluginItemModel {
      *                           will be VERY slow if there are a large number of finished requests. You have been
      *                           warned.
      */
+
     public ConnectorModel(final IConnector connectorPlugin, final Connector domainConnector,
-            final RequestsRepository requestsRepository) {
+            final RequestsRepository requestsRepository, final SecretParameters secretParameters) {
 
-        this(connectorPlugin);
+        this(connectorPlugin, secretParameters);
 
-        if (!Objects.equals(connectorPlugin.getCode(), domainConnector.getConnectorCode())) {
-            throw new IllegalArgumentException("The connector plugin is not the one used by the connector instance.");
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
         }
 
         if (domainConnector == null) {
             throw new IllegalArgumentException("The connector data object that this model represents cannot be null.");
         }
 
-        this.definePropertiesFromDomainConnector(domainConnector, requestsRepository);
+        if (!Objects.equals(connectorPlugin.getCode(), domainConnector.getConnectorCode())) {
+            throw new IllegalArgumentException("The connector plugin is not the one used by the connector instance.");
+        }
+
+        this.definePropertiesFromDomainConnector(domainConnector, requestsRepository, secretParameters);
     }
 
 
@@ -455,7 +469,7 @@ public class ConnectorModel extends PluginItemModel {
      *                           warned.
      */
     private void definePropertiesFromDomainConnector(final Connector domainConnector,
-            final RequestsRepository requestsRepository) {
+            final RequestsRepository requestsRepository, final SecretParameters secretParameters) {
         assert domainConnector != null : "The connector data object cannot be null.";
 
         if (requestsRepository == null) {
@@ -472,7 +486,11 @@ public class ConnectorModel extends PluginItemModel {
         this.setLastImportMessage(domainConnector.getLastImportMessage());
         this.setName(domainConnector.getName());
         this.setMaximumRetries(domainConnector.getMaximumRetries());
-        this.setParametersValuesFromMap(domainConnector.getConnectorParametersValues());
+        HashMap<String, String> values = domainConnector.getConnectorParametersValues();
+        if (secretParameters != null) {
+            values = secretParameters.decrypt(values, this.getSecretParameterNames());
+        }
+        this.setParametersValuesFromMap(values);
         this.setRulesFromRulesDomain(domainConnector.getRulesCollection());
         this.hasActiveRequests = (requestsRepository != null) ? domainConnector.hasActiveRequests(requestsRepository)
                 : domainConnector.hasActiveRequests();
@@ -507,6 +525,10 @@ public class ConnectorModel extends PluginItemModel {
 
 
     /**
+     * The parameter definition provided by the selected connector plugin.
+     */
+    private String pluginParametersDefinition;
+    /**
      * Sets the parameters definition (but not their values).
      *
      * @param connectorPlugin an instance of the plugin used by this connector instance
@@ -514,8 +536,19 @@ public class ConnectorModel extends PluginItemModel {
     private void defineParametersFromPlugin(final IConnector connectorPlugin) {
         assert connectorPlugin != null : "The connector plugin must not be null.";
 
-        this.logger.debug("Defining the connector parameters from the plugin.");
-        this.defineParametersFromJson(connectorPlugin.getParams());
+        this.pluginParametersDefinition = connectorPlugin.getParams();
+        this.defineParametersFromJson(this.pluginParametersDefinition);
+    }
+    /**
+     * Defines the authoritative parameter definition used when persisting this connector.
+     *
+     * @param parametersDefinition the definition returned by the connector plugin
+     */
+    public final void definePluginParametersDefinition(final String parametersDefinition) {
+        if (parametersDefinition == null) {
+            throw new IllegalArgumentException("The connector plugin parameters definition cannot be null.");
+        }
+        this.pluginParametersDefinition = parametersDefinition;
     }
 
 
@@ -525,12 +558,15 @@ public class ConnectorModel extends PluginItemModel {
      *
      * @return the new connector object to be persisted
      */
-    public final Connector createDomainConnector() {
+    public final Connector createDomainConnector(final SecretParameters secretParameters) {
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
+
         Connector domainConnector = new Connector();
         domainConnector.setConnectorCode(this.getTypeCode());
         domainConnector.setConnectorLabel(this.getTypeLabel());
-        this.updateDomainConnector(domainConnector);
-
+        this.updateDomainConnector(domainConnector, secretParameters);
         return domainConnector;
     }
 
@@ -543,13 +579,37 @@ public class ConnectorModel extends PluginItemModel {
      *
      * @param domainConnector the persisted object that this connector instance model represents
      */
-    public final void updateDomainConnector(final Connector domainConnector) {
+    public final void updateDomainConnector(final Connector domainConnector,
+                                            final SecretParameters secretParameters) {
+        if (domainConnector == null) {
+            throw new IllegalArgumentException("The domain connector cannot be null.");
+        }
+
+        if (secretParameters == null) {
+            throw new IllegalArgumentException("The secret parameters service cannot be null.");
+        }
+
+        if (this.pluginParametersDefinition == null) {
+            throw new IllegalStateException("The connector plugin parameters definition is not set.");
+        }
+
         domainConnector.setActive(this.isActive());
         domainConnector.setImportFrequency(this.getImportFrequency());
         domainConnector.setName(this.getName());
         domainConnector.setMaximumRetries(this.getMaximumRetries());
-        domainConnector.updateConnectorParametersValues(this.getParametersValues());
+        HashMap<String, String> values = secretParameters.encrypt(this.getParametersValues(),
+                this.pluginParametersDefinition);
+        domainConnector.updateConnectorParametersValues(values);
+    }
 
+    private Set<String> getSecretParameterNames() {
+        Set<String> secretNames = new HashSet<>();
+        for (PluginItemModelParameter parameter : this.getParameters()) {
+            if (SecretParameters.isSecretType(parameter.getType())) {
+                secretNames.add(parameter.getName());
+            }
+        }
+        return secretNames;
     }
 
 
