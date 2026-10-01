@@ -144,6 +144,54 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
                                 </div>
                             </div>
+                            <div class="row">
+                                <div class="col-xl-6">
+                                    <div class="form-group form-group-with-label">
+                                        <label th:text="#{processDetails.fields.watchers.label}"
+                                               class="form-label col-form-label">{Watchers}</label>
+                                        <input id="watcherUsersIds" type="hidden" th:field="*{watcherUsersIds}" />
+                                        <input id="watcherUserGroupsIds" type="hidden" th:field="*{watcherUserGroupsIds}" />
+                                        <select class="select2-container select2-container-multi form-control select2 watcher-select"
+                                                multiple="multiple"
+                                                th:id="watchers"
+                                                th:unless="${readOnly}">
+                                            <optgroup th:unless="${#arrays.isEmpty(allusergroups)}" label="{Groups}"
+                                                      th:label="#{processDetails.fields.watchers.groups.label}">
+                                                <option th:each="userGroup, userGroupStats : ${allusergroups}"
+                                                        th:value="|group-${userGroup.id}|">
+                                                    <span th:text="${userGroup.name}">{Group #1}</span>
+                                                </option>
+                                            </optgroup>
+                                            <optgroup th:unless="${#arrays.isEmpty(allactiveusers)}" label="{Users}"
+                                                      th:label="#{processDetails.fields.watchers.users.label}">
+                                                <option th:each="user, userStats : ${allactiveusers}"
+                                                        th:value="|user-${user.id}|">
+                                                    <span th:text="${user.name}">{User #1}</span>
+                                                </option>
+                                            </optgroup>
+                                        </select>
+                                        <div th:if="${readOnly}" class="form-control-plaintext">
+                                            <div th:unless="*{#arrays.isEmpty(watcherUserGroups)}">
+                                                <th:block th:each="watcherGroup, watcherGroupsStats : *{watcherUserGroups}"
+                                                          th:object="${process.watcherUserGroups[__${watcherGroupsStats.index}__]}">
+                                                    <span th:if="${watcherGroupsStats.index} > 0">&nbsp; - </span>
+                                                    <i class="fa fa-users"></i>&nbsp;
+                                                    <span th:text="*{name}">{User group}</span>
+                                                </th:block>
+                                            </div>
+                                            <div th:unless="*{#arrays.isEmpty(watcherUsers)}">
+                                                <th:block th:each="watcherUser, watcherUsersStats : *{watcherUsers}"
+                                                          th:object="${process.watcherUsers[__${watcherUsersStats.index}__]}"
+                                                          >
+                                                    <span th:if="${watcherUsersStats.index} > 0">&nbsp; - </span>
+                                                    <i class="fa fa-user"></i>&nbsp;
+                                                    <span th:text="*{name}">{User}</span>
+                                                </th:block>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     <div class="row extract-proc-tasks">

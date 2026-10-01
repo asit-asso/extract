@@ -501,10 +501,13 @@ public class IndexController extends BaseController {
                           String.join(", ",
                                       userProcesses.stream().map((process) ->
                                                                  process.getId().toString()).toArray(String[]::new)));
-        
+        final Collection<Process> watchedProcesses
+                = this.processesRepository.findWatchedProcessesByUser(this.getCurrentUserId());
+
         final Specification<Request> userCriteria
                 = RequestSpecification.isProcessInList(userProcesses).or(
-                RequestSpecification.isBoundToUser(currentUser));
+                RequestSpecification.isBoundToUser(currentUser)).or(
+                RequestSpecification.isProcessInList(watchedProcesses));
 
         return this.requestsRepository.findAll(Specification.where(userCriteria).and(searchCriteria), paging);
     }

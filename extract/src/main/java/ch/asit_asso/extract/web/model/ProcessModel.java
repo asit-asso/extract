@@ -80,6 +80,26 @@ public class ProcessModel extends OwnedObjectModel {
      */
     private int htmlScrollY;
 
+    /**
+     * The observer users associated to this process.
+     */
+    private final List<UserModel> watcherUsersList;
+
+    /**
+     * An array that contains the identifiers of the observer users associated with this process.
+     */
+    private String[] watcherUsersIds;
+
+    /**
+     * The observer user groups associated to this process.
+     */
+    private final List<UserGroup> watcherUserGroupsList;
+
+    /**
+     * An array that contains the identifiers of the observer user groups associated with this process.
+     */
+    private String[] watcherUserGroupsIds;
+
 
 
     /**
@@ -324,6 +344,8 @@ public class ProcessModel extends OwnedObjectModel {
     public ProcessModel() {
         super();
         this.tasksList = new ArrayList<>();
+        this.watcherUsersList = new ArrayList<>();
+        this.watcherUserGroupsList = new ArrayList<>();
     }
 
 
@@ -373,6 +395,8 @@ public class ProcessModel extends OwnedObjectModel {
         this.setTasksFromDomainObject(domainProcess, taskPluginsDiscoverer, secretParameters);
         setUsersFromDomainObject(domainProcess.getUsersCollection());
         setUserGroupsFromDomainObject(domainProcess.getUserGroupsCollection());
+        setWatchersFromDomainObject(domainProcess.getWatchersCollection());
+        setWatcherGroupsFromDomainObject(domainProcess.getWatcherGroupsCollection());
     }
 
 
@@ -455,6 +479,8 @@ public class ProcessModel extends OwnedObjectModel {
         domainProcess.setDescription(this.getDescription());
         this.copyUserGroups(domainProcess, userGroupsRepository);
         this.copyUsers(domainProcess, userRepository);
+        this.copyWatcherGroups(domainProcess, userGroupsRepository);
+        this.copyWatchers(domainProcess, userRepository);
 
         return domainProcess;
     }
@@ -714,6 +740,159 @@ public class ProcessModel extends OwnedObjectModel {
         }
 
         domainProcess.setUsersCollection(collUsers);
+    }
+
+
+
+    /**
+     * Obtains the identifiers of the observers associated with this process.
+     *
+     * @return a string with the identifiers separated by commas
+     */
+    public final String getWatcherUsersIds() {
+        return StringUtils.join(this.watcherUsersIds, ',');
+    }
+
+
+
+    /**
+     * Defines the identifiers of the observers associated with this process.
+     *
+     * @param joinedWatcherUsersIds a string with the observer identifiers separated by commas
+     */
+    public final void setWatcherUsersIds(final String joinedWatcherUsersIds) {
+        this.watcherUsersIds = joinedWatcherUsersIds.split(",");
+    }
+
+
+
+    /**
+     * Obtains the identifiers of the observer groups associated with this process.
+     *
+     * @return a string with the identifiers separated by commas
+     */
+    public final String getWatcherUserGroupsIds() {
+        return StringUtils.join(this.watcherUserGroupsIds, ',');
+    }
+
+
+
+    /**
+     * Defines the identifiers of the observer groups associated with this process.
+     *
+     * @param joinedWatcherUserGroupsIds a string with the observer group identifiers separated by commas
+     */
+    public final void setWatcherUserGroupsIds(final String joinedWatcherUserGroupsIds) {
+        this.watcherUserGroupsIds = joinedWatcherUserGroupsIds.split(",");
+    }
+
+
+
+    /**
+     * Obtains the observer users of this process.
+     *
+     * @return an array containing the users that observe this process
+     */
+    public final UserModel[] getWatcherUsers() {
+        return this.watcherUsersList.toArray(UserModel[]::new);
+    }
+
+
+
+    /**
+     * Obtains the observer user groups of this process.
+     *
+     * @return an array containing the user groups that observe this process
+     */
+    public final UserGroup[] getWatcherUserGroups() {
+        return this.watcherUserGroupsList.toArray(UserGroup[]::new);
+    }
+
+
+
+    /**
+     * Defines the process observers in this model based on what is in the data source.
+     *
+     * @param domainObjectWatchers the observer users attached to the process data object, which may be null
+     */
+    final void setWatchersFromDomainObject(final Collection<User> domainObjectWatchers) {
+        List<String> watcherUsersIdsList = new ArrayList<>();
+
+        if (domainObjectWatchers != null) {
+
+            for (User watcher : domainObjectWatchers) {
+                this.watcherUsersList.add(new UserModel(watcher));
+                watcherUsersIdsList.add(watcher.getId().toString());
+            }
+        }
+
+        this.watcherUsersIds = watcherUsersIdsList.toArray(String[]::new);
+    }
+
+
+
+    /**
+     * Defines the process observer groups in this model based on what is in the data source.
+     *
+     * @param domainObjectWatcherGroups the observer user groups attached to the process data object, which may be
+     *                                  null
+     */
+    final void setWatcherGroupsFromDomainObject(final Collection<UserGroup> domainObjectWatcherGroups) {
+        List<String> watcherUserGroupsIdsList = new ArrayList<>();
+
+        if (domainObjectWatcherGroups != null) {
+
+            for (UserGroup watcherGroup : domainObjectWatcherGroups) {
+                this.watcherUserGroupsList.add(watcherGroup);
+                watcherUserGroupsIdsList.add(watcherGroup.getId().toString());
+            }
+        }
+
+        this.watcherUserGroupsIds = watcherUserGroupsIdsList.toArray(String[]::new);
+    }
+
+
+
+    private void copyWatcherGroups(Process domainProcess, UserGroupsRepository userGroupsRepository) {
+        final Collection<UserGroup> watcherGroupsCollection = new ArrayList<>();
+        final String watcherUserGroupsIds = this.getWatcherUserGroupsIds();
+
+        if (!StringUtils.isEmpty(watcherUserGroupsIds)) {
+
+            for (String watcherGroupId : watcherUserGroupsIds.split(",")) {
+                Optional<UserGroup> watcherGroup = userGroupsRepository.findById(Integer.parseInt(watcherGroupId));
+
+                if (!watcherGroup.isPresent()) {
+                    this.logger.warn("Could not find a user group to copy with id {}", watcherGroupId);
+                }
+
+                watcherGroupsCollection.add(watcherGroup.get());
+            }
+        }
+
+        domainProcess.setWatcherGroupsCollection(watcherGroupsCollection);
+    }
+
+
+
+    private void copyWatchers(Process domainProcess, UsersRepository userRepository) {
+        final Collection<User> collWatchers = new ArrayList<>();
+        final String watcherUserIds = this.getWatcherUsersIds();
+
+        if (!StringUtils.isEmpty(watcherUserIds)) {
+
+            for (String watcherId : watcherUserIds.split(",")) {
+                Optional<User> watcher = userRepository.findById(Integer.parseInt(watcherId));
+
+                if (!watcher.isPresent()) {
+                    this.logger.warn("Could not find a user to copy with id {}", watcherId);
+                }
+
+                collWatchers.add(watcher.get());
+            }
+        }
+
+        domainProcess.setWatchersCollection(collWatchers);
     }
 
 }

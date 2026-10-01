@@ -74,4 +74,29 @@ public interface ProcessesRepository extends PagingAndSortingRepository<Process,
             + " AND u.active = true AND u.mailActive = true")
     java.util.List<ch.asit_asso.extract.domain.User> getProcessOperators(@Param("processId") int processId);
 
+
+
+    /**
+     * Obtains the User objects for the watchers associated to a given process.
+     *
+     * @param processId the integer that identifies the process
+     * @return a list containing the User objects for each active watcher with email notifications enabled
+     */
+    @Query("SELECT DISTINCT u FROM User u WHERE (u.id IN (SELECT pw.id FROM Process p JOIN p.watchersCollection pw WHERE p.id = :processId) "
+            + " OR u.id IN (SELECT uw.id FROM Process p JOIN p.watcherGroupsCollection wg JOIN wg.usersCollection uw WHERE p.id = :processId))"
+            + " AND u.active = true AND u.mailActive = true")
+    java.util.List<ch.asit_asso.extract.domain.User> getProcessWatchers(@Param("processId") int processId);
+
+
+
+    /**
+     * Obtains the processes that a given user observes, either directly or through one of his user groups.
+     *
+     * @param userId the integer that identifies the user
+     * @return a list containing the processes watched by the user
+     */
+    @Query("SELECT DISTINCT p FROM Process p WHERE p.id IN (SELECT p2.id FROM Process p2 JOIN p2.watchersCollection w WHERE w.id = :userId) "
+            + " OR p.id IN (SELECT p3.id FROM Process p3 JOIN p3.watcherGroupsCollection wg JOIN wg.usersCollection gw WHERE gw.id = :userId)")
+    List<Process> findWatchedProcessesByUser(@Param("userId") int userId);
+
 }

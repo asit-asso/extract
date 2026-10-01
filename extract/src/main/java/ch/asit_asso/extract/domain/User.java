@@ -78,6 +78,8 @@ import org.apache.commons.lang3.StringUtils;
                     + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId)"
                     + " OR :userId IN (SELECT uc.id FROM r.usersCollection uc)"
                     + " OR :userId IN (SELECT uc.id FROM r.userGroupsCollection ug LEFT JOIN ug.usersCollection uc)"
+                    + " OR r.process IN (SELECT p FROM Process p JOIN p.watchersCollection w WHERE w.id = :userId)"
+                    + " OR r.process IN (SELECT p FROM Process p JOIN p.watcherGroupsCollection wg JOIN wg.usersCollection w WHERE w.id = :userId)"
                     + ") AND r.status = :status ORDER BY r.endDate DESC"),
     @NamedQuery(name = "User.getUserAssociatedRequestsByStatusNot",
                 query = "SELECT r FROM Request r WHERE ("
@@ -85,6 +87,8 @@ import org.apache.commons.lang3.StringUtils;
                         + " OR r.process IN (SELECT p FROM User u JOIN u.userGroupsCollection g JOIN g.processesCollection p WHERE u.id = :userId)"
                         + " OR :userId IN (SELECT uc.id FROM r.usersCollection uc)"
                         + " OR :userId IN (SELECT uc.id FROM r.userGroupsCollection ug LEFT JOIN ug.usersCollection uc)"
+                        + " OR r.process IN (SELECT p FROM Process p JOIN p.watchersCollection w WHERE w.id = :userId)"
+                        + " OR r.process IN (SELECT p FROM Process p JOIN p.watcherGroupsCollection wg JOIN wg.usersCollection w WHERE w.id = :userId)"
                         + ") AND r.status != :status")
 
 

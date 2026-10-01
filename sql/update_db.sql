@@ -271,3 +271,41 @@ ALTER TABLE tasks ALTER COLUMN version SET DEFAULT 0;
 -- UNIQUE CONSTRAINT on request_history to prevent duplicate steps per request
 CREATE UNIQUE INDEX IF NOT EXISTS uq_request_history_request_step
     ON request_history (id_request, step);
+
+-- Issue #359 : observateurs des traitements
+
+CREATE TABLE IF NOT EXISTS processes_watchers (
+    id_process INTEGER NOT NULL,
+    id_user INTEGER NOT NULL,
+    CONSTRAINT pk_processes_watchers PRIMARY KEY (id_process, id_user),
+    CONSTRAINT fk_processes_watchers_process FOREIGN KEY (id_process)
+        REFERENCES processes (id_process) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE,
+    CONSTRAINT fk_processes_watchers_user FOREIGN KEY (id_user)
+        REFERENCES users (id_user) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_processes_watchers_process
+    ON processes_watchers (id_process);
+
+CREATE INDEX IF NOT EXISTS idx_processes_watchers_user
+    ON processes_watchers (id_user);
+
+CREATE TABLE IF NOT EXISTS processes_watchergroups (
+    id_process INTEGER NOT NULL,
+    id_usergroup INTEGER NOT NULL,
+    CONSTRAINT pk_processes_watchergroups PRIMARY KEY (id_process, id_usergroup),
+    CONSTRAINT fk_processes_watchergroups_process FOREIGN KEY (id_process)
+        REFERENCES processes (id_process) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE,
+    CONSTRAINT fk_processes_watchergroups_usergroup FOREIGN KEY (id_usergroup)
+        REFERENCES usergroups (id_usergroup) MATCH SIMPLE
+        ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_processes_watchergroups_process
+    ON processes_watchergroups (id_process);
+
+CREATE INDEX IF NOT EXISTS idx_processes_watchergroups_usergroup
+    ON processes_watchergroups (id_usergroup);

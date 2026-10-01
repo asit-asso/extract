@@ -120,7 +120,8 @@ public class RequestMatcherJobRunner /*extends JobRunner<Request, Request>*/ imp
     public final ItemProcessor<Request, Request> getProcessor() {
         return new RequestMatchingProcessor(this.applicationRepositories.getRulesRepository(),
                 this.applicationRepositories.getParametersRepository(),
-                this.applicationRepositories.getUsersRepository(), this.emailSettings);
+                this.applicationRepositories.getUsersRepository(),
+                this.applicationRepositories.getProcessesRepository(), this.emailSettings);
     }
 
 

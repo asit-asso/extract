@@ -216,6 +216,7 @@ public class RequestsController extends BaseController {
 
         this.addCurrentSectionToModel(RequestsController.CURRENT_SECTION_IDENTIFIER, model);
         this.addJavascriptMessagesAttribute(model);
+        model.addAttribute("watcherOnly", !this.canCurrentUserActOnRequest(request));
         final RequestModel requestModel = new RequestModel(request,
                 this.requestHistoryRepository.findByRequestOrderByStep(request).toArray(new RequestHistoryRecord[]{}),
                 Paths.get(this.parametersRepository.getBasePath()), this.messageSource,
@@ -1029,7 +1030,7 @@ public class RequestsController extends BaseController {
         var request = getDomainRequest(requestId);
         assert request != null : "The request cannot be null.";
         assert request.getProcess() != null : "The request must be associated with a process.";
-        if (!this.canCurrentUserViewRequestDetails(request)) {
+        if (!this.canCurrentUserActOnRequest(request)) {
             this.logger.warn("The user {} tried to assign users to the request {} but is not allowed to.",
                     this.getCurrentUserLogin(), request.getId());
             return REDIRECT_TO_ACCESS_DENIED;
@@ -1082,6 +1083,39 @@ public class RequestsController extends BaseController {
 
 
     /**
+     * Checks if the user that is currently identified (if any) is allowed to perform an action on a
+     * request, as opposed to merely viewing it as a watcher.
+     *
+     * @param request the request on which an action would be performed
+     * @return <code>true</code> if the current user can act on the request
+     */
+    private boolean canCurrentUserActOnRequest(final Request request) {
+        assert request != null : "The request cannot be null.";
+
+        if (!this.isCurrentUserApplicationUser()) {
+            return false;
+        }
+
+        if (this.isCurrentUserAdmin()) {
+            return true;
+        }
+
+        final Process process = request.getProcess();
+
+        if (process == null) {
+            return false;
+        }
+
+        var currentId = this.getCurrentUserId();
+        return Stream.concat(
+                process.getDistinctOperators().stream(),
+                request.getDistinctOperators().stream()
+        ).map(User::getId).anyMatch((id) -> currentId == id);
+    }
+
+
+
+    /**
      * Checks if the user that is currently authenticated can modify (add or delete) the files generated
      * as an order output.
      *
@@ -1089,7 +1123,7 @@ public class RequestsController extends BaseController {
      * @return <code>true</code> if the current user can change the output files
      */
     private boolean canCurrentUserChangeRequestOutput(final Request request) {
-        return this.canCurrentUserViewRequestDetails(request);
+        return this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1113,7 +1147,7 @@ public class RequestsController extends BaseController {
      * @return <code>true</code> if the current user can export the request
      */
     private boolean canCurrentUserExportRequest(final Request request) {
-        return this.canCurrentUserViewRequestDetails(request);
+        return this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1139,7 +1173,7 @@ public class RequestsController extends BaseController {
      */
     private boolean canCurrentUserRejectRequest(final Request request) {
         return ((request.getStatus() == Request.Status.EXPORTFAIL || request.getStatus() == Request.Status.IMPORTFAIL)
-                && this.isCurrentUserAdmin()) || this.canCurrentUserViewRequestDetails(request);
+                && this.isCurrentUserAdmin()) || this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1153,7 +1187,7 @@ public class RequestsController extends BaseController {
      */
     private boolean canCurrentUserRelaunchProcess(final Request request) {
         return (request.getStatus() == Request.Status.EXPORTFAIL && this.isCurrentUserAdmin())
-                || this.canCurrentUserViewRequestDetails(request);
+                || this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1166,7 +1200,7 @@ public class RequestsController extends BaseController {
      * @return <code>true</code> if the current user can restart the current task
      */
     private boolean canCurrentUserRestartCurrentTask(final Request request) {
-        return this.canCurrentUserViewRequestDetails(request);
+        return this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1179,7 +1213,7 @@ public class RequestsController extends BaseController {
      * @return <code>true</code> if the current user can skip the current task
      */
     private boolean canCurrentUserSkipTask(final Request request) {
-        return this.canCurrentUserViewRequestDetails(request);
+        return this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1192,7 +1226,7 @@ public class RequestsController extends BaseController {
      * @return <code>true</code> if the current user can validate the request
      */
     private boolean canCurrentUserValidateRequest(final Request request) {
-        return this.canCurrentUserViewRequestDetails(request);
+        return this.canCurrentUserActOnRequest(request);
     }
 
 
@@ -1207,12 +1241,12 @@ public class RequestsController extends BaseController {
     private boolean canCurrentUserViewRequestDetails(final Request request) {
         assert request != null : "The request cannot be null.";
 
-        if (!this.isCurrentUserApplicationUser()) {
-            return false;
+        if (this.canCurrentUserActOnRequest(request)) {
+            return true;
         }
 
-        if (this.isCurrentUserAdmin()) {
-            return true;
+        if (!this.isCurrentUserApplicationUser()) {
+            return false;
         }
 
         final Process process = request.getProcess();
@@ -1222,10 +1256,7 @@ public class RequestsController extends BaseController {
         }
 
         var currentId = this.getCurrentUserId();
-        return Stream.concat(
-                process.getDistinctOperators().stream(),
-                request.getDistinctOperators().stream()
-        ).map(User::getId).anyMatch((id) -> currentId == id);
+        return process.getDistinctWatchers().stream().map(User::getId).anyMatch((id) -> currentId == id);
     }
 
 

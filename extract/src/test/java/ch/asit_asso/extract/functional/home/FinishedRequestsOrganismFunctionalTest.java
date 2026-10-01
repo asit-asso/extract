@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicReference;
 import ch.asit_asso.extract.domain.Request;
 import ch.asit_asso.extract.functional.pages.LoginPage;
 import ch.asit_asso.extract.persistence.RequestsRepository;
@@ -180,8 +181,14 @@ public class FinishedRequestsOrganismFunctionalTest {
         searchBox.sendKeys(searchText);
         this.driver.findElement(By.id("filterButton")).click();
 
-        // The table asks the server for a page of its own and redraws itself once it answers, which makes
-        // the cells read too early go stale. The cells are therefore read again until the redraw settles.
+        // The table asks the server for a page of its own and redraws itself once it answers. Reading the
+        // cells too early can catch two different transient states, neither of which throws
+        // StaleElementReferenceException: the page's default, unfiltered listing (which can itself contain
+        // this test's freshly seeded rows, since they are the most recent ones) rendered just before the
+        // filtered response arrives, or a redraw caught mid-refresh. Requiring the same non-empty result on
+        // two consecutive polls rules out both: a transient state is replaced before it can repeat.
+        final AtomicReference<List<String>> previous = new AtomicReference<>();
+
         return new WebDriverWait(this.driver, Duration.of(20, ChronoUnit.SECONDS))
                 .ignoring(StaleElementReferenceException.class)
                 .until(webDriver -> {
@@ -194,7 +201,12 @@ public class FinishedRequestsOrganismFunctionalTest {
                                                FinishedRequestsOrganismFunctionalTest.MARKER))
                                        .toList();
 
-                    return customers.isEmpty() ? null : customers;
+                    if (customers.isEmpty() || !customers.equals(previous.get())) {
+                        previous.set(customers);
+                        return null;
+                    }
+
+                    return customers;
                 });
     }
 
