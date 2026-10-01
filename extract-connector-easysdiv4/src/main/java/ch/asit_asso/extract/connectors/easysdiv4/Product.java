@@ -84,6 +84,11 @@ public class Product implements IProduct {
     private String clientDetails;
 
     /**
+     * The e-mail address of the person that ordered this data item.
+     */
+    private String clientEmail;
+
+    /**
      * The name of the person that this data item was requested on behalf of, if any.
      */
     private String tiers;
@@ -280,6 +285,24 @@ public class Product implements IProduct {
      */
     public final void setClientDetails(final String details) {
         this.clientDetails = details;
+    }
+
+
+
+    @Override
+    public final String getClientEmail() {
+        return this.clientEmail;
+    }
+
+
+
+    /**
+     * Defines the e-mail address of the person who requested this product.
+     *
+     * @param email the customer's e-mail address
+     */
+    public final void setClientEmail(final String email) {
+        this.clientEmail = email;
     }
 
 

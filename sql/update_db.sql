@@ -309,3 +309,6 @@ CREATE INDEX IF NOT EXISTS idx_processes_watchergroups_process
 
 CREATE INDEX IF NOT EXISTS idx_processes_watchergroups_usergroup
     ON processes_watchergroups (id_usergroup);
+
+-- REQUESTS Table: e-mail address of the customer who ordered the data item (issue #366)
+ALTER TABLE requests ADD COLUMN IF NOT EXISTS p_clientemail VARCHAR(255);

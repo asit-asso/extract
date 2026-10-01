@@ -41,6 +41,11 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
     private String clientGuid;
 
     /**
+     * The e-mail address of the person who requested the data.
+     */
+    private String clientEmail;
+
+    /**
      * The date when this request was exported back to its originating server (should be <code>null</code>).
      */
     private Calendar endDate;
@@ -152,6 +157,7 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
         this.setFolderIn(new File(dataFoldersBasePath, domainRequest.getFolderIn()).getAbsolutePath());
         this.setFolderOut(new File(dataFoldersBasePath, domainRequest.getFolderOut()).getAbsolutePath());
         this.setOrderGuid(domainRequest.getOrderGuid());
+        this.setClientEmail(domainRequest.getClientEmail());
         this.setOrderLabel(domainRequest.getOrderLabel());
         this.setOrganism(domainRequest.getOrganism());
         this.setOrganismGuid(domainRequest.getOrganismGuid());
@@ -306,6 +312,24 @@ public final class TaskProcessorRequest implements ITaskProcessorRequest {
      */
     public void setClientGuid(final String clientGuid) {
         this.clientGuid = clientGuid;
+    }
+
+
+
+    @Override
+    public String getClientEmail() {
+        return this.clientEmail;
+    }
+
+
+
+    /**
+     * Defines the e-mail address of the person who placed the order that this request is a part of.
+     *
+     * @param email the customer's e-mail address
+     */
+    public void setClientEmail(final String email) {
+        this.clientEmail = email;
     }
 
 

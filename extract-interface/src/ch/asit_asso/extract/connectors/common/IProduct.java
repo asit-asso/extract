@@ -105,6 +105,14 @@ public interface IProduct {
     String getClientDetails();
 
 
+    /**
+     * Obtains the e-mail address of the person who ordered this product.
+     *
+     * @return the e-mail address of the customer, or <code>null</code> if it is not known
+     */
+    String getClientEmail();
+
+
 
     /**
      * Obtains the name of the person that this product was ordered on behalf of, if any.
