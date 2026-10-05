@@ -111,7 +111,7 @@ The home page provides a real-time overview of the application's activity, inclu
 * Requests in progress
 * History of completed requests
 
-**Administrators** can view all requests. **Regular users** only see requests associated with processes where they are assigned as operators, or requests for which they have been granted permission (see ``appplication.features.perRequestOwnership`` parameters in [Application settings](../getting-started/configure.md#application-settings)).
+**Administrators** can view all requests. **Regular users** only see requests associated with processes where they are assigned as operators, requests for which they have been granted permission (see ``appplication.features.perRequestOwnership`` parameters in [Application settings](../getting-started/configure.md#application-settings)) or requests associated with processes where they are assigned as watchers. Watchers have a read-only access to requests, the cannot take any action except downloading outputted files.
 
 The page updates automatically based on the refresh interval defined in the application settings (see [Orchestration Section](./admin-guide.md#orchestration)). By default, this interval is set to 20 seconds.
 
