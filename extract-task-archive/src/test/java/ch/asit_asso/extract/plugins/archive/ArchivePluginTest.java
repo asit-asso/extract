@@ -512,6 +512,9 @@ public class ArchivePluginTest {
         
         @Override
         public String getClient() { return client; }
+
+        @Override
+        public String getClientEmail() { return null; }
         
         @Override
         public String getRemark() { return null; }

@@ -198,6 +198,7 @@ In order to manage connectors with multiple interfaces, the connector itself mus
 | ``p_tiers`` | varchar 255 | Standardized query parameter <br> Third party linked to the order | *Commune de Bex*
 | ``p_tiersguid`` | varchar 255 | Standardized query parameter <br> GUID of the third party linked to the order | *708e932b-81c3-2ce4-b907-ed07e61ac5f9*
 | ``p_clientdetails`` | varchar 4000 | Standardized query parameter <br> Details of the customer receiving the order | *Nom de rue 37<br>1880 Bex<br>Tel :00.00.00.00.00<br>Mail : xxx@yyy.com*
+| ``p_clientemail`` | varchar 255 | Standardized query parameter <br> E-mail address of the customer receiving the order. Usable as a `{clientEmail}` recipient placeholder in the "Notification e-mail" task plugin | *client@example.com*
 | ``p_tiersdetails`` | varchar 4000 | Standardized query parameter <br> Details of the third party linked to the order | *Nom de rue 37<br>1880 Bex<br>Tel :00.00.00.00.00<br>Mail : xxx@yyy.com*
 | ``p_perimeter`` | varchar 4000 | Standardized query parameter <br> Coordinates of the extraction polygon | *POLYGON((6.9378 46.1056,6.1245 …*
 | ``p_surface`` | float | Standardized query parameter <br> Extraction polygon area | *123.4 (m2)*
@@ -397,7 +398,7 @@ The task catalog contains all of the task plugins available for the system. They
     - **pass**: character string to be entered via an obfuscated text field. The maximum length of the string is specified in an additional attribute.
     - **list**: list of choices to be entered via a drop-down list. The available options are specified in an additional attribute (values separated by |)
     - **boolean**: boolean to be entered via a checkbox
-    - **email**: email address or list of email addresses separated by a semicolon and/or a comma.
+    - **email**: email address or list of email addresses separated by a semicolon and/or a comma. Each entry may also be a request variable placeholder such as `{clientEmail}`, which the task plugin resolves when the task is executed; the Extract core accepts such placeholders when the task parameters are saved and only rejects literal entries that are not well-formed addresses.
     - **list_msgs** (for new validation plugin): multiple choice list filled in by the Extract core with the validation messages defined at the Extract instance level.
     - **numeric** (for FME Desktop plugin): Numeric value. Min, max, and step are specified in three additional attributes.
 * ``Object new(params)``: creates an instance of the plugin by passing the user-defined parameters. Returns the created object.

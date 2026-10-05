@@ -93,6 +93,14 @@ public interface ITaskProcessorRequest {
     String getClientGuid();
 
 
+    /**
+     * Obtains the e-mail address of the order recipient.
+     *
+     * @return the client's e-mail address, or <code>null</code> if it is not known
+     */
+    String getClientEmail();
+
+
 
     /**
      * Obtains when the request processing completed.

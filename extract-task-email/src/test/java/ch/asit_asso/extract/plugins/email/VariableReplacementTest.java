@@ -81,6 +81,32 @@ public class VariableReplacementTest {
     }
     
     @Test
+    public void testReplaceClientEmailField() throws Exception {
+        // Setup
+        String template = "Client e-mail: {clientEmail}";
+        when(mockRequest.getClientEmail()).thenReturn("client@example.com");
+        
+        // Act
+        String result = (String) replaceRequestVariablesMethod.invoke(emailPlugin, template, mockRequest);
+        
+        // Assert
+        assertEquals("Client e-mail: client@example.com", result);
+    }
+    
+    @Test
+    public void testReplaceClientEmailField_Missing() throws Exception {
+        // Setup
+        String template = "Client e-mail: {clientEmail}";
+        when(mockRequest.getClientEmail()).thenReturn(null);
+        
+        // Act
+        String result = (String) replaceRequestVariablesMethod.invoke(emailPlugin, template, mockRequest);
+        
+        // Assert
+        assertEquals("Client e-mail: ", result);
+    }
+    
+    @Test
     public void testReplaceExtendedFields() throws Exception {
         // Setup
         String template = "Tiers: {tiers}, Perimeter: {perimeter}, Status: {status}";

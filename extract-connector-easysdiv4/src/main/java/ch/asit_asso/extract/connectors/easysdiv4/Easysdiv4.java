@@ -472,6 +472,70 @@ public class Easysdiv4 implements IConnector {
 
 
 
+    /**
+     * Extracts the e-mail address from the contact address element of an order's client, without
+     * folding it into the free-text address block that {@link #buildAddressDetailsFromXpath} builds.
+     *
+     * @param document    the XML document to parse
+     * @param xpathString the XPath expression that locates the element containing the address information
+     * @return the e-mail address, or an empty string if it could not be found
+     */
+    private String getClientEmailFromXpath(final Document document, final String xpathString) {
+
+        try {
+            final XPathFactory xPathfactory = XPathFactory.newInstance();
+            final XPath xpath = xPathfactory.newXPath();
+            final XPathExpression expr = xpath.compile(xpathString);
+            final NodeList nodeList = (NodeList) expr.evaluate(document, XPathConstants.NODESET);
+
+            if (nodeList != null && nodeList.getLength() > 0) {
+                final Element addressNode = (Element) nodeList.item(0);
+                final NodeList emailNode = addressNode.getElementsByTagName("sdi:email");
+
+                if (emailNode != null && emailNode.getLength() > 0) {
+                    final String emailText = StringUtils.trimToEmpty(emailNode.item(0).getTextContent());
+
+                    if (Easysdiv4.looksLikeEmailAddress(emailText)) {
+                        return emailText;
+                    }
+
+                    if (StringUtils.isNotEmpty(emailText)) {
+                        this.logger.warn("The client contact e-mail element contains \"{}\", which is not an e-mail"
+                                + " address. The client e-mail address is left empty.", emailText);
+                    }
+                }
+            }
+
+        } catch (XPathExpressionException exc) {
+            this.logger.error("The client e-mail address could not be retrieved", exc);
+        }
+
+        return "";
+    }
+
+
+
+    /**
+     * Checks whether a text has the basic shape of an e-mail address, so that an unexpected value (such as a
+     * name) found in the e-mail element of the order XML is not propagated as the client's address.
+     *
+     * @param text the trimmed text to check
+     * @return <code>true</code> if the text contains exactly one <code>@</code> with characters on both sides and
+     *         no whitespace
+     */
+    static boolean looksLikeEmailAddress(final String text) {
+
+        if (StringUtils.isEmpty(text) || StringUtils.containsWhitespace(text)) {
+            return false;
+        }
+
+        final int separatorIndex = text.indexOf('@');
+
+        return separatorIndex > 0 && separatorIndex == text.lastIndexOf('@') && separatorIndex < text.length() - 1;
+    }
+
+
+
     @Override
     public final IConnectorImportResult importCommands() {
         this.logger.debug("Importing commands");
@@ -1199,6 +1263,8 @@ public class Easysdiv4 implements IConnector {
             final String clientDetails = this.buildAddressDetailsFromXpath(document,
                     config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
             this.logger.debug("Client details are : {}", clientDetails);
+            final String clientEmail = this.getClientEmailFromXpath(document,
+                    config.getProperty("getOrders.xpath.clientDetails").replace("<guid>", guid));
             final String tiers = this.getXMLNodeLabelFromXpath(document,
                     config.getProperty("getOrders.xpath.tiers").replace("<guid>", guid));
             final String tiersGuid = this.getXMLNodeLabelFromXpath(document,
@@ -1237,6 +1303,7 @@ public class Easysdiv4 implements IConnector {
                 product.setClient(client);
                 product.setClientGuid(clientGuid);
                 product.setClientDetails(clientDetails);
+                product.setClientEmail(clientEmail);
                 product.setTiers(tiers);
                 product.setTiersGuid(tiersGuid);
                 product.setTiersDetails(tiersDetails);
