@@ -273,4 +273,14 @@ public interface UsersRepository extends PagingAndSortingRepository<User, Intege
 
 
     boolean existsByProfile(Profile profile);
+
+
+    /**
+     * Checks whether a user with a given profile other than the hidden system user exists.
+     *
+     * @param profile the profile to look for
+     * @param login   the login to exclude, i.e. the one of the system user
+     * @return <code>true</code> if such a user exists
+     */
+    boolean existsByProfileAndLoginNot(Profile profile, String login);
 }

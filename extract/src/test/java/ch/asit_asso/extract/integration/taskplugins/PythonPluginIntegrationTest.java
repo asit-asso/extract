@@ -92,6 +92,9 @@ public class PythonPluginIntegrationTest {
         testRequest.setProductGuid("product-guid-test");
         testRequest.setClient("Test Client");
         testRequest.setClientGuid("client-guid-test");
+        testRequest.setClientAddress("Avenue de la Praille 45\n1227 Carouge");
+        testRequest.setClientEmail("david.test@example.com");
+        testRequest.setClientPhone("+41 22 123 45 67");
         testRequest.setOrganism("Test Organism");
         testRequest.setOrganismGuid("organism-guid-test");
         testRequest.setTiers("Test Tiers");
@@ -178,6 +181,9 @@ public class PythonPluginIntegrationTest {
         assertEquals("product-guid-test", properties.get("ProductGuid").asText());
         assertEquals("Test Client", properties.get("ClientName").asText());
         assertEquals("client-guid-test", properties.get("ClientGuid").asText());
+        assertEquals("Avenue de la Praille 45\n1227 Carouge", properties.get("ClientAddress").asText());
+        assertEquals("david.test@example.com", properties.get("ClientEmail").asText());
+        assertEquals("+41 22 123 45 67", properties.get("ClientPhone").asText());
         assertEquals("Test Organism", properties.get("OrganismName").asText());
         assertEquals("organism-guid-test", properties.get("OrganismGuid").asText());
         assertEquals(1, properties.get("Request").asInt());

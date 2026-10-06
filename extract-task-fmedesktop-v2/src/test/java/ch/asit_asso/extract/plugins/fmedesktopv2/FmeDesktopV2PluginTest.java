@@ -576,19 +576,50 @@ public class FmeDesktopV2PluginTest {
         assertNotNull(result);
         assertNotNull(result.getStatus());
 
-        // If parameters file was created, verify its structure
-        Path parametersFile = outputDir.resolve("parameters.json");
-        if (Files.exists(parametersFile)) {
-            String jsonContent = Files.readString(parametersFile);
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(jsonContent);
+        // The plugin writes the parameters next to the data to process, i.e. in the input folder
+        Path parametersFile = tempDir.resolve("parameters.json");
+        assertTrue(Files.exists(parametersFile), "parameters.json should have been created");
 
-            JsonNode properties = root.get("properties");
-            assertNotNull(properties.get("Parameters"));
-            assertEquals("shapefile", properties.get("Parameters").get("format").textValue());
-            assertEquals("EPSG:2056", properties.get("Parameters").get("projection").textValue());
-            assertEquals(100, properties.get("Parameters").get("buffer").intValue());
-        }
+        JsonNode properties = new ObjectMapper().readTree(Files.readString(parametersFile)).get("properties");
+        assertNotNull(properties.get("Parameters"));
+        assertEquals("shapefile", properties.get("Parameters").get("format").textValue());
+        assertEquals("EPSG:2056", properties.get("Parameters").get("projection").textValue());
+        assertEquals(100, properties.get("Parameters").get("buffer").intValue());
+    }
+
+    @Test
+    @DisplayName("Parameters JSON carries the client contact details")
+    public void testParametersContainClientContactDetails() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createFile(applicationFile);
+        Files.createDirectory(outputDir);
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+
+        when(mockRequest.getId()).thenReturn(334);
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+        when(mockRequest.getClient()).thenReturn("Test Client");
+        when(mockRequest.getClientAddress()).thenReturn("Avenue de la Praille 45\n1227 Carouge");
+        when(mockRequest.getClientEmail()).thenReturn("david.test@example.com");
+        when(mockRequest.getClientPhone()).thenReturn("+41 22 123 45 67");
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+        instance.execute(mockRequest, mockEmailSettings);
+
+        // The plugin writes the parameters next to the data to process, i.e. in the input folder
+        Path parametersFile = tempDir.resolve("parameters.json");
+        assertTrue(Files.exists(parametersFile), "parameters.json should have been created");
+
+        JsonNode properties = new ObjectMapper().readTree(Files.readString(parametersFile)).get("properties");
+        assertEquals("Avenue de la Praille 45\n1227 Carouge", properties.get("ClientAddress").textValue());
+        assertEquals("david.test@example.com", properties.get("ClientEmail").textValue());
+        assertEquals("+41 22 123 45 67", properties.get("ClientPhone").textValue());
     }
 
     @Test
@@ -620,16 +651,12 @@ public class FmeDesktopV2PluginTest {
         assertNotNull(result);
         assertNotNull(result.getStatus());
 
-        // If parameters file was created, verify its structure
-        Path parametersFile = outputDir.resolve("parameters.json");
-        if (Files.exists(parametersFile)) {
-            String jsonContent = Files.readString(parametersFile);
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode root = mapper.readTree(jsonContent);
+        // The plugin writes the parameters next to the data to process, i.e. in the input folder
+        Path parametersFile = tempDir.resolve("parameters.json");
+        assertTrue(Files.exists(parametersFile), "parameters.json should have been created");
 
-            JsonNode properties = root.get("properties");
-            assertNotNull(properties.get("Parameters"));
-            assertEquals(customParams, properties.get("Parameters").textValue());
-        }
+        JsonNode properties = new ObjectMapper().readTree(Files.readString(parametersFile)).get("properties");
+        assertNotNull(properties.get("Parameters"));
+        assertEquals(customParams, properties.get("Parameters").textValue());
     }
 }

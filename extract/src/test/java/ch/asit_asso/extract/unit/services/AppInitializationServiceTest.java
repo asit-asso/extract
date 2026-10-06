@@ -16,7 +16,7 @@ class AppInitializationServiceTest {
     @DisplayName("Check that it returns true when admin is present")
     void verifyThatAdminIsConfigured() {
         UsersRepository repository = Mockito.mock(UsersRepository.class);
-        when(repository.existsByProfile(User.Profile.ADMIN)).thenReturn(true);
+        when(repository.existsByProfileAndLoginNot(User.Profile.ADMIN, User.SYSTEM_USER_LOGIN)).thenReturn(true);
         AppInitializationService service = new AppInitializationService(repository);
         assertTrue(service.isConfigured());
     }
@@ -24,7 +24,7 @@ class AppInitializationServiceTest {
     @DisplayName("Check that it returns false when admin is not present")
     void verifyThatAdminIsNotConfigured() {
         UsersRepository repository = Mockito.mock(UsersRepository.class);
-        when(repository.existsByProfile(User.Profile.ADMIN)).thenReturn(false);
+        when(repository.existsByProfileAndLoginNot(User.Profile.ADMIN, User.SYSTEM_USER_LOGIN)).thenReturn(false);
         AppInitializationService service = new AppInitializationService(repository);
         assertFalse(service.isConfigured());
     }

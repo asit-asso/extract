@@ -18,7 +18,6 @@ package ch.asit_asso.extract.connectors.easysdiv4;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -398,7 +398,7 @@ public class Easysdiv4Test {
     /**
      * Builds an in-memory XML document from a string, mirroring the order XML structure returned by an
      * easySDI v4 server: a client contact address containing the address, phone and e-mail sub-elements
-     * read by {@link Easysdiv4#buildAddressDetailsFromXpath} and {@link Easysdiv4#getClientEmailFromXpath}.
+     * read by {@link Easysdiv4#buildContactDetailsFromXpath}.
      */
     private Document buildOrderDocument(final String email) throws Exception {
         return this.buildOrderDocument(email, "");
@@ -435,51 +435,38 @@ public class Easysdiv4Test {
 
 
 
-    private String invokeGetClientEmailFromXpath(final Document document) throws Exception {
-        Method method = Easysdiv4.class.getDeclaredMethod("getClientEmailFromXpath", Document.class, String.class);
-        method.setAccessible(true);
-
-        return (String) method.invoke(new Easysdiv4(), document, "//order[@guid='ORDER-1']/client/contact/address");
+    private String extractClientEmail(final Document document) {
+        return new Easysdiv4().buildContactDetailsFromXpath(document, "//order[@guid='ORDER-1']/client/contact/address")
+                .getEmail();
     }
 
 
 
     /**
-     * Test of the private getClientEmailFromXpath method, of class Easysdiv4 (issue #366).
+     * The client's e-mail address is read from the order's contact address and exposed on its own, next to the
+     * legacy free-text details (issue #366).
      */
     @Test
     @DisplayName("The client's e-mail address is extracted from the order's contact address")
-    public final void testGetClientEmailFromXpath() throws Exception {
+    public final void testClientEmailExtraction() throws Exception {
         Document document = this.buildOrderDocument("jean.dupont@example.com");
-        Easysdiv4 instance = new Easysdiv4();
 
-        Method method = Easysdiv4.class.getDeclaredMethod("getClientEmailFromXpath", Document.class, String.class);
-        method.setAccessible(true);
-        String result = (String) method.invoke(instance, document,
-                "//order[@guid='ORDER-1']/client/contact/address");
-
-        assertEquals("jean.dupont@example.com", result);
+        assertEquals("jean.dupont@example.com", this.extractClientEmail(document));
     }
 
 
 
     /**
-     * Test of the private getClientEmailFromXpath method, of class Easysdiv4, when the order has no
-     * e-mail address (issue #366).
+     * An order without an e-mail element yields no client e-mail address rather than an error (issue #366).
      */
     @Test
-    @DisplayName("A missing client e-mail address resolves to an empty string, not an error")
-    public final void testGetClientEmailFromXpathWithoutEmail() throws Exception {
+    @DisplayName("A missing client e-mail address resolves to null, not an error")
+    public final void testClientEmailExtractionWithoutEmail() throws Exception {
         Document document = this.buildOrderDocument(null);
-        Easysdiv4 instance = new Easysdiv4();
 
-        Method method = Easysdiv4.class.getDeclaredMethod("getClientEmailFromXpath", Document.class, String.class);
-        method.setAccessible(true);
-        String result = (String) method.invoke(instance, document,
-                "//order[@guid='ORDER-1']/client/contact/address");
-
-        assertEquals("", result);
+        assertNull(this.extractClientEmail(document));
     }
+
 
 
     /**
@@ -488,10 +475,10 @@ public class Easysdiv4Test {
      */
     @Test
     @DisplayName("The client's e-mail address is extracted from a fully sdi-prefixed order XML")
-    public final void testGetClientEmailFromXpathWithPrefixedElements() throws Exception {
+    public final void testClientEmailExtractionWithPrefixedElements() throws Exception {
         Document document = this.buildOrderDocument("jean.dupont@example.com", "sdi:");
 
-        assertEquals("jean.dupont@example.com", this.invokeGetClientEmailFromXpath(document));
+        assertEquals("jean.dupont@example.com", this.extractClientEmail(document));
     }
 
 
@@ -501,10 +488,10 @@ public class Easysdiv4Test {
      */
     @Test
     @DisplayName("The client's e-mail address is trimmed")
-    public final void testGetClientEmailFromXpathTrimsValue() throws Exception {
+    public final void testClientEmailExtractionTrimsValue() throws Exception {
         Document document = this.buildOrderDocument("\n  jean.dupont@example.com \n");
 
-        assertEquals("jean.dupont@example.com", this.invokeGetClientEmailFromXpath(document));
+        assertEquals("jean.dupont@example.com", this.extractClientEmail(document));
     }
 
 
@@ -514,11 +501,11 @@ public class Easysdiv4Test {
      * address, where it would later be rejected as a malformed recipient (issue #366).
      */
     @Test
-    @DisplayName("A non-address value in the e-mail element resolves to an empty string")
-    public final void testGetClientEmailFromXpathRejectsNonAddressValue() throws Exception {
+    @DisplayName("A non-address value in the e-mail element yields no client e-mail address")
+    public final void testClientEmailExtractionRejectsNonAddressValue() throws Exception {
         Document document = this.buildOrderDocument("Jean Dupont");
 
-        assertEquals("", this.invokeGetClientEmailFromXpath(document));
+        assertNull(this.extractClientEmail(document));
     }
 
 
