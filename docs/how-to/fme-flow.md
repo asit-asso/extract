@@ -41,8 +41,11 @@ Or downloading a ZIP archive with the following link : https://github.com/asit-a
     * In the last dialog, select the `Data Download` Service. 
     * Click on the edit button and under `Send HTTP Message Body to Reader`, select the GeoJSON Reader (in our case, this is the `FeatureReader` "Read_Parameters"). 
     * Under `Writers in Download`, select all available writers. Therefore, data outputted in all formats will be available in the Data Download Service response.
+	!!! info
 
-        ![data-download](../assets/how-to/fme-flow/data-download.png)
+    	The FME Flow Data Download service zip all outputted files into a single `.zip` file. By default, it uses the path set in each writers to keep the same files structure in the zip file. But you can (and should) reorganize the structure the way you want, especially if your paths contain windows backslash `\` (FME Flow will fail at zipping your files). To do so, click on the ellipsis (...) next to the "Writers in Download" field, then click on the "more" button at the next window. This will open a dialog that will let you set up the paths for each of the files within the zip file.
+
+    ![data-download](../assets/how-to/fme-flow/data-download.png)
 
 7. Once we have uploaded the workspace and the necessary data to FME Flow, we need to create an API token to authenticate the request that will be posted by Extract.
 
