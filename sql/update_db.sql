@@ -239,12 +239,12 @@ ALTER TABLE ONLY requests_users
     ADD CONSTRAINT fk_processes_users_user FOREIGN KEY (id_user)
     REFERENCES public.users(id_user);
 
--- REQUESTS_USERS Table
+-- REQUESTS_USERGROUPS Table
 
-ALTER TABLE requests_users
+ALTER TABLE requests_usergroups
     DROP CONSTRAINT IF EXISTS fk_processes_usergroups_requests;
 
-ALTER TABLE requests_users
+ALTER TABLE requests_usergroups
     DROP CONSTRAINT IF EXISTS fk_processes_usergroups_usergroup;
 
 ALTER TABLE ONLY requests_usergroups

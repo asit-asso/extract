@@ -72,6 +72,16 @@ exposed in the `parameters.json` of the FME Form V2, FME Flow V2 and Python extr
   `Tel 021 123 45 67` was recognised without any punctuation after the label, and `Telstrasse 5`
   remained an address line. A row whose e-mail had already been set by an operator was left
   untouched, and a second run of the whole block updated no row at all.
+- Backfill left all three columns `NULL` on an already updated database (reported in review). Cause:
+  the block runs at the end of `sql/update_db.sql`, and an older statement of that script was not
+  replayable: it dropped the `fk_processes_usergroups_*` constraints from `requests_users` while
+  re-creating them on `requests_usergroups`, so every run after the first one failed on
+  `ADD CONSTRAINT ... already exists`. `psql` without `ON_ERROR_STOP` (the Docker setup) carries on,
+  but a client that stops at the first error or runs the script in one transaction (pgAdmin,
+  DBeaver, `psql -v ON_ERROR_STOP=1`, `--single-transaction`) never reached the backfill. The drops
+  now target `requests_usergroups`. Verified on a schema created by Hibernate with a pre-existing
+  request: three consecutive runs with `ON_ERROR_STOP=1`, one of them in a single transaction,
+  finish with no error and fill the three columns.
 - `extract-connector-easysdiv4/pom.xml`: the `unit-tests` profile passed `${skipTests}`, whose
   module default is `true`, so this module's tests were silently skipped. It now sets `false`, like
   the other modules, which activates the 52 tests of the connector.
