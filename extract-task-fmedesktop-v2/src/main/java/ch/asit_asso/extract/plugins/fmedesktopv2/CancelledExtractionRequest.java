@@ -116,6 +116,13 @@ final class CancelledExtractionRequest implements ITaskProcessorRequest {
 
 
     @Override
+    public String getClientEmail() {
+        return this.original.getClientEmail();
+    }
+
+
+
+    @Override
     public Calendar getEndDate() {
         return this.original.getEndDate();
     }
