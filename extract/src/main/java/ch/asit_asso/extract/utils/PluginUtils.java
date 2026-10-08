@@ -98,6 +98,10 @@ public abstract class PluginUtils {
                         parameter.setStep(parameterObject.get("step").asInt());
                     }
 
+                    if (parameterObject.has("dependsOn")) {
+                        parameter.setDependsOn(parameterObject.get("dependsOn").asText());
+                    }
+
                     PluginUtils.LOGGER.debug("Adding parameter {} to the array.", parameter.getName());
                     parametersList.add(parameter);
                 }

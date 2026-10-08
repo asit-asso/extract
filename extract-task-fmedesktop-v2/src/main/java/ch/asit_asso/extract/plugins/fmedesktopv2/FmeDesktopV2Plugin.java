@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -76,6 +78,12 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
     private static final Lock LOCK = new ReentrantLock(true);
     private static final long PROCESS_TIMEOUT_SECONDS = 10;
     private static final long PROCESS_TIMEOUT_HOURS = 72;  // 3 days timeout for FME processes
+
+    /**
+     * The fixed error message that FME writes when a workspace fails because no data was found for the
+     * request.
+     */
+    private static final String NO_DATA_MARKER = "noDataForExtract";
 
     /**
      * The writer to the application logs.
@@ -175,6 +183,8 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         FmeDesktopV2Result.Status resultStatus = FmeDesktopV2Result.Status.ERROR;
         String resultMessage = "";
         String resultErrorCode = "-1";
+        ITaskProcessorRequest resultRequestData = request;
+        FmeOutputFiles outputFiles = null;
 
         try {
             if (this.inputs == null || this.inputs.isEmpty()) {
@@ -294,8 +304,15 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             }
 
             // Launch FME process with instance management
+            final boolean cancelOnNoData = Boolean.parseBoolean(this.inputs.get("cancelOnNoData"));
+            final String cancellationRemark = StringUtils.trimToNull(this.inputs.get("cancellationRemark"));
+
+            // When the FME log must be searched, it is written to files rather than read through pipes: FME writes
+            // far more than a pipe buffer holds, and reading a pipe only once the process has exited would block
+            // both sides forever.
+            outputFiles = (cancelOnNoData) ? FmeOutputFiles.create() : null;
             final Process fmeTaskProcess = this.launchFmeTaskProcess(request, workspaceParam,
-                    applicationParam, parametersFile);
+                    applicationParam, parametersFile, outputFiles);
 
             if (fmeTaskProcess == null) {
                 this.logger.warn("There wasn't enough licences to run the FME extraction. Task execution will be retried later.");
@@ -309,7 +326,24 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             int retValue = fmeTaskProcess.exitValue();
 
             if (retValue != 0) {
-                resultMessage = this.readInputStream(fmeTaskProcess.getErrorStream());
+                final String stderrContent = (outputFiles != null)
+                        ? outputFiles.readStandardError()
+                        : this.readInputStream(fmeTaskProcess.getErrorStream());
+                resultMessage = stderrContent;
+
+                if (outputFiles != null && StringUtils.isNotBlank(cancellationRemark)) {
+                    final String stdoutContent = outputFiles.readStandardOutput();
+                    final String combinedOutput = StringUtils.join(
+                            new String[] {stderrContent, stdoutContent}, System.lineSeparator());
+
+                    if (this.containsNoDataMarker(combinedOutput)) {
+                        this.logger.debug("No data was found for this request. Cancelling it gracefully.");
+                        resultStatus = FmeDesktopV2Result.Status.SUCCESS;
+                        resultErrorCode = "";
+                        resultMessage = this.messages.getString("plugin.messages.cancelled.noData");
+                        resultRequestData = new CancelledExtractionRequest(request, cancellationRemark);
+                    }
+                }
 
             } else {
                 final File dirFolderOut = new File(folderOut);
@@ -336,12 +370,18 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             final String exceptionMessage = exception.getMessage();
             this.logger.error("The FME workspace has failed", exception);
             resultMessage = String.format(this.messages.getString("plugin.errors.execution.failed"), exceptionMessage);
+
+        } finally {
+
+            if (outputFiles != null) {
+                outputFiles.delete();
+            }
         }
 
         result.setStatus(resultStatus);
         result.setErrorCode(resultErrorCode);
         result.setMessage(resultMessage);
-        result.setRequestData(request);
+        result.setRequestData(resultRequestData);
 
         return result;
     }
@@ -366,17 +406,137 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
     }
 
     /**
+     * Determines whether a text contains the fixed marker that FME uses to report that no data was found
+     * for the request.
+     *
+     * @param text the text to search, may be <code>null</code>
+     * @return <code>true</code> if the text contains the marker
+     */
+    private boolean containsNoDataMarker(final String text) {
+        return text != null
+                && java.util.regex.Pattern.compile(".*" + java.util.regex.Pattern.quote(NO_DATA_MARKER) + ".*",
+                        java.util.regex.Pattern.DOTALL).matcher(text).matches();
+    }
+
+    /**
+     * The temporary files that receive the standard output and standard error streams of an FME process.
+     * <p>
+     * Redirecting the streams to files lets FME write its whole log without ever blocking on a full pipe
+     * buffer, so the process can be waited for before its output is read.
+     */
+    static final class FmeOutputFiles {
+
+        /**
+         * The file that receives the standard output stream.
+         */
+        private final File standardOutput;
+
+        /**
+         * The file that receives the standard error stream.
+         */
+        private final File standardError;
+
+
+
+        private FmeOutputFiles(final File stdoutFile, final File stderrFile) {
+            this.standardOutput = stdoutFile;
+            this.standardError = stderrFile;
+        }
+
+
+
+        /**
+         * Creates two empty temporary files.
+         *
+         * @return the output files
+         * @throws IOException if a file could not be created
+         */
+        static FmeOutputFiles create() throws IOException {
+            final File stdoutFile = File.createTempFile("extract-fme-", "-stdout.log");
+            File stderrFile = null;
+
+            try {
+                stderrFile = File.createTempFile("extract-fme-", "-stderr.log");
+
+            } finally {
+
+                if (stderrFile == null) {
+                    FileUtils.deleteQuietly(stdoutFile);
+                }
+            }
+
+            return new FmeOutputFiles(stdoutFile, stderrFile);
+        }
+
+
+
+        /**
+         * Obtains what FME wrote to its standard output stream.
+         *
+         * @return the content of the standard output, possibly empty
+         * @throws IOException if the file could not be read
+         */
+        String readStandardOutput() throws IOException {
+            return FmeOutputFiles.readFile(this.standardOutput);
+        }
+
+
+
+        /**
+         * Obtains what FME wrote to its standard error stream.
+         *
+         * @return the content of the standard error, possibly empty
+         * @throws IOException if the file could not be read
+         */
+        String readStandardError() throws IOException {
+            return FmeOutputFiles.readFile(this.standardError);
+        }
+
+
+
+        /**
+         * Removes both files, ignoring any failure.
+         */
+        void delete() {
+            FileUtils.deleteQuietly(this.standardOutput);
+            FileUtils.deleteQuietly(this.standardError);
+        }
+
+
+
+        /**
+         * Reads a file as text. Bytes that are not valid UTF-8 (FME may log in the platform encoding) are
+         * replaced rather than reported as an error, as the content is only searched and displayed.
+         *
+         * @param file the file to read
+         * @return the content of the file, with the line separators of the current platform
+         * @throws IOException if the file could not be read
+         */
+        private static String readFile(final File file) throws IOException {
+            final String content = new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+
+            return StringUtils.join(content.split("\\r?\\n"), System.lineSeparator()).strip();
+        }
+    }
+
+
+
+    /**
      * Launches the FME task process with instance management.
      *
      * @param request           the request to process
      * @param workspacePath     the path to the FME workspace file
      * @param applicationPath   the path to the FME application executable
      * @param parametersFile    the JSON parameters file
+     * @param outputFiles       the files that must receive the standard output and error streams of FME, or
+     *                          <code>null</code> to discard the standard output and keep the standard error
+     *                          available through the process (legacy behavior, when the FME log is not needed)
      * @return the Process object, or null if not enough instances available
      * @throws IOException if an error occurs while launching the process
      */
     private Process launchFmeTaskProcess(final ITaskProcessorRequest request, final String workspacePath,
-                                          final String applicationPath, final File parametersFile) throws IOException {
+                                          final String applicationPath, final File parametersFile,
+                                          final FmeOutputFiles outputFiles) throws IOException {
 
         try {
             FmeDesktopV2Plugin.LOCK.lock();
@@ -392,14 +552,23 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
             this.logger.debug("Current working directory is {}", dirWorkspace);
             this.logger.debug("Current user is {}", System.getProperty("user.name"));
 
-            List<String> command = this.buildCommand(request, workspacePath, applicationPath, parametersFile);
+            List<String> command = this.buildCommand(request, workspacePath, applicationPath, parametersFile,
+                    outputFiles != null);
 
             this.logger.debug("Executed command line is : {}", StringUtils.join(command, " "));
 
             ProcessBuilder processBuilder = new ProcessBuilder(command);
-            fmeTaskProcess = processBuilder.directory(dirWorkspace)
-                                           .redirectOutput(ProcessBuilder.Redirect.DISCARD)
-                                           .start();
+            processBuilder.directory(dirWorkspace);
+
+            if (outputFiles == null) {
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+
+            } else {
+                processBuilder.redirectOutput(ProcessBuilder.Redirect.to(outputFiles.standardOutput));
+                processBuilder.redirectError(ProcessBuilder.Redirect.to(outputFiles.standardError));
+            }
+
+            fmeTaskProcess = processBuilder.start();
 
             try {
                 // Gives the FME process some time to start before checking the number of available instances again
@@ -431,7 +600,29 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
      */
     List<String> buildCommand(final ITaskProcessorRequest request, final String workspacePath,
                               final String applicationPath, final File parametersFile) {
-        List<String> command = new ArrayList<>(8);
+        return this.buildCommand(request, workspacePath, applicationPath, parametersFile, false);
+    }
+
+    /**
+     * Assembles the command line that launches the FME workspace for a request.
+     * <p>
+     * Every request parameter travels in the JSON parameters file. The input and output folders are repeated as
+     * command-line arguments so that the workspace can use them as user parameters before the file is read.
+     *
+     * @param request         the request to process
+     * @param workspacePath   the path to the FME workspace file
+     * @param applicationPath the path to the FME application executable
+     * @param parametersFile  the JSON parameters file
+     * @param cancelOnNoData  whether the "cancel on no data" option is enabled for this task ; when
+     *                        <code>true</code>, the <code>LOG_STANDARDOUT yes</code> argument is appended so
+     *                        that FME writes its log to the standard output/error stream, whichever the FME
+     *                        version uses
+     * @return the executable followed by its arguments, in order
+     */
+    List<String> buildCommand(final ITaskProcessorRequest request, final String workspacePath,
+                              final String applicationPath, final File parametersFile,
+                              final boolean cancelOnNoData) {
+        List<String> command = new ArrayList<>(cancelOnNoData ? 10 : 8);
         command.add(applicationPath);
         command.add(workspacePath);
         command.add("--parametersFile");
@@ -440,6 +631,11 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         command.add(request.getFolderIn());
         command.add(this.formatParameterName("paramRequestFolderOut"));
         command.add(request.getFolderOut());
+
+        if (cancelOnNoData) {
+            command.add("LOG_STANDARDOUT");
+            command.add("yes");
+        }
 
         return command;
     }
@@ -811,6 +1007,25 @@ public class FmeDesktopV2Plugin implements ITaskProcessor {
         instancesParam.put("step", 1);
         instancesParam.put("help", this.messages.getString("plugin.params.instances.help"));
         parametersNode.add(instancesParam);
+
+        // Cancel on no data option
+        ObjectNode cancelOnNoDataParam = mapper.createObjectNode();
+        cancelOnNoDataParam.put("code", "cancelOnNoData");
+        cancelOnNoDataParam.put("label", this.messages.getString("plugin.params.cancelOnNoData.label"));
+        cancelOnNoDataParam.put("type", "boolean");
+        cancelOnNoDataParam.put("help", this.messages.getString("plugin.params.cancelOnNoData.help"));
+        parametersNode.add(cancelOnNoDataParam);
+
+        // Fixed remark used when the request is cancelled because no data was found
+        ObjectNode cancellationRemarkParam = mapper.createObjectNode();
+        cancellationRemarkParam.put("code", "cancellationRemark");
+        cancellationRemarkParam.put("label", this.messages.getString("plugin.params.cancellationRemark.label"));
+        cancellationRemarkParam.put("type", "text");
+        cancellationRemarkParam.put("req", true);
+        cancellationRemarkParam.put("maxlength", 4000);
+        cancellationRemarkParam.put("dependsOn", "cancelOnNoData");
+        cancellationRemarkParam.put("help", this.messages.getString("plugin.params.cancellationRemark.help"));
+        parametersNode.add(cancellationRemarkParam);
 
         try {
             return mapper.writeValueAsString(parametersNode);

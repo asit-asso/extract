@@ -6,6 +6,8 @@ import ch.asit_asso.extract.plugins.common.ITaskProcessorRequest;
 import ch.asit_asso.extract.plugins.common.ITaskProcessorResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -39,7 +41,43 @@ class PythonPluginTest {
     private PythonPlugin plugin;
     private Map<String, String> taskSettings;
     private ObjectMapper objectMapper;
-    
+
+    private static String pythonInterpreter;
+
+    @BeforeAll
+    static void resolvePythonInterpreter() {
+        pythonInterpreter = findPythonInterpreter();
+    }
+
+    /**
+     * Looks for a usable Python 3 interpreter on the machine running the tests, so that the
+     * "no data" cancellation logic can be exercised through a real subprocess.
+     *
+     * @return the absolute path to a Python 3 interpreter, or {@code null} if none was found
+     */
+    private static String findPythonInterpreter() {
+        String[] candidates = {"/usr/bin/python3", "/usr/local/bin/python3", "/opt/homebrew/bin/python3"};
+        for (String candidate : candidates) {
+            if (new File(candidate).canExecute()) {
+                return candidate;
+            }
+        }
+
+        try {
+            Process which = new ProcessBuilder("which", "python3").start();
+            if (which.waitFor(5, java.util.concurrent.TimeUnit.SECONDS)) {
+                String path = new String(which.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8).trim();
+                if (!path.isEmpty() && new File(path).canExecute()) {
+                    return path;
+                }
+            }
+        } catch (IOException | InterruptedException ignored) {
+            // No python3 interpreter available - tests relying on it will be skipped.
+        }
+
+        return null;
+    }
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -81,6 +119,33 @@ class PythonPluginTest {
         assertTrue(params.contains("pythonInterpreter"));
         assertTrue(params.contains("pythonScript"));
         // additionalArgs parameter was removed - no longer in plugin
+    }
+
+    @Test
+    void testGetParamsIncludesCancelOnNoDataParameters() throws IOException {
+        plugin = new PythonPlugin();
+        String params = plugin.getParams();
+
+        JsonNode paramsArray = objectMapper.readTree(params);
+        boolean foundCancelOnNoData = false;
+        boolean foundCancellationRemark = false;
+
+        for (JsonNode paramNode : paramsArray) {
+            String code = paramNode.get("code").asText();
+            if ("cancelOnNoData".equals(code)) {
+                foundCancelOnNoData = true;
+                assertEquals("boolean", paramNode.get("type").asText());
+            } else if ("cancellationRemark".equals(code)) {
+                foundCancellationRemark = true;
+                assertEquals("text", paramNode.get("type").asText());
+                assertEquals(4000, paramNode.get("maxlength").asInt());
+                assertTrue(paramNode.get("req").asBoolean(), "cancellationRemark is mandatory when shown");
+                assertEquals("cancelOnNoData", paramNode.get("dependsOn").asText());
+            }
+        }
+
+        assertTrue(foundCancelOnNoData, "cancelOnNoData parameter should be declared");
+        assertTrue(foundCancellationRemark, "cancellationRemark parameter should be declared");
     }
     
     @Test
@@ -322,5 +387,94 @@ class PythonPluginTest {
         // Should only have 2 parameters
         assertNotNull(plugin);
         assertEquals(2, taskSettings.size());
+    }
+
+    /**
+     * Resolves the absolute path to one of the bundled test Python scripts.
+     *
+     * @param scriptName the file name of the script, under {@code test_scripts/}
+     * @return the absolute path to the script
+     */
+    private String resolveTestScript(String scriptName) {
+        java.net.URL resource = getClass().getClassLoader().getResource("test_scripts/" + scriptName);
+        assertNotNull(resource, "Test script not found on the classpath: " + scriptName);
+        return new File(resource.getFile()).getAbsolutePath();
+    }
+
+    @Test
+    void testExecuteCancelsGracefullyWhenNoDataMarkerFound() {
+        // 368-2: option enabled, extraction fails, output contains the marker -> graceful cancellation
+        Assumptions.assumeTrue(pythonInterpreter != null, "No Python 3 interpreter available on this machine");
+
+        taskSettings.put("pythonInterpreter", pythonInterpreter);
+        taskSettings.put("pythonScript", resolveTestScript("no_data_script.py"));
+        taskSettings.put("cancelOnNoData", "true");
+        taskSettings.put("cancellationRemark", "Aucune donnée trouvée pour cette emprise");
+        plugin = new PythonPlugin("fr", taskSettings);
+
+        ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertNotNull(result.getRequestData());
+        assertTrue(result.getRequestData().isRejected());
+        assertEquals("Aucune donnée trouvée pour cette emprise", result.getRequestData().getRemark());
+    }
+
+    @Test
+    void testExecuteKeepsErrorWhenNoDataMarkerMissing() {
+        // 368-3: option enabled, extraction fails, output does NOT contain the marker -> unchanged error
+        Assumptions.assumeTrue(pythonInterpreter != null, "No Python 3 interpreter available on this machine");
+
+        taskSettings.put("pythonInterpreter", pythonInterpreter);
+        taskSettings.put("pythonScript", resolveTestScript("error_script.py"));
+        taskSettings.put("cancelOnNoData", "true");
+        taskSettings.put("cancellationRemark", "Aucune donnée trouvée pour cette emprise");
+        plugin = new PythonPlugin("fr", taskSettings);
+
+        ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+        assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+    }
+
+    @Test
+    void testExecuteSuccessIsUnaffectedByNoDataMarker() throws IOException {
+        // 368-4: extraction succeeds even though the marker text is printed -> normal success
+        Assumptions.assumeTrue(pythonInterpreter != null, "No Python 3 interpreter available on this machine");
+
+        Path scriptPath = tempDir.resolve("success_with_marker.py");
+        Files.writeString(scriptPath,
+                "import sys\nprint('noDataForExtract is mentioned but this run succeeded')\nsys.exit(0)\n");
+
+        taskSettings.put("pythonInterpreter", pythonInterpreter);
+        taskSettings.put("pythonScript", scriptPath.toString());
+        taskSettings.put("cancelOnNoData", "true");
+        taskSettings.put("cancellationRemark", "Aucune donnée trouvée pour cette emprise");
+        plugin = new PythonPlugin("fr", taskSettings);
+
+        ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+    }
+
+    @Test
+    void testExecuteKeepsErrorWhenCancelOnNoDataDisabled() {
+        // 368-5: option disabled, extraction fails with the marker in the output -> unchanged error
+        Assumptions.assumeTrue(pythonInterpreter != null, "No Python 3 interpreter available on this machine");
+
+        taskSettings.put("pythonInterpreter", pythonInterpreter);
+        taskSettings.put("pythonScript", resolveTestScript("no_data_script.py"));
+        taskSettings.put("cancellationRemark", "Aucune donnée trouvée pour cette emprise");
+        plugin = new PythonPlugin("fr", taskSettings);
+
+        ITaskProcessorResult result = plugin.execute(mockRequest, mockEmailSettings);
+
+        assertNotNull(result);
+        assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
     }
 }

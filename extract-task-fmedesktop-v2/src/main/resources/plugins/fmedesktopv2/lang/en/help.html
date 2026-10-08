@@ -296,4 +296,15 @@
         Output files from the script should be written to the directory indicated by <code>FolderOut</code>.
         The script must return an exit code of 0 if processing was successful.
     </p>
+
+    <h4>Cancel the processing when no data is found</h4>
+    <p>
+        The "Cancel the processing when no data is found" option allows a request to end gracefully when the extraction returns no data.
+    </p>
+    <p>
+        If the option is enabled and the extraction fails (exit code ≠ 0), Extract searches for the fixed error message <code>noDataForExtract</code> in the extraction log. If it is found, the extraction is not left in error : the request is automatically cancelled and the client is notified with the remark entered in the "Fixed remark in case of cancellation" field. If it is not found, or if the option is not enabled, the extraction remains in error and manual intervention is required. Such a behaviour can be triggered by the "Terminator" transformer in FME by setting the error message "noDataForExtract".
+    </p>
+    <p>
+        <strong>WARNING</strong>: If the option is enabled and an absence of data is confirmed, any tasks that follow the extraction are not executed.
+    </p>
 </div>

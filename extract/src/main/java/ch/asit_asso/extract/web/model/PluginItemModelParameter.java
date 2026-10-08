@@ -49,6 +49,12 @@ public class PluginItemModelParameter {
     private String label;
 
     /**
+     * The name of the boolean parameter that must be enabled for this parameter to apply, or <code>null</code>
+     * if this parameter always applies.
+     */
+    private String dependsOn;
+
+    /**
      * The maximum size of the value for this parameter.
      */
     private int maxLength;
@@ -240,6 +246,17 @@ public class PluginItemModelParameter {
 
 
     /**
+     * Obtains the name of the boolean parameter that must be enabled for this parameter to apply.
+     *
+     * @return the name of the controlling parameter, or <code>null</code> if this parameter always applies
+     */
+    public final String getDependsOn() {
+        return this.dependsOn;
+    }
+
+
+
+    /**
      * Obtains the number that the value of a numeric parameter must not exceed, or <code>null</code> if
      * there is no limit.
      *
@@ -375,7 +392,9 @@ public class PluginItemModelParameter {
 
         if (!StringUtils.hasLength(updatedValue)) {
 
-            if (this.isRequired()) {
+            // A dependent parameter is only mandatory while its controlling parameter is enabled, which the form
+            // validation checks. Its value alone cannot tell whether it must be set.
+            if (this.isRequired() && (this.getDependsOn() == null || this.getDependsOn().isBlank())) {
                 throw new IllegalArgumentException("The updated data object cannot be null.");
             }
 
@@ -506,6 +525,18 @@ public class PluginItemModelParameter {
      */
     public final void setLabel(final String description) {
         this.label = description;
+    }
+
+
+
+    /**
+     * Defines the name of the boolean parameter that must be enabled for this parameter to apply.
+     *
+     * @param controllingParameterName the name of the controlling parameter, or <code>null</code> if this
+     *                                 parameter always applies
+     */
+    public final void setDependsOn(final String controllingParameterName) {
+        this.dependsOn = controllingParameterName;
     }
 
 
