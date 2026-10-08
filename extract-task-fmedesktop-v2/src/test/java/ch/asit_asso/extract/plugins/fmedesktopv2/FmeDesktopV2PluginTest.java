@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -715,6 +716,113 @@ public class FmeDesktopV2PluginTest {
         assertNotNull(result.getRequestData());
         assertTrue(result.getRequestData().isRejected());
         assertEquals("Aucune donnée trouvée pour cette commande", result.getRequestData().getRemark());
+    }
+
+    /**
+     * Writes a shell script test double that floods its standard output with far more text than a pipe buffer
+     * holds (about 1.2 MB), the way FME does when <code>LOG_STANDARDOUT yes</code> is set, before running the
+     * given tail.
+     *
+     * @param script the path where the script must be created
+     * @param tail   the commands to run once the log has been written
+     */
+    private void writeVerboseFmeScript(final Path script, final String tail) throws IOException {
+        this.writeExecutableScript(script,
+                "i=0\nwhile [ $i -lt 20000 ]; do echo \"FME log line $i: some translation details here\"; i=$((i+1)); done\n"
+                        + tail);
+    }
+
+    @Test
+    @DisplayName("368-2 regression: a verbose FME log with the no-data marker still ends and cancels the request")
+    public void testExecuteCancelsOnNoDataMarkerWithVerboseLog() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeVerboseFmeScript(applicationFile, "echo 'Error: noDataForExtract'\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = assertTimeoutPreemptively(Duration.ofSeconds(60),
+                () -> instance.execute(mockRequest, mockEmailSettings),
+                "The plugin must not wait forever for an FME process that fills its output pipe");
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertTrue(result.getRequestData().isRejected());
+        assertEquals("Aucune donnée trouvée pour cette commande", result.getRequestData().getRemark());
+    }
+
+    @Test
+    @DisplayName("368-4 regression: a verbose FME log on a successful extraction still ends with a success")
+    public void testExecuteSucceedsWithVerboseLog() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeVerboseFmeScript(applicationFile,
+                "echo 'Translation was SUCCESSFUL'\necho data > '" + outputDir.resolve("result.gpkg") + "'\nexit 0\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = assertTimeoutPreemptively(Duration.ofSeconds(60),
+                () -> instance.execute(mockRequest, mockEmailSettings),
+                "The plugin must not wait forever for an FME process that fills its output pipe");
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+    }
+
+    @Test
+    @DisplayName("368-3 regression: a verbose log on the error stream is reported as the error message")
+    public void testExecuteReportsVerboseErrorStream() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeExecutableScript(applicationFile,
+                "i=0\nwhile [ $i -lt 20000 ]; do echo \"FME log line $i: some translation details here\" 1>&2; i=$((i+1)); done\n"
+                        + "echo 'Error: the reader failed' 1>&2\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = assertTimeoutPreemptively(Duration.ofSeconds(60),
+                () -> instance.execute(mockRequest, mockEmailSettings),
+                "The plugin must not wait forever for an FME process that fills its error pipe");
+
+        assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+        assertTrue(result.getMessage().endsWith("Error: the reader failed"));
+        assertTrue(result.getMessage().contains("FME log line 19999"));
     }
 
     @Test

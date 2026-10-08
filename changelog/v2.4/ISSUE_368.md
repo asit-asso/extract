@@ -20,7 +20,7 @@ instead, using the exact same mechanism already used by the `extract-task-reject
 
 | File | Change |
 | --- | --- |
-| `extract-task-fmedesktop-v2/.../FmeDesktopV2Plugin.java` | Adds `cancelOnNoData`/`cancellationRemark` parameters (368-1). Conditionally appends `LOG_STANDARDOUT yes` to the FME command line and captures stdout (instead of discarding it) only when the option is enabled, per the issue's requirement that FME's log may land in either stream depending on version. On the existing exit-code≠0 failure path, when enabled, searches the concatenated stderr+stdout for the marker (368-2, 368-3). The success path and the disabled-option path are unchanged (368-4, 368-5). |
+| `extract-task-fmedesktop-v2/.../FmeDesktopV2Plugin.java` | Adds `cancelOnNoData`/`cancellationRemark` parameters (368-1). Conditionally appends `LOG_STANDARDOUT yes` to the FME command line only when the option is enabled, per the issue's requirement that FME's log may land in either stream depending on version. In that case both FME streams are redirected to temporary files (`FmeOutputFiles`) that are read once the process has exited and deleted afterwards; the option disabled keeps the legacy behavior (stdout discarded, stderr read from the process). On the existing exit-code≠0 failure path, when enabled, searches the concatenated stderr+stdout for the marker (368-2, 368-3). The success path and the disabled-option path are unchanged (368-4, 368-5). |
 | `extract-task-fmeserver-v2/.../FmeServerV2Plugin.java` | Adds the same two parameters. On the existing `TRANSFORMATION_FAILED` error branch (HTTP status ≠ 200/201), searches the already-extracted `.serviceResponse.statusInfo.message` text (no changes to the JSON parsing itself) for the marker before falling back to the unchanged error behavior (368-2, 368-3). The `NO_DOWNLOAD_URL` branch and the success path are untouched (368-4, 368-5). |
 | `extract-task-python/.../PythonPlugin.java` | Adds the same two parameters. `executePythonScript()` was refactored to return a small private `ScriptExecutionOutcome` record (`success`/`cancelledNoData`/`message`) instead of a bare nullable `String`, since a plain string return could not unambiguously signal "cancelled, not an error" alongside the existing null=success/non-null=error convention. On the exit-code≠0 path, checks the combined stdout+stderr and any captured traceback text for the marker before the existing exit-code-specific error formatting (368-2, 368-3). The success path and the disabled-option path are unchanged (368-4, 368-5). |
 | `CancelledExtractionRequest.java` (new, one per module: `fmedesktopv2`, `fmeserverv2`, `python` packages) | A package-private `ITaskProcessorRequest` decorator: delegates every getter to the wrapped original request except `isRejected()` (hardcoded `true`) and `getRemark()` (returns the configured cancellation remark). |
@@ -30,6 +30,23 @@ instead, using the exact same mechanism already used by the `extract-task-reject
 | `web/model/PluginItemModel.java`, `web/validators/PluginItemValidator.java` | `isParameterActive()` / `hasDependentParameters()`. The task validator skips a dependent parameter while its switch is off and enforces `req` once it is on (368-1). |
 | `templates/pages/processes/details.html`, `static/js/processDetails.js`, `static/css/extract.css` | A boolean parameter that other parameters depend on renders as the green switch of the mock-ups, label on its right, instead of the Yes/No buttons. Its dependent parameters are hidden while it is off and shown, with their mandatory marker, once it is on. The initial state is rendered by the server (adding a task reloads the page); the script only toggles visibility and the HTML `required` attribute, so a hidden mandatory field never blocks the form. Other boolean parameters keep their Yes/No buttons. |
 | Test files (all 3 modules) | New tests covering acceptance criteria 368-2 through 368-5 per plugin (see Tests below), plus `getParams()` assertions for the two new parameters (368-1). |
+
+### Review feedback (PR #452): `fme.exe` never ended once the option was enabled
+
+With the option enabled, the reviewer saw the `fme.exe` process stay alive forever on Windows, whatever the
+outcome of the extraction, until it was killed by hand. The cause was a pipe deadlock: the first version kept
+FME's standard output connected to a pipe and only read it after `Process.waitFor()`. `LOG_STANDARDOUT yes`
+makes FME write its complete log there, which is far larger than the pipe buffer (a few tens of KB), so FME
+blocked on a write that nobody was draining while the plugin blocked waiting for an exit that could not come.
+The disabled path never had the problem because standard output is discarded there.
+
+The fix removes the pipes from that path instead of adding reader threads: when the option is enabled, both
+streams are redirected to temporary files (`ProcessBuilder.Redirect.to`), FME can write as much as it wants,
+and the files are read after `waitFor()` and deleted in a `finally` block. The error message keeps coming from
+the standard error alone, as before; the marker is searched in both. `FmeDesktopV2PluginTest` gained three
+regression tests whose fake FME writes about 1.2 MB of log before exiting (cancel, success and plain-error
+cases), each guarded by `assertTimeoutPreemptively`: they time out after 60 s on the previous code and pass
+in about a second with the fix.
 
 ### Decision: reuse the Reject plugin's exact "rejected + remark" mechanism, no orchestrator changes
 
