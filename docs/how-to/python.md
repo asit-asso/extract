@@ -51,6 +51,10 @@ In the subfolder `python`, you will find a Python script example `main.py`, data
 
     Once done, all request parameters are available in the `parameters` variable as a python dictionary.
 
+    !!! warning
+
+		If you run the script with the local `parameters.json` file given. You must adapt the `FolderOut` value where exported data are saved. By default, it's a windows path : `C:\\extract\\orders\\123456\\folderout`
+
 4. Since our business data are in ``EPSG:2056``, we need to reproject the parameters file from ``EPSG:4326`` to ``EPSG:2056`` in order to use it to clip our data. We will save it as a temporary `clipper.geojson` file in FolderOut.
 
     ```python
@@ -95,7 +99,7 @@ In the subfolder `python`, you will find a Python script example `main.py`, data
         output_proj = "EPSG:2056"
     ```
 
-6. We can now run the final OGR2GR command to extract the data. The command will clip, reproject and save the data into FolderOut.
+6. We can now run the final OGR2OGR command to extract the data. The command will clip, reproject and save the data into FolderOut.
 
     ```python
     cmd = [

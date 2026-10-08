@@ -24,6 +24,10 @@ Or downloading a ZIP archive with the following link : https://github.com/asit-a
 
     Under `User Parameters`, create a new `File/Folder/URL` parameter. The identifier must be `parametersFile`. For convenience, you can allocate a default value `$(FME_MF_DIR)\parameters.json` to the parameter. Thus, when run inside FME, the default value is taken and a local GeoJSON file is used. But when run by Extract, the `parametersFile` will be overridden by the CLI argument and the GeoJSON from Extract will be used.
 
+    !!! warning
+
+		If you run the workspace with the local `parameters.json` file given. You must adapt the `FolderOut` value where exported data are saved. By default, it's a windows path : `C:\\extract\\orders\\123456\\folderout`
+
     ![user-parameter](../assets/how-to/fme-form/user-parameter.png){width="800"}
 
     !!! tip
