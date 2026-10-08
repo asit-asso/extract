@@ -70,6 +70,13 @@ Or downloading a ZIP archive with the following link : https://github.com/asit-a
 
 5. Finally, you can order the linked product on viageo, Extract will retrieve the request and run the FME workspace with all request parameters carried out in the GeoJSON parameters file.
 
+## Gracefully handle extractions that return no data
+By default, when no data is outputted from the extraction, the request in Extract fails because it cannot export data back the third-part service (e.g. viageo.ch). In the `FME Form Extraction (Version 2)` plugin, The "Cancel the processing when no data is found" option allows a request to end gracefully when the extraction returns no data. If the option is enabled, the plugin will search for the marker `noDataForExtract` in the logs outputted by FME. If the marker is found, the request is canceled and the final client is notified with the given remark (mandatory).
+
+In FME, you can use a `NoFeatureTester` transformer to test if no data is extracted and a `Terminator` transformer to terminate the process with a failing exit code and to output the `noDataForExtract` marker to the logs :
+
+![plugin](../assets/how-to/fme-form/terminator.png)
+
 <br>
 <br>
 <br>

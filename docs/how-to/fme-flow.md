@@ -77,9 +77,13 @@ Or downloading a ZIP archive with the following link : https://github.com/asit-a
 
 5. Finally, you can order the linked product on viageo, Extract will retrieve the request and run the FME workspace by calling the FME Flow Data Download Service with all request parameters carried out in API request's body.
 
-<br>
-<br>
-<br>
-<br>
+## Gracefully handle extractions that return no data
+By default, when no data is outputted from the extraction, the request in Extract fails because it cannot export data back the third-part service (e.g. viageo.ch). In the `FME Server Extraction (Version 2)` plugin, The "Cancel the processing when no data is found" option allows a request to end gracefully when the extraction returns no data. If the option is enabled, the plugin will search for the marker `noDataForExtract` in the response given by FME Flow. If the marker is found, the request is canceled and the final client is notified with the given remark (mandatory).
 
+You can adapt the FME workbench make FME Flow output the correct marker. See see [Gracefully handle extractions that return no data](../how-to/fme-form.md#gracefully-handle-extractions-that-return-no-data)
+
+<br>
+<br>
+<br>
+<br>
 <br>
