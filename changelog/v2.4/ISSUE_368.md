@@ -43,7 +43,14 @@ The disabled path never had the problem because standard output is discarded the
 The fix removes the pipes from that path instead of adding reader threads: when the option is enabled, both
 streams are redirected to temporary files (`ProcessBuilder.Redirect.to`), FME can write as much as it wants,
 and the files are read after `waitFor()` and deleted in a `finally` block. The error message keeps coming from
-the standard error alone, as before; the marker is searched in both. `FmeDesktopV2PluginTest` gained three
+the standard error alone, as before; the marker is searched in both.
+
+Operational details: the two files are created in the Java temporary directory of the Tomcat process
+(`java.io.tmpdir`, so the service account's `%TEMP%` on Windows) under the names `extract-fme-*-stdout.log` and
+`extract-fme-*-stderr.log`, exist only for the duration of one FME run, and are deleted whatever the outcome
+(success, cancellation, error or exception). Nothing is written to the request's output folder, so an empty
+extraction is still detected as such. The FME log can therefore be inspected during a run, which is also the
+place to look if `noDataForExtract` is expected but the request stays in error. `FmeDesktopV2PluginTest` gained three
 regression tests whose fake FME writes about 1.2 MB of log before exiting (cancel, success and plain-error
 cases), each guarded by `assertTimeoutPreemptively`: they time out after 60 s on the previous code and pass
 in about a second with the fix.
