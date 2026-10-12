@@ -255,7 +255,7 @@ python main.py parameters.json
 5. Finally, you can order the linked product on viageo, Extract will retrieve the request and run the FME workspace with all request parameters carried out in the GeoJSON parameters file.
 
 ## Gracefully handle extractions that return no data
-By default, when no data is outputted from the extraction, the request in Extract fails because it cannot export data back the third-part service (e.g. viageo.ch). In the `Python Extraction` plugin, The "Cancel the processing when no data is found" option allows a request to end gracefully when the extraction returns no data. If the option is enabled, the plugin will search for the marker `noDataForExtract` in the logs outputted by the Python program. If the marker is found, the request is canceled and the final client is notified with the given remark (mandatory).
+By default, when no data is outputted from the extraction, the request in Extract fails because it cannot export data back the third-part service (e.g. viageo.ch). In the `Python Extraction` plugin, The "Cancel the processing when no data is found" option allows a request to end gracefully when the extraction returns no data. If the option is enabled, the plugin will search for the marker `noDataForExtract` in the logs outputted by the Python program. If the marker is found, the request is canceled and the final client is notified with the given remark (mandatory). Any plugin after that will be skipped and any existing remark prior to that will be overridden.
 
 In Python, you can raise an Exception with the correct text to output. Here is an example testing if a `geojson` file is empty:
 
