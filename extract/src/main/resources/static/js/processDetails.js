@@ -193,6 +193,22 @@ $(function() {
     $(document).on("click",".popup-header .img-close", function() {
        $('.helplink').popover('hide');
     });
+
+    //Interrupteur d'une option dépliable : affiche les paramètres qui en dépendent et ne les rend obligatoires
+    //que lorsqu'ils sont visibles, sinon le navigateur bloquerait l'envoi du formulaire (issue #368).
+    $(document).on('change', '.parameter-switch .form-check-input', function() {
+        var $switch = $(this);
+        var isEnabled = $switch.is(':checked');
+        var $dependentRows = $switch.closest('.card-body')
+                                    .find('[data-depends-on="' + $switch.data('parameterName') + '"]');
+
+        $switch.siblings('.parameter-switch-value').val(isEnabled ? 'true' : 'false');
+        $dependentRows.toggleClass('d-none', !isEnabled);
+        $dependentRows.each(function() {
+            var isRequired = isEnabled && $(this).data('required') === true;
+            $(this).find('input:not([type=hidden]), textarea, select').prop('required', isRequired);
+        });
+    });
    
     if(readOnly == "false") {
         //Gestion du drag and drop pour reordonner les tâches d'un process

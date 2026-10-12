@@ -35,6 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -53,8 +54,8 @@ public class FmeDesktopV2PluginTest {
     private static final String LABEL_STRING_IDENTIFIER = "plugin.label";
     private static final String DESCRIPTION_STRING_IDENTIFIER = "plugin.description";
     private static final String HELP_FILE_NAME = "help.html";
-    private static final int PARAMETERS_NUMBER = 3;
-    private static final String[] VALID_PARAMETER_TYPES = new String[] {"email", "pass", "multitext", "text", "numeric"};
+    private static final int PARAMETERS_NUMBER = 5;
+    private static final String[] VALID_PARAMETER_TYPES = new String[] {"email", "pass", "multitext", "text", "numeric", "boolean"};
     
     private final Logger logger = LoggerFactory.getLogger(FmeDesktopV2PluginTest.class);
     
@@ -169,7 +170,8 @@ public class FmeDesktopV2PluginTest {
         assertNotNull(parametersArray);
         assertEquals(PARAMETERS_NUMBER, parametersArray.size());
         
-        Set<String> expectedCodes = new HashSet<>(Arrays.asList("workbench", "application", "nbInstances"));
+        Set<String> expectedCodes = new HashSet<>(Arrays.asList("workbench", "application", "nbInstances",
+                "cancelOnNoData", "cancellationRemark"));
         Set<String> foundCodes = new HashSet<>();
         
         for (int i = 0; i < parametersArray.size(); i++) {
@@ -187,14 +189,29 @@ public class FmeDesktopV2PluginTest {
             String type = param.get("type").textValue();
             assertTrue(ArrayUtils.contains(VALID_PARAMETER_TYPES, type) || "numeric".equals(type));
             
-            assertTrue(param.hasNonNull("req"));
-            assertTrue(param.get("req").isBoolean());
+            if ("cancelOnNoData".equals(code)) {
+                assertFalse(param.hasNonNull("req"));
+            } else {
+                assertTrue(param.hasNonNull("req"));
+                assertTrue(param.get("req").isBoolean());
+            }
             
             if ("nbInstances".equals(code)) {
                 assertTrue(param.hasNonNull("min"));
                 assertTrue(param.hasNonNull("max"));
                 assertEquals(1, param.get("min").intValue());
                 assertEquals(8, param.get("max").intValue());
+            }
+
+            if ("cancelOnNoData".equals(code)) {
+                assertEquals("boolean", type);
+            }
+
+            if ("cancellationRemark".equals(code)) {
+                assertEquals("text", type);
+                assertTrue(param.get("req").booleanValue());
+                assertEquals("cancelOnNoData", param.get("dependsOn").textValue());
+                assertEquals(4000, param.get("maxlength").intValue());
             }
         }
         
@@ -658,5 +675,236 @@ public class FmeDesktopV2PluginTest {
         JsonNode properties = new ObjectMapper().readTree(Files.readString(parametersFile)).get("properties");
         assertNotNull(properties.get("Parameters"));
         assertEquals(customParams, properties.get("Parameters").textValue());
+    }
+
+    /**
+     * Creates an executable shell script test double at the given path.
+     *
+     * @param script the path where the script must be created
+     * @param body   the body of the script, without the shebang line
+     * @throws IOException if the script cannot be written or made executable
+     */
+    private void writeExecutableScript(final Path script, final String body) throws IOException {
+        Files.writeString(script, "#!/bin/sh\n" + body);
+        assertTrue(script.toFile().setExecutable(true));
+    }
+
+    @Test
+    @DisplayName("368-2: option enabled, extraction fails with the no-data marker, request is cancelled")
+    public void testExecuteCancelsOnNoDataMarkerFound() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeExecutableScript(applicationFile, "echo 'Error: noDataForExtract' 1>&2\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = instance.execute(mockRequest, mockEmailSettings);
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertNotNull(result.getRequestData());
+        assertTrue(result.getRequestData().isRejected());
+        assertEquals("Aucune donnée trouvée pour cette commande", result.getRequestData().getRemark());
+    }
+
+    /**
+     * Writes a shell script test double that floods its standard output with far more text than a pipe buffer
+     * holds (about 1.2 MB), the way FME does when <code>LOG_STANDARDOUT yes</code> is set, before running the
+     * given tail.
+     *
+     * @param script the path where the script must be created
+     * @param tail   the commands to run once the log has been written
+     */
+    private void writeVerboseFmeScript(final Path script, final String tail) throws IOException {
+        this.writeExecutableScript(script,
+                "i=0\nwhile [ $i -lt 20000 ]; do echo \"FME log line $i: some translation details here\"; i=$((i+1)); done\n"
+                        + tail);
+    }
+
+    @Test
+    @DisplayName("368-2 regression: a verbose FME log with the no-data marker still ends and cancels the request")
+    public void testExecuteCancelsOnNoDataMarkerWithVerboseLog() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeVerboseFmeScript(applicationFile, "echo 'Error: noDataForExtract'\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = assertTimeoutPreemptively(Duration.ofSeconds(60),
+                () -> instance.execute(mockRequest, mockEmailSettings),
+                "The plugin must not wait forever for an FME process that fills its output pipe");
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertTrue(result.getRequestData().isRejected());
+        assertEquals("Aucune donnée trouvée pour cette commande", result.getRequestData().getRemark());
+    }
+
+    @Test
+    @DisplayName("368-4 regression: a verbose FME log on a successful extraction still ends with a success")
+    public void testExecuteSucceedsWithVerboseLog() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeVerboseFmeScript(applicationFile,
+                "echo 'Translation was SUCCESSFUL'\necho data > '" + outputDir.resolve("result.gpkg") + "'\nexit 0\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = assertTimeoutPreemptively(Duration.ofSeconds(60),
+                () -> instance.execute(mockRequest, mockEmailSettings),
+                "The plugin must not wait forever for an FME process that fills its output pipe");
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+    }
+
+    @Test
+    @DisplayName("368-3 regression: a verbose log on the error stream is reported as the error message")
+    public void testExecuteReportsVerboseErrorStream() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeExecutableScript(applicationFile,
+                "i=0\nwhile [ $i -lt 20000 ]; do echo \"FME log line $i: some translation details here\" 1>&2; i=$((i+1)); done\n"
+                        + "echo 'Error: the reader failed' 1>&2\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = assertTimeoutPreemptively(Duration.ofSeconds(60),
+                () -> instance.execute(mockRequest, mockEmailSettings),
+                "The plugin must not wait forever for an FME process that fills its error pipe");
+
+        assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+        assertTrue(result.getMessage().endsWith("Error: the reader failed"));
+        assertTrue(result.getMessage().contains("FME log line 19999"));
+    }
+
+    @Test
+    @DisplayName("368-3: option enabled, extraction fails without the no-data marker, error is unchanged")
+    public void testExecuteKeepsErrorWhenMarkerNotFound() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeExecutableScript(applicationFile, "echo 'Some other error' 1>&2\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = instance.execute(mockRequest, mockEmailSettings);
+
+        assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+    }
+
+    @Test
+    @DisplayName("368-4: option enabled, extraction succeeds, request is not affected even if the marker text appears")
+    public void testExecuteSuccessIsUnaffectedByMarkerText() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeExecutableScript(applicationFile,
+                "echo 'noDataForExtract'\n"
+                        + "touch '" + outputDir.resolve("result.txt") + "'\n"
+                        + "exit 0\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancelOnNoData", "true");
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = instance.execute(mockRequest, mockEmailSettings);
+
+        assertEquals(ITaskProcessorResult.Status.SUCCESS, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
+    }
+
+    @Test
+    @DisplayName("368-5: option disabled, extraction fails with the no-data marker, error is unchanged")
+    public void testExecuteKeepsErrorWhenOptionDisabled() throws IOException {
+        Path workspaceFile = tempDir.resolve("workspace.fmw");
+        Path applicationFile = tempDir.resolve("fme.sh");
+        Path outputDir = tempDir.resolve("output");
+        Files.createFile(workspaceFile);
+        Files.createDirectory(outputDir);
+        this.writeExecutableScript(applicationFile, "echo 'Error: noDataForExtract' 1>&2\nexit 1\n");
+
+        Map<String, String> params = new HashMap<>();
+        params.put("workbench", workspaceFile.toString());
+        params.put("application", applicationFile.toString());
+        params.put("cancellationRemark", "Aucune donnée trouvée pour cette commande");
+
+        when(mockRequest.getFolderOut()).thenReturn(outputDir.toString());
+        when(mockRequest.getFolderIn()).thenReturn(tempDir.toString());
+
+        FmeDesktopV2Plugin instance = new FmeDesktopV2Plugin(TEST_INSTANCE_LANGUAGE, params);
+
+        ITaskProcessorResult result = instance.execute(mockRequest, mockEmailSettings);
+
+        assertEquals(ITaskProcessorResult.Status.ERROR, result.getStatus());
+        assertFalse(result.getRequestData().isRejected());
     }
 }

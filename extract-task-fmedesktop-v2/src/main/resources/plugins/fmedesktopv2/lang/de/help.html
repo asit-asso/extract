@@ -296,4 +296,15 @@
         Ausgabedateien des Skripts müssen in das durch <code>FolderOut</code> angegebene Verzeichnis geschrieben werden.
         Das Skript muss einen Exit-Code von 0 zurückgeben, wenn die Verarbeitung erfolgreich war.
     </p>
+
+    <h4>Verarbeitung bei fehlenden Daten abbrechen</h4>
+    <p>
+        Die Option "Verarbeitung bei fehlenden Daten abbrechen" ermöglicht es, eine Anfrage geordnet zu beenden, wenn die Extraktion keine Daten liefert.
+    </p>
+    <p>
+        Wenn die Option aktiviert ist und die Extraktion fehlschlägt (Exit-Code ≠ 0), sucht Extract die feste Fehlermeldung <code>noDataForExtract</code> im Log der Extraktion. Wird sie gefunden, bleibt die Extraktion nicht im Fehlerzustand : die Anfrage wird automatisch abgebrochen und der Kunde wird mit der im Feld "Feste Bemerkung bei Abbruch" eingegebenen Bemerkung benachrichtigt. Wird sie nicht gefunden oder ist die Option nicht aktiviert, bleibt die Extraktion im Fehlerzustand und ein manueller Eingriff ist erforderlich. Ein solches Verhalten kann im FME durch den Transformer "Terminator" ausgelöst werden, indem die Fehlermeldung "noDataForExtract" eingegeben wird.
+    </p>
+    <p>
+        <strong>ACHTUNG</strong> : Wenn die Option aktiviert ist und ein Fehlen von Daten bestätigt wird, werden eventuell nachfolgende Aufgaben der Extraktion nicht ausgeführt.
+    </p>
 </div>

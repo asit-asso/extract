@@ -204,4 +204,11 @@ if __name__ == '__main__':
         <li>Der Python-Interpreter muss auf dem Extract-Server installiert sein</li>
         <li>Die erforderlichen Python-Abhängigkeiten müssen installiert sein</li>
     </ul>
+
+    <h4>Verarbeitung bei fehlenden Daten abbrechen</h4>
+    <p>Mit der Option "Verarbeitung bei fehlenden Daten abbrechen" kann eine Anfrage sauber beendet werden, wenn die Extraktion keine Daten liefert.</p>
+
+    <p>Wenn die Option aktiviert ist und die Extraktion fehlschlägt (Exit-Code ≠ 0), sucht Extract in den Ausgabeströmen stderr und stdout nach der festen Fehlermeldung <code>noDataForExtract</code>. Wird sie gefunden, bleibt die Extraktion nicht im Fehlerstatus: Die Anfrage wird automatisch storniert und der Kunde wird mit der im Feld "Feste Bemerkung bei Stornierung" eingegebenen Bemerkung benachrichtigt. Wird sie nicht gefunden oder ist die Option nicht aktiviert, bleibt die Extraktion im Fehlerstatus und ein manuelles Eingreifen ist erforderlich. Ein solches Verhalten kann ausgelöst werden, indem in Python eine Exception mit derselben Fehlermeldung "noDataForExtract" ausgelöst wird.</p>
+
+    <p><strong>ACHTUNG</strong>: Wenn die Option aktiviert ist und fehlende Daten bestätigt werden, werden etwaige nachfolgende Aufgaben nach der Extraktion nicht ausgeführt.</p>
 </div>
