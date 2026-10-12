@@ -1,13 +1,13 @@
 <div>
     <p>The Python extraction plugin allows you to run a custom Python script while overcoming command-line length limitations. A functional Python interpreter for the script (version, dependencies, etc.) must be provided.</p>
 
+	<p>The paths to the Python interpreter and script must not contain quotation marks (even if they contain spaces). Example of a Windows path: C:\Program Files\python312\python.exe. Example of a Linux path: /usr/bin/python3</p>
+
     <h4>Parameter Transmission Method</h4>
     <p>The command parameters are stored in a GeoJSON file named <code>parameters.json</code>, which contains a single feature — the polygon representing the request area in WGS84.
         All other parameters are stored in the feature’s properties.
         Only the path to this file is passed to the script as a positional command-line argument (the Python script must read this file and extract the desired parameters).
     </p>
-
-	<p>The paths to the Python interpreter and script must not contain quotation marks (even if they contain spaces). Example of a Windows path: C:\Program Files\python312\python.exe. Example of a Linux path: /usr/bin/python3</p>
 
     <h4>GeoJSON File Structure</h4>
     <p>The file is a GeoJSON object of type <em>Feature</em> containing:</p>

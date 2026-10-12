@@ -1,12 +1,12 @@
 <div>
     <p>Das Python-Extraktions-Plugin ermöglicht die Ausführung eines benutzerdefinierten Python-Skripts und umgeht dabei die Einschränkungen der Befehlszeilenlänge. Ein funktionsfähiger Python-Interpreter (Version, Abhängigkeiten usw.) muss für das Skript bereitgestellt werden.</p>
 
+	<p>Die Pfade zum Python-Interpreter und zum Python-Skript dürfen keine Anführungszeichen enthalten (auch wenn sie Leerzeichen enthalten). Beispiel für einen Windows-Pfad: C:\Program Files\python312\python.exe. Beispiel für einen Linux-Pfad: /usr/bin/python3</p>
+
     <h4>Übertragungsmethode der Parameter</h4>
     <p>Die Befehlsparameter werden in einer GeoJSON-Datei mit dem Namen <code>parameters.json</code> gespeichert. Diese enthält nur ein Feature – das Polygon des Auftragsgebiets in WGS84. Alle anderen Parameter befinden sich in den Eigenschaften (<em>properties</em>) des Features.
         Nur der Pfad zu dieser Datei wird dem Skript als positionsabhängiges Befehlszeilenargument übergeben (das Python-Skript muss diese Datei lesen und die gewünschten Parameter daraus extrahieren).
     </p>
-
-	<p>Die Pfade zum Python-Interpreter und zum Python-Skript dürfen keine Anführungszeichen enthalten (auch wenn sie Leerzeichen enthalten). Beispiel für einen Windows-Pfad: C:\Program Files\python312\python.exe. Beispiel für einen Linux-Pfad: /usr/bin/python3</p>
 
     <h4>Struktur der GeoJSON-Datei</h4>
     <p>Die Datei ist ein GeoJSON-Objekt des Typs <em>Feature</em> und enthält:</p>

@@ -1,12 +1,12 @@
 <div>
     <p>Le plugin d'extraction Python permet d'exécuter un script Python personnalisé en surmontant les limitations de longueur de ligne de commande. Un interpréteur Python fonctionnel pour le script (version, dépendances, ...) doit être fourni.</p>
 
+	<p>Les chemins de l'interpréteur et du script Python ne doivent pas contenir de guillemets (même s'ils comportent des espaces). Exemple d'un chemin Windows: C:\Program Files\python312\python.exe. Exemple d'un chemin Linux: /usr/bin/python3</p>
+
     <h4>Méthode de transmission des paramètres</h4>
     <p>Les paramètres de la commande sont enregistrés dans un fichier GeoJSON nommé <code>parameters.json</code>, avec pour seule feature, le polygone d’emprise de la commande en WGS84. Les autres paramètres sont contenus dans les properties de la feature.
         Seul le chemin du fichier est passé au script comme un argument positionnel de ligne de commande (le script Python doit lire ce fichier et extraire les paramètres désirés).
     </p>
-
-	<p>Les chemins de l'interpréteur et du script Python ne doivent pas contenir de guillemets (même s'ils comportent des espaces). Exemple d'un chemin Windows: C:\Program Files\python312\python.exe. Exemple d'un chemin Linux: /usr/bin/python3</p>
 
     <h4>Structure du fichier GeoJSON</h4>
     <p>Le fichier est un objet GeoJSON de type Feature contenant :</p>
