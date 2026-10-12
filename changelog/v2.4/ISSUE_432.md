@@ -50,7 +50,7 @@ which matches the reported workaround exactly.
 - Because that seed is shared by every integration and functional test, both full suites were run in
   the docker environment rather than a filtered selection. Integration: **522 tests, 0 failure**.
 - The functional suite runs against the WAR mounted into the `tomcat` container
-  (`./extract/target/extract##2.3.3.war`), so it was rebuilt and the container restarted before the
+  (`./extract/target/extract##3.0.0.war`), so it was rebuilt and the container restarted before the
   run; otherwise the result would have described a WAR predating these changes. Result:
   `178 tests, 10 failures, 35 errors, 5 skipped`, **strictly identical to the baseline** measured
   with the changes stashed, so none of them comes from this work. Those failures are environmental:

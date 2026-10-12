@@ -5,7 +5,7 @@
 
     <groupId>ch.asit_asso</groupId>
     <artifactId>extract</artifactId>
-    <version>2.3.3</version>
+    <version>3.0.0</version>
     <packaging>war</packaging>
 
     <name>extract</name>
@@ -31,7 +31,7 @@
         <dependency>
             <groupId>ch.asit_asso</groupId>
             <artifactId>extract-plugin-commoninterface</artifactId>
-            <version>2.3.3</version>
+            <version>3.0.0</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
