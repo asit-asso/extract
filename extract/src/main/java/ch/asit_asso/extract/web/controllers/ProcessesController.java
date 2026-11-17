@@ -36,6 +36,7 @@ import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import ch.asit_asso.extract.plugins.implementation.TaskProcessorDiscovererWrapper;
 import ch.asit_asso.extract.services.SecretParameters;
 import ch.asit_asso.extract.web.Message.MessageType;
+import ch.asit_asso.extract.web.editors.ScrollPositionEditor;
 import ch.asit_asso.extract.web.model.PluginItemModelParameter;
 import ch.asit_asso.extract.web.model.ProcessModel;
 import ch.asit_asso.extract.web.model.RemarkModel;
@@ -162,6 +163,7 @@ public class ProcessesController extends BaseController {
     @InitBinder("process")
     public final void initBinder(final WebDataBinder binder) {
         binder.setValidator(new ProcessValidator(new TaskValidator(new PluginItemModelParameterValidator())));
+        binder.registerCustomEditor(int.class, "htmlScrollY", new ScrollPositionEditor());
     }
 
 
