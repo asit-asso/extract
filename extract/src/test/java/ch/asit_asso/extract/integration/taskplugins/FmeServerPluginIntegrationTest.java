@@ -20,7 +20,7 @@ import ch.asit_asso.extract.plugins.TaskProcessorsDiscoverer;
 import ch.asit_asso.extract.plugins.common.ITaskProcessor;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.io.filefilter.WildcardFileFilter;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.junit.jupiter.api.*;
 
@@ -45,7 +45,11 @@ public class FmeServerPluginIntegrationTest {
     private static final String APPLICATION_LANGUAGE = "fr";
     private static final String PLUGIN_CODE = "FMESERVER";
     private static final String TASK_PLUGINS_FOLDER_PATH = "src/main/resources/task_processors";
-    private static final String PLUGIN_FILE_NAME_FILTER = "extract-task-fmeserver-2*.jar";
+    /**
+     * Matches the FME Server plugin JAR whatever its version, but not the FME Server V2 one
+     * (<code>extract-task-fmeserver-v2-*.jar</code>), as the version must follow the prefix.
+     */
+    private static final String PLUGIN_FILE_NAME_PATTERN = "^extract-task-fmeserver-\\d.*\\.jar$";
 
     private static ITaskProcessor fmeServerPlugin;
     private ObjectMapper objectMapper;
@@ -65,9 +69,7 @@ public class FmeServerPluginIntegrationTest {
         taskPluginDiscoverer.setApplicationLanguage(APPLICATION_LANGUAGE);
 
         File pluginDir = new File(Paths.get(TASK_PLUGINS_FOLDER_PATH).toAbsolutePath().toString());
-        FileFilter fileFilter = WildcardFileFilter.builder()
-                                                  .setWildcards(PLUGIN_FILE_NAME_FILTER)
-                                                  .get();
+        FileFilter fileFilter = new RegexFileFilter(PLUGIN_FILE_NAME_PATTERN);
         File[] foundPluginFiles = pluginDir.listFiles(fileFilter);
 
         if (ArrayUtils.isEmpty(foundPluginFiles)) {
