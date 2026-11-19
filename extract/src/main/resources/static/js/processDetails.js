@@ -76,8 +76,7 @@ function deleteTask(taskcard, id) {
         taskcard.fadeOut(400, function(){
             taskcard.hide();
         });
-        var href = $('#processForm').attr('action', $('#deleteTaskButton-' + id).attr('href'));
-        $("#htmlScrollY").val( $(document).scrollTop());
+        $("#htmlScrollY").val(Math.round($(document).scrollTop()));
         $('#processForm').attr('action', $('#deleteTaskButton-' + id).attr('href'));
         submitProcessData();
     };
